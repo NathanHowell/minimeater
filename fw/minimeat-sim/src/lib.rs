@@ -8,6 +8,7 @@
 #![cfg_attr(not(test), no_std)]
 
 pub mod food;
+pub mod hal;
 pub mod rng;
 
 use minimeat_core::model::airflow::AirPath;

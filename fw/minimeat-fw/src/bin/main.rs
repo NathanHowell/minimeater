@@ -12,7 +12,9 @@ use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
 use log::info;
+use minimeat_app::selftest;
 use minimeat_core::control::{Mpc, Obs, Schedule};
+use minimeat_fw::board;
 use static_cell::StaticCell;
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
@@ -26,12 +28,14 @@ esp_bootloader_esp_idf::esp_app_desc!();
 async fn main(spawner: Spawner) -> ! {
     esp_println::logger::init_logger_from_env();
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
+    let (mut io, rest) = board::init(peripherals);
 
-    let timg0 = TimerGroup::new(peripherals.TIMG0);
-    esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
+    let timg0 = TimerGroup::new(rest.timg0);
+    esp_rtos::start(timg0.timer0, rest.sw_interrupt);
     info!("minimeat-fw {} up", env!("CARGO_PKG_VERSION"));
 
     spawner.spawn(heartbeat().expect("heartbeat task"));
+    selftest::survey(&mut io).await;
 
     // Until the control loop task (.4.14) exists, run the MPC against an in-memory FOPDT egg with an
     // unmodelled -15F disturbance, so a flashed board reports the on-target solve time (budget 50 ms).

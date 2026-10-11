@@ -496,6 +496,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "embedded-hal-bus"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "513e0b3a8fb7d3013a8ae17a834283f170deaf7d0eeab0a7c1a36ad4dd356d22"
+dependencies = [
+ "critical-section",
+ "embedded-hal 1.0.0",
+ "embedded-hal-async",
+]
+
+[[package]]
 name = "embedded-io"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -775,6 +786,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ef0e785f54e316f64a1e14a7a2f061a2ea0b038b284902ca71e1e1f5574cf47"
 dependencies = [
  "document-features",
+ "embedded-storage",
  "esp-hal",
  "esp-hal-procmacros",
  "esp-metadata-generated",
@@ -1176,6 +1188,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
+name = "minimeat-app"
+version = "0.1.0"
+dependencies = [
+ "embassy-futures",
+ "embedded-hal 1.0.0",
+ "embedded-hal-async",
+ "embedded-storage-async",
+ "log",
+ "minimeat-core",
+]
+
+[[package]]
 name = "minimeat-core"
 version = "0.1.0"
 dependencies = [
@@ -1187,16 +1211,21 @@ dependencies = [
 name = "minimeat-fw"
 version = "0.1.0"
 dependencies = [
+ "embassy-embedded-hal",
  "embassy-executor",
  "embassy-time",
+ "embedded-hal-bus",
  "esp-backtrace",
  "esp-bootloader-esp-idf",
  "esp-hal",
  "esp-println",
  "esp-rtos",
+ "esp-storage",
  "libm",
  "log",
+ "minimeat-app",
  "minimeat-core",
+ "nb 1.1.0",
  "static_cell",
 ]
 
@@ -1204,7 +1233,12 @@ dependencies = [
 name = "minimeat-sim"
 version = "0.1.0"
 dependencies = [
+ "embassy-futures",
+ "embedded-hal 1.0.0",
+ "embedded-hal-async",
+ "embedded-storage-async",
  "libm",
+ "minimeat-app",
  "minimeat-core",
  "serde_json",
 ]

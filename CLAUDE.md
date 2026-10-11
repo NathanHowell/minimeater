@@ -63,7 +63,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 ```bash
 uv run pytest                          # Python models + doc example checks
 uv run minimeat-model                  # regenerate docs/modeling (also minimeat-control, minimeat-probes)
-cd fw && cargo test -p minimeat-core   # firmware core on host
+cd fw && cargo test                    # firmware core, app and sim on host
 cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-C
 ```
 
@@ -72,7 +72,9 @@ cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-
 - **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds build123d parts. There is one uv project.
 - **Firmware:** the `fw/` cargo workspace.
   - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, probe conversion and the MQTT `proto` module.
-  - `minimeat-fw` is the ESP32-C6 embassy binary.
+  - `minimeat-app` is the application, generic over the peripheral traits in `minimeat-app::hal`; it must not use esp-hal or target `cfg`s.
+  - `minimeat-sim` is the plant model; `minimeat-sim::hal` implements the traits on it for host runs.
+  - `minimeat-fw` is the ESP32-C6 embassy binary; `board.rs` is the only place that knows pins and esp-hal peripherals.
 - **Hardware:** `hw/` (KiCad).
 - **Decisions and specs:** decisions are in `docs/adr/`. The MQTT schema in `docs/protocol.md` is normative.
 

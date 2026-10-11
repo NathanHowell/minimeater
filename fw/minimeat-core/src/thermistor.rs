@@ -94,6 +94,32 @@ pub fn r_from_ratio(x: f64, r_bias: f64) -> f64 {
     r_bias * x / (1.0 - x)
 }
 
+/// What is plugged into a jack, from its divider ratio (ADR 0002 thresholds).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Jack {
+    /// Below 2e-4: a shorted probe, or an empty jack whose tip switch grounds the input.
+    Short,
+    /// Above 0.9995: no probe, or a broken one.
+    Open,
+    /// A probe, with its resistance in ohms.
+    Probe(f64),
+}
+
+impl Jack {
+    pub const SHORT_BELOW: f64 = 2e-4;
+    pub const OPEN_ABOVE: f64 = 0.9995;
+
+    pub fn classify(x: f64) -> Self {
+        if x < Self::SHORT_BELOW {
+            Jack::Short
+        } else if x > Self::OPEN_ABOVE {
+            Jack::Open
+        } else {
+            Jack::Probe(r_from_ratio(x, R_BIAS))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,5 +162,18 @@ mod tests {
             .plausible()
         );
         assert!(!Thermistor { a: 0.0, b: 0.0, c: 0.0 }.plausible());
+    }
+
+    #[test]
+    fn jack_classification_spans_every_probe_family() {
+        assert_eq!(Jack::classify(0.0), Jack::Short);
+        assert_eq!(Jack::classify(1.0), Jack::Open);
+        // every REFERENCE point (32-500F, all three families) reads as a probe
+        for (p, _, r, x) in REFERENCE {
+            let Jack::Probe(got) = Jack::classify(x) else {
+                panic!("{p:?} x={x} not a probe")
+            };
+            assert!((got / r - 1.0).abs() < 1e-9);
+        }
     }
 }

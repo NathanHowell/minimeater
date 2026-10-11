@@ -1,0 +1,17 @@
+[package]
+name         = "minimeat-app"
+description  = "minimeat application logic, generic over the peripheral traits in `hal`; runs on the ESP32-C6 and in the host twin"
+edition.workspace      = true
+rust-version.workspace = true
+version.workspace      = true
+
+[dependencies]
+minimeat-core          = { path = "../minimeat-core" }
+embassy-futures        = "0.1.2"
+embedded-hal           = "1.0.0"
+embedded-hal-async     = "1.0.0"
+embedded-storage-async = "0.4.1"
+log                    = "0.4.27"
+
+[dev-dependencies]
+minimeat-core = { path = "../minimeat-core", features = ["std"] }
