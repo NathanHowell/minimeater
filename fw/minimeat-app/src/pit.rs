@@ -184,6 +184,8 @@ pub enum Command {
     SelfCheck,
     /// Silence the LED for the alarms active now (the control task owns the alarms).
     AlarmAck,
+    /// The jack that holds the pit probe.
+    PitProbe(u8),
 }
 
 /// Why a command was rejected (`rejected` event `error`).
@@ -363,6 +365,12 @@ impl Pit {
             }
             // the control task owns the probes and alarms and answers these
             Command::SelfCheck | Command::AlarmAck => {}
+            Command::PitProbe(n) => {
+                if usize::from(n) >= PROBE_JACKS {
+                    return Err(Reject::OutOfRange);
+                }
+                self.cook.pit_probe = n;
+            }
         }
         Ok(())
     }

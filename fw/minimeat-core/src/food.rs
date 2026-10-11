@@ -58,6 +58,21 @@ pub enum Cut {
 impl Cut {
     pub const ALL: [Cut; 5] = [Cut::Other, Cut::Brisket, Cut::PorkShoulder, Cut::Ribs, Cut::Poultry];
 
+    /// Wire name (`probe/<n>/cut`, docs/protocol.md).
+    pub fn name(self) -> &'static str {
+        match self {
+            Cut::Other => "other",
+            Cut::Brisket => "brisket",
+            Cut::PorkShoulder => "pork_shoulder",
+            Cut::Ribs => "ribs",
+            Cut::Poultry => "poultry",
+        }
+    }
+
+    pub fn from_name(s: &str) -> Option<Cut> {
+        Self::ALL.into_iter().find(|c| c.name() == s)
+    }
+
     /// Default target (the probe's `hi` alarm when none is set), F.
     pub fn target_f(self) -> Option<f64> {
         match self {

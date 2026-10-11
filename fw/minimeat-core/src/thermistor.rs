@@ -79,6 +79,10 @@ impl Preset {
         }
     }
 
+    pub fn from_name(s: &str) -> Option<Preset> {
+        Self::ALL.into_iter().find(|p| p.name() == s)
+    }
+
     /// Wire name used in docs/protocol.md.
     pub fn name(self) -> &'static str {
         match self {

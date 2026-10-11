@@ -14,8 +14,9 @@
 //!
 //! The servo calibration and fan curve are defaults until the parts are chosen (`.2.9`, `.2.2`).
 
-use core::cell::Cell;
+use core::cell::{Cell, RefCell};
 
+use embassy_futures::select::{Either, select};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::Channel;
@@ -36,8 +37,9 @@ use crate::config::{ConfigStore, Cook, Mode, Settings};
 use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
 use crate::food::Foods;
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach};
-use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit};
+use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
+use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
 
 type M = CriticalSectionRawMutex;
 
@@ -46,6 +48,30 @@ const BOARD_HOT_C: (f64, f64) = (80.0, 75.0);
 /// The scanner starts a pass at least this often, ms (ADR 0002: four jacks at 0.4 s each). A pass
 /// on the real ADC takes longer, so it runs back to back there.
 const PASS_MS: u64 = 1600;
+
+/// A request and the id its reply will carry.
+#[derive(Clone, Debug)]
+pub struct Inbound {
+    pub id: u16,
+    pub req: Request,
+}
+
+#[derive(Clone, Debug)]
+pub struct Reply {
+    pub id: u16,
+    pub result: Result<(), Error>,
+}
+
+/// `autotune` in the state (docs/protocol.md).
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct AutotuneInfo {
+    /// The setpoint dither is running.
+    pub exciting: bool,
+    /// Fits taken into the model since boot.
+    pub accepted: u32,
+    /// How full the data window is, 0..1.
+    pub window: f64,
+}
 
 /// A set of [`FaultCode`]s.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -61,7 +87,7 @@ impl Faults {
     }
 
     /// Sets or clears `code`; true if that changed it.
-    fn set(&mut self, code: FaultCode, on: bool) -> bool {
+    pub fn set(&mut self, code: FaultCode, on: bool) -> bool {
         let was = self.contains(code);
         if on {
             self.0 |= Self::bit(code);
@@ -95,6 +121,7 @@ pub struct Status {
     pub fan_rpm: Option<f64>,
     /// Active faults (`faults`, docs/protocol.md): a bit per [`FaultCode`].
     pub faults: Faults,
+    pub autotune: AutotuneInfo,
     pub foods: [Option<Food>; PROBE_JACKS],
     pub ambient_c: Option<f64>,
 }
@@ -113,13 +140,22 @@ enum Done {
 
 /// Everything the tasks exchange. One static instance per board.
 pub struct Bus {
-    /// In: `~/set`, `~/cmd` (`.5.2`), or a twin scenario.
-    pub commands: Channel<M, Command, 8>,
+    /// In: `~/set` and `~/cmd` once parsed ([`crate::proto::parse`]), or a twin scenario. Each is
+    /// answered on `replies` with its id.
+    pub commands: Channel<M, Inbound, 8>,
+    /// The outcome of each request taken from `commands` (dropped if nobody reads them).
+    pub replies: Channel<M, Reply, 8>,
     /// Out: `~/event`. A full channel drops the event (control never waits on the network).
     pub events: Channel<M, Event, 16>,
     pub status: Signal<M, Status>,
     /// The scanner's latest pass, read (not consumed) by the control task.
     probes: Mutex<M, Cell<Snapshot>>,
+    /// The settings as they are now, for `~/config`; `config_changed` fires when they move.
+    config: Mutex<M, RefCell<Option<Settings>>>,
+    pub config_changed: Signal<M, ()>,
+    /// `identify` and `reboot` requests, for the LED and the board.
+    pub identify: Signal<M, ()>,
+    pub reboot: Signal<M, ()>,
     /// Hardware faults raised by any task, and the fan's last tach reading.
     faults: Mutex<M, Cell<Faults>>,
     fan_rpm: Mutex<M, Cell<Option<f64>>>,
@@ -138,8 +174,13 @@ impl Bus {
     pub const fn new() -> Self {
         Self {
             commands: Channel::new(),
+            replies: Channel::new(),
             events: Channel::new(),
             status: Signal::new(),
+            config: Mutex::new(RefCell::new(None)),
+            config_changed: Signal::new(),
+            identify: Signal::new(),
+            reboot: Signal::new(),
             probes: Mutex::new(Cell::new(Snapshot {
                 passes: 0,
                 sense: [Sense::Pending; PROBE_JACKS],
@@ -152,6 +193,21 @@ impl Bus {
             job: Signal::new(),
             done: Signal::new(),
         }
+    }
+
+    /// Queues a request for the control task; false if the queue is full.
+    pub fn send(&self, id: u16, req: Request) -> bool {
+        self.commands.try_send(Inbound { id, req }).is_ok()
+    }
+
+    /// The current settings (`None` before the control task has started).
+    pub fn config(&self) -> Option<Settings> {
+        self.config.lock(|c| c.borrow().clone())
+    }
+
+    fn publish_config(&self, settings: &Settings) {
+        self.config.lock(|c| *c.borrow_mut() = Some(settings.clone()));
+        self.config_changed.signal(());
     }
 
     /// Raises or clears a fault; the `fault` and `fault_clear` events fire on the change only.
@@ -178,6 +234,42 @@ impl Bus {
     fn emit(&self, e: Event) {
         if self.events.try_send(e).is_err() {
             warn!("events: queue full, dropped {e:?}");
+        }
+    }
+}
+
+/// Applies one request; true if it changed what `~/config` reports.
+fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Result<bool, Error> {
+    match req {
+        Request::Pit(c) => {
+            pit.command(c).map_err(|r| match r {
+                Reject::OutOfRange => Error::new(ErrorCode::OutOfRange, "out of range"),
+                Reject::NotAllowed => Error::new(ErrorCode::NotAllowed, "not allowed in this mode"),
+            })?;
+            Ok(!matches!(c, Command::Autotune | Command::AutotuneStop))
+        }
+        Request::Probe { n, change } => {
+            let p = settings
+                .probes
+                .get_mut(n)
+                .ok_or_else(|| Error::new(ErrorCode::Unknown, "no such probe"))?;
+            match change {
+                ProbeChange::Name(name) => p.name = name,
+                ProbeChange::Kind(kind) => p.kind = kind,
+                ProbeChange::Offset(o) => p.offset_f = o,
+                ProbeChange::Lo(l) => p.lo_f = l,
+                ProbeChange::Hi(h) => p.hi_f = h,
+                ProbeChange::Cut(c) => p.cut = c,
+            }
+            Ok(true)
+        }
+        Request::Identify => {
+            bus.identify.signal(());
+            Ok(false)
+        }
+        Request::Reboot => {
+            bus.reboot.signal(());
+            Ok(false)
         }
     }
 }
@@ -213,16 +305,9 @@ pub async fn control<B: Board>(
     let mut disagree = [false; PROBE_JACKS];
     let mut alarms = Alarms::default();
     let mut last_pass = 0;
+    // `~/config` goes out once at boot and again after every accepted change
+    let mut republish = true;
     loop {
-        while let Ok(c) = bus.commands.try_receive() {
-            if c == Command::SelfCheck {
-                check = true;
-            } else if c == Command::AlarmAck {
-                alarms.ack();
-            } else if let Err(r) = pit.command(c) {
-                warn!("command {c:?} rejected: {r:?}");
-            }
-        }
         let ambient_c = ambient.read_c().await.ok();
         bus.fault(FaultCode::Ambient, ambient_c.is_none());
         let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
@@ -266,6 +351,8 @@ pub async fn control<B: Board>(
         let (out, events) = pit.step(temps[jack], amb, PERIOD_S);
         bus.act.signal(out.act);
         for e in events {
+            // a learned model is part of `~/config`
+            republish |= matches!(e, Event::AutotuneDone { .. });
             bus.emit(*e);
         }
         for e in foods.step(&temps, jack, temps[jack], out.phase, &settings.probes, PERIOD_S) {
@@ -294,6 +381,10 @@ pub async fn control<B: Board>(
 
         // best effort: control never depends on the flash
         pit.persist(&mut settings);
+        if republish {
+            republish = false;
+            bus.publish_config(&settings);
+        }
         let _ = store.save(&settings).await;
 
         bus.status.signal(Status {
@@ -306,6 +397,11 @@ pub async fn control<B: Board>(
             alarm_led: alarms.unacked(),
             adc_die_c: snap.die_c,
             fan_rpm: bus.fan_rpm.lock(Cell::get),
+            autotune: AutotuneInfo {
+                exciting: pit.autotune().status().exciting,
+                accepted: pit.autotune().status().accepted,
+                window: pit.autotune().window_fill(),
+            },
             faults: {
                 let mut f = bus.faults.lock(Cell::get);
                 f.set(FaultCode::PitProbe, out.phase == Phase::Fault);
@@ -314,8 +410,55 @@ pub async fn control<B: Board>(
             foods: core::array::from_fn(|j| foods.food(j, &temps, jack)),
             ambient_c,
         });
-        tick.next().await;
+        // until the next period, requests are answered as they arrive
+        loop {
+            match select(tick.next(), bus.commands.receive()).await {
+                Either::First(()) => break,
+                Either::Second(r) => {
+                    handle::<B>(r, pit, &mut settings, &mut store, &mut alarms, &mut check, bus).await;
+                }
+            }
+        }
     }
+}
+
+/// One request: applied now, answered, and if it changed a setting then saved and republished.
+async fn handle<B: Board>(
+    Inbound { id, req }: Inbound,
+    pit: &mut Pit,
+    settings: &mut Settings,
+    store: &mut ConfigStore<B::Config>,
+    alarms: &mut Alarms,
+    check: &mut bool,
+    bus: &Bus,
+) {
+    let result = match req {
+        Request::Pit(Command::SelfCheck) => {
+            *check = true;
+            Ok(false)
+        }
+        Request::Pit(Command::AlarmAck) => {
+            alarms.ack();
+            Ok(false)
+        }
+        req => apply(req, pit, settings, bus),
+    };
+    let result = match result {
+        Ok(changed) => {
+            if changed {
+                // a setpoint set before a power cut must survive it: do not wait for the next period
+                pit.persist(settings);
+                let _ = store.save(settings).await;
+                bus.publish_config(settings);
+            }
+            Ok(())
+        }
+        Err(e) => {
+            warn!("request {id} rejected: {:?} {}", e.code, e.detail);
+            Err(e)
+        }
+    };
+    let _ = bus.replies.try_send(Reply { id, result });
 }
 
 /// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`

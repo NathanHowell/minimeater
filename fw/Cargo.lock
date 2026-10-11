@@ -1198,9 +1198,11 @@ dependencies = [
  "embedded-hal-async",
  "embedded-storage-async",
  "heapless 0.9.3",
+ "libm",
  "log",
  "minimeat-core",
  "sequential-storage",
+ "serde_json",
 ]
 
 [[package]]

@@ -92,6 +92,10 @@ pub struct Sample {
 pub struct Report {
     pub samples: Vec<Sample>,
     pub events: Vec<(f64, Event)>,
+    /// The outcome of each request sent with [`Action::Mqtt`] or [`Action::Command`]: time, id, result.
+    pub replies: Vec<(f64, u16, Result<(), minimeat_app::proto::Error>)>,
+    /// Every time the settings changed enough for `~/config` to go out again, and what they were.
+    pub configs: Vec<(f64, Settings)>,
 }
 
 static RAN: AtomicBool = AtomicBool::new(false);
@@ -142,8 +146,17 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
         loop {
             // SAFETY: one executor, polled only from this thread
             unsafe { exec.poll() };
+            let now = phys as f64 / hz as f64;
             while let Ok(e) = bus.events.try_receive() {
-                new_events.push((phys as f64 / hz as f64, e));
+                new_events.push((now, e));
+            }
+            while let Ok(r) = bus.replies.try_receive() {
+                report.replies.push((now, r.id, r.result));
+            }
+            if bus.config_changed.try_take().is_some()
+                && let Some(c) = bus.config()
+            {
+                report.configs.push((now, c));
             }
             if let Some(status) = bus.status.try_take() {
                 let w = world.borrow();

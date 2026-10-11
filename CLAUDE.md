@@ -73,8 +73,8 @@ just scenarios                         # the 17-scenario suite on the twin: boun
 
 - **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds build123d parts. There is one uv project.
 - **Firmware:** the `fw/` cargo workspace.
-  - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, probe conversion and the MQTT `proto` module.
-  - `minimeat-app` is the application, generic over the peripheral traits in `minimeat-app::hal`; it must not use esp-hal or target `cfg`s.
+  - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, the food estimator and probe conversion.
+  - `minimeat-app` is the application, generic over the peripheral traits in `minimeat-app::hal`; it must not use esp-hal or target `cfg`s. It holds the tasks, the probe and actuator drivers, alarms and the MQTT payload codec (`proto`).
   - `minimeat-sim` is the plant model; `minimeat-sim::hal` implements the traits on it for host runs.
   - `minimeat-twin` runs `minimeat-app::tasks` on a virtual-time embassy executor against `minimeat-sim::hal` (`just twin`).
   - `minimeat-fw` is the ESP32-C6 embassy binary; `board.rs` is the only place that knows pins and esp-hal peripherals.

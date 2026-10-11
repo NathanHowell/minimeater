@@ -11,5 +11,6 @@ pub mod food;
 pub mod hal;
 pub mod pit;
 pub mod probes;
+pub mod proto;
 pub mod selftest;
 pub mod tasks;

@@ -1,6 +1,6 @@
 # MQTT protocol, schema v1
 
-Normative. The implementation lives in `minimeat-core::proto`; its tests check every JSON example here (`tests/test_protocol_doc.py` checks they parse). Rationale is in [ADR 0003](adr/0003-control-protocol.md).
+Normative. The implementation lives in `minimeat-app::proto`; its tests (`fw/minimeat-app/tests/proto.rs`) check every JSON example here, and `tests/test_protocol_doc.py` checks they parse. Rationale is in [ADR 0003](adr/0003-control-protocol.md).
 
 ## Conventions
 
@@ -78,7 +78,7 @@ Error codes:
   "out": {"q": 0.82, "flap": 34.0, "fan": 0.0, "rpm": 0},
   "lid": false,
   "fire": "ok",
-  "autotune": null,
+  "autotune": {"exciting": false, "accepted": 0, "window": 0.35},
   "faults": [],
   "diag": {"rssi": -61, "board": 41.2}
 }
@@ -144,7 +144,7 @@ Error codes:
   - `low`: the controller has been at full air for 10 min and the pit is still 10F or more under setpoint. The fuel is running low, or the egg can't reach this temperature in this weather.
   - `unknown`: during light-off, a setpoint increase, or while the lid is open or recovering, when being under setpoint is expected. `out` is still reported during these.
   - `low` and `out` stay latched until the pit has been back within 5F of setpoint, below full air, for 5 min.
-- `autotune`: `{"exciting": bool, "accepted": n, "window": 0.0-1.0}`. The controller learns its model all the time from closed-loop data (`.4.4`); `exciting` is true while the `autotune` command's setpoint dither runs, `accepted` counts fits taken into `model` since boot, and `window` is how full the current 60 min data window is. Autotune never takes the pit away from the controller and has no failure state.
+- `autotune`: `null` unless `mode` is `run`, else `{"exciting": bool, "accepted": n, "window": 0.0-1.0}`. The controller learns its model all the time from closed-loop data (`.4.4`); `exciting` is true while the `autotune` command's setpoint dither runs, `accepted` counts fits taken into `model` since boot, and `window` is how full the current 60 min data window is. Autotune never takes the pit away from the controller and has no failure state.
 - `faults`: empty, or a list of codes:
 
 | Code | Meaning |

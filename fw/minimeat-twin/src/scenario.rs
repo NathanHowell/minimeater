@@ -2,7 +2,8 @@
 
 use minimeat_app::config::{Mode, Settings};
 use minimeat_app::pit::Command;
-use minimeat_app::tasks::Bus;
+use minimeat_app::proto;
+use minimeat_app::tasks::{Bus, Reply};
 use minimeat_core::food::Cut;
 use minimeat_core::model::airflow::AirPath;
 use minimeat_core::model::{Ambient, top_vent};
@@ -29,13 +30,20 @@ pub enum Action {
     },
     /// The hardware faults in force from now on (all of them: set what should stay).
     Faults(Faults),
+    /// A `~/set/...` or `~/cmd/...` message, as the MQTT client would receive it: `topic` is the
+    /// part after the base topic. It is parsed, then sent as request number `id`.
+    Mqtt {
+        id: u16,
+        topic: &'static str,
+        payload: &'static str,
+    },
 }
 
 impl Action {
     pub(crate) fn apply(self, w: &mut World, bus: &Bus) {
         match self {
             Action::Command(c) => {
-                if bus.commands.try_send(c).is_err() {
+                if !bus.send(0, c.into()) {
                     log::warn!("twin: command queue full, dropped {c:?}");
                 }
             }
@@ -44,6 +52,19 @@ impl Action {
             Action::Meat { slot, meat } => w.plant.meats[slot] = meat,
             Action::Wire { jack, wiring } => w.jacks[jack] = wiring,
             Action::Faults(f) => w.faults = f,
+            Action::Mqtt { id, topic, payload } => {
+                // a message that does not parse is answered at once, as the client would
+                match proto::parse(topic, payload.as_bytes(), false) {
+                    Ok(req) => {
+                        if !bus.send(id, req) {
+                            log::warn!("twin: request queue full, dropped {topic}");
+                        }
+                    }
+                    Err(e) => {
+                        let _ = bus.replies.try_send(Reply { id, result: Err(e) });
+                    }
+                }
+            }
         }
     }
 }

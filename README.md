@@ -18,7 +18,7 @@ The controller commands airflow with an offset-free MPC. It reports to Home Assi
 | `src/minimeat/model/` | Python plant, airflow and controller models; the reference for the firmware | uv |
 | `src/minimeat/mech/` | build123d enclosure, damper and tube coupling (`.2.x`, not started) | uv |
 | `hw/` | KiCad project, JLCPCB-assembled; every part must be in JLC stock | KiCad 9 |
-| `fw/` | Rust cargo workspace: `minimeat-core` (`no_std` control, probes and protocol), `minimeat-app` (application over peripheral traits), `minimeat-sim` (plant model and simulated board), `minimeat-twin` (the app's tasks on a virtual clock against the simulated board) and `minimeat-fw` (ESP32-C6 board bindings, embassy) | cargo, espflash |
+| `fw/` | Rust cargo workspace: `minimeat-core` (`no_std` control, food estimator and probe conversion), `minimeat-app` (application over peripheral traits, with the MQTT payload codec), `minimeat-sim` (plant model and simulated board), `minimeat-twin` (the app's tasks on a virtual clock against the simulated board) and `minimeat-fw` (ESP32-C6 board bindings, embassy) | cargo, espflash |
 | `tests/` | Python tests for the models and doc examples | `uv run pytest` |
 | `scripts/` | helpers, e.g. `uv run scripts/jlc_stock.py <part>` for a JLC stock check | uv |
 
