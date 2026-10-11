@@ -7,11 +7,13 @@
 
 pub mod autotune;
 mod ffpi;
+mod fire;
 mod lid;
 mod mpc;
 mod shaper;
 
 pub use ffpi::FfPi;
+pub use fire::{Fire, FireObs, FireWatch};
 pub use lid::{LidDetector, LidRecovery, Override, Snapshot};
 pub use mpc::Mpc;
 pub use shaper::RefShaper;
@@ -195,6 +197,15 @@ impl PitController {
         match self {
             PitController::Mpc(c) => c.track(obs, ff, q_applied, dt),
             PitController::FfPi(c) => c.track(obs, ff, q_applied, dt),
+        }
+    }
+
+    /// Reference shaping is running (light-off or a setpoint increase): the pit is expected to be
+    /// below setpoint.
+    pub fn starting(&self) -> bool {
+        match self {
+            PitController::Mpc(c) => c.shaper.armed(),
+            PitController::FfPi(c) => c.shaper.armed(),
         }
     }
 

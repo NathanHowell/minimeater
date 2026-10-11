@@ -264,4 +264,10 @@ impl Plant {
     pub fn lit(&self) -> f64 {
         self.lit
     }
+
+    /// The fire goes out (smothered, a starter that never caught, a collapsed bed): the lit area is
+    /// gone and nothing relights it; the bed's heat release decays with the fire lag.
+    pub fn extinguish(&mut self) {
+        self.lit = 0.0;
+    }
 }

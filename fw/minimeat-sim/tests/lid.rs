@@ -3,134 +3,11 @@
 //! lid is shut, and recovers about as well as if the controller had been told about the lid. Nothing
 //! else an egg does (light-off, setpoint moves, weather, food, a dying fire) opens it.
 
-use minimeat_core::control::{FfPi, Mpc, Obs, PitController, Schedule};
-use minimeat_core::model::airflow::{AirPath, AirflowMap, ModelFeedforward};
-use minimeat_core::model::{Ambient, Egg, top_vent};
-use minimeat_core::units::c_to_k;
-use minimeat_sim::{Actuators, Dynamics, Environment, Fuel, Plant, Rng, uncertainty_band};
+mod common;
 
-const DT: f64 = 10.0;
-
-#[derive(Clone, Copy, PartialEq, Debug)]
-enum Lid {
-    /// The controller is told exactly when the lid is up (the Python reference's view).
-    Oracle,
-    /// The controller has to work it out from the pit probe.
-    Detect,
-    /// No lid handling at all.
-    Ignore,
-}
-
-#[derive(Clone, Copy)]
-enum Start {
-    Cold,
-    Steady,
-}
-
-/// Scenario events at a time, s.
-#[derive(Clone, Copy)]
-enum Ev {
-    LidOpen(f64, f64),
-    Setpoint(f64, f64),
-    Ambient(f64, Ambient),
-    FoodLoad(f64, f64),
-}
-
-struct Trace {
-    t: Vec<f64>,
-    pit: Vec<f64>,
-    open: Vec<bool>,
-    sp: Vec<f64>,
-    /// The lid really is up.
-    up: Vec<bool>,
-}
-
-#[allow(clippy::too_many_arguments)]
-fn run(
-    egg: Egg,
-    mpc: bool,
-    lid: Lid,
-    sp0: f64,
-    start: Start,
-    events: &[Ev],
-    fuel: Fuel,
-    hours: f64,
-    seed: u64,
-) -> Trace {
-    let mut env = Environment {
-        ambient: Ambient::default(),
-        top_area_m2: top_vent::SLIDER_QUARTER,
-        lid_open: false,
-        food_load_w: 0.0,
-    };
-    let model = AirPath::default();
-    let map = AirflowMap::build(&model, env.ambient);
-    let ff = ModelFeedforward {
-        path: &model,
-        ambient: env.ambient,
-    };
-    let path = AirPath { egg, ..model };
-    let mut plant = match start {
-        Start::Cold => Plant::cold(path, Dynamics::default(), &env.ambient),
-        Start::Steady => Plant::steady(path, Dynamics::default(), &env.ambient, sp0, 0.0).expect("reachable"),
-    };
-    plant.fuel = fuel;
-    let mut ctrl = if mpc {
-        PitController::Mpc(Mpc::new(Schedule::default()))
-    } else {
-        PitController::FfPi(FfPi::new(Schedule::default()))
-    };
-    if lid != Lid::Detect {
-        ctrl.lid_mut().detector = None;
-    }
-    let mut rng = Rng::new(seed);
-    let mut act = Actuators::default();
-    let mut sp = sp0;
-    let mut tr = Trace {
-        t: vec![],
-        pit: vec![],
-        open: vec![],
-        sp: vec![],
-        up: vec![],
-    };
-    let steps = (hours * 3600.0 / 2.0) as usize;
-    for i in 0..steps {
-        let t = i as f64 * 2.0;
-        env.lid_open = false;
-        for e in events {
-            match *e {
-                Ev::LidOpen(at, dur) => env.lid_open |= t >= at && t < at + dur,
-                Ev::Setpoint(at, v) if t >= at => sp = v,
-                Ev::Ambient(at, a) if t >= at => env.ambient = a,
-                Ev::FoodLoad(at, w) if t >= at => env.food_load_w = w,
-                _ => {}
-            }
-        }
-        if i % 5 == 0 {
-            let pit = plant.pit_probe_f() + 0.3 * rng.normal();
-            let (q_min, q_max) = map.limits(pit);
-            let obs = Obs {
-                pit_f: pit,
-                sp_f: sp,
-                lid: lid == Lid::Oracle && env.lid_open,
-                q_min,
-                q_max,
-            };
-            let a = map.actuate(pit, ctrl.step(&obs, &ff, DT));
-            act = Actuators {
-                damper: a.damper,
-                fan: a.fan,
-            };
-            tr.t.push(t);
-            tr.pit.push(pit);
-            tr.open.push(ctrl.lid().open());
-            tr.sp.push(sp);
-            tr.up.push(env.lid_open);
-        }
-        plant.step(2.0, act, &env);
-    }
-    tr
-}
+use common::{Ev, Lid, Scenario, Trace, run};
+use minimeat_core::model::Egg;
+use minimeat_sim::{Fuel, uncertainty_band};
 
 struct Recovery {
     /// Lid up to detected, and lid shut (or detected, if later) to released, s.
@@ -177,11 +54,16 @@ fn detects_every_lid_and_recovers_like_the_oracle() {
         for (name, egg) in uncertainty_band(Egg::default()) {
             for dur in [20.0, 60.0, 120.0, 300.0] {
                 for mpc in [true, false] {
-                    let ev = [Ev::LidOpen(LID_AT, dur)];
-                    let go = |lid| {
-                        let tr = run(egg, mpc, lid, sp, Start::Steady, &ev, Fuel::default(), 2.5, 3);
-                        recovery(&tr, LID_AT, dur)
+                    let sc = Scenario {
+                        egg,
+                        mpc,
+                        sp,
+                        events: vec![Ev::LidOpen(LID_AT, dur)],
+                        hours: 2.5,
+                        seed: 3,
+                        ..Scenario::default()
                     };
+                    let go = |lid| recovery(&run(&Scenario { lid, ..sc.clone() }), LID_AT, dur);
                     let (d, o, x) = (go(Lid::Detect), go(Lid::Oracle), go(Lid::Ignore));
                     let kind = if mpc { "mpc " } else { "ffpi" };
                     println!(
@@ -196,17 +78,7 @@ fn detects_every_lid_and_recovers_like_the_oracle() {
                         o.recover_min,
                         x.recover_min
                     );
-                    let early = early_release(&run(
-                        egg,
-                        mpc,
-                        Lid::Detect,
-                        sp,
-                        Start::Steady,
-                        &ev,
-                        Fuel::default(),
-                        2.5,
-                        3,
-                    ));
+                    let early = early_release(&run(&sc));
                     assert_eq!(early, 0, "{sp} {name} {dur}: released with the lid up");
                     assert!(d.detect_s <= 30.0, "{sp} {name} {dur}: detected after {}s", d.detect_s);
                     assert!(
@@ -237,81 +109,35 @@ fn early_release(tr: &Trace) -> usize {
         .count()
 }
 
-/// Name, setpoint, start, events, fuel, hours.
-type Scenario<'a> = (&'a str, f64, Start, &'a [Ev], Fuel, f64);
-
 /// Everything else an egg does, with the detector on and the lid shut throughout.
 #[test]
 fn nothing_but_the_lid_opens_it() {
-    let h = 3600.0;
-    let cold_front = Ambient {
-        t_k: c_to_k(0.0),
-        wind_m_s: 6.0,
-    };
-    #[rustfmt::skip]
-    let scenarios: [Scenario; 8] = [
-        ("light-off 150F", 150.0, Start::Cold, &[], Fuel::default(), 3.0),
-        ("light-off 325F", 325.0, Start::Cold, &[], Fuel::default(), 3.0),
-        (
-            "setpoint 325->150F",
-            325.0,
-            Start::Steady,
-            &[Ev::Setpoint(0.5 * h, 150.0)],
-            Fuel::default(),
-            4.0,
-        ),
-        (
-            "setpoint 225->325->225F",
-            225.0,
-            Start::Steady,
-            &[Ev::Setpoint(0.5 * h, 325.0), Ev::Setpoint(2.0 * h, 225.0)],
-            Fuel::default(),
-            4.0,
-        ),
-        (
-            "cold front 0C 6 m/s",
-            225.0,
-            Start::Steady,
-            &[Ev::Ambient(0.5 * h, cold_front)],
-            Fuel::default(),
-            3.0,
-        ),
-        (
-            "cold front at 150F",
-            150.0,
-            Start::Steady,
-            &[Ev::Ambient(0.5 * h, cold_front)],
-            Fuel::default(),
-            3.0,
-        ),
-        (
-            "food load 400 W",
-            225.0,
-            Start::Steady,
-            &[Ev::FoodLoad(0.5 * h, 400.0)],
-            Fuel::default(),
-            3.0,
-        ),
-        (
-            "fuel runs out (fire dies)",
-            250.0,
-            Start::Steady,
-            &[],
-            Fuel {
+    let mut scenarios = common::everyday();
+    scenarios.push((
+        "fuel runs out (fire dies)",
+        Scenario {
+            sp: 250.0,
+            fuel: Fuel {
                 kg: 0.5,
                 ..Fuel::default()
             },
-            8.0,
-        ),
-    ];
-    for (name, sp, start, ev, fuel, hours) in scenarios {
+            hours: 8.0,
+            ..Scenario::default()
+        },
+    ));
+    for (name, sc) in scenarios {
         for (band, egg) in uncertainty_band(Egg::default()) {
             for mpc in [true, false] {
                 for seed in [1, 2] {
-                    let tr = run(egg, mpc, Lid::Detect, sp, start, ev, fuel, hours, seed);
+                    let tr = run(&Scenario {
+                        egg,
+                        mpc,
+                        seed,
+                        ..sc.clone()
+                    });
                     let opened = tr.open.iter().position(|&o| o);
                     let lo = tr.pit.iter().copied().fold(f64::INFINITY, f64::min);
-                    println!("{name:24} {band:9} mpc {mpc:5} seed {seed}: low {lo:5.1}F, opened {opened:?}");
+                    println!("{name:26} {band:9} mpc {mpc:5} seed {seed}: low {lo:5.1}F, opened {opened:?}");
                     assert_eq!(
                         opened,
                         None,
