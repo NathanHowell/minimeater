@@ -3,6 +3,7 @@
 //! code; this crate never touches esp-hal and has no target `cfg`s.
 #![cfg_attr(not(test), no_std)]
 
+pub mod alarms;
 pub mod config;
 pub mod drive;
 pub mod drivers;

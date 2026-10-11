@@ -1,8 +1,9 @@
 //! The probe pipeline on the twin (`.4.7`): what each jack reports, the power-up self-check against
 //! ambient, and a probe plugged in later.
 
+use minimeat_app::alarms::Limit;
 use minimeat_app::config::Mode;
-use minimeat_app::pit::Event;
+use minimeat_app::pit::{Command, Event};
 use minimeat_app::probes::{Check, ProbeSt};
 use minimeat_core::thermistor::Preset;
 use minimeat_sim::hal::Wiring;
@@ -30,6 +31,10 @@ fn jacks_report_their_state_and_the_power_up_check_flags_a_wrong_type() {
             wiring: Wiring::Pit(tw),
         },
     ));
+    // a limit the room is already over: the alarm rings from the first period, and `alarm_ack`
+    // quietens the LED but not the report
+    sc.settings.probes[0].hi_f = Some(60.0);
+    sc.actions.push((120.0, Action::Command(Command::AlarmAck)));
     let r = run(sc, &Opts { speed: None }, |_, _| {});
 
     let checks: Vec<_> = r
@@ -62,4 +67,19 @@ fn jacks_report_their_state_and_the_power_up_check_flags_a_wrong_type() {
     );
     assert!(late.temps[2].is_some_and(|t| (t - 68.0).abs() < 3.0));
     assert!(late.adc_die_c.is_some());
+
+    let rung: Vec<_> = r
+        .events
+        .iter()
+        .filter(|(_, e)| matches!(e, Event::Alarm { .. }))
+        .collect();
+    assert!(
+        matches!(rung[..], [(t, Event::Alarm { probe: 0, which: Limit::Hi, .. })] if *t < 30.0),
+        "{rung:?}"
+    );
+    assert!(at(60.0).alarm_led && at(60.0).alarms[0] == Some(Limit::Hi));
+    assert!(
+        !at(200.0).alarm_led && at(200.0).alarms[0] == Some(Limit::Hi),
+        "acknowledged, still reported"
+    );
 }

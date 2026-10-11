@@ -1,6 +1,7 @@
 //! The whole application on the twin (`.4.16.2`), flat out: a brisket cook from a cold egg. The
 //! tasks, the bus, the settings in flash and the simulated board are the ones the firmware uses.
 
+use minimeat_app::alarms::Limit;
 use minimeat_app::pit::{Event, Phase};
 use minimeat_twin::{Opts, Scenario, run};
 
@@ -59,6 +60,22 @@ fn a_brisket_cook_runs_end_to_end() {
     assert_eq!(stall.len(), 2, "one stall start and end: {stall:?}");
     let done = done.expect("the brisket finished");
     assert!((eta_at_end.unwrap() - done).abs() <= 1.0);
+    // the brisket's `hi` limit is its 203F target: one alarm, as the probe gets there
+    let alarms: Vec<_> = r
+        .events
+        .iter()
+        .filter_map(|(t, e)| match e {
+            Event::Alarm { probe, which, .. } => Some((t / h, *probe, *which)),
+            Event::AlarmClear { .. } => panic!("an alarm cleared: {e:?}"),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        matches!(alarms[..], [(t, 1, Limit::Hi)] if (t - done).abs() < 0.25),
+        "{alarms:?} for a finish at {done:.2} h"
+    );
+    assert_eq!(r.samples.last().unwrap().status.alarms[1], Some(Limit::Hi));
+    assert!(r.samples.last().unwrap().status.alarm_led);
     assert_eq!(
         count(|e| matches!(e, Event::Fault(_) | Event::FireLow { .. } | Event::FireOut { .. })),
         0

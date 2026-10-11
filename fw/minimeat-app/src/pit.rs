@@ -25,6 +25,7 @@ use minimeat_core::model::Ambient;
 use minimeat_core::model::actuator::{flap_angle_deg, open_frac};
 use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap, ModelFeedforward};
 
+use crate::alarms::Limit;
 use crate::config::{ControllerKind, Cook, Lid, Mode, Settings};
 use crate::hal::PROBE_JACKS;
 use crate::probes::Check;
@@ -125,6 +126,17 @@ pub enum Event {
         model: Fopdt,
         accepted: u32,
     },
+    /// A probe crossed its limit, or came back inside it (`.4.12`).
+    Alarm {
+        probe: u8,
+        which: Limit,
+        t_f: f64,
+    },
+    AlarmClear {
+        probe: u8,
+        which: Limit,
+        t_f: f64,
+    },
     /// Every probe against ambient (power-up, or the `selfcheck` command).
     SelfCheck {
         results: [Check; PROBE_JACKS],
@@ -149,6 +161,8 @@ pub enum Command {
     ModelReset,
     /// Compare the probes against ambient; the control task handles it, since it owns the probes.
     SelfCheck,
+    /// Silence the LED for the alarms active now (the control task owns the alarms).
+    AlarmAck,
 }
 
 /// Why a command was rejected (`rejected` event `error`).
@@ -326,8 +340,8 @@ impl Pit {
             Command::ModelReset => {
                 *self.ctrl.schedule_mut() = Schedule::default();
             }
-            // the control task owns the probes and answers it
-            Command::SelfCheck => {}
+            // the control task owns the probes and alarms and answers these
+            Command::SelfCheck | Command::AlarmAck => {}
         }
         Ok(())
     }

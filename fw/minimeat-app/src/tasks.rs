@@ -31,6 +31,7 @@ use minimeat_core::model::actuator::{FanCycler, flap_angle_deg};
 use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap};
 use minimeat_core::units::{c_to_k, k_to_f};
 
+use crate::alarms::{Alarms, Limit};
 use crate::config::{ConfigStore, Cook, Mode, Settings};
 use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
 use crate::food::Foods;
@@ -84,6 +85,10 @@ pub struct Status {
     /// Each jack, F with offset: `None` unless the probe is `ok` or `disagree`.
     pub temps: [Option<f64>; PROBE_JACKS],
     pub probe_st: [ProbeSt; PROBE_JACKS],
+    /// Each probe's alarm (`probes[n].alarm`), latched.
+    pub alarms: [Option<Limit>; PROBE_JACKS],
+    /// An alarm is on that `alarm_ack` has not silenced: the LED shows it.
+    pub alarm_led: bool,
     /// ADC die temperature, C.
     pub adc_die_c: Option<f64>,
     /// Fan tachometer, rpm.
@@ -206,11 +211,14 @@ pub async fn control<B: Board>(
     // a cook in progress (power came back mid-cook) is not the time to question the probes
     let mut check = settings.cook.mode == Mode::Off;
     let mut disagree = [false; PROBE_JACKS];
+    let mut alarms = Alarms::default();
     let mut last_pass = 0;
     loop {
         while let Ok(c) = bus.commands.try_receive() {
             if c == Command::SelfCheck {
                 check = true;
+            } else if c == Command::AlarmAck {
+                alarms.ack();
             } else if let Err(r) = pit.command(c) {
                 warn!("command {c:?} rejected: {r:?}");
             }
@@ -247,6 +255,9 @@ pub async fn control<B: Board>(
             *d &= matches!(s, Sense::Probe(_));
         }
         let temps = readings.map(|r| r.temp_f);
+        for e in alarms.step(&temps, &settings.probes) {
+            bus.emit(e);
+        }
         let amb = Ambient {
             t_k: c_to_k(ambient_c.unwrap_or(20.0)),
             ..Ambient::default()
@@ -291,6 +302,8 @@ pub async fn control<B: Board>(
             out,
             temps,
             probe_st: readings.map(|r| r.st),
+            alarms: alarms.active(),
+            alarm_led: alarms.unacked(),
             adc_die_c: snap.die_c,
             fan_rpm: bus.fan_rpm.lock(Cell::get),
             faults: {
