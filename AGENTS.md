@@ -125,3 +125,29 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+## Build & Test
+
+```bash
+uv run pytest                          # Python models + doc example checks
+uv run minimeat-model                  # regenerate docs/modeling (also minimeat-control, minimeat-probes)
+cd fw && cargo test -p minimeat-core   # firmware core on host
+cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-C
+```
+
+## Architecture Overview
+
+- **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds build123d parts. There is one uv project.
+- **Firmware:** the `fw/` cargo workspace.
+  - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, probe conversion and the MQTT `proto` module.
+  - `minimeat-fw` is the ESP32-C6 embassy binary.
+- **Hardware:** `hw/` (KiCad).
+- **Decisions and specs:** decisions are in `docs/adr/`. The MQTT schema in `docs/protocol.md` is normative.
+
+## Conventions & Patterns
+
+- Always use uv for Python (`uv run ...`), never bare `python3`.
+- Temperatures are °F throughout: docs, models and the MQTT wire. Airflow is CFM.
+- PCB parts must be in JLCPCB stock (5-board build). Prefer the higher-quality part unless the price gap is huge.
+- Generated docs (`docs/modeling/*.md` except README) are rewritten by their `uv run minimeat-*` script; don't edit them by hand.
+- Commit and push directly to master after each bead, and run `bd dolt push`. No co-authored-by lines.

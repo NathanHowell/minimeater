@@ -1,7 +1,7 @@
 [project]
 name = "minimeat"
 version = "0.1.0"
-description = "Add your description here"
+description = "BGE Large BBQ controller: models, mechanical CAD and tooling"
 readme = "README.md"
 authors = [
     { name = "Nathan Howell", email = "nathan.d.howell@gmail.com" }

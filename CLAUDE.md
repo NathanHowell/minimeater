@@ -60,18 +60,26 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 ## Build & Test
 
-_Add your build and test commands here_
-
 ```bash
-# Example:
-# npm install
-# npm test
+uv run pytest                          # Python models + doc example checks
+uv run minimeat-model                  # regenerate docs/modeling (also minimeat-control, minimeat-probes)
+cd fw && cargo test -p minimeat-core   # firmware core on host
+cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-C
 ```
 
 ## Architecture Overview
 
-_Add a brief overview of your project architecture_
+- **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds build123d parts. There is one uv project.
+- **Firmware:** the `fw/` cargo workspace.
+  - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, probe conversion and the MQTT `proto` module.
+  - `minimeat-fw` is the ESP32-C6 embassy binary.
+- **Hardware:** `hw/` (KiCad).
+- **Decisions and specs:** decisions are in `docs/adr/`. The MQTT schema in `docs/protocol.md` is normative.
 
 ## Conventions & Patterns
 
-_Add your project-specific conventions here_
+- Always use uv for Python (`uv run ...`), never bare `python3`.
+- Temperatures are °F throughout: docs, models and the MQTT wire. Airflow is CFM.
+- PCB parts must be in JLCPCB stock (5-board build). Prefer the higher-quality part unless the price gap is huge.
+- Generated docs (`docs/modeling/*.md` except README) are rewritten by their `uv run minimeat-*` script; don't edit them by hand.
+- Commit and push directly to master after each bead, and run `bd dolt push`. No co-authored-by lines.
