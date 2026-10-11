@@ -1,0 +1,24 @@
+[package]
+name         = "minimeat-fw"
+description  = "minimeat firmware for the ESP32-C6-WROOM-1-N8 (embassy on esp-rtos)"
+edition.workspace      = true
+rust-version.workspace = true
+version.workspace      = true
+
+[[bin]]
+name = "minimeat-fw"
+path = "src/bin/main.rs"
+test  = false
+bench = false
+
+[dependencies]
+minimeat-core = { path = "../minimeat-core" }
+
+esp-hal                = { version = "~1.2.2", features = ["esp32c6", "log-04", "unstable"] }
+esp-rtos               = { version = "0.4.0", features = ["embassy", "esp32c6", "log-04"] }
+esp-bootloader-esp-idf = { version = "0.6.0", features = ["esp32c6", "log-04"] }
+esp-backtrace          = { version = "0.20.0", features = ["esp32c6", "panic-handler", "println"] }
+esp-println            = { version = "0.18.0", features = ["esp32c6", "log-04"] }
+embassy-executor       = { version = "0.10.0", features = ["log"] }
+embassy-time           = { version = "0.5.0", features = ["log"] }
+log                    = "0.4.27"

@@ -1,0 +1,20 @@
+[workspace]
+resolver        = "3"
+members         = ["minimeat-core", "minimeat-fw"]
+# A bare `cargo build/test` from fw/ builds for the host; the firmware needs the RISC-V target (see .cargo/config.toml).
+default-members = ["minimeat-core"]
+
+[workspace.package]
+edition      = "2024"
+rust-version = "1.95"
+version      = "0.1.0"
+
+[profile.dev]
+# The default debug profile is too slow and too big for the ESP32-C6.
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = "fat"
+opt-level     = "s"

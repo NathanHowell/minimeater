@@ -192,7 +192,7 @@ The current value of every setting. It is the same set the device stores in flas
 | `manual_fan` | number | 0-100 | takes effect only in `manual` mode |
 | `probe/<n>/name` | text | 1-24 UTF-8 bytes | republishes discovery |
 | `probe/<n>/type` | `thermoworks_pro` \| `maverick_et732` \| `generic_b3950` \| `custom` | | presets from `probes.py` |
-| `probe/<n>/coeffs` | `{"a":..,"b":..,"c":..}` | the curve must be monotonic and give 50 Ω-50 MΩ over -20 to 700F | Steinhart-Hart. Setting it switches `type` to `custom` |
+| `probe/<n>/coeffs` | `{"a":..,"b":..,"c":..}` | the curve must be monotonic and give 20 Ω-50 MΩ over -20 to 700F | Steinhart-Hart. Setting it switches `type` to `custom` |
 | `probe/<n>/offset` | number | ±10 | °F, added after conversion |
 | `probe/<n>/lo`, `probe/<n>/hi` | number, or `0`/`off` to disable | 0-700 | 5F hysteresis |
 
