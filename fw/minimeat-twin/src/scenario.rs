@@ -7,7 +7,7 @@ use minimeat_core::food::Cut;
 use minimeat_core::model::airflow::AirPath;
 use minimeat_core::model::{Ambient, top_vent};
 use minimeat_core::thermistor::Preset;
-use minimeat_sim::hal::{Wiring, World};
+use minimeat_sim::hal::{Faults, Wiring, World};
 use minimeat_sim::{Dynamics, Environment, Meat, Plant};
 
 /// Something that happens to the egg or the board, or something the user does.
@@ -26,8 +26,8 @@ pub enum Action {
         jack: usize,
         wiring: Wiring,
     },
-    /// The fan rotor jams (or is freed).
-    FanJam(bool),
+    /// The hardware faults in force from now on (all of them: set what should stay).
+    Faults(Faults),
 }
 
 impl Action {
@@ -42,7 +42,7 @@ impl Action {
             Action::Weather(a) => w.env.ambient = a,
             Action::Meat { slot, meat } => w.plant.meats[slot] = meat,
             Action::Wire { jack, wiring } => w.jacks[jack] = wiring,
-            Action::FanJam(jammed) => w.fan_jammed = jammed,
+            Action::Faults(f) => w.faults = f,
         }
     }
 }
@@ -61,11 +61,12 @@ pub struct Scenario {
 }
 
 impl Scenario {
-    pub const NAMES: [&'static str; 1] = ["kamado-brisket"];
+    pub const NAMES: [&'static str; 2] = ["kamado-brisket", "kamado-hold"];
 
     pub fn named(name: &str) -> Option<Self> {
         match name {
             "kamado-brisket" => Some(Self::kamado_brisket()),
+            "kamado-hold" => Some(Self::kamado_hold(6.0)),
             _ => None,
         }
     }
@@ -112,6 +113,16 @@ impl Scenario {
             actions,
             hours: 18.0,
         }
+    }
+
+    /// A cold egg lit off to 250F and left to hold, with nothing on the grate: the base for the
+    /// fault scenarios (`.4.16.4`), which add their faults to `actions`.
+    pub fn kamado_hold(hours: f64) -> Self {
+        let mut sc = Self::kamado_brisket();
+        sc.name = "kamado-hold";
+        sc.hours = hours;
+        sc.actions.retain(|(t, a)| *t == 0.0 && matches!(a, Action::Command(_)));
+        sc
     }
 
     pub(crate) fn world(&self) -> World {

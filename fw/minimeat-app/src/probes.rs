@@ -2,7 +2,7 @@
 //! filtering, what each jack holds, and the conversion to temperature.
 //!
 //! - [`Scanner`] runs continuously (the `probes` task in [`crate::tasks`]). One pass averages
-//!   [`AVG`] conversions on each jack (a trimmed mean, so one glitched conversion does not count),
+//!   [`AVG`] conversions on each jack (the mean of the middle half, so a spike or two does not count),
 //!   then reads the ADC's offset and die temperature. The result per jack is a [`Sense`]: nothing
 //!   plugged in, a short, a filtered divider ratio, or an ADC that is not answering.
 //! - [`reading`] turns a [`Sense`] into a temperature and a wire status with the probe's own
@@ -17,9 +17,10 @@ use minimeat_core::units::k_to_f;
 use crate::config::Probe;
 use crate::hal::{PROBE_JACKS, ProbeAdc};
 
-/// Conversions averaged per jack per pass (ADR 0002: 8 at 20 SPS is 0.4 s per jack).
+/// Conversions averaged per jack per pass (ADR 0002: 8 at 20 SPS is 0.4 s per jack). The average is
+/// of the middle half, so a spike or two does not count.
 pub const AVG: usize = 8;
-/// Weight of a new pass in the filtered ratio. A pass comes about every 2.5 s, so this is a time
+/// Weight of a new pass (its median with the two before) in the filtered ratio. A pass comes about every 2.5 s, so this is a time
 /// constant of about 2.5 s, well inside a probe's own lag.
 const ALPHA: f64 = 0.5;
 /// A jack whose conversions all fail keeps its last reading for this many passes before it reports
@@ -63,6 +64,9 @@ pub struct Snapshot {
 struct Chan {
     sense: Sense,
     misses: u8,
+    /// The last two passes' means while a probe is in, newest first, for the median across passes.
+    recent: [f64; 2],
+    seen: usize,
 }
 
 /// Round robin over the jacks. Call [`Scanner::pass`] in a loop.
@@ -100,7 +104,7 @@ impl<A: ProbeAdc> Scanner<A> {
         self.snap
     }
 
-    /// Trimmed mean of [`AVG`] conversions; `None` if none succeeded.
+    /// Interquartile mean of [`AVG`] conversions; `None` if none succeeded.
     async fn average(&mut self, jack: usize) -> Option<f64> {
         let mut xs = [0.0; AVG];
         let mut n = 0;
@@ -116,13 +120,21 @@ impl<A: ProbeAdc> Scanner<A> {
     }
 }
 
-/// Mean without the lowest and highest value once there are enough to spare them.
+fn median3(a: f64, b: f64, c: f64) -> f64 {
+    a.max(b).min(a.min(b).max(c))
+}
+
+/// Interquartile mean: the mean of the middle half, so up to a quarter of the conversions can be
+/// garbage on either side without moving it. The median when there are three or fewer.
 fn trimmed_mean(xs: &mut [f64]) -> Option<f64> {
     if xs.is_empty() {
         return None;
     }
     xs.sort_unstable_by(f64::total_cmp);
-    let keep = if xs.len() >= 5 { &xs[1..xs.len() - 1] } else { &xs[..] };
+    let keep = match xs.len() {
+        1..=3 => &xs[(xs.len() - 1) / 2..xs.len() / 2 + 1],
+        n => &xs[n / 4..n - n / 4],
+    };
     Some(keep.iter().sum::<f64>() / keep.len() as f64)
 }
 
@@ -139,10 +151,24 @@ impl Chan {
         self.sense = match Jack::classify(x) {
             Jack::Short => Sense::Short,
             Jack::Open => Sense::Open,
-            Jack::Probe(_) => match self.sense {
-                Sense::Probe(prev) => Sense::Probe(prev + ALPHA * (x - prev)),
-                _ => Sense::Probe(x),
-            },
+            Jack::Probe(_) => {
+                if !matches!(self.sense, Sense::Probe(_)) {
+                    self.seen = 0;
+                }
+                // a pass that is wrong on its own (three spikes in eight conversions) is outvoted by
+                // its neighbours; a real change takes effect one pass later
+                let m = if self.seen >= 2 {
+                    median3(x, self.recent[0], self.recent[1])
+                } else {
+                    x
+                };
+                self.recent = [x, self.recent[0]];
+                self.seen += 1;
+                match self.sense {
+                    Sense::Probe(prev) => Sense::Probe(prev + ALPHA * (m - prev)),
+                    _ => Sense::Probe(m),
+                }
+            }
         };
     }
 }
@@ -332,15 +358,34 @@ mod tests {
     }
 
     #[test]
-    fn a_glitched_conversion_is_trimmed() {
+    fn glitched_conversions_are_trimmed() {
         let x = ratio_at(Preset::ThermoworksPro, 225.0);
         let s = Script::new([x; 4]);
-        for v in [x, x, 0.9, x, x, x, x] {
+        // two spikes the same way: one would be trimmed by dropping the extremes, two are not
+        for v in [x, 0.9, 0.95, x, x, x, x] {
             s.push(0, Ok(v));
         }
         let sense = block_on(Scanner::new(&s).pass()).sense[0];
         let t = reading(sense, &probe(Preset::ThermoworksPro), false).temp_f.unwrap();
         assert!((t - 225.0).abs() < 0.01, "{t}");
+    }
+
+    #[test]
+    fn a_pass_that_is_wrong_on_its_own_is_outvoted() {
+        let x = ratio_at(Preset::ThermoworksPro, 225.0);
+        let s = Script::new([x; 4]);
+        let mut sc = Scanner::new(&s);
+        for _ in 0..3 {
+            block_on(sc.pass());
+        }
+        // half the conversions of one pass are garbage: the interquartile mean cannot hold, the
+        // median across passes does
+        s.q.borrow_mut()[0] = VecDeque::from([Ok(x), Ok(0.9), Ok(0.9), Ok(0.9), Ok(0.9), Ok(x), Ok(x), Ok(x), Ok(x)]);
+        let t = |sense| reading(sense, &probe(Preset::ThermoworksPro), false).temp_f.unwrap();
+        let bad = t(block_on(sc.pass()).sense[0]);
+        assert!((bad - 225.0).abs() < 0.01, "{bad}");
+        s.q.borrow_mut()[0] = VecDeque::from([Ok(x)]);
+        assert!((t(block_on(sc.pass()).sense[0]) - 225.0).abs() < 0.01);
     }
 
     #[test]

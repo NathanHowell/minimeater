@@ -19,7 +19,7 @@ use minimeat_app::hal::{AmbientSensor, Board, HalError, Io, PROBE_JACKS, ProbeAd
 use minimeat_core::thermistor::{R_BIAS, Thermistor};
 use minimeat_core::units::f_to_k;
 
-use crate::{Actuators, Environment, Plant};
+use crate::{Actuators, Environment, Plant, Rng};
 
 /// What is plugged into a jack.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -50,6 +50,26 @@ impl Default for ServoMech {
     }
 }
 
+/// Injected hardware faults (`.4.16.4`): a scenario sets the whole state at once, and the sim
+/// peripherals misbehave accordingly.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Faults {
+    /// Every ADC conversion times out (the chip is dead or unplugged).
+    pub adc_down: bool,
+    /// Additive noise on every probe conversion, rms in divider ratio (about 1.4e-3 per F at 225F).
+    pub adc_noise: f64,
+    /// Probability that a conversion returns garbage anywhere in 0..1 (an EMI spike).
+    pub adc_glitch: f64,
+    /// The fan rotor is jammed: it does not turn whatever the duty.
+    pub fan_jam: bool,
+    /// The servo ignores its pulse: the flap stays where it is.
+    pub servo_stuck: bool,
+    /// The ambient sensor NACKs.
+    pub ambient_nack: bool,
+    /// Flash erases and writes fail.
+    pub flash_fail: bool,
+}
+
 /// Size of the configuration region (the ESP-IDF default `nvs` partition, 0x6000).
 pub const CONFIG_BYTES: usize = 0x6000;
 
@@ -65,8 +85,8 @@ pub struct World {
     servo_pulse_us: u16,
     /// Fan PWM duty, 0..1. The fan runs at speed = duty and stalls below its minimum speed. [est]
     pub fan_duty: f64,
-    /// Fault injection: the rotor is jammed, so the fan does not turn whatever the duty.
-    pub fan_jammed: bool,
+    pub faults: Faults,
+    rng: Rng,
     pub led: bool,
     button_pressed: bool,
     button_waker: Option<Waker>,
@@ -91,7 +111,8 @@ impl World {
             servo_powered: false,
             servo_pulse_us: 0,
             fan_duty: 0.0,
-            fan_jammed: false,
+            faults: Faults::default(),
+            rng: Rng::new(0x5EED),
             led: false,
             button_pressed: false,
             button_waker: None,
@@ -111,7 +132,7 @@ impl World {
     /// Fan speed fraction actually reached.
     pub fn fan_speed(&self) -> f64 {
         let s = self.fan_duty.clamp(0.0, 1.0);
-        if self.fan_jammed || s < self.plant.path.fan.s_min() {
+        if self.faults.fan_jam || s < self.plant.path.fan.s_min() {
             0.0
         } else {
             s
@@ -200,21 +221,45 @@ pub fn io(world: Shared<'_>) -> Io<SimBoard<'_>> {
 
 impl ProbeAdc for SimProbes<'_> {
     async fn ratio(&mut self, jack: usize) -> Result<f64, HalError> {
-        Ok(self.0.borrow().jack_ratio(jack))
+        let mut w = self.0.borrow_mut();
+        let f = w.faults;
+        if f.adc_down {
+            return Err(HalError::Timeout);
+        }
+        let mut x = w.jack_ratio(jack);
+        // noise rides on a probe's signal; an empty or shorted jack sits on its rail
+        if f.adc_noise > 0.0 && (1e-3..0.99).contains(&x) {
+            x += f.adc_noise * w.rng.normal();
+        }
+        if f.adc_glitch > 0.0 && w.rng.uniform() < f.adc_glitch {
+            x = w.rng.uniform();
+        }
+        Ok(x)
     }
 
     async fn offset(&mut self) -> Result<f64, HalError> {
+        if self.0.borrow().faults.adc_down {
+            return Err(HalError::Timeout);
+        }
         Ok(0.0)
     }
 
     async fn die_temp_c(&mut self) -> Result<f64, HalError> {
-        Ok(self.0.borrow().board_c)
+        let w = self.0.borrow();
+        if w.faults.adc_down {
+            return Err(HalError::Timeout);
+        }
+        Ok(w.board_c)
     }
 }
 
 impl AmbientSensor for SimAmbient<'_> {
     async fn read_c(&mut self) -> Result<f64, HalError> {
-        Ok(self.0.borrow().env.ambient.t_k - 273.15)
+        let w = self.0.borrow();
+        if w.faults.ambient_nack {
+            return Err(HalError::Bus);
+        }
+        Ok(w.env.ambient.t_k - 273.15)
     }
 }
 
@@ -259,7 +304,7 @@ impl World {
     /// A powered servo goes straight to its commanded angle (the 10 s control period dwarfs its
     /// ~0.2 s travel). A pulse outside the mechanical stops leaves the horn at the stop.
     fn move_flap(&mut self) {
-        if self.servo_pulse_us == 0 {
+        if self.servo_pulse_us == 0 || self.faults.servo_stuck {
             return;
         }
         let m = self.servo;
@@ -366,6 +411,8 @@ impl Wait for SimButton<'_> {
 pub enum FlashError {
     OutOfBounds,
     NotAligned,
+    /// Injected: the erase or write did not happen (`Faults::flash_fail`).
+    Failed,
 }
 
 impl NorFlashError for FlashError {
@@ -373,6 +420,7 @@ impl NorFlashError for FlashError {
         match self {
             FlashError::OutOfBounds => NorFlashErrorKind::OutOfBounds,
             FlashError::NotAligned => NorFlashErrorKind::NotAligned,
+            FlashError::Failed => NorFlashErrorKind::Other,
         }
     }
 }
@@ -413,12 +461,18 @@ impl NorFlash for SimConfig<'_> {
 
     async fn erase(&mut self, from: u32, to: u32) -> Result<(), FlashError> {
         let r = span(from, to.saturating_sub(from) as usize, Self::ERASE_SIZE)?;
+        if self.0.borrow().faults.flash_fail {
+            return Err(FlashError::Failed);
+        }
         self.0.borrow_mut().config[r].fill(0xFF);
         Ok(())
     }
 
     async fn write(&mut self, offset: u32, bytes: &[u8]) -> Result<(), FlashError> {
         let r = span(offset, bytes.len(), Self::WRITE_SIZE)?;
+        if self.0.borrow().faults.flash_fail {
+            return Err(FlashError::Failed);
+        }
         for (d, s) in self.0.borrow_mut().config[r].iter_mut().zip(bytes) {
             *d &= *s;
         }

@@ -3,6 +3,7 @@
 //! One run (the twin is one per process) checks all of it.
 
 use minimeat_app::pit::{Event, FaultCode};
+use minimeat_sim::hal::Faults;
 use minimeat_twin::{Action, Opts, Scenario, run};
 
 #[test]
@@ -11,8 +12,12 @@ fn the_drivers_on_a_light_off_with_a_fan_jam() {
     sc.hours = 1.5;
     // light-off runs the fan hard from the start; jam it for ten minutes
     sc.actions.retain(|(t, _)| *t == 0.0);
-    sc.actions.push((300.0, Action::FanJam(true)));
-    sc.actions.push((900.0, Action::FanJam(false)));
+    let jam = Faults {
+        fan_jam: true,
+        ..Faults::default()
+    };
+    sc.actions.push((300.0, Action::Faults(jam)));
+    sc.actions.push((900.0, Action::Faults(Faults::default())));
     let r = run(sc, &Opts { speed: None }, |_, _| {});
 
     let when = |f: fn(&Event) -> bool| r.events.iter().find(|(_, e)| f(e)).map(|(t, _)| *t);
