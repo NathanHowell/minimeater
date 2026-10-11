@@ -107,8 +107,8 @@ Error codes:
 | `idle` | mode `off` |
 | `startup` | light-off or setpoint-increase reference shaping |
 | `hold` | at setpoint |
-| `lid` | lid open: output frozen |
-| `recover` | after the lid closes, replaying 1.5x the pre-lid airflow |
+| `lid` | lid open: flap closed, fan stopped |
+| `recover` | after the lid closes, replaying `lid_boost` times the pre-lid airflow |
 | `manual` | mode `manual` |
 | `fault` | no pit reading or a hardware fault: flap closed, fan stopped |
 
@@ -133,7 +133,7 @@ Error codes:
 - `rpm`: fan tachometer reading.
 
 **Status fields:**
-- `lid`: `true` while the controller thinks the lid is open.
+- `lid`: `true` while the controller thinks the lid is open. With `lid_detect` on it works this out from the pit probe alone: a fall of 10F at 0.3F/s or faster opens it, within 20-30 s of the lid going up. It closes when the pit turns back up, or after 15 min regardless. Nothing else an egg does falls that fast. A probe pulled out of the pit looks like a lid until the 15 min run out.
 - `fire`: `ok`, `low` (fuel running low), `out`, or `unknown`. `unknown` covers startup and the first hour after a setpoint change, while the estimator settles.
 - `autotune`: `{"exciting": bool, "accepted": n, "window": 0.0-1.0}`. The controller learns its model all the time from closed-loop data (`.4.4`); `exciting` is true while the `autotune` command's setpoint dither runs, `accepted` counts fits taken into `model` since boot, and `window` is how full the current 60 min data window is. Autotune never takes the pit away from the controller and has no failure state.
 - `faults`: empty, or a list of codes:

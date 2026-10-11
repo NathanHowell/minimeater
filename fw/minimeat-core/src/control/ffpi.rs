@@ -1,6 +1,6 @@
 //! Fallback controller: feedforward + PI on airflow with SIMC gains from the scheduled FOPDT model.
 
-use super::{Feedforward, LidRecovery, Obs, RefShaper, Schedule};
+use super::{Feedforward, LidRecovery, Obs, RefShaper, Schedule, Snapshot};
 
 #[derive(Clone, Debug)]
 pub struct FfPi {
@@ -33,8 +33,15 @@ impl FfPi {
     }
 
     pub fn step(&mut self, obs: &Obs, ff: &impl Feedforward, dt: f64) -> f64 {
-        if let Some(q) = self.lid.update(obs, dt, self.q_last) {
-            return q.clamp(0.0, obs.q_max);
+        let prev = Snapshot {
+            q: self.q_last,
+            state: self.integ,
+        };
+        if let Some(o) = self.lid.update(obs, dt, prev) {
+            if let Some(s) = o.restore {
+                self.integ = s.state;
+            }
+            return o.q.clamp(0.0, obs.q_max);
         }
         let r = self.shaper.step(obs.sp_f, obs.pit_f, dt);
         let (kc, ti) = self.gains(obs.sp_f);

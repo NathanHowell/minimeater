@@ -1,6 +1,4 @@
-//! Reference shaping (light-off / setpoint increases) and lid recovery.
-
-use super::Obs;
+//! Reference shaping (light-off / setpoint increases).
 
 /// Shape the reference only while *approaching* a setpoint (light-off or a setpoint increase).
 ///
@@ -97,77 +95,9 @@ impl Iterator for Preview {
     }
 }
 
-/// After a lid event, replay the pre-lid airflow until the pit is back near setpoint.
-///
-/// The ceramic is still hot, so the pre-lid airflow is the right steady command; a feedback
-/// controller seeing a 100F+ error would otherwise either flare the fire or recover far too slowly.
-#[derive(Clone, Debug)]
-pub struct LidRecovery {
-    pub band_f: f64,
-    pub max_s: f64,
-    /// Multiple of the pre-lid airflow to replay (`set/lid_boost`): ~1.0 -> 12 min / 1-5F overshoot,
-    /// 1.5 -> 6 min / 5-9F, 2.0 -> 5 min / 12-16F (model sweep).
-    pub boost: f64,
-    q_hold: f64,
-    active_s: Option<f64>,
-    was_lid: bool,
-}
-
-impl Default for LidRecovery {
-    fn default() -> Self {
-        Self {
-            band_f: 20.0,
-            max_s: 900.0,
-            boost: 1.5,
-            q_hold: 0.0,
-            active_s: None,
-            was_lid: false,
-        }
-    }
-}
-
-impl LidRecovery {
-    /// Airflow to command while the lid is open or recovering, else `None` (normal control).
-    pub fn update(&mut self, obs: &Obs, dt: f64, q_last: f64) -> Option<f64> {
-        if obs.lid {
-            if !self.was_lid {
-                self.q_hold = q_last;
-            }
-            self.was_lid = true;
-            return Some(0.0);
-        }
-        if self.was_lid {
-            self.was_lid = false;
-            self.active_s = Some(0.0);
-        }
-        let t = self.active_s.as_mut()?;
-        *t += dt;
-        if (obs.sp_f - obs.pit_f).abs() < self.band_f || *t > self.max_s {
-            self.active_s = None;
-            return None;
-        }
-        Some(self.q_hold * self.boost)
-    }
-
-    /// True while the lid is open or the post-lid replay is running.
-    pub fn active(&self) -> bool {
-        self.was_lid || self.active_s.is_some()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn obs(pit: f64, lid: bool) -> Obs {
-        Obs {
-            pit_f: pit,
-            sp_f: 225.0,
-            lid,
-            q_min: 0.0,
-            q_max: 4.0,
-        }
-    }
 
     #[test]
     fn shaper_tethers_on_light_off_then_disarms() {
@@ -180,14 +110,5 @@ mod tests {
             sh.step(275.0, 225.0, 10.0) < 275.0 && sh.armed(),
             "a setpoint increase re-arms"
         );
-    }
-
-    #[test]
-    fn lid_recovery_replays_boosted_pre_lid_airflow() {
-        let mut lr = LidRecovery::default();
-        assert_eq!(lr.update(&obs(225.0, true), 10.0, 1.0), Some(0.0));
-        assert_eq!(lr.update(&obs(150.0, false), 10.0, 0.0), Some(1.5));
-        assert_eq!(lr.update(&obs(215.0, false), 10.0, 0.0), None);
-        assert!(!lr.active());
     }
 }

@@ -7,12 +7,14 @@
 
 pub mod autotune;
 mod ffpi;
+mod lid;
 mod mpc;
 mod shaper;
 
 pub use ffpi::FfPi;
+pub use lid::{LidDetector, LidRecovery, Override, Snapshot};
 pub use mpc::Mpc;
-pub use shaper::{LidRecovery, RefShaper};
+pub use shaper::RefShaper;
 
 /// What the controller sees each control period.
 #[derive(Clone, Copy, Debug)]
@@ -193,6 +195,21 @@ impl PitController {
         match self {
             PitController::Mpc(c) => c.track(obs, ff, q_applied, dt),
             PitController::FfPi(c) => c.track(obs, ff, q_applied, dt),
+        }
+    }
+
+    /// Lid state (`lid`/`recover` in the status) and the `lid_detect`/`lid_boost` settings.
+    pub fn lid(&self) -> &LidRecovery {
+        match self {
+            PitController::Mpc(c) => &c.lid,
+            PitController::FfPi(c) => &c.lid,
+        }
+    }
+
+    pub fn lid_mut(&mut self) -> &mut LidRecovery {
+        match self {
+            PitController::Mpc(c) => &mut c.lid,
+            PitController::FfPi(c) => &mut c.lid,
         }
     }
 

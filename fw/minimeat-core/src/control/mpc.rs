@@ -15,7 +15,7 @@
 
 use libm::{exp, round};
 
-use super::{Feedforward, LidRecovery, Obs, RefShaper, Schedule};
+use super::{Feedforward, LidRecovery, Obs, RefShaper, Schedule, Snapshot};
 
 pub const BLOCKS: usize = 6;
 /// Longest dead time representable, in control periods (theta <= 900 s at dt >= 4 s).
@@ -81,12 +81,18 @@ impl Mpc {
         let lin = self.linearise(obs, ff, dt);
         let x = *self.x.get_or_insert([obs.pit_f, 0.0]);
 
-        if let Some(q_rec) = self.lid.update(obs, dt, self.q_prev) {
+        let prev = Snapshot {
+            q: self.q_prev,
+            state: x[1],
+        };
+        if let Some(o) = self.lid.update(obs, dt, prev) {
             // The lid transient is not in the model: track the measurement, keep the learned
-            // disturbance, and replay the pre-lid airflow until back near setpoint.
-            self.x = Some([obs.pit_f, x[1]]);
-            self.commit(q_rec, lin.delay);
-            return q_rec.clamp(0.0, obs.q_max);
+            // disturbance (as it was before the drop), and replay the pre-lid airflow until back
+            // near setpoint.
+            let d = o.restore.map_or(x[1], |s| s.state);
+            self.x = Some([obs.pit_f, d]);
+            self.commit(o.q, lin.delay);
+            return o.q.clamp(0.0, obs.q_max);
         }
 
         let xp = self.estimate(obs, &lin);

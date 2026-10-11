@@ -55,6 +55,8 @@ fn replay(fixture: &Value, traj: &Value) -> Stats {
         "FfPi" => PitController::FfPi(FfPi::new(schedule)),
         other => panic!("unknown controller {other}"),
     };
+    // Python sees the true lid flag and has no detector.
+    ctrl.lid_mut().detector = None;
     let (pit, sp, q_min, q_max, want) = (
         floats(&traj["pit"]),
         floats(&traj["sp"]),
