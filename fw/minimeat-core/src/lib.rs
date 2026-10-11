@@ -5,5 +5,6 @@
 //! already negligible at a 10 s control period, and f64 keeps parity with the reference.
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 
+pub mod control;
 pub mod thermistor;
 pub mod units;

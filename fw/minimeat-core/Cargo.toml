@@ -12,3 +12,6 @@ std     = []
 [dependencies]
 # Same math on host and target (the C6 has no FPU; everything is soft-float).
 libm = "0.2.16"
+
+[dev-dependencies]
+serde_json = "1"

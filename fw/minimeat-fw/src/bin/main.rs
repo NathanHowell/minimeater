@@ -12,12 +12,16 @@ use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
 use log::info;
-use minimeat_core::thermistor::{Preset, R_BIAS, r_from_ratio};
-use minimeat_core::units::k_to_f;
+use minimeat_core::control::{Mpc, Obs, Schedule};
+use static_cell::StaticCell;
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
 esp_bootloader_esp_idf::esp_app_desc!();
 
+#[allow(
+    clippy::large_stack_frames,
+    reason = "main holds the peripherals and demo state for the device's lifetime"
+)]
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
     esp_println::logger::init_logger_from_env();
@@ -29,16 +33,37 @@ async fn main(spawner: Spawner) -> ! {
 
     spawner.spawn(heartbeat().expect("heartbeat task"));
 
-    // Placeholder control period until the control loop task (.4.14) exists: exercise the core's
-    // probe conversion on a fixed ratio so a flashed board proves core links and runs on target.
+    // Until the control loop task (.4.14) exists, run the MPC against an in-memory FOPDT egg with an
+    // unmodelled -15F disturbance, so a flashed board reports the on-target solve time (budget 50 ms).
+    let ff = |_t: f64| 1.0;
+    let m = Schedule::default().at(225.0);
+    let a = libm::exp(-10.0 / m.tau_s);
+    let delay = libm::round(m.theta_s / 10.0) as usize;
+    // ~2 KB with its dead-time buffer: keep it off the async stack.
+    static MPC: StaticCell<Mpc> = StaticCell::new();
+    let mpc = MPC.init_with(Mpc::default);
+    let (mut pit, mut hist, mut k) = (150.0, [0.0f64; 32], 0usize);
     let mut tick = Ticker::every(Duration::from_secs(10));
     loop {
+        let obs = Obs {
+            pit_f: pit,
+            sp_f: 225.0,
+            lid: false,
+            q_min: 0.0,
+            q_max: 4.0,
+        };
         let t0 = Instant::now();
-        let t_f = k_to_f(Preset::ThermoworksPro.thermistor().t_k(r_from_ratio(0.0955546, R_BIAS)));
+        let q = mpc.step(&obs, &ff, 10.0);
+        let us = t0.elapsed().as_micros();
         info!(
-            "control tick: x=0.0955546 -> {t_f:.2}F in {} us",
-            t0.elapsed().as_micros()
+            "mpc: pit {pit:.1}F q {q:.3} CFM d {:.1}F, {} iters in {us} us",
+            mpc.disturbance_f(),
+            mpc.last_iters
         );
+        hist[k % 32] = q;
+        let q_delayed = hist[(k + 32 - delay) % 32];
+        pit = a * pit + (1.0 - a) * (225.0 + m.k * (q_delayed - 1.0) - 15.0);
+        k += 1;
         tick.next().await;
     }
 }
