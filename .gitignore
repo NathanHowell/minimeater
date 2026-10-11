@@ -5,3 +5,9 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
