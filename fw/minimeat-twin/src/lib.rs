@@ -11,7 +11,9 @@
 //! (waiting on `.5.2` and `.4.11`), and a live plot.
 
 pub mod clock;
+pub mod metrics;
 pub mod scenario;
+pub mod suite;
 
 use core::cell::RefCell;
 use core::sync::atomic::{AtomicBool, Ordering};

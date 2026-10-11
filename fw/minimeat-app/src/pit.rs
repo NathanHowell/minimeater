@@ -145,6 +145,27 @@ pub enum Event {
     FaultClear(FaultCode),
 }
 
+impl Event {
+    /// The `event_type` on the wire (docs/protocol.md).
+    pub fn name(&self) -> &'static str {
+        match self {
+            Event::LidOpen { .. } => "lid_open",
+            Event::LidClosed { .. } => "lid_closed",
+            Event::FireLow { .. } => "fire_low",
+            Event::FireOut { .. } => "fire_out",
+            Event::SetpointReached { .. } => "setpoint_reached",
+            Event::StallStart { .. } => "stall_start",
+            Event::StallEnd { .. } => "stall_end",
+            Event::AutotuneDone { .. } => "autotune_done",
+            Event::Alarm { .. } => "alarm",
+            Event::AlarmClear { .. } => "alarm_clear",
+            Event::SelfCheck { .. } => "selfcheck",
+            Event::Fault(_) => "fault",
+            Event::FaultClear(_) => "fault_clear",
+        }
+    }
+}
+
 /// `~/set/...` and `~/cmd/...` that reach the control loop.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Command {

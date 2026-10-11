@@ -1,16 +1,18 @@
 //! `cargo run --release -p minimeat-twin -- [--scenario kamado-brisket] [--speed 60|max]
-//! [--every MIN] [--csv FILE]` (or `just twin ...`): runs a scenario on the twin and prints the cook.
+//! [--every MIN] [--csv FILE] [--metrics]` (or `just twin ...`): runs a scenario on the twin and
+//! prints the cook, or with `--metrics` only its control metrics as one line of JSON.
 
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
 use minimeat_app::pit::Event;
 use minimeat_core::food::Stall;
+use minimeat_twin::metrics::Metrics;
 use minimeat_twin::{Opts, Sample, Scenario, run};
 
 fn usage() -> ! {
     eprintln!(
-        "usage: minimeat-twin [--scenario {}] [--speed N|max] [--every MIN] [--csv FILE]",
+        "usage: minimeat-twin [--scenario {}] [--speed N|max] [--every MIN] [--csv FILE] [--metrics]",
         Scenario::NAMES.join("|")
     );
     std::process::exit(2)
@@ -54,6 +56,7 @@ fn line(s: &Sample) -> String {
 fn main() {
     let mut args = std::env::args().skip(1);
     let (mut name, mut speed, mut every_min, mut csv) = ("kamado-brisket".to_string(), None, 10.0, None);
+    let mut metrics = false;
     while let Some(a) = args.next() {
         let mut val = || args.next().unwrap_or_else(|| usage());
         match a.as_str() {
@@ -67,6 +70,7 @@ fn main() {
             }
             "--every" => every_min = val().parse().unwrap_or_else(|_| usage()),
             "--csv" => csv = Some(val()),
+            "--metrics" => metrics = true,
             _ => usage(),
         }
     }
@@ -79,18 +83,23 @@ fn main() {
         )
         .unwrap();
     }
-    println!(
-        "twin: {} for {} h at {}",
-        sc.name,
-        sc.hours,
-        speed.map_or("max speed".into(), |s| format!("{s}x"))
-    );
+    if !metrics {
+        println!(
+            "twin: {} for {} h at {}",
+            sc.name,
+            sc.hours,
+            speed.map_or("max speed".into(), |s| format!("{s}x"))
+        );
+    }
+    let sc_for_metrics = sc.clone();
     let mut next_print = 0.0;
     let report = run(sc, &Opts { speed }, |s, events| {
         for (t, e) in events {
-            println!("{} event {e:?}", hm(*t));
+            if !metrics {
+                println!("{} event {e:?}", hm(*t));
+            }
         }
-        if s.t_s >= next_print {
+        if s.t_s >= next_print && !metrics {
             println!("{}", line(s));
             next_print = s.t_s + every_min * 60.0;
         }
@@ -119,6 +128,20 @@ fn main() {
             .unwrap();
         }
     });
+    if metrics {
+        println!(
+            "{{\"scenario\": \"{}\", \"hours\": {}, \"metrics\": {}, \"events\": {{{}}}}}",
+            sc_for_metrics.name,
+            sc_for_metrics.hours,
+            Metrics::of(&sc_for_metrics, &report).json(),
+            Metrics::event_counts(&report)
+                .iter()
+                .map(|(n, c)| format!("\"{n}\": {c}"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        return;
+    }
     let done = report
         .events
         .iter()

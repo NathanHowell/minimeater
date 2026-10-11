@@ -134,6 +134,7 @@ uv run minimeat-model                  # regenerate docs/modeling (also minimeat
 cd fw && cargo test                    # firmware core, app and sim on host
 cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-C
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
+just scenarios                         # the 17-scenario suite on the twin: bounds + baselines, PNG per run
 ```
 
 ## Architecture Overview

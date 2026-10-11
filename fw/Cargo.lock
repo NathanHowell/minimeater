@@ -1260,6 +1260,7 @@ dependencies = [
  "minimeat-app",
  "minimeat-core",
  "minimeat-sim",
+ "serde_json",
 ]
 
 [[package]]
