@@ -11,6 +11,8 @@ embassy-futures        = "0.1.2"
 embedded-hal           = "1.0.0"
 embedded-hal-async     = "1.0.0"
 embedded-storage-async = "0.4.1"
+heapless               = "0.9.1"
+sequential-storage     = "8.0.2"
 log                    = "0.4.27"
 
 [dev-dependencies]

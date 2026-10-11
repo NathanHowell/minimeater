@@ -12,9 +12,11 @@ use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
 use log::info;
+use minimeat_app::config::ConfigStore;
+use minimeat_app::hal::Board;
 use minimeat_app::selftest;
 use minimeat_core::control::{Mpc, Obs, Schedule};
-use minimeat_fw::board;
+use minimeat_fw::board::{self, Esp};
 use static_cell::StaticCell;
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
@@ -36,6 +38,20 @@ async fn main(spawner: Spawner) -> ! {
 
     spawner.spawn(heartbeat().expect("heartbeat task"));
     selftest::survey(&mut io).await;
+
+    // Settings, the learned model and the cook in progress: a power cut resumes from here.
+    static STORE: StaticCell<ConfigStore<<Esp as Board>::Config>> = StaticCell::new();
+    let (store, settings) = ConfigStore::open(io.config).await;
+    let _store = STORE.init(store);
+    info!(
+        "config: {:?} at {}F ({:?}), autotune {}, {} learned models, wifi {}",
+        settings.cook.mode,
+        settings.cook.sp_f,
+        settings.cook.controller,
+        settings.cook.autotune,
+        settings.schedule.models().len(),
+        settings.wifi.is_some()
+    );
 
     // Until the control loop task (.4.14) exists, run the MPC against an in-memory FOPDT egg with an
     // unmodelled -15F disturbance, so a flashed board reports the on-target solve time (budget 50 ms).

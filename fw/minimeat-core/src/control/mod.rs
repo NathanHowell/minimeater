@@ -154,6 +154,13 @@ impl Schedule {
     }
 }
 
+/// Equal models; the revision counter is bookkeeping, not content.
+impl PartialEq for Schedule {
+    fn eq(&self, other: &Self) -> bool {
+        self.models() == other.models()
+    }
+}
+
 impl Default for Schedule {
     fn default() -> Self {
         Self::new(&Self::NOMINAL)

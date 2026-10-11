@@ -5,7 +5,7 @@ A Rust cargo workspace for the ESP32-C6-WROOM-1-N8 (ADR 0001).
 | Crate | Target | What |
 |---|---|---|
 | `minimeat-core` | host and `riscv32imac-unknown-none-elf` | `no_std` and no-alloc logic: units, probe conversion and the pit controller (MPC, FF+PI, reference shaping, lid recovery); later autotune and the MQTT `proto`. The firmware and the host digital twin share it. |
-| `minimeat-app` | host and target | the application, generic over the peripheral traits in `hal` (probe ADC, ambient, fan PWM, tach, servo, servo power, LED, button, config flash, USB-C source), plus the chip drivers (ADS1220, TMP117, USB-C CC) over `embedded-hal-async`. No esp-hal and no target `cfg`s. |
+| `minimeat-app` | host and target | the application, generic over the peripheral traits in `hal` (probe ADC, ambient, fan PWM, tach, servo, servo power, LED, button, config flash, USB-C source), plus the chip drivers (ADS1220, TMP117, USB-C CC) over `embedded-hal-async` and the persistent `config` store (power-fail-safe, never fails to load). No esp-hal and no target `cfg`s. |
 | `minimeat-sim` | host (and `no_std`) | the BGE Large plant model: the Python `sim.py` port plus fuel depletion, the fire going out, and a two-node food model with evaporative stall. `hal` implements the `minimeat-app` traits on the plant (`World`), for the digital twin and the scenario suite. |
 | `minimeat-fw` | `riscv32imac-unknown-none-elf` | the embassy binary on esp-hal 1.2 and esp-rtos; `board.rs` binds the traits to esp-hal and holds the (provisional) pin map |
 
