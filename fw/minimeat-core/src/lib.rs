@@ -6,5 +6,7 @@
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 
 pub mod control;
+pub mod model;
+pub mod numeric;
 pub mod thermistor;
 pub mod units;

@@ -175,6 +175,18 @@ Fan choice barely changes control quality. Gain sweep with the NF-A6x25 (std dev
 
 HeaterMeter's defaults (P=4, I=0.02) limit-cycle on this plant, and gains stable at 225F can oscillate at 350F (plant gain changes with temperature): autotune and possibly gain scheduling are needed. Startup overshoot (40-80F) is set by running 100% output while the fire spreads, regardless of gains; the shell time constant is ~1.5 h, so overshoot is slow to bleed off. The firmware needs a startup mode (output ramp/cap, or D on measurement) rather than plain PI from cold.
 
+## 7. Actuator inversion (what the firmware commands)
+
+| pit F | flap closed (leak) CFM | flap open, fan off CFM | fan at min speed CFM | fan full CFM |
+|---|---|---|---|---|
+| 150 | 0.046 | 0.89 | 1.18 | 4.13 |
+| 225 | 0.060 | 1.16 | 1.38 | 4.16 |
+| 325 | 0.072 | 1.38 | 1.56 | 4.18 |
+
+![actuator map](bge-large/actuator_map.png)
+
+The controllers command airflow; firmware (`minimeat-core::model::airflow::AirflowMap`, parity-tested against `control.AirflowMap`) inverts this table at the measured pit temperature, damper first. Below the fan's minimum continuous speed (20%) the fan alternates between off and minimum (delta-sigma, 10 s minimum dwell; `FanCycler`) so the average matches the command, which is what the table assumes. The flap angle uses the projected-area law of a butterfly in a round tube until CFD/bench data (`.2.13`) replaces it. The table is built from the firmware-side model with an assumed top vent; the MPC's disturbance estimate absorbs the error.
+
 ## Parameters
 
 | Egg | value |

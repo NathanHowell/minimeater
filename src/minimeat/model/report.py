@@ -23,7 +23,7 @@ from .params import (  # noqa: E402
     Intake,
     uncertainty_band,
 )
-from .control import PercentPid  # noqa: E402
+from .control import AirflowMap, PercentPid  # noqa: E402
 from .sim import Event, air_flow, simulate  # noqa: E402
 from .units import CFM, LB, MMH2O, INCH, air_density, f_to_k, k_to_f  # noqa: E402
 
@@ -333,6 +333,42 @@ def main() -> None:
         f"regardless of gains; the shell time constant is ~{thermal.time_constant_h(egg):.1f} h, so overshoot "
         "is slow to bleed off. The firmware needs a startup mode (output ramp/cap, or D on measurement) "
         "rather than plain PI from cold.\n"
+    )
+
+    w("## 7. Actuator inversion (what the firmware commands)\n")
+    amap = AirflowMap(egg, intake, FANS[1])
+    amb20 = mild.ambient
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    rows = []
+    for t_f in (150.0, 225.0, 325.0):
+        row = amap._row(amb20, t_f)
+        ax.plot(amap.us, row, label=f"pit {t_f:.0f}F")
+        q_min, q_max = amap.limits(amb20, t_f)
+        q_open = float(np.interp(1.0, amap.us, row))
+        q_fan_min = float(np.interp(1.0 + FANS[1].s_min, amap.us, row))
+        rows.append([f"{t_f:.0f}", f"{q_min:.3f}", f"{q_open:.2f}", f"{q_fan_min:.2f}", f"{q_max:.2f}"])
+    ax.axvspan(1.0, 1.0 + FANS[1].s_min, color="0.9", label="fan duty-cycled")
+    ax.set(xlabel="actuator u (0-1 flap open, fan stopped; 1-2 fan speed, flap open)", ylabel="airflow CFM",
+           title=f"Airflow map, {FANS[1].name}, 20C calm, top 1/4")
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=7)
+    frac = np.linspace(0, 1, 101)
+    ax2.plot(frac * 100, np.degrees(np.arccos(1 - frac)))
+    ax2.set(xlabel="flap open area %", ylabel="flap angle from closed (deg)", title="Butterfly flap: 1 - cos(angle) [est]")
+    ax2.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(img_dir / "actuator_map.png", dpi=130)
+    plt.close(fig)
+    w(md_table(["pit F", "flap closed (leak) CFM", "flap open, fan off CFM", "fan at min speed CFM", "fan full CFM"], rows))
+    w(
+        "\n![actuator map](bge-large/actuator_map.png)\n\n"
+        "The controllers command airflow; firmware (`minimeat-core::model::airflow::AirflowMap`, parity-tested "
+        "against `control.AirflowMap`) inverts this table at the measured pit temperature, damper first. "
+        f"Below the fan's minimum continuous speed ({FANS[1].s_min * 100:.0f}%) the fan alternates between off "
+        "and minimum (delta-sigma, 10 s minimum dwell; `FanCycler`) so the average matches the command, which is "
+        "what the table assumes. The flap angle uses the projected-area law of a butterfly in a round tube until "
+        "CFD/bench data (`.2.13`) replaces it. The table is built from the firmware-side model with an assumed "
+        "top vent; the MPC's disturbance estimate absorbs the error.\n"
     )
 
     w("## Parameters\n")

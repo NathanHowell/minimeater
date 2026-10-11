@@ -1,4 +1,4 @@
-"""Controller replay fixtures for the Rust port -> fw/minimeat-core/tests/fixtures/control.json.
+"""Parity fixtures for the Rust port -> fw/minimeat-core/tests/fixtures/{control,model}.json.
 
 Run: uv run minimeat-fixtures
 
@@ -6,6 +6,8 @@ Each trajectory runs the Python reference controller (FfPi or Mpc) closed-loop a
 plant and records, per control step, exactly what `minimeat-core` sees (pit, setpoint, lid, airflow
 limits) and the airflow it should command. The Rust test replays the inputs open-loop and compares
 outputs. Feedforward is a shared 1F table so both sides evaluate the identical function.
+
+`model.json` pins the airflow, steady-state and actuator-inversion model at sample points.
 """
 
 import argparse
@@ -14,11 +16,12 @@ from pathlib import Path
 
 import numpy as np
 
+from . import thermal
 from .control import AirflowMap, FeedForward, FfPi, Mpc, Schedule
 from .control_report import FAN, H, autotune
 from .params import DEFAULT_EGG, DEFAULT_INTAKE, TOP_VENT, Ambient
-from .sim import Event, simulate
-from .units import c_to_k
+from .sim import Event, air_flow, simulate
+from .units import CFM, c_to_k, f_to_k
 
 AMB = Ambient(c_to_k(20), 0)
 FF_TEMPS_F = np.arange(60.0, 461.0, 1.0)
@@ -71,10 +74,45 @@ class Recorder:
         return out
 
 
+def model_fixture() -> dict:
+    ambients = [(20.0, 0.0), (0.0, 3.0)]
+    top = TOP_VENT["slider 1/4"]
+    flows = []
+    for amb_c, wind in ambients:
+        amb = Ambient(c_to_k(amb_c), wind)
+        for pit_f in (70.0, 150.0, 225.0, 325.0):
+            for damper, s in ((0.0, 0.0), (0.3, 0.0), (1.0, 0.0), (1.0, 0.1), (1.0, 0.5), (1.0, 1.0)):
+                q = air_flow(DEFAULT_EGG, DEFAULT_INTAKE, FAN, amb, s, damper, f_to_k(pit_f), top)
+                flows.append({"amb_c": amb_c, "wind": wind, "pit_f": pit_f, "damper": damper, "s": s, "cfm": q / CFM})
+    steady = []
+    for amb_c, wind in ambients:
+        amb = Ambient(c_to_k(amb_c), wind)
+        for pit_f, food in ((150.0, 0.0), (225.0, 0.0), (225.0, 150.0), (325.0, 0.0)):
+            ss = thermal.steady_state(DEFAULT_EGG, amb, f_to_k(pit_f), food)
+            steady.append({"amb_c": amb_c, "wind": wind, "pit_f": pit_f, "food_w": food,
+                           "m_air": ss.m_air_kg_s, "t_wi": ss.t_wall_in_k, "t_wo": ss.t_wall_out_k})
+    maps = []
+    for amb_c, wind in ambients:
+        amb = Ambient(c_to_k(amb_c), wind)
+        amap = AirflowMap(DEFAULT_EGG, DEFAULT_INTAKE, FAN)
+        for pit_f in (100.0, 225.0, 287.0, 325.0):
+            q_min, q_max = amap.limits(amb, pit_f)
+            for frac in (0.1, 0.3, 0.6, 0.9):
+                q = q_min + frac * (q_max - q_min)
+                damper, s = amap.actuate(amb, pit_f, q)
+                maps.append({"amb_c": amb_c, "wind": wind, "pit_f": pit_f, "q_min": q_min, "q_max": q_max,
+                             "q": q, "damper": damper, "fan": s})
+    return {"air_flow": flows, "steady_state": steady, "airflow_map": maps}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=Path("fw/minimeat-core/tests/fixtures/control.json"))
     args = ap.parse_args()
+    model_out = args.out.with_name("model.json")
+    model_out.parent.mkdir(parents=True, exist_ok=True)
+    model_out.write_text(json.dumps(model_fixture(), indent=1))
+    print(f"wrote {model_out}")
     schedule: Schedule = autotune(DEFAULT_EGG)
     ff_real = FeedForward(DEFAULT_EGG)
     ff_q = np.array([ff_real.q_cfm(AMB, t) for t in FF_TEMPS_F])
