@@ -24,7 +24,9 @@ use minimeat_app::food::Foods;
 use minimeat_app::pit::{Event, Pit};
 use minimeat_app::tasks::{self, Bus, Status};
 use minimeat_core::model::airflow::AirPath;
-use minimeat_sim::hal::{SimAmbient, SimBoard, SimConfig, SimFan, SimProbes, SimServo, SimServoPower, World, io};
+use minimeat_sim::hal::{
+    SimAmbient, SimBoard, SimConfig, SimFan, SimProbes, SimServo, SimServoPower, SimTach, World, io,
+};
 
 pub use scenario::{Action, Scenario};
 
@@ -50,12 +52,14 @@ async fn probes(adc: SimProbes<'static>, bus: &'static Bus) {
 #[embassy_executor::task]
 async fn actuators(
     fan: SimFan<'static>,
+    tach: SimTach<'static>,
     servo: SimServo<'static>,
     power: SimServoPower<'static>,
     s_min: f64,
+    rpm_max: f64,
     bus: &'static Bus,
 ) {
-    tasks::actuators::<B>(fan, servo, power, s_min, bus).await
+    tasks::actuators::<B>(fan, tach, servo, power, s_min, rpm_max, bus).await
 }
 
 #[embassy_executor::task]
@@ -77,6 +81,8 @@ pub struct Sample {
     /// Plant truth: the pit probe's temperature and each meat's core, F.
     pub pit_f: f64,
     pub cores_f: [Option<f64>; 3],
+    /// The flap's physical angle from closed, degrees.
+    pub flap_deg: f64,
 }
 
 /// Everything a run produced.
@@ -108,7 +114,18 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
     let spawner = exec.spawner();
     spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control"));
     spawner.spawn(probes(io.probes, bus).expect("probes"));
-    spawner.spawn(actuators(io.fan, io.servo, io.servo_power, model.fan.s_min(), bus).expect("actuators"));
+    spawner.spawn(
+        actuators(
+            io.fan,
+            io.tach,
+            io.servo,
+            io.servo_power,
+            model.fan.s_min(),
+            model.fan.rpm_max,
+            bus,
+        )
+        .expect("actuators"),
+    );
     spawner.spawn(slow(bus).expect("slow"));
 
     let hz = clock::TICK_HZ;
@@ -133,6 +150,7 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
                     status,
                     pit_f: w.plant.pit_probe_f(),
                     cores_f: core::array::from_fn(|i| w.plant.meats[i].map(|m| m.core_f())),
+                    flap_deg: w.flap_deg,
                 };
                 drop(w);
                 watch(&s, &new_events);

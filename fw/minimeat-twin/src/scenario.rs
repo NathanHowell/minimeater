@@ -26,6 +26,8 @@ pub enum Action {
         jack: usize,
         wiring: Wiring,
     },
+    /// The fan rotor jams (or is freed).
+    FanJam(bool),
 }
 
 impl Action {
@@ -40,6 +42,7 @@ impl Action {
             Action::Weather(a) => w.env.ambient = a,
             Action::Meat { slot, meat } => w.plant.meats[slot] = meat,
             Action::Wire { jack, wiring } => w.jacks[jack] = wiring,
+            Action::FanJam(jammed) => w.fan_jammed = jammed,
         }
     }
 }

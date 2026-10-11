@@ -58,7 +58,37 @@ pub enum Phase {
 /// `fault`/`fault_clear` codes this loop raises.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FaultCode {
+    /// The selected pit probe isn't `ok` (raised by the pit loop).
     PitProbe,
+    /// ADC die above 80C: the device keeps running and warns.
+    BoardHot,
+    /// Fan driven but the tach shows it not turning.
+    FanStall,
+    /// The probe ADC is not answering.
+    Adc,
+    /// The ambient sensor is not answering: feedforward falls back to 20C.
+    Ambient,
+}
+
+impl FaultCode {
+    /// Wire name (`faults` and the `fault` event's `code`, docs/protocol.md).
+    pub fn name(self) -> &'static str {
+        match self {
+            FaultCode::PitProbe => "pit_probe",
+            FaultCode::BoardHot => "board_hot",
+            FaultCode::FanStall => "fan_stall",
+            FaultCode::Adc => "adc",
+            FaultCode::Ambient => "ambient",
+        }
+    }
+
+    pub const ALL: [FaultCode; 5] = [
+        FaultCode::PitProbe,
+        FaultCode::BoardHot,
+        FaultCode::FanStall,
+        FaultCode::Adc,
+        FaultCode::Ambient,
+    ];
 }
 
 /// `~/event` (docs/protocol.md), the ones the control loop raises.

@@ -4,6 +4,7 @@
 #![cfg_attr(not(test), no_std)]
 
 pub mod config;
+pub mod drive;
 pub mod drivers;
 pub mod food;
 pub mod hal;

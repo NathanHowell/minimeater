@@ -3,17 +3,16 @@
 //!
 //! - [`control`]: every [`PERIOD_S`], probes in, [`Pit::step`] and [`Foods::step`], the actuation
 //!   out to [`actuators`], status and events onto the [`Bus`], settings to flash.
-//! - [`actuators`]: every second, the fan (duty-cycled below its minimum speed, [`FanCycler`]) and
-//!   the damper servo (powered only while it moves).
+//! - [`actuators`]: every second, the fan (duty-cycled below its minimum speed, [`FanCycler`]; duty
+//!   curve and stall watch from the tach) and the damper servo (calibration, slew limit, powered
+//!   only while it moves), all in [`crate::drive`].
 //! - [`slow`]: what is too slow for the control period, an autotune fit or an airflow-map rebuild,
 //!   handed over through the [`Bus`]. On the C6 it belongs on a lower-priority executor (`.4.24`).
 //!
 //! - [`probes`]: the ADC round robin, averaging and filtering ([`crate::probes`]), publishing the
 //!   latest [`Snapshot`] on the [`Bus`] for [`control`] to read each period.
 //!
-//! The actuator output here is the minimum that works end to end: a linear servo calibration and fan
-//! duty = speed. The actuator drivers (`.4.8`: servo calibration and slew, fan curve, tach check)
-//! replace it behind the same task boundary.
+//! The servo calibration and fan curve are defaults until the parts are chosen (`.2.9`, `.2.2`).
 
 use core::cell::Cell;
 
@@ -33,21 +32,48 @@ use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap};
 use minimeat_core::units::{c_to_k, k_to_f};
 
 use crate::config::{ConfigStore, Cook, Mode, Settings};
+use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
 use crate::food::Foods;
-use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo};
-use crate::pit::{Command, Event, Output, PERIOD_S, Pit};
+use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach};
+use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 
 type M = CriticalSectionRawMutex;
 
-/// Servo pulse widths at the flap's closed and fully open stops, us. [est until `.4.8` calibrates]
-pub const SERVO_CLOSED_US: f64 = 1000.0;
-pub const SERVO_OPEN_US: f64 = 2000.0;
-/// The servo stays powered this long after its last move, s.
-const SERVO_HOLD_S: u32 = 2;
+/// ADC die temperature that raises `board_hot`, and the temperature it must fall to to clear, C.
+const BOARD_HOT_C: (f64, f64) = (80.0, 75.0);
 /// The scanner starts a pass at least this often, ms (ADR 0002: four jacks at 0.4 s each). A pass
 /// on the real ADC takes longer, so it runs back to back there.
 const PASS_MS: u64 = 1600;
+
+/// A set of [`FaultCode`]s.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Faults(u8);
+
+impl Faults {
+    fn bit(code: FaultCode) -> u8 {
+        1 << FaultCode::ALL.iter().position(|c| *c == code).unwrap_or(0)
+    }
+
+    pub fn contains(self, code: FaultCode) -> bool {
+        self.0 & Self::bit(code) != 0
+    }
+
+    /// Sets or clears `code`; true if that changed it.
+    fn set(&mut self, code: FaultCode, on: bool) -> bool {
+        let was = self.contains(code);
+        if on {
+            self.0 |= Self::bit(code);
+        } else {
+            self.0 &= !Self::bit(code);
+        }
+        was != on
+    }
+
+    pub fn iter(self) -> impl Iterator<Item = FaultCode> {
+        FaultCode::ALL.into_iter().filter(move |c| self.contains(*c))
+    }
+}
 
 /// The latest status, for `~/state` (`.5.2`) and the twin's display.
 #[derive(Clone, Copy, Debug)]
@@ -60,6 +86,10 @@ pub struct Status {
     pub probe_st: [ProbeSt; PROBE_JACKS],
     /// ADC die temperature, C.
     pub adc_die_c: Option<f64>,
+    /// Fan tachometer, rpm.
+    pub fan_rpm: Option<f64>,
+    /// Active faults (`faults`, docs/protocol.md): a bit per [`FaultCode`].
+    pub faults: Faults,
     pub foods: [Option<Food>; PROBE_JACKS],
     pub ambient_c: Option<f64>,
 }
@@ -85,6 +115,9 @@ pub struct Bus {
     pub status: Signal<M, Status>,
     /// The scanner's latest pass, read (not consumed) by the control task.
     probes: Mutex<M, Cell<Snapshot>>,
+    /// Hardware faults raised by any task, and the fan's last tach reading.
+    faults: Mutex<M, Cell<Faults>>,
+    fan_rpm: Mutex<M, Cell<Option<f64>>>,
     act: Signal<M, Actuation>,
     job: Signal<M, Job>,
     done: Signal<M, Done>,
@@ -108,9 +141,28 @@ impl Bus {
                 die_c: None,
                 offset: None,
             })),
+            faults: Mutex::new(Cell::new(Faults(0))),
+            fan_rpm: Mutex::new(Cell::new(None)),
             act: Signal::new(),
             job: Signal::new(),
             done: Signal::new(),
+        }
+    }
+
+    /// Raises or clears a fault; the `fault` and `fault_clear` events fire on the change only.
+    fn fault(&self, code: FaultCode, on: bool) {
+        let changed = self.faults.lock(|c| {
+            let mut f = c.get();
+            let changed = f.set(code, on);
+            c.set(f);
+            changed
+        });
+        if changed {
+            self.emit(if on {
+                Event::Fault(code)
+            } else {
+                Event::FaultClear(code)
+            });
         }
     }
 
@@ -164,6 +216,7 @@ pub async fn control<B: Board>(
             }
         }
         let ambient_c = ambient.read_c().await.ok();
+        bus.fault(FaultCode::Ambient, ambient_c.is_none());
         let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
         // a scanner that has stopped is an ADC that is not answering
         let snap = bus.snapshot();
@@ -173,6 +226,11 @@ pub async fn control<B: Board>(
             snap.sense
         };
         last_pass = snap.passes;
+        bus.fault(FaultCode::Adc, sense.iter().all(|s| matches!(s, Sense::Fault)));
+        if let Some(c) = snap.die_c {
+            let hot = bus.faults.lock(Cell::get).contains(FaultCode::BoardHot);
+            bus.fault(FaultCode::BoardHot, c >= BOARD_HOT_C.0 || (hot && c > BOARD_HOT_C.1));
+        }
         let read = |disagree: &[bool; PROBE_JACKS]| -> [Reading; PROBE_JACKS] {
             core::array::from_fn(|j| probes::reading(sense[j], &settings.probes[j], disagree[j]))
         };
@@ -234,6 +292,12 @@ pub async fn control<B: Board>(
             temps,
             probe_st: readings.map(|r| r.st),
             adc_die_c: snap.die_c,
+            fan_rpm: bus.fan_rpm.lock(Cell::get),
+            faults: {
+                let mut f = bus.faults.lock(Cell::get);
+                f.set(FaultCode::PitProbe, out.phase == Phase::Fault);
+                f
+            },
             foods: core::array::from_fn(|j| foods.food(j, &temps, jack)),
             ambient_c,
         });
@@ -241,39 +305,45 @@ pub async fn control<B: Board>(
     }
 }
 
-/// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction.
+/// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`
+/// its speed at full duty.
 pub async fn actuators<B: Board>(
     mut fan: B::Fan,
+    mut tach: B::Tach,
     mut servo: B::Servo,
     mut power: B::ServoPower,
     s_min: f64,
+    rpm_max: f64,
     bus: &Bus,
 ) -> ! {
+    const DT: f64 = 1.0;
     let mut tick = Ticker::every(Duration::from_secs(1));
     let mut cycler = FanCycler::default();
+    let mut fan_drive = FanDrive::new(FanCurve::LINEAR, None);
+    let mut watch = TachWatch::default();
+    let mut flap = ServoDrive::new(ServoCal::DEFAULT);
     let mut act = Actuation { damper: 0.0, fan: 0.0 };
-    let (mut pulse_us, mut still_s) = (0u16, 0u32);
     loop {
         if let Some(a) = bus.act.try_take() {
             act = a;
         }
-        let s = cycler.tick(act.fan, s_min, 1.0);
+        let speed = cycler.tick(act.fan, s_min, DT);
+        let duty = fan_drive.duty(speed);
         let max = f64::from(fan.max_duty_cycle());
-        let _ = fan.set_duty_cycle((s.clamp(0.0, 1.0) * max) as u16);
+        let _ = fan.set_duty_cycle((duty * max) as u16);
 
-        let frac = flap_angle_deg(act.damper) / 90.0;
-        let us = (SERVO_CLOSED_US + frac * (SERVO_OPEN_US - SERVO_CLOSED_US)) as u16;
-        if us != pulse_us {
-            let _ = power.set_high();
-            servo.set_pulse_us(us);
-            (pulse_us, still_s) = (us, 0);
-        } else if still_s < SERVO_HOLD_S {
-            still_s += 1;
-            if still_s == SERVO_HOLD_S {
-                let _ = power.set_low();
-            }
-        }
+        // pulse first, then power: a servo waking up goes straight to the new position
+        let s = flap.tick(flap_angle_deg(act.damper), DT);
+        servo.set_pulse_us(s.pulse_us);
+        let _ = if s.power { power.set_high() } else { power.set_low() };
+
         tick.next().await;
+        // the tach's mean over the second just run
+        let rpm = tach.rpm();
+        bus.fan_rpm.lock(|c| c.set(rpm));
+        if let Some(stalled) = watch.tick(duty, rpm, rpm_max, DT) {
+            bus.fault(FaultCode::FanStall, stalled);
+        }
     }
 }
 

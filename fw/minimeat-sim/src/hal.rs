@@ -65,6 +65,8 @@ pub struct World {
     servo_pulse_us: u16,
     /// Fan PWM duty, 0..1. The fan runs at speed = duty and stalls below its minimum speed. [est]
     pub fan_duty: f64,
+    /// Fault injection: the rotor is jammed, so the fan does not turn whatever the duty.
+    pub fan_jammed: bool,
     pub led: bool,
     button_pressed: bool,
     button_waker: Option<Waker>,
@@ -89,6 +91,7 @@ impl World {
             servo_powered: false,
             servo_pulse_us: 0,
             fan_duty: 0.0,
+            fan_jammed: false,
             led: false,
             button_pressed: false,
             button_waker: None,
@@ -108,7 +111,11 @@ impl World {
     /// Fan speed fraction actually reached.
     pub fn fan_speed(&self) -> f64 {
         let s = self.fan_duty.clamp(0.0, 1.0);
-        if s < self.plant.path.fan.s_min() { 0.0 } else { s }
+        if self.fan_jammed || s < self.plant.path.fan.s_min() {
+            0.0
+        } else {
+            s
+        }
     }
 
     /// Advance the physics by `dt` seconds with the actuators as the firmware left them.
