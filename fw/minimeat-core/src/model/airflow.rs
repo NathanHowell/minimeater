@@ -172,6 +172,18 @@ impl AirflowMap {
         (row[0], row[N_U - 1])
     }
 
+    /// The airflow an actuation gives at pit `t_f`, CFM: the inverse of [`Self::actuate`] (manual mode
+    /// reports and tracks with it).
+    pub fn airflow(&self, t_f: f64, a: Actuation) -> f64 {
+        let u = if a.fan > 0.0 {
+            1.0 + a.fan.min(1.0)
+        } else {
+            a.damper.clamp(0.0, 1.0)
+        };
+        let us: [f64; N_U] = core::array::from_fn(u_grid);
+        interp(u, &us, &self.row(t_f))
+    }
+
     pub fn actuate(&self, t_f: f64, q_cfm: f64) -> Actuation {
         let us: [f64; N_U] = core::array::from_fn(u_grid);
         let u = interp(q_cfm, &self.row(t_f), &us);

@@ -12,6 +12,7 @@ pub struct FfPi {
     /// Integral term, CFM.
     integ: f64,
     q_last: f64,
+    trim: Option<f64>,
 }
 
 impl Default for FfPi {
@@ -29,10 +30,12 @@ impl FfPi {
             tc_over_theta: 2.0,
             integ: 0.0,
             q_last: 0.0,
+            trim: None,
         }
     }
 
     pub fn step(&mut self, obs: &Obs, ff: &impl Feedforward, dt: f64) -> f64 {
+        self.start(obs, ff);
         let prev = Snapshot {
             q: self.q_last,
             state: self.integ,
@@ -56,6 +59,18 @@ impl FfPi {
         q
     }
 
+    /// See [`super::Mpc::resume`]: the integral starts at the trim. Before the first step only.
+    pub fn resume(&mut self, trim_cfm: f64) {
+        self.trim = Some(trim_cfm);
+    }
+
+    fn start(&mut self, obs: &Obs, ff: &impl Feedforward) {
+        if let Some(trim) = self.trim.take() {
+            self.integ = trim;
+            self.q_last = (ff.q_cfm(obs.pit_f.min(obs.sp_f)) + trim).max(0.0);
+        }
+    }
+
     /// SIMC proportional gain (CFM per F) and integral time (s) at a setpoint.
     fn gains(&self, sp_f: f64) -> (f64, f64) {
         let m = self.schedule.at(sp_f);
@@ -66,6 +81,7 @@ impl FfPi {
     /// One control period in which something else commanded `q_applied`: back-calculates the
     /// integral so the next [`Self::step`] continues from that airflow without a bump.
     pub fn track(&mut self, obs: &Obs, ff: &impl Feedforward, q_applied: f64, dt: f64) {
+        self.trim = None;
         let r = self.shaper.step(obs.sp_f, obs.pit_f, dt);
         let (kc, _) = self.gains(obs.sp_f);
         self.integ = q_applied - ff.q_cfm(r) - kc * (r - obs.pit_f);

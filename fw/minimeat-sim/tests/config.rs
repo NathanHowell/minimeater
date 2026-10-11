@@ -38,6 +38,7 @@ fn cooking() -> Settings {
     s.cook.controller = ControllerKind::FfPi;
     s.cook.pit_probe = 2;
     s.cook.autotune = true;
+    s.cook.hold = Some((250.0, 0.72));
     s.schedule.insert(Fopdt {
         sp_f: 250.0,
         k: 99.0,

@@ -416,7 +416,9 @@ impl Autotune {
     /// dithered one); `q_applied` the airflow commanded this period; `undisturbed` is false during
     /// lid-open and lid recovery, probe faults and manual overrides, which restart the window.
     ///
-    /// Returns the schedule entry it changed, which the caller should persist.
+    /// Returns the schedule entry it changed, which the caller should persist. This runs the fit
+    /// inline (~1300 small solves); the firmware splits it with [`Self::sample`] and [`Self::apply`]
+    /// so the fit never runs in the control period.
     pub fn observe(
         &mut self,
         obs: &Obs,
@@ -426,6 +428,15 @@ impl Autotune {
         dt: f64,
         schedule: &mut Schedule,
     ) -> Option<Fopdt> {
+        let due = self.sample(obs, user_sp_f, q_applied, undisturbed, dt)?;
+        let fit = self.window().fit();
+        self.apply(due, fit, schedule)
+    }
+
+    /// The cheap half of [`Self::observe`]: records the period, and returns `Some` when the window
+    /// is due for a fit. The caller then fits a copy of [`Self::window`] wherever it likes and hands
+    /// the result to [`Self::apply`], however many periods later.
+    pub fn sample(&mut self, obs: &Obs, user_sp_f: f64, q_applied: f64, undisturbed: bool, dt: f64) -> Option<Due> {
         if !undisturbed || obs.lid || !obs.pit_f.is_finite() || !q_applied.is_finite() {
             self.id.reset();
             return None;
@@ -435,10 +446,23 @@ impl Autotune {
             self.settled_sp_f = user_sp_f;
         }
         self.settled_s += dt;
-        if !self.id.push(obs.pit_f, q_applied, user_sp_f, dt, self.config.fit_every) {
-            return None;
-        }
-        let fit = self.id.fit()?;
+        self.id
+            .push(obs.pit_f, q_applied, user_sp_f, dt, self.config.fit_every)
+            .then_some(Due {
+                sp_f: user_sp_f,
+                settled: self.settled_s >= self.config.min_settled_s,
+            })
+    }
+
+    /// The window [`Self::sample`] said is due.
+    pub fn window(&self) -> &Identifier {
+        &self.id
+    }
+
+    /// Takes a fit of the window `due` refers to (`None`: the data were degenerate) into the schedule,
+    /// if it passes. Returns the schedule entry it changed, which the caller should persist.
+    pub fn apply(&mut self, due: Due, fit: Option<Fit>, schedule: &mut Schedule) -> Option<Fopdt> {
+        let fit = fit?;
         self.status.fits += 1;
         let c = self.config;
         let accepted = fit.rms_f <= c.max_rms_f
@@ -446,10 +470,10 @@ impl Autotune {
             && fit.k_rel_se <= c.max_k_rel_se
             && !fit.tau_at_bound
             && fit.max_excursion_f <= c.max_excursion_f
-            && self.settled_s >= c.min_settled_s
+            && due.settled
             && fit.y_std_f >= c.min_y_std_f
             && fit.u_rel_std >= c.min_u_rel_std;
-        let at = scheduling_point(user_sp_f);
+        let at = scheduling_point(due.sp_f);
         let est = Fopdt {
             sp_f: at,
             k: fit.k,
@@ -475,6 +499,14 @@ impl Autotune {
         schedule.insert(new);
         Some(new)
     }
+}
+
+/// A window due for a fit ([`Autotune::sample`]): the user's setpoint it was taken at, and whether
+/// the pit had settled there long enough to trust it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Due {
+    pub sp_f: f64,
+    pub settled: bool,
 }
 
 /// Moves `old` towards `est` by `w`, each parameter by at most `max_ratio` (the dead time also by

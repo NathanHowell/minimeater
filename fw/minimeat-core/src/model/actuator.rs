@@ -1,13 +1,18 @@
 //! From [`Actuation`](super::airflow::Actuation) to what the drivers (`.4.8`) apply: flap angle and the
 //! instantaneous fan speed, with sub-minimum speeds produced by cycling the fan.
 
-use libm::acos;
+use libm::{acos, cos};
 
 /// Butterfly flap in a round duct: angle from closed (degrees, 0..90) that exposes `open_frac` of the
 /// tube area, from the projected open area `1 - cos(theta)`. [est] until CFD / bench (`.2.13`) gives
 /// the real curve, which then replaces this function.
 pub fn flap_angle_deg(open_frac: f64) -> f64 {
     acos(1.0 - open_frac.clamp(0.0, 1.0)).to_degrees()
+}
+
+/// Inverse of [`flap_angle_deg`]: the open-area fraction at a flap angle (degrees from closed).
+pub fn open_frac(angle_deg: f64) -> f64 {
+    1.0 - cos(angle_deg.clamp(0.0, 90.0).to_radians())
 }
 
 /// Produces fan speeds below the fan's minimum continuous speed by switching between off and the
@@ -71,6 +76,7 @@ mod tests {
         assert_eq!(flap_angle_deg(0.0), 0.0);
         assert!((flap_angle_deg(1.0) - 90.0).abs() < 1e-9);
         assert!((flap_angle_deg(0.5) - 60.0).abs() < 1e-9);
+        assert!((open_frac(flap_angle_deg(0.3)) - 0.3).abs() < 1e-12);
     }
 
     #[test]

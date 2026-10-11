@@ -65,6 +65,9 @@ pub struct Cook {
     /// Manual-mode outputs, % of travel / duty.
     pub manual_flap: f64,
     pub manual_fan: f64,
+    /// The airflow that last held the pit at a setpoint, (setpoint F, CFM), so a reboot does not have
+    /// to relearn how this egg differs from the model (`.4.14`). Cleared when a cook starts.
+    pub hold: Option<(f64, f64)>,
 }
 
 impl Default for Cook {
@@ -77,6 +80,7 @@ impl Default for Cook {
             autotune: false,
             manual_flap: 0.0,
             manual_fan: 0.0,
+            hold: None,
         }
     }
 }
@@ -281,7 +285,10 @@ impl Record for Cook {
         w.u8(self.pit_probe)?;
         w.u8(self.autotune.into())?;
         w.f64(self.manual_flap)?;
-        w.f64(self.manual_fan)
+        w.f64(self.manual_fan)?;
+        let (sp, q) = self.hold.unzip();
+        w.opt(sp)?;
+        w.opt(q)
     }
 
     fn decode(r: &mut R) -> Option<Self> {
@@ -300,6 +307,15 @@ impl Record for Cook {
             autotune,
             manual_flap: r.f64_in(0.0, 100.0)?,
             manual_fan: r.f64_in(0.0, 100.0)?,
+            hold: if r.more() {
+                // a bad hold costs only itself: it is a hint
+                match (r.opt_in(150.0, 325.0), r.opt_in(0.0, 20.0)) {
+                    (Some(Some(sp)), Some(Some(q))) => Some((sp, q)),
+                    _ => None,
+                }
+            } else {
+                None
+            },
         })
     }
 }

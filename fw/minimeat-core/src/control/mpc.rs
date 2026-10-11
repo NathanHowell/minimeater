@@ -42,6 +42,8 @@ pub struct Mpc {
     model_prev: (u32, f64, f64),
     /// Newton iterations used by the last solve (telemetry).
     pub last_iters: u32,
+    /// Set by [`Self::resume`] until the first step.
+    trim: Option<f64>,
 }
 
 impl Default for Mpc {
@@ -68,6 +70,7 @@ impl Mpc {
             q_prev: 0.0,
             model_prev: (0, f64::NAN, f64::NAN),
             last_iters: 0,
+            trim: None,
         }
     }
 
@@ -78,6 +81,7 @@ impl Mpc {
     }
 
     pub fn step(&mut self, obs: &Obs, ff: &impl Feedforward, dt: f64) -> f64 {
+        self.start(obs, ff);
         let lin = self.linearise(obs, ff, dt);
         let x = *self.x.get_or_insert([obs.pit_f, 0.0]);
 
@@ -134,9 +138,33 @@ impl Mpc {
         q
     }
 
+    /// Starting fresh on an egg that was already running (power cut, controller switch, probe fault).
+    /// `trim_cfm`: how much more airflow than the feedforward this egg needs to hold its setpoint,
+    /// as last seen (0 if unknown). The first step takes the dead time already elapsed as having had
+    /// that airflow at the pit's current temperature, instead of none, and starts the disturbance
+    /// estimate where the trim says, so the controller does not have to relearn the egg. Before the
+    /// first step only.
+    pub fn resume(&mut self, trim_cfm: f64) {
+        if self.x.is_none() {
+            self.trim = Some(trim_cfm);
+        }
+    }
+
+    fn start(&mut self, obs: &Obs, ff: &impl Feedforward) {
+        if self.x.is_none()
+            && let Some(trim) = self.trim.take()
+        {
+            self.q_prev = (ff.q_cfm(obs.pit_f.min(obs.sp_f)) + trim).max(0.0);
+            self.past = Past::default();
+            // steady state y_op + K (q - q_op) + d = setpoint at q = q_op + trim
+            self.x = Some([obs.pit_f, -self.schedule.at(obs.sp_f).k * trim]);
+        }
+    }
+
     /// One control period in which something else (autotune, manual mode) commanded `q_applied`:
     /// keeps the Kalman estimate and the dead-time history consistent, so control resumes bumplessly.
     pub fn track(&mut self, obs: &Obs, ff: &impl Feedforward, q_applied: f64, dt: f64) {
+        self.start(obs, ff);
         let lin = self.linearise(obs, ff, dt);
         self.x.get_or_insert([obs.pit_f, 0.0]);
         self.estimate(obs, &lin);

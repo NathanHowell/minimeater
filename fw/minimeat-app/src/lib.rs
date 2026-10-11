@@ -6,4 +6,5 @@
 pub mod config;
 pub mod drivers;
 pub mod hal;
+pub mod pit;
 pub mod selftest;

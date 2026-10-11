@@ -200,6 +200,14 @@ impl PitController {
         }
     }
 
+    /// See [`Mpc::resume`].
+    pub fn resume(&mut self, trim_cfm: f64) {
+        match self {
+            PitController::Mpc(c) => c.resume(trim_cfm),
+            PitController::FfPi(c) => c.resume(trim_cfm),
+        }
+    }
+
     /// Reference shaping is running (light-off or a setpoint increase): the pit is expected to be
     /// below setpoint.
     pub fn starting(&self) -> bool {
