@@ -20,6 +20,35 @@ use minimeat_core::units::{CFM, air_density, f_to_k, k_to_f};
 pub use food::Meat;
 pub use rng::Rng;
 
+/// Low / nominal / high-loss variants spanning the [est] parameters that matter most
+/// (`params.uncertainty_band`). Firmware-side models stay nominal, so a run on the outer two is a run
+/// with model mismatch.
+pub fn uncertainty_band(egg: Egg) -> [(&'static str, Egg); 3] {
+    [
+        (
+            "low loss",
+            Egg {
+                ceramic_k: 1.0,
+                wall_m: 0.030,
+                excess_air: 1.15,
+                combustion_eff: 0.9,
+                ..egg
+            },
+        ),
+        ("nominal", egg),
+        (
+            "high loss",
+            Egg {
+                ceramic_k: 2.0,
+                wall_m: 0.020,
+                excess_air: 2.0,
+                combustion_eff: 0.75,
+                ..egg
+            },
+        ),
+    ]
+}
+
 /// Lid up: effective top opening, extra gas->ambient conductance, air reaching the fire from above. [est]
 pub const LID_OPEN_TOP_AREA_M2: f64 = 0.15;
 pub const LID_OPEN_G_W_K: f64 = 80.0;
