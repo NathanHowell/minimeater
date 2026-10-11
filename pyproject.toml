@@ -17,6 +17,7 @@ dependencies = [
 minimeat = "minimeat:main"
 minimeat-model = "minimeat.model.report:main"
 minimeat-control = "minimeat.model.control_report:main"
+minimeat-probes = "minimeat.model.probes_report:main"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]
