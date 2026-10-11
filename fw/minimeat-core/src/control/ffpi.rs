@@ -37,10 +37,7 @@ impl FfPi {
             return q.clamp(0.0, obs.q_max);
         }
         let r = self.shaper.step(obs.sp_f, obs.pit_f, dt);
-        let m = self.schedule.at(obs.sp_f);
-        let tc = (self.tc_over_theta * m.theta_s).max(60.0);
-        let kc = m.tau_s / (m.k * (tc + m.theta_s)); // CFM per F
-        let ti = m.tau_s.min(4.0 * (tc + m.theta_s));
+        let (kc, ti) = self.gains(obs.sp_f);
         let e = r - obs.pit_f;
         let q_unsat = ff.q_cfm(r) + kc * e + self.integ;
         let q = q_unsat.clamp(obs.q_min, obs.q_max);
@@ -50,5 +47,21 @@ impl FfPi {
         }
         self.q_last = q;
         q
+    }
+
+    /// SIMC proportional gain (CFM per F) and integral time (s) at a setpoint.
+    fn gains(&self, sp_f: f64) -> (f64, f64) {
+        let m = self.schedule.at(sp_f);
+        let tc = (self.tc_over_theta * m.theta_s).max(60.0);
+        (m.tau_s / (m.k * (tc + m.theta_s)), m.tau_s.min(4.0 * (tc + m.theta_s)))
+    }
+
+    /// One control period in which something else commanded `q_applied`: back-calculates the
+    /// integral so the next [`Self::step`] continues from that airflow without a bump.
+    pub fn track(&mut self, obs: &Obs, ff: &impl Feedforward, q_applied: f64, dt: f64) {
+        let r = self.shaper.step(obs.sp_f, obs.pit_f, dt);
+        let (kc, _) = self.gains(obs.sp_f);
+        self.integ = q_applied - ff.q_cfm(r) - kc * (r - obs.pit_f);
+        self.q_last = q_applied;
     }
 }

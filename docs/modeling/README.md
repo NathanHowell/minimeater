@@ -69,10 +69,11 @@ The recommended controller is built from the parts below. Each piece is cheap on
 
 **2. Feedforward.** The steady-state airflow needed for the setpoint, computed from the model and the on-board ambient sensor.
 
-**3. Autotune by step-response system identification, not a relay test.**
-  - A 30% airflow step at the setpoint, fitted to a first-order-plus-dead-time model.
-  - Identified values: about 50–160 F per CFM, a time constant of about 7–9 min, and 100–130 s of dead time.
-  - The gain changes with setpoint and egg, so models are scheduled by setpoint.
+**3. Autotune by system identification, not a relay test.**
+  - A first-order-plus-dead-time model per setpoint. Identified values: about 50–160 F per CFM, a time constant of about 7–9 min, and 100–130 s of dead time. The gain changes with setpoint and egg, so models are scheduled by setpoint.
+  - The Python study used a 30% open-loop airflow step. The firmware (`.4.4`) instead learns closed-loop, so autotune can never fail or take the pit away from the controller: an output-error fit on a sliding 60 min window of applied airflow and pit, with a ±3F setpoint dither as the only excitation. It accepts only well-excited, settled windows, and blends accepted fits into the schedule in bounded steps.
+  - In the Rust sim it learns every egg in the uncertainty band within 15% of the small-signal model while the pit stays within 7F (`fw/minimeat-sim/tests/autotune.rs`).
+  - A 30% step measures a large-signal average. It differs from the small-signal gain the MPC needs around the setpoint by up to about 13% (low-loss egg at 150F).
 
 **4. Offset-free linear MPC.**
   - Inputs: the identified model plus a Kalman disturbance estimate. The disturbance estimate absorbs fuel, weather, food load and model error.

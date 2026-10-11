@@ -5,6 +5,7 @@
 //! inversion, `.4.5`) and computing the feedforward from the egg model live outside this module; the
 //! controller receives the reachable airflow range and a [`Feedforward`] each step.
 
+pub mod autotune;
 mod ffpi;
 mod mpc;
 mod shaper;
@@ -53,6 +54,9 @@ pub struct Fopdt {
 pub struct Schedule {
     models: [Fopdt; Schedule::CAPACITY],
     len: usize,
+    /// Bumped by every [`Schedule::insert`], so controllers can tell a learned update from a
+    /// setpoint move.
+    revision: u32,
 }
 
 impl Schedule {
@@ -93,6 +97,7 @@ impl Schedule {
         let mut s = Self {
             models: [models[0]; Self::CAPACITY],
             len: 0,
+            revision: 0,
         };
         for m in models.iter().take(Self::CAPACITY) {
             s.insert(*m);
@@ -102,6 +107,7 @@ impl Schedule {
 
     /// Insert or replace (same setpoint) a model, keeping the list sorted; drops the input if full.
     pub fn insert(&mut self, m: Fopdt) {
+        self.revision = self.revision.wrapping_add(1);
         if let Some(i) = self.models[..self.len].iter().position(|x| x.sp_f == m.sp_f) {
             self.models[i] = m;
             return;
@@ -116,6 +122,10 @@ impl Schedule {
         self.models.copy_within(i..self.len, i + 1);
         self.models[i] = m;
         self.len += 1;
+    }
+
+    pub fn revision(&self) -> u32 {
+        self.revision
     }
 
     pub fn models(&self) -> &[Fopdt] {
@@ -168,6 +178,14 @@ impl PitController {
         match self {
             PitController::Mpc(c) => c.step(obs, ff, dt),
             PitController::FfPi(c) => c.step(obs, ff, dt),
+        }
+    }
+
+    /// A period in which autotune or manual mode commanded `q_applied` instead (see [`Mpc::track`]).
+    pub fn track(&mut self, obs: &Obs, ff: &impl Feedforward, q_applied: f64, dt: f64) {
+        match self {
+            PitController::Mpc(c) => c.track(obs, ff, q_applied, dt),
+            PitController::FfPi(c) => c.track(obs, ff, q_applied, dt),
         }
     }
 

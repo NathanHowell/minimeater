@@ -109,7 +109,6 @@ Error codes:
 | `hold` | at setpoint |
 | `lid` | lid open: output frozen |
 | `recover` | after the lid closes, replaying 1.5x the pre-lid airflow |
-| `autotune` | step test in progress |
 | `manual` | mode `manual` |
 | `fault` | no pit reading or a hardware fault: flap closed, fan stopped |
 
@@ -136,7 +135,7 @@ Error codes:
 **Status fields:**
 - `lid`: `true` while the controller thinks the lid is open.
 - `fire`: `ok`, `low` (fuel running low), `out`, or `unknown`. `unknown` covers startup and the first hour after a setpoint change, while the estimator settles.
-- `autotune`: `null`, or `{"stage": "settle"|"step"|"fit", "elapsed": s}`.
+- `autotune`: `{"exciting": bool, "accepted": n, "window": 0.0-1.0}`. The controller learns its model all the time from closed-loop data (`.4.4`); `exciting` is true while the `autotune` command's setpoint dither runs, `accepted` counts fits taken into `model` since boot, and `window` is how full the current 60 min data window is. Autotune never takes the pit away from the controller and has no failure state.
 - `faults`: empty, or a list of codes:
 
 | Code | Meaning |
@@ -176,7 +175,7 @@ The current value of every setting. It is the same set the device stores in flas
 }
 ```
 
-`model` is read-only: it is the FOPDT schedule identified by autotune (`k` in F/CFM, `tau` and `dead` in seconds). It is empty until the first autotune, and the controller uses built-in defaults until then.
+`model` is read-only: it is the FOPDT schedule learned from closed-loop data (`k` in F/CFM, `tau` and `dead` in seconds), one entry per 25F scheduling point that has been learned. It persists in flash, so a power cut keeps it. It is empty until the first accepted fit, and the controller uses built-in defaults until then.
 
 ## `~/set/<setting>`
 
@@ -200,9 +199,9 @@ The current value of every setting. It is the same set the device stores in flas
 
 | Command | Payload | Allowed when | Effect |
 |---|---|---|---|
-| `autotune` | empty, or a setpoint number | `run`, in phase `hold` | step test at the current or given setpoint; result goes into `model` |
-| `autotune_abort` | empty | autotune running | returns to `hold` with the previous model |
-| `model_reset` | `reset` | not during autotune | clears the identified schedule |
+| `autotune` | empty | `run` | adds a ±3F square-wave dither (30 min half-period) to the setpoint, so the learner sees enough excitation; it stops by itself once the model at this setpoint is well determined (typically 2-3 h) or after 5 h. The controller stays in charge throughout, and the command cannot fail: poor data is discarded and the model is left as it was. |
+| `autotune_stop` | empty | any time | ends the dither early; whatever was learned is kept |
+| `model_reset` | `reset` | any time | clears the learned schedule |
 | `selfcheck` | empty | any time | compares every `ok` probe against ambient, ±2F |
 | `alarm_ack` | empty | any time | silences the LED for the alarms active now |
 | `identify` | empty | any time | blinks the LED for 10 s |
@@ -222,7 +221,7 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 ```
 
 ```json
-{"v": 1, "event_type": "autotune_done", "sp": 225.0, "k": 116.0, "tau": 480.0, "dead": 110.0}
+{"v": 1, "event_type": "autotune_done", "sp": 225.0, "k": 116.0, "tau": 480.0, "dead": 110.0, "accepted": 6}
 ```
 
 | `event_type` | Extra fields |
@@ -232,8 +231,7 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `lid_open`, `lid_closed` | `pit` |
 | `fire_low`, `fire_out` | `pit`, `q` |
 | `setpoint_reached` | `sp` |
-| `autotune_done` | `sp`, `k`, `tau`, `dead` |
-| `autotune_failed` | `reason` (`disturbed` \| `no_response` \| `aborted`) |
+| `autotune_done` | `sp`, `k`, `tau`, `dead` (the model at that setpoint now), `accepted` (fits taken during the dither; 0 means the model is unchanged) |
 | `selfcheck` | `results`: one per jack, each `{"probe": n, "delta": F}` or `{"probe": n, "st": "open"}` |
 | `rejected` | `topic`, `error`, `detail` |
 | `fault`, `fault_clear` | `code` |
@@ -264,7 +262,7 @@ There is one retained device-discovery message, `homeassistant/device/<id>/confi
 | `probe<n>_lo`, `probe<n>_hi`, `probe<n>_offset` | `number` | `set/probe/<n>/...` | `config`; 0 disables lo/hi |
 | `lid_detect` | `switch` | `set/lid_detect` | `config` |
 | `lid_boost`, `manual_flap`, `manual_fan` | `number` | `set/...` | `config` |
-| `autotune`, `autotune_abort`, `selfcheck`, `alarm_ack`, `identify` | `button` | `cmd/...` | |
+| `autotune`, `autotune_stop`, `selfcheck`, `alarm_ack`, `identify` | `button` | `cmd/...` | |
 | `reboot` | `button` | `cmd/reboot`, payload `reboot` | `device_class` restart, diagnostic |
 | `events` | `event` | `~/event` | `event_types` from the table above |
 | `rssi`, `board_temp`, `uptime` | `sensor` | `diag.*`, `up` | diagnostic |
@@ -304,7 +302,7 @@ Excerpt, using HA's abbreviated keys:
       "p": "event", "uniq_id": "mm-a1b2c3_events", "name": "Events",
       "stat_t": "minimeat/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
-                  "setpoint_reached", "autotune_done", "autotune_failed", "selfcheck", "rejected",
+                  "setpoint_reached", "autotune_done", "selfcheck", "rejected",
                   "fault", "fault_clear"]
     }
   }

@@ -38,6 +38,8 @@ pub struct Mpc {
     p: [[f64; 2]; 2],
     past: Past,
     q_prev: f64,
+    /// Schedule revision, setpoint and gain the estimate was last computed with (bumpless updates).
+    model_prev: (u32, f64, f64),
     /// Newton iterations used by the last solve (telemetry).
     pub last_iters: u32,
 }
@@ -64,6 +66,7 @@ impl Mpc {
             p: [[1.0, 0.0], [0.0, 25.0]],
             past: Past::default(),
             q_prev: 0.0,
+            model_prev: (0, f64::NAN, f64::NAN),
             last_iters: 0,
         }
     }
@@ -75,57 +78,25 @@ impl Mpc {
     }
 
     pub fn step(&mut self, obs: &Obs, ff: &impl Feedforward, dt: f64) -> f64 {
-        let m = self.schedule.at(obs.sp_f);
-        let a = exp(-dt / m.tau_s);
-        let kk = m.k;
-        let delay = (round(m.theta_s / dt) as usize).min(PAST_CAP - 1);
-        let (y_op, q_op) = (obs.sp_f, ff.q_cfm(obs.sp_f));
-
-        while self.past.len() < delay + 1 {
-            self.past.push_front(self.q_prev);
-        }
+        let lin = self.linearise(obs, ff, dt);
         let x = *self.x.get_or_insert([obs.pit_f, 0.0]);
 
         if let Some(q_rec) = self.lid.update(obs, dt, self.q_prev) {
             // The lid transient is not in the model: track the measurement, keep the learned
             // disturbance, and replay the pre-lid airflow until back near setpoint.
             self.x = Some([obs.pit_f, x[1]]);
-            self.commit(q_rec, delay);
+            self.commit(q_rec, lin.delay);
             return q_rec.clamp(0.0, obs.q_max);
         }
 
-        // Kalman predict + update.
-        let q_delayed = self.past.back(delay);
-        let f = [[a, 1.0 - a], [0.0, 1.0]];
-        let mut xp = [
-            f[0][0] * x[0] + f[0][1] * x[1] + (1.0 - a) * (y_op + kk * (q_delayed - q_op)),
-            x[1],
-        ];
-        let p = self.p;
-        let fp = [
-            [
-                f[0][0] * p[0][0] + f[0][1] * p[1][0],
-                f[0][0] * p[0][1] + f[0][1] * p[1][1],
-            ],
-            [p[1][0], p[1][1]],
-        ];
-        let mut pp = [
-            [fp[0][0] * f[0][0] + fp[0][1] * f[0][1] + self.q_proc_y, fp[0][1]],
-            [fp[1][0] * f[0][0] + fp[1][1] * f[0][1], fp[1][1] + self.q_proc_d],
-        ];
-        let s = pp[0][0] + self.r_meas;
-        let kg = [pp[0][0] / s, pp[1][0] / s];
-        let innov = obs.pit_f - xp[0];
-        xp[0] += kg[0] * innov;
-        xp[1] += kg[1] * innov;
-        let row0 = pp[0];
-        for (i, k) in kg.iter().enumerate() {
-            for j in 0..2 {
-                pp[i][j] -= k * row0[j];
-            }
-        }
-        self.x = Some(xp);
-        self.p = pp;
+        let xp = self.estimate(obs, &lin);
+        let Lin {
+            a,
+            k: kk,
+            delay,
+            y_op,
+            q_op,
+        } = lin;
 
         // Roll the model through the dead time with already-committed inputs.
         let d = xp[1];
@@ -157,11 +128,105 @@ impl Mpc {
         q
     }
 
+    /// One control period in which something else (autotune, manual mode) commanded `q_applied`:
+    /// keeps the Kalman estimate and the dead-time history consistent, so control resumes bumplessly.
+    pub fn track(&mut self, obs: &Obs, ff: &impl Feedforward, q_applied: f64, dt: f64) {
+        let lin = self.linearise(obs, ff, dt);
+        self.x.get_or_insert([obs.pit_f, 0.0]);
+        self.estimate(obs, &lin);
+        self.shaper.step(obs.sp_f, obs.pit_f, dt);
+        self.commit(q_applied, lin.delay);
+    }
+
+    /// The scheduled model at this setpoint, discretised at `dt`; pads the input history to the
+    /// dead time.
+    fn linearise(&mut self, obs: &Obs, ff: &impl Feedforward, dt: f64) -> Lin {
+        let m = self.schedule.at(obs.sp_f);
+        let delay = (round(m.theta_s / dt) as usize).min(PAST_CAP - 1);
+        while self.past.len() < delay + 1 {
+            self.past.push_front(self.q_prev);
+        }
+        let q_op = ff.q_cfm(obs.sp_f);
+        // A learned schedule update (autotune) changes the steady state the model predicts for the
+        // current airflow, y_op + K (q - q_op) + d. Re-anchor d so that prediction is unchanged;
+        // otherwise the update itself kicks the pit. Setpoint moves are left alone.
+        let rev = self.schedule.revision();
+        let (rev_prev, sp_prev, k_prev) = self.model_prev;
+        if let Some(x) = self.x.as_mut()
+            && rev != rev_prev
+            && sp_prev == obs.sp_f
+        {
+            x[1] += (k_prev - m.k) * (self.q_prev - q_op);
+        }
+        self.model_prev = (rev, obs.sp_f, m.k);
+        Lin {
+            a: exp(-dt / m.tau_s),
+            k: m.k,
+            delay,
+            y_op: obs.sp_f,
+            q_op,
+        }
+    }
+
+    /// Kalman predict + update of [pit, disturbance]; the state must be initialised.
+    fn estimate(&mut self, obs: &Obs, lin: &Lin) -> [f64; 2] {
+        let Lin {
+            a,
+            k: kk,
+            delay,
+            y_op,
+            q_op,
+        } = *lin;
+        let x = self.x.expect("estimator initialised");
+        let q_delayed = self.past.back(delay);
+        let f = [[a, 1.0 - a], [0.0, 1.0]];
+        let mut xp = [
+            f[0][0] * x[0] + f[0][1] * x[1] + (1.0 - a) * (y_op + kk * (q_delayed - q_op)),
+            x[1],
+        ];
+        let p = self.p;
+        let fp = [
+            [
+                f[0][0] * p[0][0] + f[0][1] * p[1][0],
+                f[0][0] * p[0][1] + f[0][1] * p[1][1],
+            ],
+            [p[1][0], p[1][1]],
+        ];
+        let mut pp = [
+            [fp[0][0] * f[0][0] + fp[0][1] * f[0][1] + self.q_proc_y, fp[0][1]],
+            [fp[1][0] * f[0][0] + fp[1][1] * f[0][1], fp[1][1] + self.q_proc_d],
+        ];
+        let s = pp[0][0] + self.r_meas;
+        let kg = [pp[0][0] / s, pp[1][0] / s];
+        let innov = obs.pit_f - xp[0];
+        xp[0] += kg[0] * innov;
+        xp[1] += kg[1] * innov;
+        let row0 = pp[0];
+        for (i, k) in kg.iter().enumerate() {
+            for j in 0..2 {
+                pp[i][j] -= k * row0[j];
+            }
+        }
+        self.x = Some(xp);
+        self.p = pp;
+        xp
+    }
+
     fn commit(&mut self, q: f64, delay: usize) {
         self.q_prev = q;
         self.past.push_back(q);
         self.past.keep_last(delay + 1);
     }
+}
+
+/// The scheduled FOPDT discretised at the control period, around the setpoint operating point.
+#[derive(Clone, Copy)]
+struct Lin {
+    a: f64,
+    k: f64,
+    delay: usize,
+    y_op: f64,
+    q_op: f64,
 }
 
 /// One MPC solve. Index j = 0..n is the prediction j+1 periods past the dead time.
