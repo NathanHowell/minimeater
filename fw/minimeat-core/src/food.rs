@@ -11,7 +11,8 @@
 //! - **`a`**, the dry ratio, is the largest `rho` seen on the ramp (or the cut's prior until then).
 //! - **Stall**: the core rises less than [`STALL_RATE_F_H`] while `rho` is well under `a` (so a core
 //!   that is merely closing on the pit temperature is not a stall), above 120F, for 10 min. It ends
-//!   when the rate is back above [`STALL_END_F_H`] for 10 min. One stall per cook.
+//!   when the rate is back above [`STALL_END_F_H`] (and twice the stall's slowest) for 10 min. One
+//!   stall per cook.
 //! - **ETA**: `rho` recovers from its current value to `a` with time constant `recover_h`, and
 //!   `ln((P - C) / (P - T)) = integral of rho dt` gives the time to the target. Before a stall that
 //!   a stalling cut has not had yet, its typical length is added. On the plant model this predicts
@@ -120,6 +121,8 @@ pub struct FoodEstimator {
     /// Learned dry ratio, per hour; `None` until the ramp has shown one.
     a_h: Option<f64>,
     cond_s: f64,
+    /// Slowest rate seen in the stall, F/h.
+    stall_min: f64,
     out: Food,
     /// Absent this long, s: the estimate starts over after 10 min.
     gone_s: f64,
@@ -142,6 +145,7 @@ impl FoodEstimator {
             pit: None,
             a_h: None,
             cond_s: 0.0,
+            stall_min: f64::INFINITY,
             out: Food::default(),
             gone_s: 0.0,
             clean: [true; SLOPE_N],
@@ -259,7 +263,10 @@ impl FoodEstimator {
                 }
             }
             Stall::In { since_s } => {
-                self.cond_s = if rate > STALL_END_F_H {
+                // a stall that sets in slowly hovers about the onset rate: it is over once the rate
+                // is clearly back up, not at the first wobble
+                self.stall_min = self.stall_min.min(rate);
+                self.cond_s = if rate > STALL_END_F_H.max(2.0 * self.stall_min) {
                     self.cond_s + SAMPLE_S
                 } else {
                     0.0

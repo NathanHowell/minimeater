@@ -1192,6 +1192,8 @@ name = "minimeat-app"
 version = "0.1.0"
 dependencies = [
  "embassy-futures",
+ "embassy-sync 0.7.2",
+ "embassy-time",
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-storage-async",
@@ -1243,6 +1245,21 @@ dependencies = [
  "minimeat-app",
  "minimeat-core",
  "serde_json",
+]
+
+[[package]]
+name = "minimeat-twin"
+version = "0.1.0"
+dependencies = [
+ "critical-section",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-time-driver",
+ "embassy-time-queue-utils",
+ "log",
+ "minimeat-app",
+ "minimeat-core",
+ "minimeat-sim",
 ]
 
 [[package]]

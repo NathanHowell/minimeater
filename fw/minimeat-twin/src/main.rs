@@ -1,0 +1,128 @@
+//! `cargo run --release -p minimeat-twin -- [--scenario kamado-brisket] [--speed 60|max]
+//! [--every MIN] [--csv FILE]` (or `just twin ...`): runs a scenario on the twin and prints the cook.
+
+use std::fs::File;
+use std::io::{BufWriter, Write};
+
+use minimeat_app::pit::Event;
+use minimeat_core::food::Stall;
+use minimeat_twin::{Opts, Sample, Scenario, run};
+
+fn usage() -> ! {
+    eprintln!(
+        "usage: minimeat-twin [--scenario {}] [--speed N|max] [--every MIN] [--csv FILE]",
+        Scenario::NAMES.join("|")
+    );
+    std::process::exit(2)
+}
+
+fn hm(s: f64) -> String {
+    let m = (s / 60.0).round() as u64;
+    format!("{:2}:{:02}", m / 60, m % 60)
+}
+
+fn line(s: &Sample) -> String {
+    let st = &s.status;
+    let o = &st.out;
+    let mut l = format!(
+        "{} pit {:5.1}F sp {:3.0} {:8} q {:4.2} flap {:3.0}% fan {:3.0}%",
+        hm(s.t_s),
+        st.temps[st.cook.pit_probe as usize].unwrap_or(f64::NAN),
+        st.cook.sp_f,
+        format!("{:?}", o.phase).to_lowercase(),
+        o.q,
+        o.flap_pct,
+        o.act.fan * 100.0
+    );
+    for (j, f) in st.foods.iter().enumerate() {
+        if let (Some(f), Some(t)) = (f, st.temps[j]) {
+            l += &format!(" | probe {j} {t:5.1}F");
+            if let Some(r) = f.rate_f_h {
+                l += &format!(" {r:+5.1}F/h");
+            }
+            if let Some(e) = f.eta_s {
+                l += &format!(" eta {}", hm(e));
+            }
+            if matches!(f.stall, Stall::In { .. }) {
+                l += " STALL";
+            }
+        }
+    }
+    l
+}
+
+fn main() {
+    let mut args = std::env::args().skip(1);
+    let (mut name, mut speed, mut every_min, mut csv) = ("kamado-brisket".to_string(), None, 10.0, None);
+    while let Some(a) = args.next() {
+        let mut val = || args.next().unwrap_or_else(|| usage());
+        match a.as_str() {
+            "--scenario" => name = val(),
+            "--speed" => {
+                let v = val();
+                speed = match v.as_str() {
+                    "max" => None,
+                    n => Some(n.trim_end_matches('x').parse::<f64>().unwrap_or_else(|_| usage())),
+                };
+            }
+            "--every" => every_min = val().parse().unwrap_or_else(|_| usage()),
+            "--csv" => csv = Some(val()),
+            _ => usage(),
+        }
+    }
+    let sc = Scenario::named(&name).unwrap_or_else(|| usage());
+    let mut out = csv.map(|p| BufWriter::new(File::create(p).expect("csv file")));
+    if let Some(w) = out.as_mut() {
+        writeln!(
+            w,
+            "t_s,pit_true,pit,sp,ref,phase,q,flap,fan,core_true,core,rate,eta_s,stall"
+        )
+        .unwrap();
+    }
+    println!(
+        "twin: {} for {} h at {}",
+        sc.name,
+        sc.hours,
+        speed.map_or("max speed".into(), |s| format!("{s}x"))
+    );
+    let mut next_print = 0.0;
+    let report = run(sc, &Opts { speed }, |s, events| {
+        for (t, e) in events {
+            println!("{} event {e:?}", hm(*t));
+        }
+        if s.t_s >= next_print {
+            println!("{}", line(s));
+            next_print = s.t_s + every_min * 60.0;
+        }
+        if let Some(w) = out.as_mut() {
+            let st = &s.status;
+            let f = st.foods[1];
+            let opt = |v: Option<f64>| v.map_or(String::new(), |v| format!("{v:.2}"));
+            writeln!(
+                w,
+                "{},{:.2},{},{},{:.2},{:?},{:.3},{:.1},{:.1},{},{},{},{},{:?}",
+                s.t_s,
+                s.pit_f,
+                opt(st.temps[st.cook.pit_probe as usize]),
+                st.cook.sp_f,
+                st.out.ref_f,
+                st.out.phase,
+                st.out.q,
+                st.out.flap_pct,
+                st.out.act.fan * 100.0,
+                opt(s.cores_f[0]),
+                opt(st.temps[1]),
+                opt(f.and_then(|f| f.rate_f_h)),
+                opt(f.and_then(|f| f.eta_s)),
+                f.map(|f| f.stall)
+            )
+            .unwrap();
+        }
+    });
+    let done = report
+        .events
+        .iter()
+        .filter(|(_, e)| !matches!(e, Event::LidOpen { .. } | Event::LidClosed { .. }))
+        .count();
+    println!("twin: {} samples, {done} events besides the lid", report.samples.len());
+}

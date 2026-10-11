@@ -9,3 +9,4 @@ pub mod food;
 pub mod hal;
 pub mod pit;
 pub mod selftest;
+pub mod tasks;

@@ -8,6 +8,8 @@ version.workspace      = true
 [dependencies]
 minimeat-core          = { path = "../minimeat-core" }
 embassy-futures        = "0.1.2"
+embassy-sync           = "0.7.2"
+embassy-time           = "0.5.0"
 embedded-hal           = "1.0.0"
 embedded-hal-async     = "1.0.0"
 embedded-storage-async = "0.4.1"
