@@ -1,0 +1,13 @@
+[package]
+name         = "minimeat-sim"
+description  = "BGE Large plant model for the host digital twin and scenario suite (no_std, deterministic)"
+edition.workspace      = true
+rust-version.workspace = true
+version.workspace      = true
+
+[dependencies]
+minimeat-core = { path = "../minimeat-core" }
+libm          = "0.2.16"
+
+[dev-dependencies]
+serde_json = "1"

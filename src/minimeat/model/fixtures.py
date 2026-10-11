@@ -1,4 +1,4 @@
-"""Parity fixtures for the Rust port -> fw/minimeat-core/tests/fixtures/{control,model}.json.
+"""Parity fixtures for the Rust port -> fw/minimeat-{core,sim}/tests/fixtures/*.json.
 
 Run: uv run minimeat-fixtures
 
@@ -8,6 +8,7 @@ limits) and the airflow it should command. The Rust test replays the inputs open
 outputs. Feedforward is a shared 1F table so both sides evaluate the identical function.
 
 `model.json` pins the airflow, steady-state and actuator-inversion model at sample points.
+`plant.json` is an open-loop scripted run of the dynamic plant (`sim.simulate`) for the Rust plant port.
 """
 
 import argparse
@@ -105,14 +106,44 @@ def model_fixture() -> dict:
     return {"air_flow": flows, "steady_state": steady, "airflow_map": maps}
 
 
+# Open-loop actuation script for the plant fixture: (from_s, damper, fan speed). Covers the flap-only
+# region, sub-minimum fan cycling (s=0.1), full fan and a closed flap.
+PLANT_SCRIPT = [(0.0, 1.0, 0.0), (1800.0, 1.0, 0.6), (3600.0, 0.4, 0.0), (7200.0, 1.0, 0.1), (9000.0, 0.0, 0.0),
+                (10800.0, 0.7, 0.0)]
+
+
+class Scripted:
+    def step(self, obs, dt):
+        return next((d, s) for t0, d, s in reversed(PLANT_SCRIPT) if obs.t_s >= t0)
+
+
+def plant_fixture() -> dict:
+    events = [Event(5400.0, lid_open_s=120.0), Event(6000.0, food_load_w=150.0),
+              Event(9600.0, ambient=Ambient(c_to_k(5.0), 4.0)), Event(11000.0, top_area_m2=TOP_VENT["slider 1/2"])]
+    r = simulate(DEFAULT_EGG, DEFAULT_INTAKE, FAN, AMB, TOP_VENT["slider 1/4"], events, 4 * H, Scripted(),
+                 setpoint_f=225.0, init_f=None, noise_f=0.0)
+    every = 30  # 60 s at dt = 2 s
+    return {
+        "script": [{"t": t0, "damper": d, "s": s} for t0, d, s in PLANT_SCRIPT],
+        "dt": 2.0,
+        "every": every,
+        "pit_f": [float(v) for v in r.pit_f[::every]],
+        "air_cfm": [float(v) for v in r.air_cfm[::every]],
+        "fire_w": [float(v) for v in r.fire_w[::every]],
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=Path("fw/minimeat-core/tests/fixtures/control.json"))
+    ap.add_argument("--fw", type=Path, default=Path("fw"), help="cargo workspace root")
     args = ap.parse_args()
-    model_out = args.out.with_name("model.json")
-    model_out.parent.mkdir(parents=True, exist_ok=True)
-    model_out.write_text(json.dumps(model_fixture(), indent=1))
-    print(f"wrote {model_out}")
+    core, sim = args.fw / "minimeat-core/tests/fixtures", args.fw / "minimeat-sim/tests/fixtures"
+    for d in (core, sim):
+        d.mkdir(parents=True, exist_ok=True)
+    for path, data in ((core / "model.json", model_fixture()), (sim / "plant.json", plant_fixture())):
+        path.write_text(json.dumps(data, indent=1))
+        print(f"wrote {path}")
+    control_out = core / "control.json"
     schedule: Schedule = autotune(DEFAULT_EGG)
     ff_real = FeedForward(DEFAULT_EGG)
     ff_q = np.array([ff_real.q_cfm(AMB, t) for t in FF_TEMPS_F])
@@ -146,6 +177,5 @@ def main() -> None:
                 "q": [round(v, 6) for v in c["q"]],
             })
             print(f"{name}/{kind}: {len(c['q'])} steps")
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(out, separators=(",", ":")))
-    print(f"wrote {args.out} ({args.out.stat().st_size // 1024} KB)")
+    control_out.write_text(json.dumps(out, separators=(",", ":")))
+    print(f"wrote {control_out} ({control_out.stat().st_size // 1024} KB)")
