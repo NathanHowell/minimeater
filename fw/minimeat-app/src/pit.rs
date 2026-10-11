@@ -26,6 +26,8 @@ use minimeat_core::model::actuator::{flap_angle_deg, open_frac};
 use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap, ModelFeedforward};
 
 use crate::config::{ControllerKind, Cook, Lid, Mode, Settings};
+use crate::hal::PROBE_JACKS;
+use crate::probes::Check;
 
 /// Control period, s.
 pub const PERIOD_S: f64 = 10.0;
@@ -93,6 +95,10 @@ pub enum Event {
         model: Fopdt,
         accepted: u32,
     },
+    /// Every probe against ambient (power-up, or the `selfcheck` command).
+    SelfCheck {
+        results: [Check; PROBE_JACKS],
+    },
     Fault(FaultCode),
     FaultClear(FaultCode),
 }
@@ -111,6 +117,8 @@ pub enum Command {
     Autotune,
     AutotuneStop,
     ModelReset,
+    /// Compare the probes against ambient; the control task handles it, since it owns the probes.
+    SelfCheck,
 }
 
 /// Why a command was rejected (`rejected` event `error`).
@@ -288,6 +296,8 @@ impl Pit {
             Command::ModelReset => {
                 *self.ctrl.schedule_mut() = Schedule::default();
             }
+            // the control task owns the probes and answers it
+            Command::SelfCheck => {}
         }
         Ok(())
     }

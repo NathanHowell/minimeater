@@ -32,7 +32,6 @@ type B = SimBoard<'static>;
 
 #[embassy_executor::task]
 async fn control(
-    probes: SimProbes<'static>,
     ambient: SimAmbient<'static>,
     store: ConfigStore<SimConfig<'static>>,
     settings: Settings,
@@ -40,7 +39,12 @@ async fn control(
     foods: &'static mut Foods,
     bus: &'static Bus,
 ) {
-    tasks::control::<B>(probes, ambient, store, settings, pit, foods, bus).await
+    tasks::control::<B>(ambient, store, settings, pit, foods, bus).await
+}
+
+#[embassy_executor::task]
+async fn probes(adc: SimProbes<'static>, bus: &'static Bus) {
+    tasks::probes::<B>(adc, bus).await
 }
 
 #[embassy_executor::task]
@@ -102,7 +106,8 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
 
     let exec: &'static raw::Executor = Box::leak(Box::new(raw::Executor::new(core::ptr::null_mut())));
     let spawner = exec.spawner();
-    spawner.spawn(control(io.probes, io.ambient, store, settings, pit, foods, bus).expect("control"));
+    spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control"));
+    spawner.spawn(probes(io.probes, bus).expect("probes"));
     spawner.spawn(actuators(io.fan, io.servo, io.servo_power, model.fan.s_min(), bus).expect("actuators"));
     spawner.spawn(slow(bus).expect("slow"));
 

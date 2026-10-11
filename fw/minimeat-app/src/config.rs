@@ -128,7 +128,7 @@ pub struct Probe {
 }
 
 impl Probe {
-    fn default_for(jack: usize) -> Self {
+    pub(crate) fn default_for(jack: usize) -> Self {
         let mut name = String::new();
         let _ = core::fmt::write(&mut name, format_args!("Probe {}", jack + 1));
         Self {

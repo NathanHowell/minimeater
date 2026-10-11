@@ -123,6 +123,7 @@ Error codes:
 | `short` | |
 | `range` | reading outside -20 to 700F |
 | `disagree` | failed the power-up self-check against ambient |
+| `fault` | the probe ADC is not answering |
 
 - `alarm`: `null`, `"lo"` or `"hi"`. It stays latched until the reading moves 5F back inside the limit. It is reported even after `alarm_ack`, which only silences the LED.
 - `food`: the food estimator (`.4.22`), or `null` for the pit probe and a probe without a reading. It is learned from the probe's own curve; the probe's `cut` only sets priors.

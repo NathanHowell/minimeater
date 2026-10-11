@@ -8,15 +8,20 @@
 //! - [`slow`]: what is too slow for the control period, an autotune fit or an airflow-map rebuild,
 //!   handed over through the [`Bus`]. On the C6 it belongs on a lower-priority executor (`.4.24`).
 //!
-//! The probe reading and actuator output here are the minimum that works end to end: one
-//! conversion per jack per period, a linear servo calibration and fan duty = speed. The probe
-//! pipeline (`.4.7`: filtering, round robin, self-check) and the actuator drivers (`.4.8`: servo
-//! calibration and slew, fan curve, tach check) replace them behind the same task boundaries.
+//! - [`probes`]: the ADC round robin, averaging and filtering ([`crate::probes`]), publishing the
+//!   latest [`Snapshot`] on the [`Bus`] for [`control`] to read each period.
+//!
+//! The actuator output here is the minimum that works end to end: a linear servo calibration and fan
+//! duty = speed. The actuator drivers (`.4.8`: servo calibration and slew, fan curve, tach check)
+//! replace it behind the same task boundary.
 
+use core::cell::Cell;
+
+use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::Channel;
 use embassy_sync::signal::Signal;
-use embassy_time::{Duration, Instant, Ticker};
+use embassy_time::{Duration, Instant, Ticker, Timer};
 use embedded_hal::digital::OutputPin;
 use embedded_hal::pwm::SetDutyCycle;
 use log::warn;
@@ -25,13 +30,13 @@ use minimeat_core::food::Food;
 use minimeat_core::model::Ambient;
 use minimeat_core::model::actuator::{FanCycler, flap_angle_deg};
 use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap};
-use minimeat_core::thermistor::Jack;
 use minimeat_core::units::{c_to_k, k_to_f};
 
-use crate::config::{ConfigStore, Cook, Settings};
+use crate::config::{ConfigStore, Cook, Mode, Settings};
 use crate::food::Foods;
-use crate::hal::{AmbientSensor, Board, PROBE_JACKS, ProbeAdc, Servo};
+use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo};
 use crate::pit::{Command, Event, Output, PERIOD_S, Pit};
+use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 
 type M = CriticalSectionRawMutex;
 
@@ -40,8 +45,9 @@ pub const SERVO_CLOSED_US: f64 = 1000.0;
 pub const SERVO_OPEN_US: f64 = 2000.0;
 /// The servo stays powered this long after its last move, s.
 const SERVO_HOLD_S: u32 = 2;
-/// Probe readings outside this range are not `ok` (docs/protocol.md), F.
-const PROBE_RANGE_F: (f64, f64) = (-20.0, 700.0);
+/// The scanner starts a pass at least this often, ms (ADR 0002: four jacks at 0.4 s each). A pass
+/// on the real ADC takes longer, so it runs back to back there.
+const PASS_MS: u64 = 1600;
 
 /// The latest status, for `~/state` (`.5.2`) and the twin's display.
 #[derive(Clone, Copy, Debug)]
@@ -49,8 +55,11 @@ pub struct Status {
     pub up_s: u64,
     pub cook: Cook,
     pub out: Output,
-    /// Each jack, F with offset, `None` unless `ok`.
+    /// Each jack, F with offset: `None` unless the probe is `ok` or `disagree`.
     pub temps: [Option<f64>; PROBE_JACKS],
+    pub probe_st: [ProbeSt; PROBE_JACKS],
+    /// ADC die temperature, C.
+    pub adc_die_c: Option<f64>,
     pub foods: [Option<Food>; PROBE_JACKS],
     pub ambient_c: Option<f64>,
 }
@@ -74,6 +83,8 @@ pub struct Bus {
     /// Out: `~/event`. A full channel drops the event (control never waits on the network).
     pub events: Channel<M, Event, 16>,
     pub status: Signal<M, Status>,
+    /// The scanner's latest pass, read (not consumed) by the control task.
+    probes: Mutex<M, Cell<Snapshot>>,
     act: Signal<M, Actuation>,
     job: Signal<M, Job>,
     done: Signal<M, Done>,
@@ -91,10 +102,20 @@ impl Bus {
             commands: Channel::new(),
             events: Channel::new(),
             status: Signal::new(),
+            probes: Mutex::new(Cell::new(Snapshot {
+                passes: 0,
+                sense: [Sense::Pending; PROBE_JACKS],
+                die_c: None,
+                offset: None,
+            })),
             act: Signal::new(),
             job: Signal::new(),
             done: Signal::new(),
         }
+    }
+
+    fn snapshot(&self) -> Snapshot {
+        self.probes.lock(Cell::get)
     }
 
     fn emit(&self, e: Event) {
@@ -104,23 +125,19 @@ impl Bus {
     }
 }
 
-/// One conversion per jack: F with the probe's offset, `None` unless the probe reads `ok`.
-async fn read_jacks<P: ProbeAdc>(probes: &mut P, settings: &Settings) -> [Option<f64>; PROBE_JACKS] {
-    let mut temps = [None; PROBE_JACKS];
-    for (j, t) in temps.iter_mut().enumerate() {
-        let p = &settings.probes[j];
-        *t = match probes.ratio(j).await.map(Jack::classify) {
-            Ok(Jack::Probe(r)) => Some(k_to_f(p.kind.thermistor().t_k(r)) + p.offset_f),
-            _ => None,
-        }
-        .filter(|f| (PROBE_RANGE_F.0..=PROBE_RANGE_F.1).contains(f));
+/// The probe scanner: passes back to back, at least [`PASS_MS`] apart.
+pub async fn probes<B: Board>(adc: B::Probes, bus: &Bus) -> ! {
+    let mut scanner = Scanner::new(adc);
+    let mut tick = Ticker::every(Duration::from_millis(PASS_MS));
+    loop {
+        let snap = scanner.pass().await;
+        bus.probes.lock(|c| c.set(snap));
+        tick.next().await;
     }
-    temps
 }
 
 /// The control loop. `pit` and `foods` are large: the caller gives them static storage.
 pub async fn control<B: Board>(
-    mut probes: B::Probes,
     mut ambient: B::Ambient,
     mut store: ConfigStore<B::Config>,
     mut settings: Settings,
@@ -128,16 +145,50 @@ pub async fn control<B: Board>(
     foods: &mut Foods,
     bus: &Bus,
 ) -> ! {
+    // the first full scan before the first period
+    while bus.snapshot().passes == 0 {
+        Timer::after_millis(100).await;
+    }
     let mut tick = Ticker::every(Duration::from_millis((PERIOD_S * 1000.0) as u64));
     let mut busy = false;
+    // a cook in progress (power came back mid-cook) is not the time to question the probes
+    let mut check = settings.cook.mode == Mode::Off;
+    let mut disagree = [false; PROBE_JACKS];
+    let mut last_pass = 0;
     loop {
         while let Ok(c) = bus.commands.try_receive() {
-            if let Err(r) = pit.command(c) {
+            if c == Command::SelfCheck {
+                check = true;
+            } else if let Err(r) = pit.command(c) {
                 warn!("command {c:?} rejected: {r:?}");
             }
         }
-        let temps = read_jacks(&mut probes, &settings).await;
         let ambient_c = ambient.read_c().await.ok();
+        let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
+        // a scanner that has stopped is an ADC that is not answering
+        let snap = bus.snapshot();
+        let sense = if snap.passes == last_pass {
+            [Sense::Fault; PROBE_JACKS]
+        } else {
+            snap.sense
+        };
+        last_pass = snap.passes;
+        let read = |disagree: &[bool; PROBE_JACKS]| -> [Reading; PROBE_JACKS] {
+            core::array::from_fn(|j| probes::reading(sense[j], &settings.probes[j], disagree[j]))
+        };
+        let mut readings = read(&disagree);
+        if check {
+            check = false;
+            let results = probes::selfcheck(&readings, ambient_f);
+            disagree = probes::disagreeing(&results);
+            readings = read(&disagree);
+            bus.emit(Event::SelfCheck { results });
+        }
+        for (d, s) in disagree.iter_mut().zip(sense) {
+            // unplugged: the verdict goes with the probe
+            *d &= matches!(s, Sense::Probe(_));
+        }
+        let temps = readings.map(|r| r.temp_f);
         let amb = Ambient {
             t_k: c_to_k(ambient_c.unwrap_or(20.0)),
             ..Ambient::default()
@@ -181,6 +232,8 @@ pub async fn control<B: Board>(
             cook: *pit.cook(),
             out,
             temps,
+            probe_st: readings.map(|r| r.st),
+            adc_die_c: snap.die_c,
             foods: core::array::from_fn(|j| foods.food(j, &temps, jack)),
             ambient_c,
         });
