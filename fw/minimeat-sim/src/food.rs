@@ -68,6 +68,18 @@ impl Meat {
         }
     }
 
+    /// A 1.2 kg rack of baby backs: thin, so it heats fast, and its little surface water is gone
+    /// before it can hold the core (a slowdown around 160F, no plateau; 203F in ~5.7 h at 225F).
+    pub fn baby_back_ribs() -> Self {
+        Self {
+            g_core_w_k: 4.0,
+            wet_max: 0.04,
+            water0_kg: 0.03,
+            ..Self::new(1.2, 0.08, 4.0)
+        }
+        .refill()
+    }
+
     pub fn new(mass_kg: f64, area_m2: f64, t_c: f64) -> Self {
         let t_k = t_c + 273.15;
         Self {

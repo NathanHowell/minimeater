@@ -7,7 +7,7 @@ use minimeat_core::control::{Feedforward, FfPi, Fire, FireObs, FireWatch, Mpc, O
 use minimeat_core::model::airflow::{AirPath, AirflowMap, ModelFeedforward};
 use minimeat_core::model::{Ambient, Egg, top_vent};
 use minimeat_core::units::c_to_k;
-use minimeat_sim::{Actuators, Dynamics, Environment, Fuel, Plant, Rng};
+use minimeat_sim::{Actuators, Dynamics, Environment, Fuel, Meat, Plant, Rng};
 
 pub const DT: f64 = 10.0;
 
@@ -52,9 +52,13 @@ pub struct Trace {
     pub open: Vec<bool>,
     /// The lid really is up.
     pub up: Vec<bool>,
+    /// The controller's lid handling is active (open or recovering).
+    pub lid_active: Vec<bool>,
     pub fire: Vec<Fire>,
     /// Heat release, W (plant truth).
     pub fire_w: Vec<f64>,
+    /// Core of the scenario's meat, F (plant truth).
+    pub core: Vec<f64>,
 }
 
 #[derive(Clone, Debug)]
@@ -68,6 +72,8 @@ pub struct Scenario {
     pub fuel: Fuel,
     pub hours: f64,
     pub seed: u64,
+    /// On the grate from the start.
+    pub meat: Option<Meat>,
 }
 
 impl Default for Scenario {
@@ -82,6 +88,7 @@ impl Default for Scenario {
             fuel: Fuel::default(),
             hours: 3.0,
             seed: 1,
+            meat: None,
         }
     }
 }
@@ -106,6 +113,7 @@ pub fn run(sc: &Scenario) -> Trace {
         Start::Steady => Plant::steady(path, Dynamics::default(), &env.ambient, sc.sp, 0.0).expect("reachable"),
     };
     plant.fuel = sc.fuel;
+    plant.meats[0] = sc.meat;
     let mut ctrl = if sc.mpc {
         PitController::Mpc(Mpc::new(Schedule::default()))
     } else {
@@ -177,7 +185,9 @@ pub fn run(sc: &Scenario) -> Trace {
             tr.q_max.push(q_max);
             tr.open.push(ctrl.lid().open());
             tr.up.push(env.lid_open);
+            tr.lid_active.push(ctrl.lid().active());
             tr.fire_w.push(plant.fire_w());
+            tr.core.push(plant.meats[0].map_or(f64::NAN, |m| m.core_f()));
         }
         plant.step(2.0, act, &env);
     }

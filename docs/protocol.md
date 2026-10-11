@@ -69,10 +69,10 @@ Error codes:
   "pit": 224.6,
   "amb": 64.2,
   "probes": [
-    {"t": 224.6, "st": "ok", "alarm": null},
-    {"t": 151.3, "st": "ok", "alarm": "hi"},
-    {"t": null, "st": "open", "alarm": null},
-    {"t": null, "st": "open", "alarm": null}
+    {"t": 224.6, "st": "ok", "alarm": null, "food": null},
+    {"t": 158.3, "st": "ok", "alarm": null, "food": {"rate": 1.4, "eta": 21600, "stall": "stall"}},
+    {"t": null, "st": "open", "alarm": null, "food": null},
+    {"t": null, "st": "open", "alarm": null, "food": null}
   ],
   "tc": null,
   "out": {"q": 0.82, "flap": 34.0, "fan": 0.0, "rpm": 0},
@@ -125,6 +125,10 @@ Error codes:
 | `disagree` | failed the power-up self-check against ambient |
 
 - `alarm`: `null`, `"lo"` or `"hi"`. It stays latched until the reading moves 5F back inside the limit. It is reported even after `alarm_ack`, which only silences the LED.
+- `food`: the food estimator (`.4.22`), or `null` for the pit probe and a probe without a reading. It is learned from the probe's own curve; the probe's `cut` only sets priors.
+  - `rate`: core rate of rise in F/h over the last 20 min, or `null` for the first 20 min.
+  - `eta`: seconds until the probe reaches its target, or `null`. The target is `hi` if set, else the cut's default (brisket and pork shoulder 203F, ribs 195F, poultry 165F). It is `null` without a target, or when the pit is not at least 2F above it. A stalling cut gets its typical stall length added until the stall has happened. During a stall, the ETA is the finish if the stall broke now. After it, the ETA assumes the heating rate recovers over about 3 h. On the plant model that is within 0.5 h of the real finish from the end of the stall.
+  - `stall`: `none`, `stall`, or `done`. A stall is the core rising less than 5F/h above 120F while it is still well short of the pit, for 10 min. It ends when the rate is back above 5F/h for 10 min. There is one stall per cook. Lid openings are left out of the rate. A reading 20F below the last one starts the estimate over (a new piece of meat).
 
 **`out`** (actuators):
 - `q`: commanded airflow in CFM.
@@ -168,10 +172,10 @@ The current value of every setting. It is the same set the device stores in flas
   "manual_flap": 0.0,
   "manual_fan": 0.0,
   "probes": [
-    {"name": "Pit", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null},
-    {"name": "Brisket", "type": "thermoworks_pro", "coeffs": null, "offset": -0.4, "lo": null, "hi": 203.0},
-    {"name": "Probe 3", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null},
-    {"name": "Probe 4", "type": "custom", "coeffs": {"a": 7.3431e-4, "b": 2.1574e-4, "c": 9.5157e-8}, "offset": 0.0, "lo": null, "hi": null}
+    {"name": "Pit", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other"},
+    {"name": "Brisket", "type": "thermoworks_pro", "coeffs": null, "offset": -0.4, "lo": null, "hi": 203.0, "cut": "brisket"},
+    {"name": "Probe 3", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other"},
+    {"name": "Probe 4", "type": "custom", "coeffs": {"a": 7.3431e-4, "b": 2.1574e-4, "c": 9.5157e-8}, "offset": 0.0, "lo": null, "hi": null, "cut": "other"}
   ],
   "model": [
     {"sp": 225.0, "k": 116.0, "tau": 480.0, "dead": 110.0}
@@ -197,7 +201,8 @@ The current value of every setting. It is the same set the device stores in flas
 | `probe/<n>/type` | `thermoworks_pro` \| `maverick_et732` \| `generic_b3950` \| `custom` | | presets from `probes.py` |
 | `probe/<n>/coeffs` | `{"a":..,"b":..,"c":..}` | the curve must be monotonic and give 20 Ω-50 MΩ over -20 to 700F | Steinhart-Hart. Setting it switches `type` to `custom` |
 | `probe/<n>/offset` | number | ±10 | °F, added after conversion |
-| `probe/<n>/lo`, `probe/<n>/hi` | number, or `0`/`off` to disable | 0-700 | 5F hysteresis |
+| `probe/<n>/lo`, `probe/<n>/hi` | number, or `0`/`off` to disable | 0-700 | 5F hysteresis; `hi` is also the food target for `eta` |
+| `probe/<n>/cut` | `other` \| `brisket` \| `pork_shoulder` \| `ribs` \| `poultry` | | priors and default target for the food estimator |
 
 ## `~/cmd/<command>`
 
@@ -235,6 +240,7 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `lid_open`, `lid_closed` | `pit` |
 | `fire_low`, `fire_out` | `pit`, `q` |
 | `setpoint_reached` | `sp` |
+| `stall_start`, `stall_end` | `probe`, `t` |
 | `autotune_done` | `sp`, `k`, `tau`, `dead` (the model at that setpoint now), `accepted` (fits taken during the dither; 0 means the model is unchanged) |
 | `selfcheck` | `results`: one per jack, each `{"probe": n, "delta": F}` or `{"probe": n, "st": "open"}` |
 | `rejected` | `topic`, `error`, `detail` |
@@ -261,7 +267,9 @@ There is one retained device-discovery message, `homeassistant/device/<id>/confi
 | `lid` | `binary_sensor` | `device_class` opening | |
 | `problem` | `binary_sensor` | `device_class` problem, on when `faults` is non-empty | |
 | `mode`, `controller`, `pit_probe` | `select` | `set/...` | `config` entity category |
-| `probe0_type`..`probe3_type` | `select` | `set/probe/<n>/type` | `config` |
+| `probe0_eta`..`probe3_eta` | `sensor` | `probes[n].food.eta` | `device_class` duration, s |
+| `probe0_stall`..`probe3_stall` | `sensor` | `probes[n].food.stall` | `device_class` enum |
+| `probe0_type`..`probe3_type`, `probe0_cut`..`probe3_cut` | `select` | `set/probe/<n>/type`, `set/probe/<n>/cut` | `config` |
 | `probe0_name`..`probe3_name` | `text` | `set/probe/<n>/name` | `config` |
 | `probe<n>_lo`, `probe<n>_hi`, `probe<n>_offset` | `number` | `set/probe/<n>/...` | `config`; 0 disables lo/hi |
 | `lid_detect` | `switch` | `set/lid_detect` | `config` |
@@ -306,7 +314,7 @@ Excerpt, using HA's abbreviated keys:
       "p": "event", "uniq_id": "mm-a1b2c3_events", "name": "Events",
       "stat_t": "minimeat/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
-                  "setpoint_reached", "autotune_done", "selfcheck", "rejected",
+                  "setpoint_reached", "stall_start", "stall_end", "autotune_done", "selfcheck", "rejected",
                   "fault", "fault_clear"]
     }
   }

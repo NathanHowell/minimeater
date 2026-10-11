@@ -79,6 +79,15 @@ pub enum Event {
     SetpointReached {
         sp_f: f64,
     },
+    /// A food probe's stall began or ended (`.4.22`; raised by [`crate::food::Foods`]).
+    StallStart {
+        probe: u8,
+        t_f: f64,
+    },
+    StallEnd {
+        probe: u8,
+        t_f: f64,
+    },
     /// The dither ended: the model at that setpoint now, and the fits taken during it.
     AutotuneDone {
         model: Fopdt,

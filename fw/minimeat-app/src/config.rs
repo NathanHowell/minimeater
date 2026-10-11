@@ -20,6 +20,7 @@ use embedded_storage_async::nor_flash::NorFlash;
 use heapless::String;
 use log::warn;
 use minimeat_core::control::{Fopdt, Schedule};
+use minimeat_core::food::Cut;
 use minimeat_core::thermistor::{Preset, Thermistor};
 use sequential_storage::cache::{Cache, Uncached};
 use sequential_storage::map::{MapConfig, MapStorage, SerializationError, Value};
@@ -122,6 +123,8 @@ pub struct Probe {
     pub offset_f: f64,
     pub lo_f: Option<f64>,
     pub hi_f: Option<f64>,
+    /// Food estimator priors and default target (`.4.22`).
+    pub cut: Cut,
 }
 
 impl Probe {
@@ -134,6 +137,7 @@ impl Probe {
             offset_f: 0.0,
             lo_f: None,
             hi_f: None,
+            cut: Cut::Other,
         }
     }
 }
@@ -386,7 +390,8 @@ impl Record for Probe {
         }
         w.f64(self.offset_f)?;
         w.opt(self.lo_f)?;
-        w.opt(self.hi_f)
+        w.opt(self.hi_f)?;
+        w.u8(Cut::ALL.iter().position(|&c| c == self.cut).unwrap_or(0) as u8)
     }
 
     fn decode(r: &mut R) -> Option<Self> {
@@ -411,6 +416,11 @@ impl Record for Probe {
             offset_f: r.f64_in(-10.0, 10.0)?,
             lo_f: r.opt_in(0.0, 700.0)?,
             hi_f: r.opt_in(0.0, 700.0)?,
+            cut: if r.more() {
+                *Cut::ALL.get(r.u8()? as usize)?
+            } else {
+                Cut::Other
+            },
         })
     }
 }

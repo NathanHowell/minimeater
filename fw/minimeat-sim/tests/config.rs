@@ -49,6 +49,7 @@ fn cooking() -> Settings {
     s.probes[1].name = "Brisket flat".try_into().unwrap();
     s.probes[1].kind = ProbeKind::Preset(Preset::MaverickEt732);
     s.probes[1].hi_f = Some(203.0);
+    s.probes[1].cut = minimeat_core::food::Cut::Brisket;
     s.probes[3].kind = ProbeKind::Custom(Thermistor {
         a: 7.3431e-4,
         b: 2.1574e-4,
