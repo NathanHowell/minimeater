@@ -7,7 +7,7 @@ from pathlib import Path
 from build123d import Compound, export_step, export_stl
 
 from . import assembly as A
-from . import board3d
+from . import board3d, mock
 from . import shell as K
 from .envelope import envelope
 from .printing import ALL, print_pose
@@ -25,6 +25,7 @@ def export(out: Path):
     asm.pop("pcb_keepout")
     # the plugs are fit-check stand-ins for the probe and USB-C plugs, not parts of the product: a file of their own
     export_step(asm.pop("plugs"), str(out / "plugs_mock.step"))
+    asm["fan"] = mock.fan_step()
     board = board3d.export_board(out)
     if board is not None:
         asm["pcb"] = board3d.placed(board)

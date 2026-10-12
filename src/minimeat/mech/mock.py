@@ -26,6 +26,18 @@ def fan():
     return s
 
 
+FAN_STEP = Path(__file__).parent / "data" / "NF-A6x25.stp"
+
+
+def fan_step():
+    """Noctua's public model of the NF-A6x25 for the exported assembly. Its frame: Y along the axis, 25 deep with the
+    rotor toward y = 25 (the intake, label side) and the motor mount plate at y = 0 (the exhaust); X, Z across, centred.
+    Turned so the air leaves along +x through the outlet face, like `fan()`. The frame does not tessellate in the
+    renderer and the interference checks use the box version."""
+    s = Rot(Z=90) * import_step(FAN_STEP)  # (X, Y, Z) -> (-Y, X, Z)
+    return Pos(g.fan_face_x, 0, 0) * s
+
+
 SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"
 # the vendor model's frame: X along the long axis (output axis at x = 5.7, short end toward +x), Y up with the back face at
 # y = -14.0, Z across the case; the output axis at z = 0
