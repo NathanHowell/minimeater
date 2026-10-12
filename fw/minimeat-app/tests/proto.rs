@@ -555,6 +555,10 @@ fn discovery() -> (String, Value) {
     let text = proto::render::<24576>(|j| proto::discovery(j, &d, ["Pit", "Brisket", "Probe 3", "Probe 4"]))
         .expect("fits 24 KB");
     let v: Value = serde_json::from_str(&text).expect("valid JSON");
+    // `just ha-discovery-check` has Home Assistant's own code validate this message
+    if let Some(path) = std::env::var_os("DISCOVERY_OUT") {
+        std::fs::write(path, text.as_str()).unwrap();
+    }
     (text.as_str().to_string(), v)
 }
 

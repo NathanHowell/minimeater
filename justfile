@@ -17,3 +17,9 @@ mqtt-interop:
     container run -d --name mm-mosq docker.io/library/eclipse-mosquitto:2 sh -c 'printf "listener 1883\nallow_anonymous true\n" > /tmp/m.conf; exec mosquitto -c /tmp/m.conf'
     sleep 2
     ip=$(container ls | awk '/mm-mosq/ {split($6, a, "/"); print a[1]}'); cd fw/mqtt-interop && MQTT_BROKER=$ip:1883 cargo test --release -- --ignored --nocapture; r=$?; container rm -f mm-mosq >/dev/null 2>&1; exit $r
+
+# Has Home Assistant's own MQTT discovery code validate the device-discovery message the firmware publishes.
+ha-discovery-check:
+    mkdir -p fw/target/tmp
+    cd fw && DISCOVERY_OUT=$PWD/target/tmp/discovery.json cargo test -p minimeat-app --release --test proto discovery_matches
+    uv run --no-project --python 3.14 --with homeassistant --with paho-mqtt python -I scripts/check_ha_discovery.py fw/target/tmp/discovery.json
