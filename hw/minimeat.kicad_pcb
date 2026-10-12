@@ -4751,7 +4751,7 @@
 			(size 1.325 0.6)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U5-EN)")
+			(net "/VBUS_LDO")
 			(uuid "6b725344-3761-4e1b-90ed-fb2d3247dac8")
 		)
 		(pad "2" smd roundrect
@@ -4768,7 +4768,7 @@
 			(size 1.325 0.6)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U5-EN)")
+			(net "/VBUS_LDO")
 			(uuid "4aef9c3f-c5dc-4d00-a43b-afdf9e4d0c40")
 		)
 		(pad "4" smd roundrect
@@ -5529,7 +5529,7 @@
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U6-ILIM)")
+			(net "/SERVO_ILIM")
 			(uuid "2ac85755-ca20-4541-b5ca-9b9df62766e8")
 		)
 		(pad "2" smd roundrect
@@ -5851,7 +5851,7 @@
 			(size 1.325 0.6)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U7-ILIM)")
+			(net "/FAN_ILIM")
 			(uuid "7deb6920-e533-4b38-bd4f-1db30ebd4617")
 		)
 		(pad "6" smd roundrect
@@ -6205,7 +6205,7 @@
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(FB2-Pad2)")
+			(net "/3V3A_FILT")
 			(uuid "2542c0f1-f069-4e9e-bc5e-a3b6aeba8b66")
 		)
 		(embedded_fonts no)
@@ -7183,7 +7183,7 @@
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U8-RESET)")
+			(net "/ADC_RESET")
 			(uuid "f8acce1e-9aa0-49fe-bf8d-70375674798e")
 		)
 		(pad "2" smd roundrect
@@ -8138,7 +8138,7 @@
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U7-ILIM)")
+			(net "/FAN_ILIM")
 			(uuid "72d734fa-cb1f-4982-882a-bcd893b84c45")
 		)
 		(pad "2" smd roundrect
@@ -8418,7 +8418,7 @@
 			(at -1.05 0)
 			(size 1.3 3)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "Net-(U4-SW)")
+			(net "/BUCK_SW")
 			(uuid "a3f9268d-b444-405b-afd3-99b563bd7033")
 		)
 		(pad "2" smd rect
@@ -9155,7 +9155,7 @@
 			(at 1.14 0 90)
 			(size 0.9 1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "Net-(D2-A)")
+			(net "/LED_A")
 			(uuid "aef35f9e-0b06-422e-905c-9350b6cf9e52")
 		)
 		(embedded_fonts no)
@@ -9280,7 +9280,7 @@
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(D2-A)")
+			(net "/LED_A")
 			(uuid "5896452e-72e6-48c8-a013-5224046c863f")
 		)
 		(embedded_fonts no)
@@ -9948,7 +9948,7 @@
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(FB2-Pad2)")
+			(net "/3V3A_FILT")
 			(uuid "7be9c094-6b50-462b-b899-f1fd7befed2a")
 		)
 		(pad "2" smd roundrect
@@ -10591,7 +10591,7 @@
 			(size 1.475 0.4)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U8-RESET)")
+			(net "/ADC_RESET")
 			(uuid "8eaa79a6-940d-4b93-8aea-7b14b94818d8")
 		)
 		(pad "4" smd roundrect
@@ -13328,7 +13328,7 @@
 			(size 1.325 0.6)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U4-SW)")
+			(net "/BUCK_SW")
 			(uuid "cad67824-d27a-4b68-be8a-6a8d70402a2f")
 		)
 		(pad "4" smd roundrect
@@ -14939,7 +14939,7 @@
 			(size 1.325 0.6)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U6-ILIM)")
+			(net "/SERVO_ILIM")
 			(uuid "78ada8e4-4d5a-49a5-ba08-27003501f840")
 		)
 		(pad "6" smd roundrect
@@ -16409,7 +16409,7 @@
 			(size 0.56 0.62)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U5-EN)")
+			(net "/VBUS_LDO")
 			(uuid "d906b1bf-249b-463c-a3e2-1e7266bfcbae")
 		)
 		(pad "2" smd roundrect
@@ -16543,7 +16543,7 @@
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(U5-EN)")
+			(net "/VBUS_LDO")
 			(uuid "d3891e21-469a-4102-ac74-7311fa4b42db")
 		)
 		(embedded_fonts no)
@@ -24983,7 +24983,7 @@
 		(end 41.3213 18.09)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "4c25f8aa-812e-48df-ad0f-088d939e2712")
 	)
 	(segment
@@ -24991,7 +24991,7 @@
 		(end 41.9029 18.6716)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "4f57de1d-b21f-46b4-9595-15ef3e1a8ecf")
 	)
 	(segment
@@ -24999,7 +24999,7 @@
 		(end 41.1253 20.2027)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "7470f926-986d-4a6d-a271-f2c69c7de8fc")
 	)
 	(segment
@@ -25007,7 +25007,7 @@
 		(end 41.7634 21.73)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "75b6c022-0ac8-4554-bc07-853f646feff9")
 	)
 	(segment
@@ -25015,7 +25015,7 @@
 		(end 41.1253 20.2027)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "7bb02584-132f-4556-a51d-d18317dcfa98")
 	)
 	(segment
@@ -25023,7 +25023,7 @@
 		(end 41.7634 20.8409)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "8196af72-ed8e-4563-b727-36c48079fabc")
 	)
 	(segment
@@ -25031,7 +25031,7 @@
 		(end 41.9029 19.4251)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "8e37ff68-87f9-4650-847b-7aa80b343802")
 	)
 	(segment
@@ -25039,7 +25039,7 @@
 		(end 42.2675 21.73)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "be216e68-dbfc-4048-b4be-6e497397b14b")
 	)
 	(segment
@@ -25047,7 +25047,7 @@
 		(end 41.1253 20.2027)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "cabe1109-7731-4c46-bcdd-a48b73d99bec")
 	)
 	(segment
@@ -25055,7 +25055,7 @@
 		(end 41.7634 22.1266)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U5-EN)")
+		(net "/VBUS_LDO")
 		(uuid "e1e6c5c7-16bd-4fe1-85c9-7f75852f876e")
 	)
 	(segment
@@ -25183,7 +25183,7 @@
 		(end 8.82 48.5572)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "0375f35a-d03a-4e49-a2d5-52fa275ac8dc")
 	)
 	(segment
@@ -25191,7 +25191,7 @@
 		(end 10.6227 43.0909)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "0a3afc12-edee-4000-9da3-c8dcd7b70049")
 	)
 	(segment
@@ -25199,7 +25199,7 @@
 		(end 11.3446 44.2139)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "2f54d590-31c7-49b7-88c3-801584090edd")
 	)
 	(segment
@@ -25207,7 +25207,7 @@
 		(end 12.0887 45.1581)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "338dce73-f39d-4b9d-a1b7-4e9173e536d7")
 	)
 	(segment
@@ -25215,7 +25215,7 @@
 		(end 11.1736 42.54)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "470b5c81-3920-4ebd-ac9b-233263957c55")
 	)
 	(segment
@@ -25223,7 +25223,7 @@
 		(end 10.9828 44.2139)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "688845cc-bf76-4e40-b9b1-1604971aa1eb")
 	)
 	(segment
@@ -25231,7 +25231,7 @@
 		(end 8.2103 47.9475)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "806a4aa2-1dee-4d35-a8d8-dbdf2b8ce3b5")
 	)
 	(segment
@@ -25239,7 +25239,7 @@
 		(end 10.6227 43.8538)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "98ac0eac-8fea-472c-9016-c161c11c1be8")
 	)
 	(segment
@@ -25247,7 +25247,7 @@
 		(end 12.0887 44.958)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "abf572ff-586f-409d-8734-c73dd9f513e7")
 	)
 	(via
@@ -25255,7 +25255,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "44719024-ec15-4bf8-9eee-178411c4de45")
 	)
 	(via
@@ -25263,7 +25263,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "68d2e6ff-49f6-4e9c-8d7e-ded7406301ee")
 	)
 	(segment
@@ -25271,7 +25271,7 @@
 		(end 10.9997 45.1581)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "62d0d0cf-cda0-47e8-af9b-b19af9b41815")
 	)
 	(segment
@@ -25279,7 +25279,7 @@
 		(end 8.2103 47.9475)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U6-ILIM)")
+		(net "/SERVO_ILIM")
 		(uuid "b1bf58fc-1e76-4103-8eda-aee9000a2ae8")
 	)
 	(segment
@@ -25535,7 +25535,7 @@
 		(end 10.5801 31.7)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "0c565f5d-e382-4653-81b6-24f2fe4b97cf")
 	)
 	(segment
@@ -25543,7 +25543,7 @@
 		(end 11.8927 31.3357)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "2e2585d0-557d-458f-8c1b-49704bef0e6e")
 	)
 	(segment
@@ -25551,7 +25551,7 @@
 		(end 6.7389 38.8282)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "3c9d5d65-69a4-444a-a158-7a28e1fd93e4")
 	)
 	(segment
@@ -25559,7 +25559,7 @@
 		(end 7.6807 39.77)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "5adef67f-d383-4f2d-ba21-8d14f4b04451")
 	)
 	(segment
@@ -25567,7 +25567,7 @@
 		(end 12.5718 33.1504)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "65faa435-b323-4e8e-8b0d-cf072f13d352")
 	)
 	(segment
@@ -25575,7 +25575,7 @@
 		(end 12.5718 32.0148)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "74279081-fb2d-4a89-9d3e-52f1703f1c75")
 	)
 	(segment
@@ -25583,7 +25583,7 @@
 		(end 11.9822 33.74)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "9da6ab39-4f08-4aef-9532-72bb9e1a0dd5")
 	)
 	(segment
@@ -25591,7 +25591,7 @@
 		(end 10.9444 31.3357)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "a089d677-cdc0-4d83-8cbd-a723041608d4")
 	)
 	(via
@@ -25599,7 +25599,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "464a1ab7-5a05-4335-8e0d-65cfa3d8c77e")
 	)
 	(via
@@ -25607,7 +25607,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "4dd9b3aa-68ec-4cac-a07f-cbebe95f3651")
 	)
 	(via
@@ -25615,7 +25615,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "fa1ea6a6-7ab7-4404-85ff-62bf4724762a")
 	)
 	(segment
@@ -25623,7 +25623,7 @@
 		(end 6.7389 38.8282)
 		(width 0.2)
 		(layer "B.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "bf14d148-f6d3-4cdb-a9f9-a943f34bd38a")
 	)
 	(segment
@@ -25631,7 +25631,7 @@
 		(end 6.7357 38.825)
 		(width 0.2)
 		(layer "B.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "efd95bce-4c6d-4531-977e-5285b2c6f32b")
 	)
 	(segment
@@ -25639,7 +25639,7 @@
 		(end 10.5801 31.7)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "4a38f56f-dcff-4381-8dec-a54dc0403dbb")
 	)
 	(segment
@@ -25647,7 +25647,7 @@
 		(end 7.5951 34.685)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U7-ILIM)")
+		(net "/FAN_ILIM")
 		(uuid "74e2d2cc-ab31-4806-9a21-47d0e9415039")
 	)
 	(segment
@@ -25815,7 +25815,7 @@
 		(end 18.62 15.87)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(FB2-Pad2)")
+		(net "/3V3A_FILT")
 		(uuid "8d8c5980-6ff7-4bda-a014-cf65dd843b92")
 	)
 	(segment
@@ -25823,7 +25823,7 @@
 		(end 18.36 16.13)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(FB2-Pad2)")
+		(net "/3V3A_FILT")
 		(uuid "c94ece3f-2f31-4a12-a097-f86928efafaa")
 	)
 	(segment
@@ -26399,7 +26399,7 @@
 		(end 24.0809 23.3309)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "7de1baa7-4e63-44c3-a3f0-a1296128223b")
 	)
 	(segment
@@ -26407,7 +26407,7 @@
 		(end 15.9275 20.575)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "7fa33de5-8988-48ac-bd75-428a9d15eb37")
 	)
 	(segment
@@ -26415,7 +26415,7 @@
 		(end 24.0809 23.7199)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "80452dbe-dd04-437f-9170-4fe6eb8c1168")
 	)
 	(segment
@@ -26423,7 +26423,7 @@
 		(end 17.9129 21.8247)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "9ececc5f-4705-4d3c-a5fd-14ff87b8ffcb")
 	)
 	(segment
@@ -26431,7 +26431,7 @@
 		(end 16.6632 20.575)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "9f78fec8-f7bf-4267-bb8d-7d3e95e1713a")
 	)
 	(via
@@ -26439,7 +26439,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "2b5ec2fc-fff3-41f9-81e3-0de59e9a1856")
 	)
 	(via
@@ -26447,7 +26447,7 @@
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "b48f20cd-42f5-4a7d-9441-0e078c113b9a")
 	)
 	(segment
@@ -26455,7 +26455,7 @@
 		(end 24.0809 23.7199)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "0fe8c78d-5712-45f2-b3cb-c6319d43469f")
 	)
 	(segment
@@ -26463,7 +26463,7 @@
 		(end 20.6016 24.756)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "12023e97-473a-4076-bd91-fe5c8449429a")
 	)
 	(segment
@@ -26471,7 +26471,7 @@
 		(end 21.0515 24.3061)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "1551dca1-119c-4352-831a-67089428da77")
 	)
 	(segment
@@ -26479,7 +26479,7 @@
 		(end 19.7508 25.1086)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "6ce37801-3209-4103-b8e9-a67f3662e5fc")
 	)
 	(segment
@@ -26487,7 +26487,7 @@
 		(end 20.6016 24.7561)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "72cd7cef-61ee-419d-ba32-e5cfcd4884c1")
 	)
 	(segment
@@ -26495,7 +26495,7 @@
 		(end 23.4947 24.3061)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "9fbd9203-9a1a-44a9-afcf-f062caad96b7")
 	)
 	(segment
@@ -26503,7 +26503,7 @@
 		(end 20.2491 25.1086)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "de2e232a-81d8-4af5-9eee-4232f253f6a4")
 	)
 	(segment
@@ -26511,7 +26511,7 @@
 		(end 18.6483 24.006)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "e27e7b13-c046-4de4-8bd4-4740a2aaa28f")
 	)
 	(segment
@@ -26519,7 +26519,7 @@
 		(end 18.6483 24.0061)
 		(width 0.2)
 		(layer "In2.Cu")
-		(net "Net-(U8-RESET)")
+		(net "/ADC_RESET")
 		(uuid "e7a3b75d-8b80-430d-80d5-1b115a850972")
 	)
 	(segment
@@ -27007,7 +27007,7 @@
 		(end 1.25 24.6983)
 		(width 0.5)
 		(layer "F.Cu")
-		(net "Net-(U4-SW)")
+		(net "/BUCK_SW")
 		(uuid "90606a0c-dc37-4ace-b110-308ee2455311")
 	)
 	(segment
@@ -27015,7 +27015,7 @@
 		(end 1.7125 24.2358)
 		(width 0.5)
 		(layer "F.Cu")
-		(net "Net-(U4-SW)")
+		(net "/BUCK_SW")
 		(uuid "91f19b7e-869c-4c74-8e69-322caf8b113c")
 	)
 	(segment
@@ -27023,7 +27023,7 @@
 		(end 1.7125 23.99)
 		(width 0.5)
 		(layer "F.Cu")
-		(net "Net-(U4-SW)")
+		(net "/BUCK_SW")
 		(uuid "e663f5ed-3e5b-481a-bffe-f6637373e227")
 	)
 	(segment
@@ -27199,7 +27199,7 @@
 		(end 35.9617 52.1483)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(D2-A)")
+		(net "/LED_A")
 		(uuid "b8961969-ab1a-4d5c-834d-b2645f948638")
 	)
 	(segment
@@ -27207,7 +27207,7 @@
 		(end 39.14 52.1483)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(D2-A)")
+		(net "/LED_A")
 		(uuid "bfccc7ae-2670-4f3d-bdc0-228eddb6d556")
 	)
 	(segment
@@ -27215,7 +27215,7 @@
 		(end 35.81 52.3)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "Net-(D2-A)")
+		(net "/LED_A")
 		(uuid "f0d03530-7176-4ac0-b95f-dc69673f90ac")
 	)
 	(segment

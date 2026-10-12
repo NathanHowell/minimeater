@@ -9575,6 +9575,76 @@
 		)
 		(uuid "ffcd5306-452e-4036-95c7-0648e43912d4")
 	)
+	(label "BUCK_SW"
+		(at 328.93 60.96 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8557ef0b-fa61-4c3b-941d-cc09a45efd1d")
+	)
+	(label "LED_A"
+		(at 365.76 317.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b269bb8a-1529-4e19-8647-22016d229ea4")
+	)
+	(label "3V3A_FILT"
+		(at 477.52 114.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c4c0d90-433c-4dc0-8b3d-91ac8516c103")
+	)
+	(label "ADC_RESET"
+		(at 504.82 193.04 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d2e399c-bcb8-46be-be03-6fa5651a2874")
+	)
+	(label "VBUS_LDO"
+		(at 53.34 171.45 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6c0c689e-5701-4436-8bde-33182095a172")
+	)
+	(label "SERVO_ILIM"
+		(at 218.44 177.8 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6c12c356-65be-42a9-bf09-c4a74d69c5a2")
+	)
+	(label "FAN_ILIM"
+		(at 345.44 177.8 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "526f43e9-43bf-4336-bf72-4fad6738ac37")
+	)
 	(global_label "3V3"
 		(shape input)
 		(at 535.94 165.1 0)
