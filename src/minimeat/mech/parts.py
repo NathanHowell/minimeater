@@ -186,7 +186,11 @@ def flap():
     r = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - off**2)  # its edge stays within the gap at every angle
     xf = g.flap_x
     disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * Cylinder(r, dm.flap_t, align=(C, C, C))
-    rib = box(xf - dm.rib_w / 2, xf + dm.rib_w / 2, -dm.rib_t / 2, dm.rib_t / 2, -r, r) & (Pos(xf, 0, 0) * Sphere(r))
+    rr = min(dm.rib_round, dm.rib_t / 2, dm.rib_w / 2)  # the rib's section is a stadium: round ends facing and leaving the flow
+    xe = dm.rib_w / 2 - rr
+    rib = box(xf - xe, xf + xe, -dm.rib_t / 2, dm.rib_t / 2, -r, r)
+    rib += zcyl(rr, -r, r, xf - xe, 0.0) + zcyl(rr, -r, r, xf + xe, 0.0)
+    rib = rib & (Pos(xf, 0, 0) * Sphere(r))
     f = disc + rib
     f -= d_bore(xf, 0.0, -r - 1, r + 1, clear=dm.bore_clear)
     return f

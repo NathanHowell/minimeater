@@ -107,6 +107,16 @@ def test_open_flap_does_not_choke_the_bore():
     assert analysis.flap_blockage_open() < 0.2  # the rib is the loss to shave in CFD (.2.13)
 
 
+def test_the_flaps_rib_is_round_ended_not_square():
+    from minimeat.mech.parts import flap
+
+    f = flap()
+    xf, dm = G.g.flap_x, P.damper
+    # the square corner of the rib's section, on the side away from the disc, is cut away; the middle of the end is kept
+    assert not f.is_inside((xf + dm.rib_w / 2 - 0.1, dm.rib_t / 2 - 0.1, 5.0))
+    assert f.is_inside((xf + dm.rib_w / 2 - 0.1, 0.0, 5.0))
+
+
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
 OVERHANG_AREA_MM2 = {"duct": 465}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep)
