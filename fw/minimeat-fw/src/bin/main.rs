@@ -15,11 +15,14 @@ use log::info;
 use minimeat_app::config::{ConfigStore, Settings};
 use minimeat_app::food::Foods;
 use minimeat_app::hal::Board;
+use minimeat_app::improv::{self, Network, Station};
+use minimeat_app::net::Identity;
 use minimeat_app::pit::Pit;
 use minimeat_app::selftest;
 use minimeat_app::tasks::{self, Bus};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_fw::board::{self, Esp};
+use minimeat_fw::console::{self, Port};
 use static_cell::StaticCell;
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
@@ -33,14 +36,16 @@ type B = Esp;
 )]
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
-    esp_println::logger::init_logger_from_env();
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let (mut io, rest) = board::init(peripherals);
+    // the logger and the one USB serial port, shared with Improv provisioning
+    let (console_tx, port) = console::init(rest.usb);
 
     let timg0 = TimerGroup::new(rest.timg0);
     esp_rtos::start(timg0.timer0, rest.sw_interrupt);
     info!("minimeat-fw {} up", env!("CARGO_PKG_VERSION"));
 
+    spawner.spawn(console::writer(console_tx).expect("console task"));
     spawner.spawn(heartbeat().expect("heartbeat task"));
     selftest::survey(&mut io).await;
 
@@ -84,6 +89,9 @@ async fn main(spawner: Spawner) -> ! {
         .expect("actuators task"),
     );
     spawner.spawn(slow(bus).expect("slow task"));
+    static ID: StaticCell<heapless::String<12>> = StaticCell::new();
+    let id: &'static str = ID.init(device_id());
+    spawner.spawn(provisioning(port, id, bus).expect("provisioning task"));
     spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
@@ -139,6 +147,45 @@ mod run {
     }
 }
 use run::{actuators, control, probes, slow};
+
+/// `mm-` and the low three bytes of the MAC, the id MQTT and Home Assistant know the device by.
+fn device_id() -> heapless::String<12> {
+    use core::fmt::Write as _;
+    let mac = esp_hal::efuse::base_mac_address();
+    let m = mac.as_bytes();
+    let mut s = heapless::String::new();
+    let _ = write!(s, "mm-{:02x}{:02x}{:02x}", m[3], m[4], m[5]);
+    s
+}
+
+/// No radio driver yet (`.4.10`): the conversation answers state and device information, and a client that sends
+/// credentials is told they could not be used.
+struct NoRadio;
+
+impl Station for NoRadio {
+    async fn connect(&mut self, _ssid: &str, _pass: &str) -> bool {
+        false
+    }
+
+    async fn scan(&mut self) -> heapless::Vec<Network, 12> {
+        heapless::Vec::new()
+    }
+
+    fn online(&self) -> bool {
+        false
+    }
+}
+
+#[embassy_executor::task]
+async fn provisioning(mut port: Port, id: &'static str, bus: &'static Bus) {
+    let who = Identity {
+        prefix: "minimeat",
+        id,
+        sw: env!("CARGO_PKG_VERSION"),
+        hw: "A",
+    };
+    improv::run(&mut port, &mut NoRadio, &who, bus).await
+}
 
 #[embassy_executor::task]
 async fn heartbeat() {

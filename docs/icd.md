@@ -68,8 +68,8 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 
 - Pin assignment, strapping rules and GPIO budget: ADR 0001 (fan power enable takes the last spare GPIO, per ADR 0004).
 - Wire format: `docs/protocol.md` (MQTT and Home Assistant discovery) and `docs/telemetry.md` (OTLP).
-- Flashing and logs: USB Serial/JTAG on GPIO12/13 over the same USB-C port.
-- WiFi credentials: Improv Wi-Fi over that same serial port (`minimeat-app::improv`): a browser page (esp-web-tools, Home Assistant) sends the SSID and password with the cable in, the device joins, and only credentials that join are saved (`Request::Wifi`, never on MQTT). Whoever holds the cable may provision; there is no authorisation step. Forgetting the credentials is a stored empty SSID. The log lines on the same port are skipped by the client's parser.
+- Flashing, logs and provisioning: USB Serial/JTAG on GPIO12/13 over the same USB-C port. The C6 has one CDC port and no USB OTG, so console logs and Improv share it: `minimeat-fw/src/console.rs` sends whole log lines and whole Improv frames under one lock, and drops writes while no host is draining the port (the box on a wall adapter). The panic handler still prints directly.
+- WiFi credentials: Improv Wi-Fi over that same serial port (`minimeat-app::improv`): a browser page (esp-web-tools, Home Assistant) sends the SSID and password with the cable in, the device joins, and only credentials that join are saved (`Request::Wifi`, never on MQTT). Whoever holds the cable may provision; there is no authorisation step. Forgetting the credentials is a stored empty SSID. Until the radio driver exists (`.4.10`) the device answers state and device information and reports an attempt to join as unable to connect.
 
 ## Open items
 
