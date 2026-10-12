@@ -6,16 +6,46 @@ from pathlib import Path
 from build123d import Pos
 
 from . import assembly as A
+from . import board3d
 from . import shell as K
 from .printing import ALL, print_pose
 from .parts import box
+from . import geom as G
+from .params import P
 from .render import render
 
 COLOURS = {"duct": "#9aa6b2", "flap": "#d9822b", "crank": "#b8b8c0", "coupler": "#bcbcc4", "fan": "#333333",
            "servo": "#2c4a8a", "horn": "#eeeeee", "pin_crank": "#dddddd", "pin_horn": "#dddddd", "rod": "#cccccc",
            "tube": "#c9c9c9", "oring": "#111111", "pcb": "#1f7a3a", "pcb_keepout": "#7fbf8f", "connectors": "#2b2b2b", "plugs": "#1a1a1a",
            "hood": "#2f6b45", "pan": "#444444"}
+BOARD = {"substrate": "#1f7a3a", "module": "#a9adb3", "usb": "#cfd2d6", "jacks": "#262626", "parts": "#4a4a4a"}
 NAMES = ["exterior.png", "underside.png", "rear.png", "section_axis.png", "section_across.png", "chassis.png", "plate.png"]
+
+
+def real_board(out: Path):
+    """The board as KiCad exports it, placed in the assembly, split into colour groups; None without KiCad."""
+    step = board3d.export_board(out)
+    if step is None:
+        return None
+    return board3d.pieces(board3d.placed(step))
+
+
+def board_items(pieces, keep=None):
+    """Render items for the real board's pieces (cut to `keep` when given)."""
+    items = []
+    for group, colour in zip(pieces, BOARD.values()):
+        for so in group:
+            if keep is not None:
+                b = so.bounding_box()
+                kb = keep.bounding_box()
+                if (b.max.X < kb.min.X or b.min.X > kb.max.X or b.max.Y < kb.min.Y or b.min.Y > kb.max.Y
+                        or b.max.Z < kb.min.Z or b.min.Z > kb.max.Z):
+                    continue
+                so = so & keep
+                if so is None or so.volume < 1e-6:
+                    continue
+            items.append((so, colour))
+    return items
 
 
 def main():
@@ -40,6 +70,19 @@ def main():
     render(sec, out / "section_across.png", view=(0, 180), size=(9, 8), title="section x = -45, from the fan: duct, board below, servo and linkage on +y")
     chassis = [(s, COLOURS[n]) for n, s in parts.items() if n not in ("pcb", "plugs", "tube", "oring")]
     render(chassis, out / "chassis.png", view=(28, -55), title="the chassis: duct, fan, servo on its shelf, parallelogram linkage")
+    pieces = real_board(Path("build/mech"))
+    if pieces is not None:
+        # the enclosure open (the hood off), the real board in the pan under the duct, the connectors in the port wall
+        # the chassis translucent so the board shows under the duct
+        inner = [(s, COLOURS[n], 0.22) for n, s in parts.items() if n not in ("pcb", "connectors", "tube", "oring")]
+        render([(pan, "#8d8d8d")] + board_items(pieces) + inner, out / "assembled.png", view=(52, -62), size=(11, 8), max_edge=12.0,
+               title="assembled, hood off, chassis translucent: the real board in the pan under the duct")
+        # a horizontal section through the connector axes, from above: the housings standing in the port wall
+        zj = G.PCB_Z1 + P.pcb.jack_h / 2
+        keep = box(-90, 20, -45, -10, G.PCB_Z0 - 8, zj)
+        render([(pan & keep, "#9a9a9a")] + board_items(pieces, keep) + [(A.mock.plugs() & keep, "#4b6fb5")],
+               out / "ports.png", view=(90, -90), size=(12, 5), tight=True, max_edge=12.0,
+               title="section through the connector axes (the port wall grey, plugs blue): the jacks' noses and the USB-C shell stand in the wall")
     plate, x = [], 0.0
     for n in ALL:
         s = print_pose(n, {"hood": hood, "pan": pan}.get(n))

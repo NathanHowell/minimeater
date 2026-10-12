@@ -10,6 +10,10 @@ This is the second design (v1): the v0 box with the board over the fan and the s
 
 ![section across the flap station](mech/section_across.png)
 
+![assembled, hood off, chassis translucent: the real board in the pan](mech/assembled.png)
+
+![section through the connector axes: the jacks' noses and the USB-C shell stand in the port wall](mech/ports.png)
+
 ## Layout
 
 Frame: +X is the flow, the tube axis is the X axis, +Z is up, +Y is to the left looking along the flow (toward the egg). The socket mouth is the plane x = 0, the body extends to -X. Overall 126 × 74 × 73 mm (x × y × z) including the 11 mm of socket and the thumbscrew that show at the front; the shells alone are 115 long. v0 with its skin was 112 × 76 × 97.
@@ -120,7 +124,7 @@ Nothing here has been printed yet.
 
 ```bash
 uv run pytest tests/test_mech.py tests/test_skin.py   # builds the parts and shells, fit, leak and overhang checks
-uv run mech-export [dir]             # STEP and STL per part in print pose, assembly.step, envelope.json (default build/mech)
+uv run mech-export [dir]             # STEP and STL per part in print pose, assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), envelope.json, and the order packages minimeat-3dprint.zip and minimeat-cnc.zip (default build/mech; docs/jlc3dp.md)
 uv run mech-render [dir]             # the images above (default build/)
 uv run mech-envelope                 # the board contract
 ```
