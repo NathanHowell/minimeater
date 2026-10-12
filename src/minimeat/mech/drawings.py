@@ -39,7 +39,7 @@ def features():
     xc = g.flap_x - L.arm_r
     return {
         "flap": [
-            Feature((xf, 0.0, g.bore_r - dm.flap_gap - 0.05), "z", f"Disc edge: Ø{2 * ((g.bore_r - dm.flap_gap) ** 2 - ((dm.rib_t - dm.flap_t) / 2) ** 2) ** 0.5:.1f} +-0.05 (sets the closed-flap leak), 2.0 thick, flat to 0.05"),
+            Feature((xf, 0.0, g.bore_r - dm.flap_gap - 0.05), "z", f"Disc edge: Ø{2 * ((g.bore_r - dm.flap_gap) ** 2 - dm.disc_off ** 2) ** 0.5:.1f} +-0.05 (sets the closed-flap leak), 2.0 thick, flat to 0.05"),
             Feature((xf, 0.0, 0.0), "z", f"D-bore through the rib: Ø{dm.shaft_d:.1f} +{dm.bore_clear:.2f}/0 with a flat {dm.shaft_flat:.1f} across (the rod's D); retaining compound, no thread"),
         ],
         "crank": [

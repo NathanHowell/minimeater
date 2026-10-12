@@ -117,6 +117,16 @@ def test_the_flaps_rib_is_round_ended_not_square():
     assert f.is_inside((xf + dm.rib_w / 2 - 0.1, 0.0, 5.0))
 
 
+def test_the_two_sided_flap_variant_is_a_valid_solid(monkeypatch):
+    from minimeat.mech.parts import flap
+
+    monkeypatch.setattr(type(P.damper), "rib_both_sides", True)  # the dataclass is frozen: patch the class default
+    f = flap()
+    assert f.is_valid and len(f.solids()) == 1
+    assert analysis.flap_leak_cm2() < 0.3
+    assert analysis.flap_blockage_open() < 0.2
+
+
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
 OVERHANG_AREA_MM2 = {"duct": 465}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep)

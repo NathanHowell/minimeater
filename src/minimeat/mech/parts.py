@@ -182,7 +182,7 @@ def flap():
     parallel to the flow, a D-bore for the rod's flat (retaining compound), no thread. The disc sits on one side of
     the rib, flush with its bottom face: it is cut from plate with the rib standing on it."""
     dm = P.damper
-    off = (dm.rib_t - dm.flap_t) / 2  # the disc centre is this far from the shaft axis
+    off = dm.disc_off  # the disc centre is this far from the shaft axis
     r = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - off**2)  # its edge stays within the gap at every angle
     xf = g.flap_x
     disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * Cylinder(r, dm.flap_t, align=(C, C, C))
@@ -190,7 +190,7 @@ def flap():
     xe = dm.rib_w / 2 - rr
     rib = box(xf - xe, xf + xe, -dm.rib_t / 2, dm.rib_t / 2, -r, r)
     rib += zcyl(rr, -r, r, xf - xe, 0.0) + zcyl(rr, -r, r, xf + xe, 0.0)
-    rib = rib & (Pos(xf, 0, 0) * Sphere(r))
+    rib = rib & (Pos(xf, 0, 0) * Sphere(r - (0.02 if dm.rib_both_sides else 0.0)))  # centred, the disc's edge circle is the sphere's equator: stay just inside it
     f = disc + rib
     f -= d_bore(xf, 0.0, -r - 1, r + 1, clear=dm.bore_clear)
     return f
