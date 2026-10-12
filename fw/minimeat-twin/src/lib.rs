@@ -21,6 +21,7 @@ use std::time::{Duration, Instant};
 
 use embassy_executor::raw;
 use embassy_futures::block_on;
+use embassy_sync::pubsub::WaitResult;
 use minimeat_app::config::{ConfigStore, Settings};
 use minimeat_app::food::Foods;
 use minimeat_app::pit::{Event, Pit};
@@ -141,24 +142,33 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
     let mut actions = actions.into_iter().peekable();
     let (started, mut report, mut new_events) = (Instant::now(), Report::default(), Vec::new());
     let mut phys = 0u64;
+    // the harness is one of the bus's readers
+    let mut events = bus.events.subscriber().expect("a reader slot");
+    let mut replies = bus.replies.subscriber().expect("a reader slot");
+    let mut config_rev = bus.config_rev.receiver().expect("a reader slot");
+    let mut status_rx = bus.status.receiver().expect("a reader slot");
     loop {
         // run every task until all of them wait on time
         loop {
             // SAFETY: one executor, polled only from this thread
             unsafe { exec.poll() };
             let now = phys as f64 / hz as f64;
-            while let Ok(e) = bus.events.try_receive() {
-                new_events.push((now, e));
+            while let Some(m) = events.try_next_message() {
+                if let WaitResult::Message(e) = m {
+                    new_events.push((now, e));
+                }
             }
-            while let Ok(r) = bus.replies.try_receive() {
-                report.replies.push((now, r.id, r.result));
+            while let Some(m) = replies.try_next_message() {
+                if let WaitResult::Message(r) = m {
+                    report.replies.push((now, r.id, r.result));
+                }
             }
-            if bus.config_changed.try_take().is_some()
+            if config_rev.try_changed().is_some()
                 && let Some(c) = bus.config()
             {
                 report.configs.push((now, c));
             }
-            if let Some(status) = bus.status.try_take() {
+            if let Some(status) = status_rx.try_changed() {
                 let w = world.borrow();
                 let s = Sample {
                     t_s: phys as f64 / hz as f64,

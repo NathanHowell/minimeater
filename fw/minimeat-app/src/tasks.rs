@@ -20,7 +20,9 @@ use embassy_futures::select::{Either, select};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::Channel;
+use embassy_sync::pubsub::PubSubChannel;
 use embassy_sync::signal::Signal;
+use embassy_sync::watch::Watch;
 use embassy_time::{Duration, Instant, Ticker, Timer};
 use embedded_hal::digital::OutputPin;
 use embedded_hal::pwm::SetDutyCycle;
@@ -42,6 +44,10 @@ use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
 
 type M = CriticalSectionRawMutex;
+
+/// How many tasks can read the status, events and replies: the MQTT client, OTLP, and one more
+/// (the twin's harness).
+pub const READERS: usize = 3;
 
 /// ADC die temperature that raises `board_hot`, and the temperature it must fall to to clear, C.
 const BOARD_HOT_C: (f64, f64) = (80.0, 75.0);
@@ -143,16 +149,20 @@ pub struct Bus {
     /// In: `~/set` and `~/cmd` once parsed ([`crate::proto::parse`]), or a twin scenario. Each is
     /// answered on `replies` with its id.
     pub commands: Channel<M, Inbound, 8>,
-    /// The outcome of each request taken from `commands` (dropped if nobody reads them).
-    pub replies: Channel<M, Reply, 8>,
-    /// Out: `~/event`. A full channel drops the event (control never waits on the network).
-    pub events: Channel<M, Event, 16>,
-    pub status: Signal<M, Status>,
+    /// The outcome of each request taken from `commands`. Every subscriber sees every reply and
+    /// picks out the ids it sent; a subscriber that falls behind loses the oldest.
+    pub replies: PubSubChannel<M, Reply, 8, READERS, 1>,
+    /// Out: `~/event`. Control never waits on a subscriber: one that falls behind loses the oldest.
+    pub events: PubSubChannel<M, Event, 16, READERS, 1>,
+    /// The latest status, every control period: `~/state`, OTLP and the twin each take their own
+    /// receiver (`bus.status.receiver()`).
+    pub status: Watch<M, Status, READERS>,
     /// The scanner's latest pass, read (not consumed) by the control task.
     probes: Mutex<M, Cell<Snapshot>>,
     /// The settings as they are now, for `~/config`; `config_changed` fires when they move.
     config: Mutex<M, RefCell<Option<Settings>>>,
-    pub config_changed: Signal<M, ()>,
+    /// A counter that moves whenever `~/config` should be published again.
+    pub config_rev: Watch<M, u32, READERS>,
     /// `identify` and `reboot` requests, for the LED and the board.
     pub identify: Signal<M, ()>,
     pub reboot: Signal<M, ()>,
@@ -174,11 +184,11 @@ impl Bus {
     pub const fn new() -> Self {
         Self {
             commands: Channel::new(),
-            replies: Channel::new(),
-            events: Channel::new(),
-            status: Signal::new(),
+            replies: PubSubChannel::new(),
+            events: PubSubChannel::new(),
+            status: Watch::new(),
             config: Mutex::new(RefCell::new(None)),
-            config_changed: Signal::new(),
+            config_rev: Watch::new(),
             identify: Signal::new(),
             reboot: Signal::new(),
             probes: Mutex::new(Cell::new(Snapshot {
@@ -207,7 +217,8 @@ impl Bus {
 
     fn publish_config(&self, settings: &Settings) {
         self.config.lock(|c| *c.borrow_mut() = Some(settings.clone()));
-        self.config_changed.signal(());
+        let rev = self.config_rev.try_get().unwrap_or(0).wrapping_add(1);
+        self.config_rev.sender().send(rev);
     }
 
     /// Raises or clears a fault; the `fault` and `fault_clear` events fire on the change only.
@@ -232,9 +243,7 @@ impl Bus {
     }
 
     fn emit(&self, e: Event) {
-        if self.events.try_send(e).is_err() {
-            warn!("events: queue full, dropped {e:?}");
-        }
+        self.events.immediate_publisher().publish_immediate(e);
     }
 }
 
@@ -392,7 +401,7 @@ pub async fn control<B: Board>(
         }
         let _ = store.save(&settings).await;
 
-        bus.status.signal(Status {
+        bus.status.sender().send(Status {
             up_s: Instant::now().as_secs(),
             cook: *pit.cook(),
             out,
@@ -463,7 +472,9 @@ async fn handle<B: Board>(
             Err(e)
         }
     };
-    let _ = bus.replies.try_send(Reply { id, result });
+    bus.replies
+        .immediate_publisher()
+        .publish_immediate(Reply { id, result });
 }
 
 /// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`

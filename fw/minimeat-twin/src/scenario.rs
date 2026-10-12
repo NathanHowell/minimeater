@@ -61,7 +61,9 @@ impl Action {
                         }
                     }
                     Err(e) => {
-                        let _ = bus.replies.try_send(Reply { id, result: Err(e) });
+                        bus.replies
+                            .immediate_publisher()
+                            .publish_immediate(Reply { id, result: Err(e) });
                     }
                 }
             }
