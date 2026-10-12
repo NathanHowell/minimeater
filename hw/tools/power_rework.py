@@ -58,13 +58,14 @@ def main(src, dst):
     b = pcbnew.LoadBoard(src)
 
     d1 = b.FindFootprintByReference("D1")
-    before = {p.GetNumber(): (mm(p.GetX()), mm(p.GetY())) for p in d1.Pads()}
-    d1.SetOrientationDegrees(d1.GetOrientationDegrees() + 180)
-    after = {p.GetNumber(): (mm(p.GetX()), mm(p.GetY())) for p in d1.Pads()}
-    assert all(abs(after["1"][i] - before["2"][i]) < 0.01 and abs(after["2"][i] - before["1"][i]) < 0.01 for i in (0, 1)), (before, after)
-    nets = {"1": "/VBUS_RAW", "2": "GND"}
-    for p in d1.Pads():
-        p.SetNet(b.FindNet(nets[p.GetNumber()]))
+    if d1.FindPadByNumber("1").GetNetname() == "GND":  # not yet turned (the script is safe to run again)
+        before = {p.GetNumber(): (mm(p.GetX()), mm(p.GetY())) for p in d1.Pads()}
+        d1.SetOrientationDegrees(d1.GetOrientationDegrees() + 180)
+        after = {p.GetNumber(): (mm(p.GetX()), mm(p.GetY())) for p in d1.Pads()}
+        assert all(abs(after["1"][i] - before["2"][i]) < 0.01 and abs(after["2"][i] - before["1"][i]) < 0.01 for i in (0, 1)), (before, after)
+        nets = {"1": "/VBUS_RAW", "2": "GND"}
+        for p in d1.Pads():
+            p.SetNet(b.FindNet(nets[p.GetNumber()]))
     print("D1:", {p.GetNumber(): p.GetNetname() for p in d1.Pads()})
 
     edge = b.GetBoardEdgesBoundingBox()
