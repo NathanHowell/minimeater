@@ -46,6 +46,7 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
         ),
         msg(330.0, "minimeat/mm-twin01/cmd/selfcheck", ""),
         msg(340.0, "homeassistant/status", "online"),
+        msg(350.0, "minimeat/mm-twin01/set/probe/1/name", "Ribs"),
         (900.0, Action::Broker(false)),
         (1500.0, Action::Broker(true)),
     ]);
@@ -163,7 +164,7 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
 
     // discovery: retained QoS 1, the whole device; again when HA comes online; again after reconnect
     let disc = publishes("homeassistant/device/mm-twin01/config");
-    assert_eq!(disc.len(), 3, "connect, HA birth, reconnect: {}", disc.len());
+    assert_eq!(disc.len(), 4, "connect, HA birth, a rename, reconnect: {}", disc.len());
     assert!(disc.iter().all(|(_, _, q, rt)| *q == 1 && *rt));
     let d = json_of(disc[0].1);
     assert_eq!(d["dev"]["ids"], "mm-twin01");
@@ -173,6 +174,13 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
         "HA birth answered at {:.0} s",
         disc[1].0
     );
+    assert_eq!(json_of(disc[1].1)["cmps"]["probe1"]["name"], "Probe 2");
+    assert!(
+        (350.0..360.0).contains(&disc[2].0),
+        "rename republished at {:.0} s",
+        disc[2].0
+    );
+    assert_eq!(json_of(disc[2].1)["cmps"]["probe1_eta"]["name"], "Ribs ETA");
 
     // config: on connect and after the accepted setpoint change, and it carries it
     let config = publishes(&format!("{BASE}/config"));
@@ -181,7 +189,7 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
     assert_eq!(at(200.0)["sp"], 250.0);
     assert_eq!(at(800.0)["sp"], 275.0, "the retained sp 300 was not applied");
 
-    // answers on the response topic, in order: ok, out_of_range, retained, ok (selfcheck)
+    // answers on the response topic, in order: ok, out_of_range, retained, ok (selfcheck), ok (rename)
     let replies: Vec<Value> = publishes("reply/x").iter().map(|(_, p, ..)| json_of(p)).collect();
     assert_eq!(
         replies,
@@ -189,6 +197,7 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
             json!({"v": 1, "ok": true}),
             json!({"v": 1, "ok": false, "error": "out_of_range", "detail": "sp 400 outside 150..325"}),
             json!({"v": 1, "ok": false, "error": "retained", "detail": "retained commands are dropped"}),
+            json!({"v": 1, "ok": true}),
             json!({"v": 1, "ok": true}),
         ]
     );

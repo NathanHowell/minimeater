@@ -472,7 +472,7 @@ async fn writer<W: Write>(
     with_timeout(Duration::from_secs(ACK_TIMEOUT_S), sh.suback.wait())
         .await
         .map_err(|_| Fail::Timeout)?;
-    publish_discovery(&mut tx, ctx).await?;
+    let mut named = publish_discovery(&mut tx, ctx).await?;
     publish_config(&mut tx, ctx).await?;
     // what happened while the broker was away is old news
     while ctx.events.try_next_message().is_some() {}
@@ -498,7 +498,13 @@ async fn writer<W: Write>(
                 tx.json(&t("event"), 1, false, |j| proto::event(j, &e)).await?;
             }
             Either6::Second(WaitResult::Lagged(_)) => {}
-            Either6::Third(_) => publish_config(&mut tx, ctx).await?,
+            Either6::Third(_) => {
+                publish_config(&mut tx, ctx).await?;
+                // a renamed probe renames its entities: discovery says so again
+                if ctx.bus.config().is_some_and(|c| names(&c) != named) {
+                    named = publish_discovery(&mut tx, ctx).await?;
+                }
+            }
             Either6::Fourth(WaitResult::Message(Reply { id, result })) => {
                 if let Some(p) = sh.take(id) {
                     answer(&mut tx, who, &p, result).await?;
@@ -509,7 +515,7 @@ async fn writer<W: Write>(
                 let n = packet::puback(tx.buf, id).map_err(|_| Fail::Protocol)?;
                 send(tx.w, &tx.buf[..n]).await?;
             }
-            Either6::Fifth(Out::Discovery) => publish_discovery(&mut tx, ctx).await?,
+            Either6::Fifth(Out::Discovery) => named = publish_discovery(&mut tx, ctx).await?,
             Either6::Fifth(Out::Done(p, result)) => answer(&mut tx, who, &p, result).await?,
             Either6::Sixth(()) => {
                 if sh.last_rx.get().elapsed() > Duration::from_secs(DEAD_S) {
@@ -537,8 +543,11 @@ async fn publish_config<W: Write>(tx: &mut Tx<'_, W>, ctx: &Ctx<'_, '_>) -> Resu
     }
 }
 
-async fn publish_discovery<W: Write>(tx: &mut Tx<'_, W>, ctx: &Ctx<'_, '_>) -> Result<(), Fail> {
-    let Some(c) = ctx.bus.config() else { return Ok(()) };
+/// Publishes the discovery message; the probe names it carried.
+async fn publish_discovery<W: Write>(tx: &mut Tx<'_, W>, ctx: &Ctx<'_, '_>) -> Result<[String<24>; 4], Fail> {
+    let Some(c) = ctx.bus.config() else {
+        return Ok(Default::default());
+    };
     let names = names(&c);
     let d = Device {
         prefix: ctx.who.prefix,
@@ -551,7 +560,8 @@ async fn publish_discovery<W: Write>(tx: &mut Tx<'_, W>, ctx: &Ctx<'_, '_>) -> R
     tx.json(&t, 1, true, |j| {
         proto::discovery(j, &d, [&names[0], &names[1], &names[2], &names[3]])
     })
-    .await
+    .await?;
+    Ok(names)
 }
 
 fn names(c: &Settings) -> [String<24>; 4] {
