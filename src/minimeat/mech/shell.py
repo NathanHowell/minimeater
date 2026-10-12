@@ -229,6 +229,13 @@ def bay_pocket():
     return pk
 
 
+def bay_ceiling():
+    """The eave's underside: a 1.3 mm slab over the bay's footprint, from the ceiling up. Without it the cavity
+    stayed open between the flank's inner face and the port wall, a 7 mm slot into the shell over every port."""
+    pts = [(BAY_X0, PORT_FACE_Y), (BAY_X1, PORT_FACE_Y), (BAY_X1 + 8.0, PORT_FACE_Y - 8.0), (BAY_X1 + 8.0, -60.0), (BAY_X0 - W, -60.0), (BAY_X0 - W, PORT_FACE_Y)]
+    return Pos(0, 0, BAY_Z1 - 0.01) * extrude(make_face(Polyline(*pts, close=True)), amount=S.lip_t + 0.01)
+
+
 def bay_walls():
     """The port wall and the bay's rear end wall, added back inside the pocket, from the floor to the eave."""
     w = box(BAY_X0 - W, BAY_X1 + 0.5, PORT_FACE_Y, G.PORT_WALL_Y, G.BELLY_Z, BAY_Z1 + 0.5)
@@ -381,7 +388,7 @@ def pan():
     o = outer()
     p = _half(_shell(True), False) + (_shell(True) & rear_lip())
     p -= bay_pocket()
-    p += bay_walls() & o
+    p += (bay_walls() + bay_ceiling()) & o
     p -= drain_notch()
     p -= port_openings()
     p += drip_lip() & o

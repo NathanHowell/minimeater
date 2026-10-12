@@ -147,6 +147,7 @@ class Linkage:
     pin_head_d: float = 3.8
     pin_head_h: float = 1.3
     lift: float = 0.8  # crank hub above the duct's crown
+    bar_lift: float = 1.0  # the coupler's bosses under its pin holes: the bar rides this far above the arms, so the rod's end can stand above the crank (to grip it) and still clear the bar when the flap is closed
 
 
 @dataclass(frozen=True)

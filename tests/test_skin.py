@@ -42,6 +42,13 @@ def test_envelope():
     assert with_nose == (129.2, 75.2, 73.9)  # plus the exposed socket and the thumbscrew boss
 
 
+def test_the_bay_is_closed_over_the_ports(shells):
+    """The eave must be solid between the flank and the port wall: no slot from the bay into the shell."""
+    pan = shells["pan"]
+    for x in (-70.0, -45.0, -25.0):
+        assert pan.is_inside((x, -31.0, -20.4)), x
+
+
 def test_grille_breathes():
     assert K.grille_open_area() >= 1500  # mm^2 through the louvres, measured across the slot
 

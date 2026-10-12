@@ -212,14 +212,16 @@ def crank():
 
 
 def coupler():
-    """The flat bar between the crank's pin and the horn's pin, at the open position."""
+    """The bar between the crank's pin and the horn's pin, at the open position: 2 mm flat with a 1 mm boss under each hole."""
     L = P.linkage
     x = g.flap_x - L.arm_r
     bar = box(x - L.coupler_w / 2, x + L.coupler_w / 2, 0.0, G.SERVO_Y, G.COUPLER_Z0, G.COUPLER_Z1)
     bar += zcyl(L.coupler_w / 2, G.COUPLER_Z0, G.COUPLER_Z1, x, 0.0)
     bar += zcyl(L.coupler_w / 2, G.COUPLER_Z0, G.COUPLER_Z1, x, G.SERVO_Y)
+    for y in (0.0, G.SERVO_Y):  # a boss under each hole, on the arm: the bar rides `bar_lift` above the arms
+        bar += zcyl(L.coupler_w / 2, G.BOSS_Z0, G.COUPLER_Z0 + 0.01, x, y)
     for y in (0.0, G.SERVO_Y):
-        bar -= zcyl(L.pin_d / 2 + L.pin_hole_clear, G.COUPLER_Z0 - 0.1, G.COUPLER_Z1 + 0.1, x, y)
+        bar -= zcyl(L.pin_d / 2 + L.pin_hole_clear, G.BOSS_Z0 - 0.1, G.COUPLER_Z1 + 0.1, x, y)
     return bar
 
 

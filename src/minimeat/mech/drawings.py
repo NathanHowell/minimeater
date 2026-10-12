@@ -48,8 +48,8 @@ def features():
             Feature((xf, L.hub_d / 2, zs), "y", f"M2 x 0.4-6H tapped radial, from the flat's side through the hub wall into the bore (tap drill Ø{L.set_screw_d:.1f}); set screw"),
         ],
         "coupler": [
-            Feature((xc, 0.0, (G.COUPLER_Z0 + G.COUPLER_Z1) / 2), "z", f"Ø{L.pin_d + 2 * L.pin_hole_clear:.2f} +0.05/0 through (M2 shoulder screw's shoulder, free turning)"),
-            Feature((xc, G.SERVO_Y, (G.COUPLER_Z0 + G.COUPLER_Z1) / 2), "z", f"Ø{L.pin_d + 2 * L.pin_hole_clear:.2f} +0.05/0 through; centres {G.SERVO_Y:.1f} +-0.05 from hole 1"),
+            Feature((xc, 0.0, (G.BOSS_Z0 + G.COUPLER_Z1) / 2), "z", f"Ø{L.pin_d + 2 * L.pin_hole_clear:.2f} +0.05/0 through (M2 shoulder screw's shoulder, free turning)"),
+            Feature((xc, G.SERVO_Y, (G.BOSS_Z0 + G.COUPLER_Z1) / 2), "z", f"Ø{L.pin_d + 2 * L.pin_hole_clear:.2f} +0.05/0 through; centres {G.SERVO_Y:.1f} +-0.05 from hole 1"),
         ],
     }
 

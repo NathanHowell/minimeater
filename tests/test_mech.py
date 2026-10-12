@@ -2,7 +2,7 @@
 
 import pytest
 
-from minimeat.mech import analysis, assembly as A
+from minimeat.mech import analysis, assembly as A, mock
 from minimeat.mech import geom as G
 from minimeat.mech.export import export
 from minimeat.mech.params import P
@@ -39,6 +39,16 @@ def test_linkage_is_a_parallelogram():
     assert G.CRANK_Z0 > G.g.duct_r  # the linkage plane is over the duct's crown
     assert G.COUPLER_Z1 + L.pin_head_h < P.shell.roof_in
     assert G.SERVO_Z0 > G.PCB_Z1 + P.pcb.top_h + 2.0  # the servo clears the board's keep-out
+
+
+def test_rod_stands_above_the_crank_and_under_the_bar():
+    """The rod's end is gripable (0.4 to 0.6 mm over the crank's top with a +-0.1 cut) and clears the coupler, which
+    lies over it when the flap is closed, by at least 0.5 mm; the pin heads stay 2 mm under the roof's nominal underside
+    (measured on the hood: 1.5 mm under it over the horn pin's sweep, where the roof curves down)."""
+    top = mock.rod().bounding_box().max.Z
+    assert 0.4 <= top - G.ARM_Z1 <= 0.6
+    assert G.COUPLER_Z0 - (top + 0.1) >= 0.5
+    assert P.shell.roof_in - (G.COUPLER_Z1 + P.linkage.pin_head_h) >= 2.0
 
 
 def test_board_lies_under_the_straight_duct():
