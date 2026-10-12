@@ -23,7 +23,7 @@ Everything sits in one tunnel at the fan's height. From the back: the louvred re
 | `crank` | arm face down | D-bored hub on the rod's top end, a 9 mm arm with the M2 pin hole |
 | `coupler` | flat | 6 × 2.5 mm bar, 24.9 mm between pin holes |
 | `hood` | standing on its rear face, nose up | the upper shell: half the nose notch, half the grille, the screw bosses, the seam rib, the label recess |
-| `pan` | the same | the lower shell: the board on four standoffs, the port bay, the ambient well, the flange pads, the screw columns, the seam tongue |
+| `pan` | the same | the lower shell: the board on three standoffs, the port bay, the ambient louvres, the flange pads, the screw columns, the seam tongue |
 
 The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a single-arm horn and 2 M2 × 6, a Ø3 rod 43 mm long with a flat, two M2 × 6 as linkage pins, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
 
@@ -43,10 +43,10 @@ The chassis is the duct with the fan screwed to its flange, the servo on its she
 
 ## Board and ports
 
-- The board (44 × 54 × 1.6, `uv run mech-envelope` for the contract) sits on four Ø5.5 standoffs on the pan floor at its corner holes, 2.5 mm up, parts up toward the duct: board at z = -31.8 to -30.2, keep-out to -19.2, duct bottom at -18.2. In x it spans -68.5 to -24.5: 1 mm into the cone's start and 0.5 into the flare, both still under the keep-out; the straight section is sized by it.
+- The board (46 × 54 × 1.6, `uv run mech-envelope` for the contract) sits on three Ø5.5 standoffs on the pan floor at its mounting holes (the corners are taken by the connector row and the module; the connector row is held by the port wall), 2.5 mm up, parts up toward the duct: board at z = -31.8 to -30.2, keep-out to -19.2, duct bottom at -18.2. In x it spans -68.5 to -24.5: 1 mm into the cone's start and 0.5 into the flare, both still under the keep-out; the straight section is sized by it.
 - Connectors on the -y long edge, faces 0.1 mm behind the port wall: the USB-C receptacle (GCT USB4105-GF-A, 9.4 × 3.3) at board x = -17.1 (the rear end) and the four 2.5 mm TRRS jacks (SHOU HAN PJ-242 from ADR 0002: 5 wide, 3.2 tall, 12 mm back from the edge) at -7.9, 0.8, 9.5 and 18.2. The pitch, 8.7 mm, is set by the Ø8 plug overmolds (0.7 mm apart), not the jacks. Both connector axes come out 1.6 mm over the board, so the five openings are one row at z = -28.6. The port wall is the pan's own 2.4 mm wall moved in to y = -29.5: a 12.4 × 6.8 opening for the USB-C overmold (it has to reach the receptacle) and Ø5 holes for the jacks (the plug barrel passes, the overmold stays outside). The jack holes are teardrops pointed +x so they print.
 - The port bay is the recess that puts the port wall 7.3 mm inside the flank at the eave: x = -71 to -19, floor at z = -34 (the belly's round), ceiling at -21. The body's lower round above it is the eave, with a 1 mm drip lip along its edge; the rear end wall is scalloped 2 mm at its foot so nothing pools in the corner, and the front end wall is 45° in plan (for the print and for a thumb). Two Ø2 holes through the end walls take the caps' tethers. Plugs enter horizontally; the probe cables hang.
-- Ambient sensor: on the board's underside at (board x = -5, y = 20), in a well under the board's +y edge: three fins from the floor to the board's underside (x = -58.5 to -45.5, y from 17 to the wall) with one 10 × 1.4 louvre through the flank at z = -33, descending outward. The board itself is the well's lid, so the sensor sees outside air and not the duct's or the electronics' (`.3.10`); slot the board around the sensor for the thermal break.
+- Ambient sensor: the TMP117 on the board's top side at the rear +y corner (board x = -19.6, y = 24.8; single-sided assembly, so nothing is on the underside), 2 mm in from the +y edge, with no copper under its thermal pad. One 8 × 1.4 louvre through the pan's +y flank at z = -29, just above the board's top face and descending outward, lets outside air in beside it; it is far from the duct, the regulators and the module (`.3.10`).
 - Fan and servo leads stay inside: headers on the board, unplugged when the pan comes off.
 
 ## Exterior
@@ -72,7 +72,7 @@ The box lives outdoors; the target is IPX4 (splashed from any direction, no imme
 - Status LED and button: on the board's +y edge (the -y edge is full). The LED is a side-view Lite-On LTST-S220KGKT facing +y behind a Ø1.9 hole in the pan's flank holding a piece of clear 1.75 mm filament as a light pipe, glued flush: sealed, and the hole is the only break. The button is an ALPS SKRPACE010, a top-push tact switch (2.5 mm tall, 2.55 N): it is inside, on the board, and is pressed with the case open (reset and WiFi provisioning only, so no opening in the wall). Heights above the board (LED 0.5 mm) are estimates until the parts are in hand.
 - Ports: in the bay, 7.3 mm under the eave with its drip lip, in a vertical wall; the floor is the belly's round, open all along, and the rear corner where the end wall meets it is scalloped 2 mm so it cannot hold a drop. Tethered silicone caps for USB-C and unused jacks (Ø2 tether holes in the end walls). A probe plug in a jack is a 2.5 mm barrel in a Ø5 hole: not sealed; the jack's own body is the next barrier.
 - Inlet: 44° louvres, blades 4.5 mm long. No straight path to the fan at any angle up to 44° from the horizontal; spray from steeper below gets to the fan's rear face, which the fan tolerates.
-- Ambient louvre: one slot, descending outward, into the well; what gets in meets the board's underside.
+- Ambient louvre: one slot, descending outward, above the board's top face beside the sensor; what gets in meets the board's edge.
 - Seam: along the flanks the pan's inner half-wall rises 3 mm inside the hood's wall and a 1 mm rib from the hood hangs 3 mm inside that: the path turns twice. At the rear wall the pan's inner half rises 1.2 mm behind a 44° face. At the nose the two half-round notches close on the socket with 0.5 mm of play; the collar inside the front ring stops what runs along the socket. The thumbscrew's insert hole is blind on the outside and opens into the bore between the mouth and the O-ring, which drains out of the mouth.
 - Top: the roof crowns and rolls; no flat pocket. The label is on a vertical flank.
 
@@ -99,7 +99,7 @@ Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between
 - Heat: the socket is outside the shells; the board is under the straight section, not under the socket. The servo is beside the cone, in the fan's air.
 - Service: the hood comes off upward on four screws from below; the pan brings the board with it; the chassis stays on the tube. The fan comes off the flange from the rear once the chassis is out. The thumbscrew is on the side, not the top.
 - Plugs: the bay is under the body: plugging in is by feel from the side, the overmolds are 0.7 mm apart, and the recess is 7 mm, so a plug with an overmold longer than 18 mm stands proud of the flank.
-- Board: 44 × 54 with the keep-out capped at 11 mm everywhere; the two front corners have under 1 mm to the cone.
+- Board: 46 × 54 with the keep-out capped at 11 mm everywhere; the two front corners have under 1 mm to the cone.
 
 ## Provisional values to confirm
 

@@ -304,29 +304,15 @@ def flange_pads():
 
 
 def standoffs():
-    """Four teardrop columns on the pan floor at the board's holes, M2.5 pilot."""
+    """Teardrop columns on the pan floor at the board's holes, M2.5 pilot."""
     p = P.pcb
     out = None
-    for sx in (p.hole_inset, p.x_len - p.hole_inset):
-        for sy in (-1, 1):
-            x, y = g.board_x0 + sx, sy * (p.y_len / 2 - p.hole_inset)
-            c = teardrop_z(x, y, 2.75, G.FLOOR_Z - 2.0, G.PCB_Z0, toward=-1)
-            c -= teardrop_z(x, y, 1.05, G.PCB_Z0 - 6.0, G.PCB_Z0 + 0.1, toward=1)
-            out = c if out is None else out + c
+    for hx, hy in p.holes:
+        x, y = PCB_XC + hx, hy
+        c = teardrop_z(x, y, 2.75, G.FLOOR_Z - 2.0, G.PCB_Z0, toward=-1)
+        c -= teardrop_z(x, y, 1.05, G.PCB_Z0 - 6.0, G.PCB_Z0 + 0.1, toward=1)
+        out = c if out is None else out + c
     return out
-
-
-def ambient_well():
-    """Fins under the board's sensor corner, from the floor to the board: with the board and the flank they
-    box the ambient louvres off from the rest of the inside."""
-    x0, x1 = S.vent_slots[0][0] - 1.5, S.vent_slots[0][-1] + 1.5
-    z0, z1 = G.FLOOR_Z - 0.5, G.PCB_Z0 - 0.2
-    y_in = P.pcb.sensor[1] - 3.0
-    w = box(x0 - 1.2, x1 + 1.2, y_in, y_in + 1.2, z0, z1)  # along x, a fin
-    h = z1 - z0
-    for xf in (x0 - 1.2, x1):  # across: wedges, 45 degrees on the -x side
-        w += prism_xz([(xf - h * KS, z0), (xf + 1.2, z0), (xf + 1.2, z1), (xf, z1)], y_in, 40.0)
-    return w
 
 
 def seam_x():
@@ -398,7 +384,7 @@ def pan():
     p -= indicator_cuts()
     p += _half(fan_shims(), False) & o
     p += _half(rear_bumps(), False)
-    p += (flange_pads() + standoffs() + ambient_well()) & o
+    p += (flange_pads() + standoffs()) & o
     for x, y, d in boss_points():
         p += teardrop_z(x, y, d / 2, -60.0, S.z_part, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
         seat = S.z_part + S.screw_engage - (S.screw_len if d == S.boss_d else 16.0)

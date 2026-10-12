@@ -14,11 +14,7 @@ def envelope():
     p = P.pcb
     return {
         "outline": {"x": p.x_len, "y": p.y_len, "corner_r": p.corner_r, "thickness": p.t},
-        "holes": [
-            {"x": sx * (p.x_len / 2 - p.hole_inset), "y": sy * (p.y_len / 2 - p.hole_inset), "d": p.hole_d}
-            for sx in (-1, 1)
-            for sy in (-1, 1)
-        ],
+        "holes": [{"x": x, "y": y, "d": p.hole_d} for x, y in p.holes],
         "edge_connectors": {
             "edge": "-y",
             "usb-c": {"x": p.usb_x, "w": p.usb_w, "h": p.usb_h, "wall_opening": [p.usb_open_w, p.usb_open_h]},
@@ -31,7 +27,7 @@ def envelope():
             "led": {"x": p.led_x, "z_above_board": p.led_z, "part": "LTST-S220KGKT side-view, facing +y"},
             "button": {"x": p.btn_x, "z_above_board": p.btn_z, "part": "SKRPACE010 top-push, inside the case (open it to press)"},
         },
-        "ambient_sensor": {"side": "bottom", "x": p.sensor[0], "y": p.sensor[1], "note": "in the vented well; slot the board around it"},
+        "ambient_sensor": {"side": "top", "x": p.sensor[0], "y": p.sensor[1], "note": "top side at the rear +y corner, no copper under its thermal pad, at the flank louvres"},
         "height_above_board": p.top_h,
         "clearance_below_board": p.bottom_h,
         "note": "provisional until the ICD (.1.2) and the schematic (.3.x) fix the outline",

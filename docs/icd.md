@@ -51,7 +51,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 ## Mechanical envelope (`docs/mech.md`)
 
 - Overall size is set by the enclosure design; the placeholder target is about 123 x 74 x 72 mm.
-- Board: about 44 x 54 x 1.6 mm, lying flat under the duct with its parts facing up, on 2.5 mm standoffs. Parts above the board up to 11 mm, nothing below it except lead stubs and the ambient sensor.
+- Board: 46 x 54 x 1.6 mm, lying flat under the duct with its parts facing up, on 2.5 mm standoffs. Parts above the board up to 11 mm, nothing below it except lead stubs and the ambient sensor.
 - Four M2.5 mounting holes at 3.5 mm in from the corners, 2.7 mm drill.
 - Connectors on the board's -y long edge, in a row along the flow axis: USB-C and four jacks, 8.7 mm pitch for the jacks (`uv run mech-envelope` prints the exact positions). Plugs enter from the side through the port bay in the shell.
 - The antenna side of the module faces away from the egg and the tube, with the keep-out clear of copper and of the duct.

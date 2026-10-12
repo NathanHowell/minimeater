@@ -38,8 +38,8 @@ def test_shells_clear_the_internals(shells, deg):
 
 def test_envelope():
     shell, with_nose = K.envelope()
-    assert shell == (115.2, 74.4, 73.1)  # x, y, z: the rear face to the front ring, the width, the belly to the crown
-    assert with_nose == (126.2, 74.4, 73.1)  # plus the exposed socket and the thumbscrew boss
+    assert shell == (117.2, 74.4, 73.1)  # x, y, z: the rear face to the front ring, the width, the belly to the crown
+    assert with_nose == (128.2, 74.4, 73.1)  # plus the exposed socket and the thumbscrew boss
 
 
 def test_grille_breathes():

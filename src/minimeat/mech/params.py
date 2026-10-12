@@ -59,20 +59,22 @@ class Pcb:
     """Provisional envelope; the board outline becomes the contract at .1.6 / .3.6. The board lies flat in the
     pan under the duct, parts up; its -y long edge carries the connectors (see envelope.py)."""
 
-    x_len: float = 44.0  # along the flow axis
+    x_len: float = 46.0  # along the flow axis (46: USB-C and four jacks side by side need 45)
     y_len: float = 54.0  # across
     t: float = 1.6
-    hole_inset: float = 3.5
     hole_d: float = 2.7  # [est] M2.5
+    # three mounting holes, board frame (centre origin, y toward +y): the corners are taken by the connector row and the
+    # module, so the screws sit where the layout left room; the connector row is held by the port wall
+    holes: tuple[tuple[float, float], ...] = ((-12.4, 1.7), (20.0, 2.8), (20.0, 22.6))
     top_h: float = 11.0  # [est] tallest part above the board (headers; the jacks are 3.2, the module 3.2)
     bottom_h: float = 2.5  # [est] through-hole lead clearance: the standoff height
     corner_r: float = 2.0
     edge_gap: float = 0.1  # connector faces (the board's -y edge) to the port wall's inner face
     # connectors on the -y edge, centre x in the board frame (0 = board centre, +x toward the egg)
-    usb_x: float = -17.1
+    usb_x: float = -17.3
     usb_w: float = 9.4  # [spec] GCT USB4105-GF-A receptacle shell
     usb_h: float = 3.3
-    jack_xs: tuple[float, ...] = (-7.9, 0.8, 9.5, 18.2)  # 8.7 pitch: 7 mm bodies, d8 plug overmolds 0.7 apart
+    jack_xs: tuple[float, ...] = (-7.8, 0.9, 9.6, 18.3)  # 8.7 pitch: d8 plug overmolds 0.7 apart; the jack's pads are 7.6 wide
     jack_w: float = 5.0  # [spec] SHOU HAN PJ-242 (ADR 0002): 2.5 mm TRRS, SMD, 5 wide, 12 mm back from the edge
     jack_h: float = 3.2  # [spec] body height; the plug axis is taken at half that above the board
     jack_hole_d: float = 5.0  # [est] the plug's barrel and the jack's entry; the overmold stays outside the wall
@@ -80,11 +82,11 @@ class Pcb:
     usb_open_w: float = 12.4  # [est] USB-C overmold passes the 2.4 mm wall to reach the receptacle
     usb_open_h: float = 6.8
     # the status LED and the button on the +y edge (the side away from the ports), both facing +y
-    led_x: float = -2.0  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
-    btn_x: float = 8.0  # ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open
+    led_x: float = 15.0  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
+    btn_x: float = 14.3  # ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open
     led_z: float = 0.5  # emitter and actuator heights above the board's top face [est]
     btn_z: float = 1.0
-    sensor: tuple[float, float] = (-5.0, 20.0)  # ambient sensor, board frame: on the underside, in the pan's vented well
+    sensor: tuple[float, float] = (-19.6, 24.8)  # ambient sensor TMP117, board frame: top side (single-sided assembly), rear corner, at the +y flank's louvres
 
 
 @dataclass(frozen=True)
@@ -201,10 +203,10 @@ class Shell:
     grille_n: int = 5
     grille_bar: float = 1.6  # the slots stop this far from the parting plane
     bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)
-    bay_x: tuple[float, float] = (-71.0, -19.0)
+    bay_x: tuple[float, float] = (-73.0, -19.0)
     bay_wall_t: float = 2.4  # the port wall
-    vent_slots: tuple[tuple[float, float], ...] = ((-64.0, -56.0),)  # x ranges of the ambient louvres, +y wall
-    vent_z: float = -33.0
+    vent_slots: tuple[tuple[float, float], ...] = ((-71.0, -63.0),)  # x ranges of the ambient louvres, +y wall, at the TMP117 on the board's top
+    vent_z: float = -29.0  # just above the board's top face: outside air reaches the sensor on top
     pipe_d: float = 1.75  # the LED's light pipe: a piece of clear 1.75 mm filament, glued flush in a 1.9 mm hole
 
 
