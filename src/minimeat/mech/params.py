@@ -112,9 +112,13 @@ class Print:
 class Damper:
     shaft_d: float = 3.0  # steel or brass rod; filament would also do
     shaft_flat: float = 2.5  # D flat across the rod
-    flap_t: float = 2.4  # six perimeters
-    rib_t: float = 5.0  # the rib that carries the rod bore: the open flap's main blockage
-    rib_w: float = 6.0
+    flap_t: float = 2.0  # machined (CNC, 304 or 6061), not printed
+    rib_t: float = 4.0  # the rib that carries the rod bore: the open flap's main blockage
+    rib_w: float = 5.0
+    bore_clear: float = 0.03  # diametral, the D-bore on the rod's flat: a retaining-compound fit (a machined part; the printed one was 0.05)
+    flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
+    ream_tol: float = 0.03  # radial: the duct's bore at the flap station reamed to size; as printed it is +-0.15 (JLC: +-0.3 mm)
+    print_bore_tol: float = 0.15
     flap_gap: float = 0.15  # radial; closed leak target <= 0.3 cm^2 (.2.3)
     stub_len: float = 3.0
     flap_x: float = -37.5  # shaft axis

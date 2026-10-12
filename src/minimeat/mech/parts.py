@@ -174,10 +174,9 @@ def duct():
 
 
 def flap():
-    """Butterfly flap: a disc with a square rib along the shaft axis (Z), open = parallel to the flow.
-
-    The disc sits on one side of the rib (flush with its bottom face) so the flap prints flat with no support.
-    """
+    """Butterfly flap, machined (stainless or aluminium): a disc with a square rib along the shaft axis (Z), open =
+    parallel to the flow, a D-bore for the rod's flat (retaining compound), no thread. The disc sits on one side of
+    the rib, flush with its bottom face: it is cut from plate with the rib standing on it."""
     dm = P.damper
     off = (dm.rib_t - dm.flap_t) / 2  # the disc centre is this far from the shaft axis
     r = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - off**2)  # its edge stays within the gap at every angle
@@ -185,7 +184,7 @@ def flap():
     disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * Cylinder(r, dm.flap_t, align=(C, C, C))
     rib = box(xf - dm.rib_w / 2, xf + dm.rib_w / 2, -dm.rib_t / 2, dm.rib_t / 2, -r, r) & (Pos(xf, 0, 0) * Sphere(r))
     f = disc + rib
-    f -= d_bore(xf, 0.0, -r - 1, r + 1, clear=P.print.press)
+    f -= d_bore(xf, 0.0, -r - 1, r + 1, clear=dm.bore_clear)
     return f
 
 
@@ -222,5 +221,5 @@ def coupler():
     return bar
 
 
-PARTS = {"duct": duct, "flap": flap}  # printed
-MACHINED = {"crank": crank, "coupler": coupler}  # CNC, 5 off
+PARTS = {"duct": duct}  # printed (the shells are in shell.py)
+MACHINED = {"flap": flap, "crank": crank, "coupler": coupler}  # CNC, 5 off

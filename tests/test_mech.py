@@ -68,13 +68,23 @@ def test_closed_flap_leak_is_inside_the_budget():
     assert analysis.flap_leak_cm2() <= 0.3  # docs/modeling: closed leak <= 0.3 cm^2
 
 
+def test_flap_fit_needs_the_bore_reamed():
+    """The disc is machined, the duct's bore is printed (JLC: +-0.3 mm, +-0.15 radial): as printed the gap can close (the
+    flap jams) or open to a leak over budget; reamed at the flap station (+-0.05) it stays inside both."""
+    dm = P.damper
+    lo, hi = analysis.flap_gap_range(dm.print_bore_tol)
+    assert lo < 0 and analysis.flap_leak_worst_cm2(dm.print_bore_tol) > 0.3
+    lo, hi = analysis.flap_gap_range(dm.ream_tol)
+    assert lo > 0.03 and analysis.flap_leak_worst_cm2(dm.ream_tol) <= 0.3
+
+
 def test_open_flap_does_not_choke_the_bore():
     assert analysis.flap_blockage_open() < 0.2  # the rib is the loss to shave in CFD (.2.13)
 
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 340, "flap": 90}
+OVERHANG_AREA_MM2 = {"duct": 340}
 
 
 @pytest.mark.parametrize("name", list(PARTS))

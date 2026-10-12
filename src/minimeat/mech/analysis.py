@@ -15,13 +15,25 @@ def _d_area():
     return math.pi * r * r - seg
 
 
-def flap_leak_cm2():
-    """Closed-flap leak area: the ring between the disc edge and the bore, plus the shaft bore around the rod."""
+def flap_leak_cm2(extra_gap=0.0):
+    """Closed-flap leak area: the ring between the disc edge and the bore, plus the shaft bore around the rod.
+    `extra_gap` widens the radial gap beyond the nominal (tolerances)."""
     dm = P.damper
-    r_edge = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - ((dm.rib_t - dm.flap_t) / 2) ** 2)
+    r_edge = math.sqrt((g.bore_r - dm.flap_gap - extra_gap) ** 2 - ((dm.rib_t - dm.flap_t) / 2) ** 2)
     ring = math.pi * (g.bore_r**2 - r_edge**2)
     shaft = math.pi * 1.7**2 - _d_area()  # the Ø3.4 bore through the top wall; the bottom one is blind
     return (ring + shaft) / 100.0
+
+
+def flap_gap_range(bore_tol):
+    """(smallest, largest) radial gap between the machined disc and the bore, mm, for a bore good to +-`bore_tol` radially."""
+    dm = P.damper
+    return dm.flap_gap - bore_tol - dm.flap_tol, dm.flap_gap + bore_tol + dm.flap_tol
+
+
+def flap_leak_worst_cm2(bore_tol):
+    """Closed-flap leak at the widest gap the tolerances allow."""
+    return flap_leak_cm2(flap_gap_range(bore_tol)[1] - P.damper.flap_gap)
 
 
 def flap_blockage_open():

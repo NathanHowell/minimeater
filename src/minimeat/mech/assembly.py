@@ -29,7 +29,6 @@ def coupler_shift(deg):
 
 def printed(flap_deg=0.0):
     out = {"duct": PARTS["duct"]()}
-    out["flap"] = about_shaft(PARTS["flap"](), flap_deg)
     return out
 
 
@@ -37,7 +36,8 @@ def bought(flap_deg=0.0):
     pcb, keepout = mock.pcb()
     pin_c, pin_h = mock.pins()
     return {"fan": mock.fan(), "servo": mock.servo(), "horn": about_servo(mock.horn(), flap_deg),
-            "crank": about_shaft(MACHINED["crank"](), flap_deg),  # made, not bought, with the coupler
+            "flap": about_shaft(MACHINED["flap"](), flap_deg),  # made, not bought, with the crank and the coupler
+            "crank": about_shaft(MACHINED["crank"](), flap_deg),
             "coupler": coupler_shift(flap_deg) * MACHINED["coupler"](),
             "pin_crank": about_shaft(pin_c, flap_deg), "pin_horn": about_servo(pin_h, flap_deg),
             "rod": about_shaft(mock.rod(), flap_deg), "tube": mock.tube(), "oring": mock.oring(),

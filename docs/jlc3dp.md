@@ -30,7 +30,7 @@ Their pages give the load for each figure inconsistently: 0.45 MPa numbers (PA12
 
 My recommendation, to be settled after the thermal check:
 
-- **`duct` and `flap`: MJF PA12-HP** (or PA12S-HP, the black one). The hot, precise part gets a 175 °C material and the insert service's best-supported process. Step up to FDM PEEK only if the socket measures hotter than about 140 °C; it is three times the price and brown, and the insert service is not stated for it.
+- **`duct`: MJF PA12-HP** (or PA12S-HP, the black one). The hot part gets a 175 °C material and the insert service's best-supported process. Step up to FDM PEEK only if the socket measures hotter than about 140 °C; it is three times the price and brown, and the insert service is not stated for it.
 - **`hood` and `pan`: ASA (FDM),** for weather and UV, with a walls margin over the 1.6 mm recommendation and under the 250 mm limit. (That UV is a weakness of grey nylon is general knowledge, not from JLC's pages, which are silent on it.) PA12-HP for everything is the single-material alternative.
 - Tolerance is ±0.3 mm either way. The O-ring groove (1.9 mm deep, squeeze 18 % on paper, the test wants 10-30 %) would swing about ±12 % at that tolerance; widen the margin or order the duct with the groove machined if the first seals leak.
 
@@ -56,3 +56,7 @@ No. The service's M4 rules (a Ø4.6 hole, a 3.0 mm wall around it so a boss of a
 - **Shell columns** (2 × M2.5 × 20, 2 × M2 × 16, 6 mm bosses in 2.4 mm walls): the same problem. The hood and pan are also the ASA parts, where the service is not stated.
 
 The M3 types (hole Ø3.6, a 9.6 mm boss, the same flat) are no better. Use the service for the one M4. For the small screws: thread-forming screws straight into the MJF nylon, or heat-set M2/M2.5 inserts we press in ourselves (about 12 per unit; cheap, a soldering iron on nylon) if the case is opened often, which it is: the button is pressed with it open.
+
+### The flap is machined, not printed
+
+The disc's edge and its D-bore need ±0.05 mm; the vendors print to ±0.3 mm. The flap is a CNC part in `minimeat-cnc.zip` with the crank and the coupler, and the printed duct's bore at the flap station is reamed to size after printing (Ø31.6 +0.03/0, about 40 mm: an adjustable or fixed reamer in a drill press). Without the ream the gap swings from jammed to a 0.38 cm² leak (`tests/test_mech.py::test_flap_fit_needs_the_bore_reamed`).

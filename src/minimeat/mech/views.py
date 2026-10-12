@@ -89,7 +89,7 @@ def main():
         b = s.bounding_box()
         plate.append((Pos(x - b.min.X, -(b.min.Y + b.max.Y) / 2, 0) * s, COLOURS[n]))
         x += b.size.X + 16.0
-    render(plate, out / "plate.png", view=(32, -62), size=(14, 6), tight=True, title="print orientation: duct, flap, hood, pan")
+    render(plate, out / "plate.png", view=(32, -62), size=(14, 6), tight=True, title="print orientation: duct, hood, pan")
     print("wrote", ", ".join(sorted(p.name for p in out.glob("*.png"))))
 
 

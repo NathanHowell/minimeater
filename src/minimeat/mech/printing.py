@@ -11,7 +11,6 @@ ALL = {**PARTS, **SHELLS}
 # assembly frame -> print pose (the bed is z = 0, applied before the lift to z >= 0)
 POSES = {
     "duct": Rot(0, -90, 0),  # flow axis up, fan flange on the bed: the flare and the collar's chamfer are for this
-    "flap": Rot(90, 0, 0),  # disc flat
     "hood": Rot(0, -90, 0),  # standing on its rear face, nose up
     "pan": Rot(0, -90, 0),  # the same
 }
