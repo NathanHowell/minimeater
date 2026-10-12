@@ -53,6 +53,19 @@ impl Expect {
                 ..r
             },
             "kamado-hold" | "hot-day" => r,
+            "stall-notify" | "stall-bump" | "stall-wrap" => Expect {
+                hold_rms_f: Some(0.5),
+                hold_max_f: Some(1.5),
+                lid_recovery_min: Some(25.0),
+                // the bumped fire is 25F hotter when the lid closes
+                lid_overshoot_f: Some(4.0),
+                requires: match name {
+                    "stall-wrap" => &["stall_start", "stall_end", "wrap_reminder"],
+                    "stall-bump" => &["stall_start", "stall_end", "stall_bump", "stall_restore"],
+                    _ => &["stall_start", "stall_end"],
+                },
+                ..r
+            },
             "chili-150" => Expect {
                 reach_min: Some(35.0),
                 overshoot_f: Some(10.0),

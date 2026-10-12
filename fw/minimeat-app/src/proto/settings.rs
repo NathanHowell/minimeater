@@ -63,5 +63,7 @@ fn probe<W: Write>(j: &mut Json<W>, p: &Probe) {
     j.key("lo").opt_num(p.lo_f, 1);
     j.key("hi").opt_num(p.hi_f, 1);
     j.key("cut").str(p.cut.name());
+    j.key("stall").str(p.stall.name());
+    j.key("bump").num(p.bump_f, 1);
     j.end_obj();
 }

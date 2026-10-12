@@ -173,10 +173,10 @@ The current value of every setting. It is the same set the device stores in flas
   "manual_flap": 0.0,
   "manual_fan": 0.0,
   "probes": [
-    {"name": "Pit", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other"},
-    {"name": "Brisket", "type": "thermoworks_pro", "coeffs": null, "offset": -0.4, "lo": null, "hi": 203.0, "cut": "brisket"},
-    {"name": "Probe 3", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other"},
-    {"name": "Probe 4", "type": "custom", "coeffs": {"a": 7.3431e-4, "b": 2.1574e-4, "c": 9.5157e-8}, "offset": 0.0, "lo": null, "hi": null, "cut": "other"}
+    {"name": "Pit", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other", "stall": "notify", "bump": 25.0},
+    {"name": "Brisket", "type": "thermoworks_pro", "coeffs": null, "offset": -0.4, "lo": null, "hi": 203.0, "cut": "brisket", "stall": "bump", "bump": 25.0},
+    {"name": "Probe 3", "type": "thermoworks_pro", "coeffs": null, "offset": 0.0, "lo": null, "hi": null, "cut": "other", "stall": "notify", "bump": 25.0},
+    {"name": "Probe 4", "type": "custom", "coeffs": {"a": 7.3431e-4, "b": 2.1574e-4, "c": 9.5157e-8}, "offset": 0.0, "lo": null, "hi": null, "cut": "other", "stall": "notify", "bump": 25.0}
   ],
   "model": [
     {"sp": 225.0, "k": 116.0, "tau": 480.0, "dead": 110.0}
@@ -204,6 +204,12 @@ The current value of every setting. It is the same set the device stores in flas
 | `probe/<n>/offset` | number | ±10 | °F, added after conversion |
 | `probe/<n>/lo`, `probe/<n>/hi` | number, or `0`/`off` to disable | 0-700 | 5F hysteresis; `hi` is also the food target for `eta` |
 | `probe/<n>/cut` | `other` \| `brisket` \| `pork_shoulder` \| `ribs` \| `poultry` | | priors and default target for the food estimator |
+| `probe/<n>/stall` | `notify` \| `wrap` \| `bump` | | what this probe's stall does (see [Stall policy](#stall-policy)) |
+| `probe/<n>/bump` | number | 5-50 | °F the `bump` policy adds to the setpoint |
+
+### Stall policy
+
+`stall_start` and `stall_end` are raised whatever the policy. `notify` (the default) does nothing more. `wrap` adds a `wrap_reminder` event at the stall's start. `bump` raises the setpoint by the probe's `bump` (capped at 325F) while the stall lasts: it is an ordinary setpoint change, so the approach is shaped from where the pit is and does not overshoot, and `sp` in the state shows the raised value. `stall_bump` is raised when the setpoint moves, and `stall_restore` when it goes back to what it was, as the stall breaks. Setting `sp` yourself while bumped keeps your value and drops the restore. The pit probe is never a stall probe. If the device restarts mid-stall it starts the estimate over, so a bump with no stall in progress is put back after 15 min (and made again if the stall is found again). The setpoint is also put back if the mode leaves `run` or the probe loses its reading for 15 min.
 
 ## `~/cmd/<command>`
 
@@ -241,7 +247,9 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `lid_open`, `lid_closed` | `pit` |
 | `fire_low`, `fire_out` | `pit`, `q` |
 | `setpoint_reached` | `sp` |
-| `stall_start`, `stall_end` | `probe`, `t` |
+| `stall_start`, `stall_end`, `wrap_reminder` | `probe`, `t` |
+| `stall_bump` | `probe`, `sp` (the new setpoint) |
+| `stall_restore` | `sp` (the setpoint it went back to) |
 | `autotune_done` | `sp`, `k`, `tau`, `dead` (the model at that setpoint now), `accepted` (fits taken during the dither; 0 means the model is unchanged) |
 | `selfcheck` | `results`: one per jack, each `{"probe": n, "delta": F}` or `{"probe": n, "st": "open"}` |
 | `rejected` | `topic`, `error`, `detail` |
@@ -270,9 +278,9 @@ There is one retained device-discovery message, `homeassistant/device/<id>/confi
 | `mode`, `controller`, `pit_probe` | `select` | `set/...` | `config` entity category |
 | `probe0_eta`..`probe3_eta` | `sensor` | `probes[n].food.eta` | `device_class` duration, s |
 | `probe0_stall`..`probe3_stall` | `sensor` | `probes[n].food.stall` | `device_class` enum |
-| `probe0_type`..`probe3_type`, `probe0_cut`..`probe3_cut` | `select` | `set/probe/<n>/type`, `set/probe/<n>/cut` | `config` |
+| `probe0_type`..`probe3_type`, `probe0_cut`..`probe3_cut`, `probe0_on_stall`..`probe3_on_stall` | `select` | `set/probe/<n>/type`, `.../cut`, `.../stall` | `config` |
 | `probe0_name`..`probe3_name` | `text` | `set/probe/<n>/name` | `config` |
-| `probe<n>_lo`, `probe<n>_hi`, `probe<n>_offset` | `number` | `set/probe/<n>/...` | `config`; 0 disables lo/hi |
+| `probe<n>_lo`, `probe<n>_hi`, `probe<n>_offset`, `probe<n>_bump` | `number` | `set/probe/<n>/...` | `config`; 0 disables lo/hi |
 | `lid_detect` | `switch` | `set/lid_detect` | `config` |
 | `lid_boost`, `manual_flap`, `manual_fan` | `number` | `set/...` | `config` |
 | `autotune`, `autotune_stop`, `selfcheck`, `alarm_ack`, `identify` | `button` | `cmd/...` | |
@@ -315,11 +323,11 @@ Excerpt, using HA's abbreviated keys:
       "p": "event", "uniq_id": "mm-a1b2c3_events", "name": "Events",
       "stat_t": "minimeat/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
-                  "setpoint_reached", "stall_start", "stall_end", "autotune_done", "selfcheck", "rejected",
-                  "fault", "fault_clear"]
+                  "setpoint_reached", "stall_start", "stall_end", "wrap_reminder", "stall_bump",
+                  "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear"]
     }
   }
 }
 ```
 
-**Sizing:** the full discovery message is about 16 KB (64 components). The MQTT TX buffer must hold it, or the client must stream the publish body. Everything else fits in 2 KB.
+**Sizing:** the full discovery message is about 16 KB (72 components). The MQTT TX buffer must hold it, or the client must stream the publish body. Everything else fits in 2 KB.

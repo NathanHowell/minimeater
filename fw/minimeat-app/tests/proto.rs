@@ -3,7 +3,7 @@
 //! the parser must hold its limits.
 
 use minimeat_app::alarms::Limit;
-use minimeat_app::config::{ControllerKind, Cook, Mode, ProbeKind, Settings};
+use minimeat_app::config::{ControllerKind, Cook, Mode, ProbeKind, Settings, StallPolicy};
 use minimeat_app::pit::{Command, Event, FaultCode, Output, Phase};
 use minimeat_app::probes::{Check, ProbeSt};
 use minimeat_app::proto::{self, ErrorCode, Json, ProbeChange, Request};
@@ -156,6 +156,7 @@ fn doc_settings() -> Settings {
     s.probes[1].offset_f = -0.4;
     s.probes[1].hi_f = Some(203.0);
     s.probes[1].cut = Cut::Brisket;
+    s.probes[1].stall = StallPolicy::Bump;
     s.probes[2].name = "Probe 3".try_into().unwrap();
     s.probes[3].name = "Probe 4".try_into().unwrap();
     s.probes[3].kind = ProbeKind::Custom(Thermistor {
@@ -329,6 +330,8 @@ fn every_setting_and_command_in_the_docs_tables_is_handled() {
         ("probe/<n>/lo", "150"),
         ("probe/<n>/hi", "off"),
         ("probe/<n>/cut", "pork_shoulder"),
+        ("probe/<n>/stall", "wrap"),
+        ("probe/<n>/bump", "30"),
     ];
     let cmds = [
         ("autotune", ""),
@@ -405,6 +408,11 @@ fn settings_parse_to_the_right_requests() {
     assert_eq!(ok("set/probe/1/hi", "OFF"), probe(1, ProbeChange::Hi(None)));
     assert_eq!(ok("set/probe/1/hi", "203"), probe(1, ProbeChange::Hi(Some(203.0))));
     assert_eq!(ok("set/probe/3/cut", "ribs"), probe(3, ProbeChange::Cut(Cut::Ribs)));
+    assert_eq!(
+        ok("set/probe/1/stall", "bump"),
+        probe(1, ProbeChange::Stall(StallPolicy::Bump))
+    );
+    assert_eq!(ok("set/probe/1/bump", "30"), probe(1, ProbeChange::Bump(30.0)));
     let Request::Probe {
         change: ProbeChange::Kind(ProbeKind::Custom(t)),
         ..
@@ -490,6 +498,9 @@ fn limits_and_errors_use_the_documented_codes() {
     assert_eq!(err("set/probe/0/hi", "701"), ErrorCode::OutOfRange);
     assert_eq!(err("set/probe/0/lo", "-5"), ErrorCode::OutOfRange);
     assert_eq!(err("set/probe/0/cut", "chicken"), ErrorCode::BadPayload);
+    assert_eq!(err("set/probe/0/stall", "pause"), ErrorCode::BadPayload);
+    assert_eq!(err("set/probe/0/bump", "4"), ErrorCode::OutOfRange);
+    assert_eq!(err("set/probe/0/bump", "51"), ErrorCode::OutOfRange);
     assert_eq!(err("set/nope", "1"), ErrorCode::Unknown);
     assert_eq!(err("state", ""), ErrorCode::Unknown);
     // coefficient payloads

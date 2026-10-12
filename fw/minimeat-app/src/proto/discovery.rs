@@ -8,6 +8,7 @@ use minimeat_core::food::Cut;
 use minimeat_core::thermistor::Preset;
 
 use super::json::Json;
+use crate::config::{BUMP_MAX_F, BUMP_MIN_F, StallPolicy};
 use crate::hal::PROBE_JACKS;
 
 /// What the discovery message needs to know about this device.
@@ -22,7 +23,7 @@ pub struct Device<'a> {
 }
 
 /// Every `event_type` the device publishes, for the `event` entity.
-pub const EVENT_TYPES: [&str; 15] = [
+pub const EVENT_TYPES: [&str; 18] = [
     "boot",
     "alarm",
     "alarm_clear",
@@ -33,6 +34,9 @@ pub const EVENT_TYPES: [&str; 15] = [
     "setpoint_reached",
     "stall_start",
     "stall_end",
+    "wrap_reminder",
+    "stall_bump",
+    "stall_restore",
     "autotune_done",
     "selfcheck",
     "rejected",
@@ -360,6 +364,7 @@ pub fn discovery<W: Write>(j: &mut Json<W>, d: &Device, probe_names: [&str; PROB
     }
     let kinds = [types[0], types[1], types[2], "custom"];
     let cuts = Cut::ALL.map(Cut::name);
+    let policies = StallPolicy::ALL.map(StallPolicy::name);
     for (n, name) in probe_names.iter().enumerate() {
         let mut key = heapless::String::<20>::new();
         let mut k = |suffix: &str| {
@@ -398,6 +403,21 @@ pub fn discovery<W: Write>(j: &mut Json<W>, d: &Device, probe_names: [&str; PROB
             format_args!("probe/{n}/cut"),
             format_args!("{{{{ value_json.probes[{n}].cut }}}}"),
             &cuts,
+        );
+        e.select(
+            &k("on_stall"),
+            format_args!("{name} on stall"),
+            format_args!("probe/{n}/stall"),
+            format_args!("{{{{ value_json.probes[{n}].stall }}}}"),
+            &policies,
+        );
+        e.number(
+            &k("bump"),
+            format_args!("{name} stall bump"),
+            format_args!("probe/{n}/bump"),
+            format_args!("{{{{ value_json.probes[{n}].bump }}}}"),
+            (BUMP_MIN_F, BUMP_MAX_F, 5.0),
+            Some("°F"),
         );
         e.begin(&k("name"), "text", format_args!("Probe {} name", n + 1), Cat::Config);
         e.read_config_topic();

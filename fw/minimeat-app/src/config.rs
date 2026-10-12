@@ -70,6 +70,9 @@ pub struct Cook {
     /// The airflow that last held the pit at a setpoint, (setpoint F, CFM), so a reboot does not have
     /// to relearn how this egg differs from the model (`.4.14`). Cleared when a cook starts.
     pub hold: Option<(f64, f64)>,
+    /// The setpoint a stall bump (`.4.23`) raised `sp_f` from, to go back to when the stall breaks.
+    /// Cleared by any setpoint the user sets.
+    pub base_sp: Option<f64>,
 }
 
 impl Default for Cook {
@@ -83,9 +86,43 @@ impl Default for Cook {
             manual_flap: 0.0,
             manual_fan: 0.0,
             hold: None,
+            base_sp: None,
         }
     }
 }
+
+/// What a food probe's stall brings about (`.4.23`); `stall_start` and `stall_end` are raised whatever
+/// it is.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum StallPolicy {
+    #[default]
+    Notify,
+    /// A `wrap_reminder` event at the stall's onset.
+    Wrap,
+    /// Raise the setpoint by the probe's `bump` until the stall breaks.
+    Bump,
+}
+
+impl StallPolicy {
+    pub const ALL: [Self; 3] = [Self::Notify, Self::Wrap, Self::Bump];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Notify => "notify",
+            Self::Wrap => "wrap",
+            Self::Bump => "bump",
+        }
+    }
+
+    pub fn from_name(s: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|p| p.name() == s)
+    }
+}
+
+/// Bounds on a stall bump, F, and its default.
+pub const BUMP_MIN_F: f64 = 5.0;
+pub const BUMP_MAX_F: f64 = 50.0;
+pub const BUMP_DEFAULT_F: f64 = 25.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Lid {
@@ -126,6 +163,9 @@ pub struct Probe {
     pub hi_f: Option<f64>,
     /// Food estimator priors and default target (`.4.22`).
     pub cut: Cut,
+    /// What a stall does (`.4.23`), and by how much `bump` raises the setpoint, F.
+    pub stall: StallPolicy,
+    pub bump_f: f64,
 }
 
 impl Probe {
@@ -139,6 +179,8 @@ impl Probe {
             lo_f: None,
             hi_f: None,
             cut: Cut::Other,
+            stall: StallPolicy::Notify,
+            bump_f: BUMP_DEFAULT_F,
         }
     }
 }
@@ -304,7 +346,8 @@ impl Record for Cook {
         w.f64(self.manual_fan)?;
         let (sp, q) = self.hold.unzip();
         w.opt(sp)?;
-        w.opt(q)
+        w.opt(q)?;
+        w.opt(self.base_sp)
     }
 
     fn decode(r: &mut R) -> Option<Self> {
@@ -329,6 +372,12 @@ impl Record for Cook {
                     (Some(Some(sp)), Some(Some(q))) => Some((sp, q)),
                     _ => None,
                 }
+            } else {
+                None
+            },
+            // a bad base costs the bump's restore, not the cook: the setpoint stands
+            base_sp: if r.more() {
+                r.opt_in(150.0, 325.0).flatten()
             } else {
                 None
             },
@@ -403,7 +452,9 @@ impl Record for Probe {
         w.f64(self.offset_f)?;
         w.opt(self.lo_f)?;
         w.opt(self.hi_f)?;
-        w.u8(Cut::ALL.iter().position(|&c| c == self.cut).unwrap_or(0) as u8)
+        w.u8(Cut::ALL.iter().position(|&c| c == self.cut).unwrap_or(0) as u8)?;
+        w.u8(StallPolicy::ALL.iter().position(|&p| p == self.stall).unwrap_or(0) as u8)?;
+        w.f64(self.bump_f)
     }
 
     fn decode(r: &mut R) -> Option<Self> {
@@ -432,6 +483,16 @@ impl Record for Probe {
                 *Cut::ALL.get(r.u8()? as usize)?
             } else {
                 Cut::Other
+            },
+            stall: if r.more() {
+                *StallPolicy::ALL.get(r.u8()? as usize)?
+            } else {
+                StallPolicy::Notify
+            },
+            bump_f: if r.more() {
+                r.f64_in(BUMP_MIN_F, BUMP_MAX_F)?
+            } else {
+                BUMP_DEFAULT_F
             },
         })
     }

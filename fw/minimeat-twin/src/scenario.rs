@@ -1,6 +1,6 @@
 //! Twin scenarios: the board and egg at power-on, the settings in flash, and what happens when.
 
-use minimeat_app::config::{Mode, Settings};
+use minimeat_app::config::{Mode, Settings, StallPolicy};
 use minimeat_app::pit::Command;
 use minimeat_app::proto;
 
@@ -113,7 +113,7 @@ const H: f64 = 3600.0;
 
 impl Scenario {
     /// Every scenario of the suite (`.4.16.3`), by name.
-    pub const NAMES: [&'static str; 17] = [
+    pub const NAMES: [&'static str; 20] = [
         "kamado-brisket",
         "kamado-hold",
         "chili-150",
@@ -131,6 +131,9 @@ impl Scenario {
         "fan-jam",
         "servo-stuck",
         "ambient-nack",
+        "stall-notify",
+        "stall-wrap",
+        "stall-bump",
     ];
 
     pub fn named(name: &str) -> Option<Self> {
@@ -152,6 +155,9 @@ impl Scenario {
             "fan-jam" => Self::fan_jam(),
             "servo-stuck" => Self::servo_stuck(),
             "ambient-nack" => Self::ambient_nack(),
+            "stall-notify" => Self::stall("stall-notify", StallPolicy::Notify),
+            "stall-wrap" => Self::stall("stall-wrap", StallPolicy::Wrap),
+            "stall-bump" => Self::stall("stall-bump", StallPolicy::Bump),
             _ => return None,
         })
     }
@@ -233,6 +239,16 @@ impl Scenario {
             (8.5 * H, 9.9 * H),
             (10.5 * H, 15.0 * H),
         ];
+        sc
+    }
+
+    /// The brisket cook with its probe's stall policy set (`.4.23`). Its stall runs from about 6.5 h
+    /// to 11.3 h at 250F; the holds judged are the ones before it.
+    fn stall(name: &'static str, policy: StallPolicy) -> Self {
+        let mut sc = Self::kamado_brisket();
+        sc.name = name;
+        sc.settings.probes[1].stall = policy;
+        sc.holds.truncate(2);
         sc
     }
 

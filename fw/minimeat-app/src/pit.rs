@@ -121,6 +121,19 @@ pub enum Event {
         probe: u8,
         t_f: f64,
     },
+    /// A probe whose policy is `wrap` has stalled: time to wrap the meat (`.4.23`).
+    WrapReminder {
+        probe: u8,
+        t_f: f64,
+    },
+    /// The setpoint was raised for a stall (`probe`'s policy is `bump`), to `sp_f`; and put back.
+    StallBump {
+        probe: u8,
+        sp_f: f64,
+    },
+    StallRestore {
+        sp_f: f64,
+    },
     /// The dither ended: the model at that setpoint now, and the fits taken during it.
     AutotuneDone {
         model: Fopdt,
@@ -156,6 +169,9 @@ impl Event {
             Event::SetpointReached { .. } => "setpoint_reached",
             Event::StallStart { .. } => "stall_start",
             Event::StallEnd { .. } => "stall_end",
+            Event::WrapReminder { .. } => "wrap_reminder",
+            Event::StallBump { .. } => "stall_bump",
+            Event::StallRestore { .. } => "stall_restore",
             Event::AutotuneDone { .. } => "autotune_done",
             Event::Alarm { .. } => "alarm",
             Event::AlarmClear { .. } => "alarm_clear",
@@ -328,6 +344,8 @@ impl Pit {
                     return Err(Reject::OutOfRange);
                 }
                 self.cook.sp_f = v;
+                // the user's setpoint stands: a stall bump has nothing to go back to
+                self.cook.base_sp = None;
             }
             Command::Controller(k) => {
                 if k != self.cook.controller {
@@ -373,6 +391,29 @@ impl Pit {
             }
         }
         Ok(())
+    }
+
+    /// A stall bump (`.4.23`): raises the setpoint by `by_f`, capped at [`SP_MAX_F`], remembering
+    /// where it was. A normal setpoint change, so the approach is shaped from where the pit is. The
+    /// new setpoint, or `None` when it is already bumped or no higher can be had.
+    pub fn bump(&mut self, by_f: f64) -> Option<f64> {
+        if self.cook.base_sp.is_some() || self.cook.mode != Mode::Run {
+            return None;
+        }
+        let to = (self.cook.sp_f + by_f).min(SP_MAX_F);
+        if to <= self.cook.sp_f {
+            return None;
+        }
+        self.cook.base_sp = Some(self.cook.sp_f);
+        self.cook.sp_f = to;
+        Some(to)
+    }
+
+    /// Undoes [`Pit::bump`]: the setpoint it was raised from, or `None` if it is not bumped.
+    pub fn unbump(&mut self) -> Option<f64> {
+        let base = self.cook.base_sp.take()?;
+        self.cook.sp_f = base;
+        Some(base)
     }
 
     /// The ambient has moved enough that the airflow map should be rebuilt (off the control path).

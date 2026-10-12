@@ -37,7 +37,7 @@ use minimeat_core::units::{c_to_k, k_to_f};
 use crate::alarms::{Alarms, Limit};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
 use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
-use crate::food::Foods;
+use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
@@ -275,6 +275,8 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
                 ProbeChange::Lo(l) => p.lo_f = l,
                 ProbeChange::Hi(h) => p.hi_f = h,
                 ProbeChange::Cut(c) => p.cut = c,
+                ProbeChange::Stall(s) => p.stall = s,
+                ProbeChange::Bump(b) => p.bump_f = b,
             }
             Ok(true)
         }
@@ -319,6 +321,7 @@ pub async fn control<B: Board>(
     let mut check = settings.cook.mode == Mode::Off;
     let mut disagree = [false; PROBE_JACKS];
     let mut alarms = Alarms::default();
+    let mut responder = StallResponder::default();
     let mut last_pass = 0;
     // `~/config` goes out once at boot and again after every accepted change
     let mut republish = true;
@@ -372,6 +375,9 @@ pub async fn control<B: Board>(
         }
         for e in foods.step(&temps, jack, temps[jack], out.phase, &settings.probes, PERIOD_S) {
             bus.emit(*e);
+        }
+        if let Some(e) = responder.step(foods, &temps, jack, &settings.probes, pit, PERIOD_S) {
+            bus.emit(e);
         }
 
         // slow work, one job at a time

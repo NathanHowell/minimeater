@@ -26,9 +26,16 @@ pub fn event<W: Write>(j: &mut Json<W>, e: &Event) {
         Event::SetpointReached { sp_f } => {
             j.key("sp").num(*sp_f, 1);
         }
-        Event::StallStart { probe, t_f } | Event::StallEnd { probe, t_f } => {
+        Event::StallStart { probe, t_f } | Event::StallEnd { probe, t_f } | Event::WrapReminder { probe, t_f } => {
             j.key("probe").int(i64::from(*probe));
             j.key("t").num(*t_f, 1);
+        }
+        Event::StallBump { probe, sp_f } => {
+            j.key("probe").int(i64::from(*probe));
+            j.key("sp").num(*sp_f, 1);
+        }
+        Event::StallRestore { sp_f } => {
+            j.key("sp").num(*sp_f, 1);
         }
         Event::AutotuneDone { model, accepted } => {
             j.key("sp").num(model.sp_f, 1);

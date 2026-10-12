@@ -9,7 +9,7 @@ use heapless::String;
 use minimeat_core::food::Cut;
 use minimeat_core::thermistor::{Preset, Thermistor};
 
-use crate::config::{ControllerKind, Mode, ProbeKind};
+use crate::config::{BUMP_MAX_F, BUMP_MIN_F, ControllerKind, Mode, ProbeKind, StallPolicy};
 use crate::hal::PROBE_JACKS;
 use crate::pit::{Command, SP_MAX_F, SP_MIN_F};
 
@@ -26,6 +26,9 @@ pub enum ProbeChange {
     Lo(Option<f64>),
     Hi(Option<f64>),
     Cut(Cut),
+    Stall(StallPolicy),
+    /// F added to the setpoint by the `bump` stall policy.
+    Bump(f64),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -233,6 +236,8 @@ fn probe(rest: &str, text: &str) -> Parsed {
         "cut" => ProbeChange::Cut(
             Cut::from_name(text).ok_or_else(|| bad("expected other, brisket, pork_shoulder, ribs, poultry"))?,
         ),
+        "stall" => ProbeChange::Stall(StallPolicy::from_name(text).ok_or_else(|| bad("expected notify, wrap, bump"))?),
+        "bump" => ProbeChange::Bump(in_range("bump", text, BUMP_MIN_F, BUMP_MAX_F)?),
         _ => return Err(Error::new(ErrorCode::Unknown, "no such probe setting")),
     };
     Ok(Request::Probe { n, change })

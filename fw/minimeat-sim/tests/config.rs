@@ -39,6 +39,7 @@ fn cooking() -> Settings {
     s.cook.pit_probe = 2;
     s.cook.autotune = true;
     s.cook.hold = Some((250.0, 0.72));
+    s.cook.base_sp = Some(225.0);
     s.schedule.insert(Fopdt {
         sp_f: 250.0,
         k: 99.0,
@@ -50,6 +51,8 @@ fn cooking() -> Settings {
     s.probes[1].kind = ProbeKind::Preset(Preset::MaverickEt732);
     s.probes[1].hi_f = Some(203.0);
     s.probes[1].cut = minimeat_core::food::Cut::Brisket;
+    s.probes[1].stall = minimeat_app::config::StallPolicy::Bump;
+    s.probes[1].bump_f = 30.0;
     s.probes[3].kind = ProbeKind::Custom(Thermistor {
         a: 7.3431e-4,
         b: 2.1574e-4,

@@ -89,7 +89,7 @@ def main():
     onboard()
     add_mqtt()
     # the twin publishes the retained discovery message on connect; HA reads it when it subscribes
-    ents = wait_for("64 entities", lambda: (lambda s: s if len([k for k in s if "minimeat" in k]) >= 60 else None)(states()))
+    ents = wait_for("72 entities", lambda: (lambda s: s if len([k for k in s if "minimeat" in k]) >= 68 else None)(states()))
     ours = {k: v for k, v in ents.items() if "minimeat" in k}
     by_domain = {}
     for k in ours:
@@ -107,7 +107,7 @@ def main():
     assert st["state"] == "heat"
     temp = next(k for k in ours if k.endswith("pit_temperature"))
     print(temp, get(temp)["state"])
-    assert float(wait_for("a numeric pit temperature", lambda: (lambda s: s if s["state"] not in ("unknown", "unavailable") else None)(get(temp)))["state"]) > 60
+    assert float(wait_for("a numeric pit temperature", lambda: (lambda s: s if s["state"] not in ("unknown", "unavailable") else None)(get(temp)))["state"]) > 25  # °C: above the 20 C room
     # a setting: HA changes the setpoint, and the device's config follows. HA shows temperatures in
     # its own unit system (a fresh instance is metric), the device speaks F.
     metric = call("GET", "/api/config")["unit_system"]["temperature"] == "°C"
