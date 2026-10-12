@@ -1,4 +1,4 @@
-"""Writes STEP and STL for every printed part, in its print pose, plus the assembly (`uv run mech-export [dir]`)."""
+"""Writes the two order folders (printed parts, machined parts), the assembly and the envelope (`uv run mech-export [dir]`)."""
 
 import json
 import sys
@@ -29,47 +29,56 @@ CNC_NOTES = {
 }
 
 
-def write_zips(out: Path):
-    """The order packages: `minimeat-3dprint.zip` (STEP and STL of each printed part in its print pose) and
-    `minimeat-cnc.zip` (STEP of each made part), each with a README of quantities and notes. Always built with the
-    parts, so the files you send are the files the model made."""
+def write_packages(out: Path):
+    """The two order folders, each with the files to upload one by one, a README of quantities and notes, and the same
+    files as one zip (some JLC pages take a zip, others one file at a time): `3dprint/` (STEP and STL of each printed part
+    in its print pose) and `cnc/` (STEP of each made part, and `drawings.pdf`). Only what is ordered goes in them; the
+    assembly and the stand-ins stay in `out`. Built with every export, so the files you send are the files the model made."""
     def readme(title, rows, extra):
         lines = [title, f"Quantity: {BUILDS} units of each part per file name below (a {BUILDS}-board build).", ""]
         lines += [f"{name}: {note}" for name, note in rows]
         return "\n".join(lines + ["", *extra, ""])
 
-    with zipfile.ZipFile(out / "minimeat-3dprint.zip", "w", zipfile.ZIP_DEFLATED) as z:
-        for name in PRINT_NOTES:
-            for ext in ("step", "stl"):
-                z.write(out / f"{name}.{ext}", f"{name}.{ext}")
-        z.writestr("README.txt", readme("minimeat printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
-            "Material: see docs/jlc3dp.md. Threaded inserts: one M4 per duct (the thumbscrew boss); all other screws go",
-            "straight into the plastic. Walls are 2.4 mm. Ream the duct's bore at the flap station (x = -37.5, Ø31.6 +0.03/0,",
-            "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
-        ]))
-    with zipfile.ZipFile(out / "minimeat-cnc.zip", "w", zipfile.ZIP_DEFLATED) as z:
-        for name in CNC_NOTES:
-            z.write(out / f"{name}_machined.step", f"{name}_machined.step")
-        z.write(out / "drawings.pdf", "drawings.pdf")
-        z.writestr("README.txt", readme("minimeat machined parts (mm)", list(CNC_NOTES.items()), [
-            "drawings.pdf: one page per part with the threads (M2 x 0.4-6H, tap drill Ø1.6), the D-bores and their tolerances.",
-            "The STEP files carry a thread only as a plain hole at the tap-drill diameter; the drawing is the callout.",
-            "Material: 304 stainless preferred (6061 aluminium if much cheaper). General tolerance +-0.1 mm unless a fit is",
-            "named; the crank's D-bore is a slip fit on the rod's flat (+0.1 mm), the flap's +0.03 (retaining compound).",
-        ]))
+    def package(folder: Path, zip_name: str, text: str):
+        (folder / "README.txt").write_text(text)
+        with zipfile.ZipFile(folder / zip_name, "w", zipfile.ZIP_DEFLATED) as z:
+            for f in sorted(folder.iterdir()):
+                if f.name != zip_name:
+                    z.write(f, f.name)
+
+    package(out / "3dprint", "minimeat-3dprint.zip", readme("minimeat printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
+        "Material: see docs/jlc3dp.md. Threaded inserts: one M4 per duct (the thumbscrew boss); all other screws go",
+        "straight into the plastic. Walls are 2.4 mm. Ream the duct's bore at the flap station (x = -37.5, Ø31.6 +0.03/0,",
+        "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
+    ]))
+    package(out / "cnc", "minimeat-cnc.zip", readme("minimeat machined parts (mm)", list(CNC_NOTES.items()), [
+        "drawings.pdf: one page per part with the threads (M2 x 0.4-6H, tap drill Ø1.6), the D-bores and their tolerances.",
+        "The STEP files carry a thread only as a plain hole at the tap-drill diameter; the drawing is the callout.",
+        "Material: 304 stainless preferred (6061 aluminium if much cheaper). General tolerance +-0.1 mm unless a fit is",
+        "named; the crank's D-bore is a slip fit on the rod's flat (+0.1 mm), the flap's +0.03 (retaining compound).",
+    ]))
 
 
 def export(out: Path):
     out.mkdir(parents=True, exist_ok=True)
+    prints, cnc = out / "3dprint", out / "cnc"
+    for d in (prints, cnc):
+        d.mkdir(exist_ok=True)
+    for old in out.glob("*.stl"):  # the layout before the order folders
+        old.unlink()
+    for name in (*ALL, *(f"{n}_machined" for n in MACHINED)):
+        (out / f"{name}.step").unlink(missing_ok=True)
+    for old in ("drawings.pdf", "minimeat-3dprint.zip", "minimeat-cnc.zip"):
+        (out / old).unlink(missing_ok=True)
     written = []
     for name in ALL:
         s = print_pose(name)
-        export_step(s, str(out / f"{name}.step"))
-        export_stl(s, str(out / f"{name}.stl"), tolerance=0.02, angular_tolerance=0.1)
+        export_step(s, str(prints / f"{name}.step"))
+        export_stl(s, str(prints / f"{name}.stl"), tolerance=0.02, angular_tolerance=0.1)
         written.append(name)
     for name, build in MACHINED.items():  # the made parts that are not printed, for the CNC quote
-        export_step(build(), str(out / f"{name}_machined.step"))
-        written.append(f"{name}_machined")
+        export_step(build(), str(cnc / f"{name}.step"))
+        written.append(name)
     asm = {**A.printed(0.0), **A.bought(0.0), "hood": K.hood(), "pan": K.pan()}
     asm.pop("pcb_keepout")
     # the plugs are fit-check stand-ins for the probe and USB-C plugs, not parts of the product: a file of their own
@@ -84,12 +93,12 @@ def export(out: Path):
         shape.label = name
     export_step(Compound(label="minimeat", children=list(asm.values())), str(out / "assembly.step"))
     (out / "envelope.json").write_text(json.dumps(envelope(), indent=2))
-    drawings.write(out)
-    write_zips(out)
+    drawings.write(cnc)
+    write_packages(out)
     return written
 
 
 def main():
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "build/mech")
     names = export(out)
-    print(f"wrote {', '.join(names)}, assembly.step, envelope.json, minimeat-3dprint.zip and minimeat-cnc.zip to {out}")
+    print(f"wrote {', '.join(names)}, assembly.step and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")

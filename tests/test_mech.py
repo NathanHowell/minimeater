@@ -98,8 +98,16 @@ def test_prints_without_support(name):
 def test_export_writes_step_and_stl(tmp_path):
     export(tmp_path)
     for n in list(PARTS) + ["hood", "pan"]:
-        assert (tmp_path / f"{n}.step").stat().st_size > 1000
-        assert (tmp_path / f"{n}.stl").stat().st_size > 1000
+        assert (tmp_path / "3dprint" / f"{n}.step").stat().st_size > 1000
+        assert (tmp_path / "3dprint" / f"{n}.stl").stat().st_size > 1000
+    for n in ("flap", "crank", "coupler"):
+        assert (tmp_path / "cnc" / f"{n}.step").stat().st_size > 1000
+    assert (tmp_path / "cnc" / "drawings.pdf").exists()
+    for folder, z in (("3dprint", "minimeat-3dprint.zip"), ("cnc", "minimeat-cnc.zip")):
+        import zipfile
+        names = set(zipfile.ZipFile(tmp_path / folder / z).namelist())
+        assert names == {f.name for f in (tmp_path / folder).iterdir() if f.name != z}  # the zip is the folder
+    assert not list(tmp_path.glob("duct.*")) and not list(tmp_path.glob("*_machined.step"))  # only the order folders hold them
     assert (tmp_path / "assembly.step").exists()
     assert (tmp_path / "envelope.json").exists()
 
