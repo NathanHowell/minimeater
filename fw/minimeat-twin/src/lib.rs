@@ -32,7 +32,8 @@ use minimeat_app::pit::{Event, Pit};
 use minimeat_app::tasks::{self, Bus, Status};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_sim::hal::{
-    SimAmbient, SimBoard, SimConfig, SimFan, SimFanPower, SimLoadFault, SimProbes, SimServo, SimServoPower, SimTach, SimUsb, World, io,
+    SimAmbient, SimBoard, SimConfig, SimFan, SimFanPower, SimLoadFault, SimProbes, SimServo, SimServoPower, SimTach,
+    SimUsb, World, io,
 };
 
 pub use scenario::{Action, Scenario};

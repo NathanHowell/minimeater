@@ -26,9 +26,15 @@ fn a_tripped_load_switch_cuts_both_loads_until_reboot() {
         .find(|(_, e)| matches!(e, Event::Fault(FaultCode::Load)))
         .map(|(t, _)| *t)
         .expect("load fault raised");
-    assert!((from..from + 10.0).contains(&raised), "raised at +{:.0} s", raised - from);
     assert!(
-        !r.events.iter().any(|(_, e)| matches!(e, Event::FaultClear(FaultCode::Load))),
+        (from..from + 10.0).contains(&raised),
+        "raised at +{:.0} s",
+        raised - from
+    );
+    assert!(
+        !r.events
+            .iter()
+            .any(|(_, e)| matches!(e, Event::FaultClear(FaultCode::Load))),
         "it is latched"
     );
     let held = r.samples.iter().find(|s| s.t_s >= raised + 5.0).unwrap().flap_deg;

@@ -9,6 +9,7 @@ pub mod drive;
 pub mod drivers;
 pub mod food;
 pub mod hal;
+pub mod improv;
 pub mod mqtt;
 pub mod net;
 pub mod otlp;

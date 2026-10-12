@@ -89,6 +89,20 @@ fn fresh_flash_gives_defaults_and_settings_survive_reboot() {
 }
 
 #[test]
+fn forgotten_wifi_credentials_stay_forgotten() {
+    let w = world();
+    let mut s = cooking();
+    block_on(async {
+        let (mut store, _) = ConfigStore::open(io(&w).config).await;
+        store.save(&s).await.unwrap();
+        s.wifi = None;
+        store.save(&s).await.unwrap();
+    });
+    assert_eq!(boot(&w).wifi, None);
+    assert_eq!(boot(&w), s);
+}
+
+#[test]
 fn unchanged_settings_are_not_rewritten() {
     let w = world();
     let s = cooking();

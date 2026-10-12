@@ -69,6 +69,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 - Pin assignment, strapping rules and GPIO budget: ADR 0001 (fan power enable takes the last spare GPIO, per ADR 0004).
 - Wire format: `docs/protocol.md` (MQTT and Home Assistant discovery) and `docs/telemetry.md` (OTLP).
 - Flashing and logs: USB Serial/JTAG on GPIO12/13 over the same USB-C port.
+- WiFi credentials: Improv Wi-Fi over that same serial port (`minimeat-app::improv`): a browser page (esp-web-tools, Home Assistant) sends the SSID and password with the cable in, the device joins, and only credentials that join are saved (`Request::Wifi`, never on MQTT). Whoever holds the cable may provision; there is no authorisation step. Forgetting the credentials is a stored empty SSID. The log lines on the same port are skipped by the client's parser.
 
 ## Open items
 

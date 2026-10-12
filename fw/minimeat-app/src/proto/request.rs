@@ -9,7 +9,7 @@ use heapless::String;
 use minimeat_core::food::Cut;
 use minimeat_core::thermistor::{Preset, Thermistor};
 
-use crate::config::{BUMP_MAX_F, BUMP_MIN_F, ControllerKind, Mode, ProbeKind, StallPolicy};
+use crate::config::{BUMP_MAX_F, BUMP_MIN_F, ControllerKind, Mode, ProbeKind, StallPolicy, Wifi};
 use crate::hal::PROBE_JACKS;
 use crate::pit::{Command, SP_MAX_F, SP_MIN_F};
 
@@ -39,6 +39,8 @@ pub enum Request {
         n: usize,
         change: ProbeChange,
     },
+    /// Network credentials from provisioning (`improv`), `None` to forget them. Not on MQTT: the wire cannot set it.
+    Wifi(Option<Wifi>),
     /// Blink the LED for 10 s.
     Identify,
     Reboot,

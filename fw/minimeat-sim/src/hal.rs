@@ -136,7 +136,11 @@ impl World {
 
     /// Fan speed fraction actually reached.
     pub fn fan_speed(&self) -> f64 {
-        let s = if self.fan_powered { self.fan_duty.clamp(0.0, 1.0) } else { 0.0 };
+        let s = if self.fan_powered {
+            self.fan_duty.clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         if self.faults.fan_jam || s < self.plant.path.fan.s_min() {
             0.0
         } else {

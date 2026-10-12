@@ -77,7 +77,11 @@ fn fan_duty_drives_plant_and_tach() {
     let mut io = io(&w);
     io.fan.set_duty_cycle_percent(50).unwrap();
     w.borrow_mut().advance(1.0);
-    assert_eq!(io.tach.rpm(), Some(0.0), "an unpowered fan does not turn whatever the duty");
+    assert_eq!(
+        io.tach.rpm(),
+        Some(0.0),
+        "an unpowered fan does not turn whatever the duty"
+    );
     io.fan_power.set_high().unwrap();
     for _ in 0..10 {
         w.borrow_mut().advance(1.0);

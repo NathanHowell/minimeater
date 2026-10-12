@@ -280,6 +280,11 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             }
             Ok(true)
         }
+        Request::Wifi(w) => {
+            let changed = settings.wifi != w;
+            settings.wifi = w;
+            Ok(changed)
+        }
         Request::Identify => {
             bus.identify.signal(());
             Ok(false)
@@ -524,14 +529,22 @@ pub async fn actuators<B: Board>(
         let live = supply.ok() && !load.tripped();
         let duty = if live { fan_drive.duty(speed) } else { 0.0 };
         // the duty first, then the power; power off first when the duty is zero: 0 % really stops the fan
-        let _ = if duty > 0.0 { fan_power.set_high() } else { fan_power.set_low() };
+        let _ = if duty > 0.0 {
+            fan_power.set_high()
+        } else {
+            fan_power.set_low()
+        };
         let max = f64::from(fan.max_duty_cycle());
         let _ = fan.set_duty_cycle((duty * max) as u16);
 
         // pulse first, then power: a servo waking up goes straight to the new position
         let s = flap.tick(flap_angle_deg(act.damper), DT);
         servo.set_pulse_us(s.pulse_us);
-        let _ = if s.power && live { power.set_high() } else { power.set_low() };
+        let _ = if s.power && live {
+            power.set_high()
+        } else {
+            power.set_low()
+        };
 
         tick.next().await;
         // the tach's mean over the second just run

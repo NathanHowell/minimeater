@@ -17,11 +17,17 @@ fn a_default_class_source_stops_the_actuators_and_says_so() {
 
     let at = |f: fn(&Event) -> bool| r.events.iter().find(|(_, e)| f(e)).map(|(t, _)| *t);
     assert!(
-        !r.events.iter().any(|(t, e)| *t < from && matches!(e, Event::Fault(FaultCode::Supply))),
+        !r.events
+            .iter()
+            .any(|(t, e)| *t < from && matches!(e, Event::Fault(FaultCode::Supply))),
         "a proper source raises nothing"
     );
     let raised = at(|e| matches!(e, Event::Fault(FaultCode::Supply))).expect("supply fault raised");
-    assert!((from..from + 10.0).contains(&raised), "raised at +{:.0} s", raised - from);
+    assert!(
+        (from..from + 10.0).contains(&raised),
+        "raised at +{:.0} s",
+        raised - from
+    );
     // from the moment it is raised the flap does not move
     let held = r.samples.iter().find(|s| s.t_s >= raised + 5.0).unwrap().flap_deg;
     for s in r.samples.iter().filter(|s| s.t_s > raised + 5.0 && s.t_s < to) {

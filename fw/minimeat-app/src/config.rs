@@ -619,7 +619,8 @@ impl<F: NorFlash> ConfigStore<F> {
                 *p = v;
             }
         }
-        s.wifi = self.fetch(key::WIFI).await?;
+        // forgetting the credentials is stored as an empty SSID (a tombstone); provisioning never accepts one
+        s.wifi = self.fetch::<Wifi>(key::WIFI).await?.filter(|w| !w.ssid.is_empty());
         s.mqtt = self.fetch(key::MQTT).await?;
         s.otlp = self.fetch(key::OTLP).await?;
         Ok(s)
@@ -652,10 +653,12 @@ impl<F: NorFlash> ConfigStore<F> {
                 self.saved.probes[i] = s.probes[i].clone();
             }
         }
-        if s.wifi != self.saved.wifi
-            && let Some(w) = &s.wifi
-        {
-            self.store(key::WIFI, w.clone()).await?;
+        if s.wifi != self.saved.wifi {
+            let w = s.wifi.clone().unwrap_or(Wifi {
+                ssid: String::new(),
+                pass: String::new(),
+            });
+            self.store(key::WIFI, w).await?;
             self.saved.wifi = s.wifi.clone();
         }
         if s.mqtt != self.saved.mqtt
