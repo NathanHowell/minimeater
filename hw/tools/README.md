@@ -8,3 +8,5 @@ How the board was placed and routed (first pass). Run from a scratch directory; 
 4. `gndvias.py <in> <out>` adds a via and stub for ground pads the router left off the plane; `finish.py <in> <out>` adds the top-side ground pour, full connection for small ground pads, island removal and silkscreen text tidy.
 
 The routed board replaces `hw/minimeat.kicad_pcb`; reload it in KiCad. Never edit the `.kicad_*` files by hand.
+
+Closing the last open items (v8): `islandvias.py <in> <out>` puts a ground via in every top-pour fragment that has none (checked against copper on all layers). TIP2/TIP3 at U9 were joined by hand: a 0.6 mm via and an In2 stub for TIP2, an F.Cu run for TIP3; TIP1's tail from R19 was rerouted to make room.
