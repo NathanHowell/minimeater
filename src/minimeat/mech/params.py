@@ -47,8 +47,8 @@ class Servo:
     shaft_off: float = 5.9  # [spec] output axis from the short end of the body (the drawing's 19.2 is to the far holes)
     boss_d: float = 11.6  # [spec] gear housing, as wide as the case; it is a lobe 15 mm long, drawn here as a cylinder
     boss_h: float = 6.0  # [spec] housing top 26.0 above the back face
-    spline_d: float = 4.8  # [est] 24T output (Hitec); third parties give 5.0 for the 25T clone, measure on the first servo
-    spline_h: float = 4.0  # [spec] spline top 30.0 above the back face
+    spline_d: float = 5.0  # [spec] 24T output, outer diameter from Hitec's STEP model
+    spline_h: float = 3.0  # [spec] spline top 29.0 above the back face in Hitec's STEP model (the drawing's 30.0 has the horn)
     horn_hub_d: float = 7.0  # [est] single-arm horn: hub, arm, and a hole at Linkage.arm_r
     horn_hub_h: float = 4.0
     horn_arm_w: float = 5.0

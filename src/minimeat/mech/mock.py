@@ -1,6 +1,9 @@
 """Stand-ins for the parts that are bought, for fit and interference checks (mm, assembly frame)."""
 
-from build123d import Axis, Pos, Rot, Torus
+from functools import cache
+from pathlib import Path
+
+from build123d import Axis, Pos, Rot, Torus, import_step
 
 from . import geom as G
 from .geom import g
@@ -23,8 +26,28 @@ def fan():
     return s
 
 
+SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"
+# the vendor model's frame: X along the long axis (output axis at x = 5.7, short end toward +x), Y up with the back face at
+# y = -14.0, Z across the case; the output axis at z = 0
+_STEP_AXIS_X, _STEP_BACK_Y = 5.7, -14.0
+
+
+@cache
+def _servo_step():
+    return import_step(SERVO_STEP)
+
+
 def servo():
-    """Body, tabs, output boss and spline, standing beside the duct with the output up."""
+    """Hitec's own model of the HS-5065MG (SERVO_STEP), turned to stand beside the duct with the output up and
+    its axis at the output axis; `servo_box` is the simple stand-in."""
+    s = _servo_step()
+    s = Pos(-_STEP_AXIS_X, -_STEP_BACK_Y, 0) * s  # axis to the origin, back face to y = 0
+    s = Rot(X=90) * s  # Y up -> Z up (Z -> -Y)
+    return Pos(G.SERVO_X, G.SERVO_Y, G.SERVO_Z0) * s
+
+
+def servo_box():
+    """Body, tabs, output boss and spline as boxes: the stand-in before the vendor model."""
     sv = P.servo
     z1 = G.SERVO_FACE_Z
     xc, yc = G.SERVO_X_CENTRE, G.SERVO_Y
