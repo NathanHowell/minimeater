@@ -106,3 +106,7 @@ The ADC is now the **TI ADS122C04IPWR** (JLC C2872338, 4.5k in stock, $7.92) on 
 - **Thermocouple input dropped.** The optional MAX31856 (SPI only) is gone with SPI. A K-type pit probe would need two ADC inputs, and all four are used by the thermistor jacks. The ADS122C04 can measure a thermocouple itself, so a later revision could spend two jacks or add a second ADC; nothing is reserved on this board.
 - **The ADS1220/ADS1120 fallback** in the decision above no longer applies; the SPI driver is removed from the firmware.
 - **Firmware:** `minimeat-app::drivers::ads122c04`, tested on the host against a scripted I2C bus. The board binding shares one bus between the ADC and the TMP117.
+
+## Amendment (2026-10-12): bias resistor on the tip side of the series 1k
+
+The first schematic put the 47k bias on the ADC side of the 1k series resistor, so the 1k added to the probe's resistance. The ngspice check (`uv run minimeat-sim`, `docs/sim/probe-frontend.md`) read 11 F low at 225 F and 46 F low at 325 F. The bias now joins at the jack tip (tip, 47k up, then 1k to the ADC pin with its 100 nF), as the per-input list above describes; the same check reads within 0.1 F across the pit range. Schematic and PCB are fixed.
