@@ -172,25 +172,16 @@ def vent_cut():
     return cut
 
 
-def _outer_y(x, z):
-    """The shell's outer +y face at (x, z): the flank leans out going up, so the holes below start from it."""
-    return (outer() & Pos(x, 0, z) * Box(0.4, 200, 0.2)).bounding_box().max.Y
-
-
 def indicator_cuts():
-    """Through the pan's +y flank, on the board's +y edge: a Ø1.9 hole for the LED's clear light pipe and a Ø5
-    blind pocket for the button's plunger that leaves a skin over it. Both are teardrops pointing +x, so they
-    print standing on the rear face."""
+    """Through the pan's +y flank, on the board's +y edge: a Ø1.9 hole for the LED's clear light pipe, a teardrop
+    pointing +x so it prints standing on the rear face. The button is inside, under the hood (the case opens)."""
     p = P.pcb
-    y0 = p.y_len / 2 + 0.5 - 0.5  # from the board's edge
-    zl, zb = G.PCB_Z1 + p.led_z, G.PCB_Z1 + p.btn_z
-    xl, xb = PCB_XC + p.led_x, PCB_XC + p.btn_x
-
-    def tear(r, x, z, y1):
-        k = r * math.sqrt(0.5)
-        return ycyl(r, y0, y1, x, z) + prism_xz([(x + k, z - k), (x + k * (1 + KS), z), (x + k, z + k)], y0, y1)
-
-    return tear(S.pipe_d / 2 + 0.075, xl, zl, 50.0) + tear(S.plunger_pocket_d / 2, xb, zb, _outer_y(xb, zb) - S.skin_t)
+    y0 = p.y_len / 2
+    zl = G.PCB_Z1 + p.led_z
+    xl = PCB_XC + p.led_x
+    r = S.pipe_d / 2 + 0.075
+    k = r * math.sqrt(0.5)
+    return ycyl(r, y0, 50.0, xl, zl) + prism_xz([(xl + k, zl - k), (xl + k * (1 + KS), zl), (xl + k, zl + k)], y0, 50.0)
 
 
 def label_cut():

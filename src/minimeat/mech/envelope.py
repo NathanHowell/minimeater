@@ -29,7 +29,7 @@ def envelope():
         "indicators": {
             "edge": "+y",
             "led": {"x": p.led_x, "z_above_board": p.led_z, "part": "LTST-S220KGKT side-view, facing +y"},
-            "button": {"x": p.btn_x, "z_above_board": p.btn_z, "part": "SKRPACE010 side-actuated, facing +y"},
+            "button": {"x": p.btn_x, "z_above_board": p.btn_z, "part": "SKRPACE010 top-push, inside the case (open it to press)"},
         },
         "ambient_sensor": {"side": "bottom", "x": p.sensor[0], "y": p.sensor[1], "note": "in the vented well; slot the board around it"},
         "height_above_board": p.top_h,

@@ -10315,7 +10315,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_Taiyo-Yuden_NR-30xx"
+		(property "Footprint" "minimeat:LQH3NPN2R2MMEL"
 			(at 336.55 60.96 0)
 			(hide yes)
 			(effects
@@ -14973,7 +14973,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+		(property "Footprint" "minimeat:LTST-S220KGKT"
 			(at 365.76 321.31 0)
 			(hide yes)
 			(effects
@@ -15000,7 +15000,7 @@
 				)
 			)
 		)
-		(property "Footprint note" "PROVISIONAL: generic 0603 footprint; real part is 2.2x1 mm side-view"
+		(property "Footprint note" "Pads from the LCSC/EasyEDA land pattern for C160469 (JLC's own); model is a simple block from the Lite-On drawing."
 			(at 365.76 321.31 0)
 			(hide yes)
 			(effects
@@ -15201,7 +15201,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_SPST_TL3342"
+		(property "Footprint" "minimeat:SKRPACE010"
 			(at 406.4 313.69 0)
 			(hide yes)
 			(effects
@@ -15228,7 +15228,7 @@
 				)
 			)
 		)
-		(property "Footprint note" "PROVISIONAL: TL3342 stand-in; no SKRPACE010 footprint in library (4.2x3.2 mm)"
+		(property "Footprint note" "Top-push 4.2x3.2x2.5 mm tact (ALPS drawing: pads 1.05x0.65 at +-2.075, +-1.075). Pressed from inside: open the case."
 			(at 406.4 313.69 0)
 			(hide yes)
 			(effects
@@ -16962,7 +16962,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SON:USON-10_2.5x1.0mm_P0.5mm"
+		(property "Footprint" "minimeat:TPD4E05U06DQA"
 			(at 127 292.1 0)
 			(hide yes)
 			(effects
@@ -17042,7 +17042,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm"
+		(property "Footprint" "minimeat:TMP117AIDRV_WSON-6_noEP"
 			(at 469.9 266.7 0)
 			(hide yes)
 			(effects
@@ -17095,7 +17095,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "Footprint note" "No exposed-pad land: TI says leave the TMP117 thermal pad unsoldered (accuracy). Keep copper pour out from under it."
+			(at 469.9 266.7 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 485.14 255.27 0)
