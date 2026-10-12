@@ -14,3 +14,6 @@ __pycache__/
 
 # CAD output
 build/
+
+# KiCad lock files
+*.lck
