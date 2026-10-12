@@ -24,9 +24,9 @@ PRINT_NOTES = {
     "pan": "lower shell with the port bay and the board standoffs; print nose up on the rear face, as exported",
 }
 CNC_NOTES = {
-    "flap": "damper blade: a Ø31.2 disc 2.0 thick with a 4.0 x 5.0 rib along its diameter; the rib's D-bore (Ø3 with a 2.5 across-flats flat, +0.03 mm over) takes the rod with retaining compound; edge diameter +-0.05 matters (closed-flap leak); no threads",
+    "flap": "damper blade: a Ø31.6 disc 2.0 thick with a 4.0 x 5.0 rib along its diameter; the rib's D-bore (Ø3 with a 2.5 across-flats flat, +0.03 mm over) takes the rod with retaining compound; edge diameter +-0.05 matters (closed-flap leak); no threads",
     "crank": "Ø8 hub with a D-bore slip fit (0.1 mm) for the rod's flat, an M2 set screw radial on the flat, an arm out to a tapped M2 hole",
-    "coupler": "flat bar 6 x 2 mm, two Ø2.1 holes on the 25 mm centres (parallelogram linkage); deburr, no sharp edges",
+    "coupler": "flat bar 6 x 2 mm, two Ø3.1 holes on the 25 mm centres, a 0.9 mm boss under each (parallelogram linkage); deburr, no sharp edges",
 }
 
 
@@ -57,7 +57,7 @@ def write_packages(out: Path):
 
     package(out / "3dprint", "minimeat-3dprint.zip", readme("minimeat printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
         "Material: see docs/jlc3dp.md. Threaded inserts: one M4 per duct (the thumbscrew boss); all other screws go",
-        "straight into the plastic. Shell walls are 2.8 mm, the duct's 2.4. Ream the duct's bore at the flap station (x = -37.5, Ø31.6 +0.03/0,",
+        "straight into the plastic. Shell walls are 2.8 mm, the duct's 2.2-2.4. Ream the duct's bore at the flap station (x = -37.5, Ø32 H7 +0.025/0,",
         "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
     ]))
     package(out / "cnc", "minimeat-cnc.zip", readme("minimeat machined parts (mm)", list(CNC_NOTES.items()), [

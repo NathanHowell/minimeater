@@ -42,13 +42,27 @@ def test_linkage_is_a_parallelogram():
 
 
 def test_rod_stands_above_the_crank_and_under_the_bar():
-    """The rod's end is gripable (0.4 to 0.6 mm over the crank's top with a +-0.1 cut) and clears the coupler, which
-    lies over it when the flap is closed, by at least 0.5 mm; the pin heads stay 2 mm under the roof's nominal underside
-    (measured on the hood: 1.5 mm under it over the horn pin's sweep, where the roof curves down)."""
+    """The rod's end is gripable (0.2 to 0.4 mm over the crank's top with a +-0.1 cut) and clears the coupler, which
+    lies over it when the flap is closed, by at least 0.5 mm; the pin heads stay 1.5 mm under the roof's nominal underside
+    (measured on the hood: 1.0 mm over the crank pin's sweep and 0.4 mm over the horn pin's, where the roof curves down; see docs/mech.md)."""
     top = mock.rod().bounding_box().max.Z
-    assert 0.4 <= top - G.ARM_Z1 <= 0.6
-    assert G.COUPLER_Z0 - (top + 0.1) >= 0.5
-    assert P.shell.roof_in - (G.COUPLER_Z1 + P.linkage.pin_head_h) >= 2.0
+    assert 0.2 <= top - G.ARM_Z1 <= 0.4
+    assert G.COUPLER_Z0 - (top + 0.1) >= 0.5 - 1e-9
+    assert P.shell.roof_in - (G.COUPLER_Z1 + P.linkage.pin_head_h) >= 1.5
+    assert abs(G.COUPLER_Z1 - G.BOSS_Z0 + 0.1 - P.linkage.shoulder_len) < 1e-9  # the shoulder is 0.1 longer than the bar and its boss
+
+
+def test_shelf_pilots_are_under_the_servos_screw_holes():
+    """The duct's M2 pilots sit under the tab holes of Hitec's own model (the first version had them between holes)."""
+    halves = {}
+    for f in mock.servo().faces():
+        bb = f.bounding_box()
+        if str(f.geom_type).endswith("CYLINDER") and abs(bb.size.X - 2.0) < 0.05 and abs(bb.size.Y - 1.0) < 0.05 and G.TAB_Z0 - 0.1 < bb.min.Z < G.TAB_Z0 + 0.1:
+            halves.setdefault(round(bb.center().X, 2), []).append(bb.center().Y)
+    holes = [(x, (y0 + y1) / 2) for x, ys in halves.items() for y0 in ys for y1 in ys if abs(y1 - y0 - 1.0) < 0.05]  # two half-cylinders a hole
+    assert len(holes) >= 6
+    for x in G.TAB_HOLE_XS:
+        assert any(abs(hx - x) < 0.05 and abs(hy - G.SERVO_Y) < 0.05 for hx, hy in holes), (x, holes)
 
 
 def test_board_lies_under_the_straight_duct():

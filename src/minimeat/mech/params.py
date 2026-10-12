@@ -38,8 +38,7 @@ class Servo:
     body_w: float = 11.6  # [spec]
     tab_l: float = 32.3  # [spec] over both mounting flanges
     tab_t: float = 2.0  # [spec]
-    tab_hole_pitch: float = 27.0  # [spec] 19.2 on one side of the output axis, 7.8 on the other (three holes in the long
-    # end's column and two in the short end's, Ø2.0; the model drills one at the axis line of each end)
+    tab_hole_dx: tuple[float, float] = (-20.0, 8.6)  # [stl] x of the two screw holes on the axis line, from the output axis, read off Hitec's STEP: each end has three Ø2.0 holes, 6 mm across, the middle one 0.8 mm further out than the other two (the drawing's 19.2 and 7.8 are those two). The shelf's pilots are under the middle pair, 28.6 apart
     tab_hole_d: float = 2.0  # [spec]
     body_h: float = 20.0  # [spec] back face to the case top; the gear housing and spline stand on it
     lead_w: float = 4.0  # [est] the cable leaves the body's end opposite the output
@@ -119,6 +118,7 @@ class Damper:
     flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
     ream_tol: float = 0.03  # radial: the duct's bore at the flap station reamed to size; as printed it is +-0.15 (JLC: +-0.3 mm)
     print_bore_tol: float = 0.15
+    bore_d: float = 32.0  # the duct's straight bore, a standard H7 reamer size (Ø32 +0.025/0), reamed at the flap station; the tube's ID (31.6, to measure) is 0.2 mm smaller: the step is the tube's own thickness
     flap_gap: float = 0.15  # radial; closed leak target <= 0.3 cm^2 (.2.3)
     stub_len: float = 3.0
     flap_x: float = -37.5  # shaft axis
@@ -142,12 +142,14 @@ class Linkage:
     set_screw_d: float = 1.6  # tap drill for the M2 set screw, radial on the flat
     coupler_t: float = 2.0  # 304 stainless (or 6061) flat bar
     coupler_w: float = 6.0
-    pin_d: float = 2.0  # M2 shoulder screw
-    pin_hole_clear: float = 0.05  # radial: the bar's holes are Ø2.1
-    pin_head_d: float = 3.8
-    pin_head_h: float = 1.3
+    pin_d: float = 3.0  # M2 shoulder screw: Ø3 shoulder (ISO 7379 pairs a Ø3 shoulder with an M2 thread; a Ø2 shoulder is M1.6)
+    thread_d: float = 2.0  # its thread: into the crank's tapped hole, through the horn's M2 hole to the nyloc nut
+    pin_hole_clear: float = 0.05  # radial: the bar's holes are Ø3.1
+    pin_head_d: float = 5.5  # [est] the shoulder screw's head, Ø5.5 x 2.0: check the supplier's drawing
+    pin_head_h: float = 2.0
+    shoulder_len: float = 3.0  # a little over the bar and its boss (2.9), so the bar turns free
     lift: float = 0.8  # crank hub above the duct's crown
-    bar_lift: float = 1.0  # the coupler's bosses under its pin holes: the bar rides this far above the arms, so the rod's end can stand above the crank (to grip it) and still clear the bar when the flap is closed
+    bar_lift: float = 0.9  # the coupler's bosses under its pin holes: the bar rides this far above the arms, so the rod's end can stand above the crank (to grip it) and still clear the bar when the flap is closed
 
 
 @dataclass(frozen=True)

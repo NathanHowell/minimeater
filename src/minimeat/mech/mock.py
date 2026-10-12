@@ -79,7 +79,7 @@ def horn():
     h = zcyl(sv.horn_hub_d / 2, z1 - sv.horn_hub_h, z1, G.SERVO_X, G.SERVO_Y)
     h += _arm(G.SERVO_X, G.SERVO_Y, z1 - sv.horn_arm_t, z1, sv.horn_len, sv.horn_arm_w)
     h -= zcyl(sv.spline_d / 2, z1 - sv.horn_hub_h - 0.1, z1 + 0.1, G.SERVO_X, G.SERVO_Y)
-    h -= zcyl(L.pin_d / 2 + 0.1, z1 - sv.horn_arm_t - 0.1, z1 + 0.1, G.SERVO_X - L.arm_r, G.SERVO_Y)  # M2 clearance
+    h -= zcyl(L.thread_d / 2 + 0.1, z1 - sv.horn_arm_t - 0.1, z1 + 0.1, G.SERVO_X - L.arm_r, G.SERVO_Y)  # M2 clearance
     return h
 
 
@@ -96,8 +96,8 @@ def pins():
 
 
 def rod():
-    """Flap shaft: 3 mm rod with a flat, from the blind pocket in the bottom wall to 0.5 mm above the crank's top, to grip."""
-    return d_bore(g.flap_x, 0.0, -g.duct_r + 1.3, G.ARM_Z1 + 0.5)
+    """Flap shaft: 3 mm rod with a flat, from the blind pocket in the bottom wall to 0.3 mm above the crank's top, to grip."""
+    return d_bore(g.flap_x, 0.0, -g.duct_r + 1.3, G.ARM_Z1 + 0.3)
 
 
 def tube():

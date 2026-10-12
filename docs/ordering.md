@@ -17,8 +17,8 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 | Noctua NF-A6x25 5V PWM fan | 1 | 5 | named | 60 × 60 × 25, 4-pin PWM with tach. It is mounted from the rear with 4 screws: check that the retail box includes them (`docs/parts/fan-noctua-nf-a6x25.md`). |
 | Hitec HS-5065MG servo | 1 | 5 | named | 3-pin lead, 160 mm (`docs/parts/servo-hs-5065mg.md`). |
 | Secraft 15 mm aluminium servo arm, Hitec 24T | 1 | 5 | named | The linkage uses its M2 hole at 12 mm radius. Comes with its centre screw. |
-| Ø3 rod, 2.5 mm D flat, **42.9 mm ±0.1** | 1 | 5 + 1 | **unsourced** | Stainless or hardened steel. Cut a plain Ø3 rod to length and file or mill the flat (2.5 mm across), or buy 3 mm D-shaft and cut it. The length matters: the end stands 0.5 mm above the crank and 0.6 mm under the coupler (`docs/mech.md`). |
-| M2 shoulder screw, Ø2 shoulder × 3 mm | 2 | 10 + 2 | **open question, see section 5** | One into the crank's tapped hole, one through the servo arm with a nyloc nut. |
+| Ø3 rod, 2.5 mm D flat, **42.7 mm ±0.1** | 1 | 5 + 1 | **unsourced** | Stainless or hardened steel. Cut a plain Ø3 rod to length and file or mill the flat (2.5 mm across), or buy 3 mm D-shaft and cut it. The length matters: the end stands 0.3 mm above the crank and 0.6 mm under the coupler (`docs/mech.md`). |
+| M2 shoulder screw, Ø3 shoulder × 3 mm long, M2 thread | 2 | 10 + 2 | named (head size to check) | ISO 7379 style, stainless. One into the crank's tapped M2 hole, one through the servo arm's M2 hole with a nyloc nut. Head about Ø5.5 × 2.0: confirm against the supplier's drawing, since the pin heads stop about 1 mm under the hood's roof. The shoulder must be 3 mm (the bar and its boss are 2.9) and the thread long enough for the crank (3 mm arm) or the horn plus the nut: M2 × 4 or longer. |
 | M2 nyloc nut | 1 | 5 + 5 | named | Under the servo arm. |
 | M2 washer | 2 | 10 + 5 | named | |
 | M2 × 3 hex-socket set screw, cup point | 1 | 5 + 5 | size is my pick | Radial on the rod's flat, in the crank's hub (tap drill Ø1.6). |
@@ -35,7 +35,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 
 ### Tool you may need
 
-- **Ø31.6 mm reamer, +0.03/0, about 40 mm long.** The duct's bore at the flap station is reamed after printing; as printed (±0.3 mm) it would jam the flap or leak. Ø31.6 is not a stock size: the nearest catalogue items are an adjustable hand reamer from 31.5 mm up (Hoffmann 160600-31,5) and fixed H7 machine reamers at 31 and 32 mm. So either buy the adjustable reamer and set it to 31.6, have a machine shop bore or ream the five ducts (a boring head on a lathe or mill does it), or change the bore to a standard size (bead filed). See `docs/mech.md` and `docs/jlc3dp.md`.
+- **Ø32 mm H7 machine reamer (+0.025/0), 40 mm or more of flute.** The duct's straight bore is Ø32.0 and is reamed at the flap station after printing; as printed (±0.3 mm) it would jam the flap or leak. Ø32 is a standard size (for example the Hoffmann machine reamer H7 Ø32, [164000-32](https://www.hoffmann-group.com/IE/en/brownlo/p/164000-32)); a plain HSS straight-flute one from an industrial supplier or a general import brand is enough for five nylon ducts, and a fixed reamer costs much less than the adjustable one. Or ask a machine shop to ream or bore the five. See `docs/mech.md` and `docs/jlc3dp.md`.
 
 ## 3. Electronics, hand-soldered
 
@@ -56,6 +56,6 @@ Not on this list because you already have them: the egg and its Ø34.93 intake t
 
 ## 5. Open items
 
-- **Shoulder screws.** ISO 7379 shoulder screws with a Ø2 shoulder have an M1.6 thread, as I recall (an M2 thread goes with a Ø3 shoulder). The model assumes a Ø2 pin and an M2 tapped hole in the crank, which would not match a standard part. Two ways out: (a) keep the Ø2 shoulder and tap the crank M1.6 (tap drill Ø1.25), and the horn end uses an M1.6 nyloc nut; or (b) Ø3 shoulder, M2 thread, and the coupler's holes become Ø3.1. This needs a decision before the CNC order, because it changes the crank's drawing (bead filed).
 - The rod, the port caps and the thumbscrew length are not sourced.
+- The shoulder screw's head size and thread length are to confirm with the supplier.
 - The O-ring material waits for the tube temperature measurement (`.2.5`).

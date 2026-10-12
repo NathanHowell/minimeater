@@ -7,7 +7,7 @@ from .params import P
 
 @dataclass(frozen=True)
 class G:
-    bore_r: float = P.tube.id / 2
+    bore_r: float = P.damper.bore_d / 2
     wall: float = P.print.wall
     duct_r: float = P.tube.id / 2 + P.print.wall  # outer radius of the straight duct
     socket_x0: float = -P.coupling.depth
@@ -43,7 +43,7 @@ L = P.linkage
 CRANK_Z0 = g.duct_r + L.lift
 ARM_Z0 = CRANK_Z0 + L.hub_h
 ARM_Z1 = ARM_Z0 + L.arm_t
-BOSS_Z0 = ARM_Z1 + 0.1  # the coupler's bosses lie on both arms
+BOSS_Z0 = ARM_Z1  # the coupler's bosses lie on both arms
 COUPLER_Z0 = BOSS_Z0 + L.bar_lift  # and the bar rides over the rod's end
 COUPLER_Z1 = COUPLER_Z0 + L.coupler_t
 # the servo beside the duct on +y, output face up, its horn's arm level with the crank's
@@ -56,7 +56,7 @@ SERVO_X_CENTRE = SERVO_X - (P.servo.body_l / 2 - P.servo.shaft_off)  # body towa
 TAB_Z1 = SERVO_FACE_Z - P.servo.tab_to_face  # top of the tabs
 TAB_Z0 = TAB_Z1 - P.servo.tab_t
 PAD_T = 2.5  # the duct's pads under the tabs
-TAB_HOLE_XS = (SERVO_X_CENTRE - P.servo.tab_hole_pitch / 2, SERVO_X_CENTRE + P.servo.tab_hole_pitch / 2)
+TAB_HOLE_XS = (SERVO_X + P.servo.tab_hole_dx[0], SERVO_X + P.servo.tab_hole_dx[1])
 
 # the shell: section height and the roof
 ROOF_IN_Z = P.shell.roof_in
