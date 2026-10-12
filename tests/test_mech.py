@@ -102,7 +102,9 @@ def test_export_writes_step_and_stl(tmp_path):
         assert (tmp_path / "3dprint" / f"{n}.stl").stat().st_size > 1000
     for n in ("flap", "crank", "coupler"):
         assert (tmp_path / "cnc" / f"{n}.step").stat().st_size > 1000
-    assert (tmp_path / "cnc" / "drawings.pdf").exists()
+    for n in ("flap", "crank", "coupler"):
+        assert (tmp_path / "cnc" / f"{n}.pdf").stat().st_size > 1000  # a drawing named like its STEP file
+    assert not (tmp_path / "cnc" / "drawings.pdf").exists()
     for folder, z in (("3dprint", "minimeat-3dprint.zip"), ("cnc", "minimeat-cnc.zip")):
         import zipfile
         names = set(zipfile.ZipFile(tmp_path / folder / z).namelist())

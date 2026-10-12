@@ -52,7 +52,7 @@ def write_packages(out: Path):
         "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
     ]))
     package(out / "cnc", "minimeat-cnc.zip", readme("minimeat machined parts (mm)", list(CNC_NOTES.items()), [
-        "drawings.pdf: one page per part with the threads (M2 x 0.4-6H, tap drill Ø1.6), the D-bores and their tolerances.",
+        "<part>.pdf beside <part>.step: the drawing with the threads (M2 x 0.4-6H, tap drill Ø1.6), the D-bores and their tolerances.",
         "The STEP files carry a thread only as a plain hole at the tap-drill diameter; the drawing is the callout.",
         "Material: 304 stainless preferred (6061 aluminium if much cheaper). General tolerance +-0.1 mm unless a fit is",
         "named; the crank's D-bore is a slip fit on the rod's flat (+0.1 mm), the flap's +0.03 (retaining compound).",
@@ -68,7 +68,7 @@ def export(out: Path):
         old.unlink()
     for name in (*ALL, *(f"{n}_machined" for n in MACHINED)):
         (out / f"{name}.step").unlink(missing_ok=True)
-    for old in ("drawings.pdf", "minimeat-3dprint.zip", "minimeat-cnc.zip"):
+    for old in ("drawings.pdf", "minimeat-3dprint.zip", "minimeat-cnc.zip"):  # (and the layout before the order folders)
         (out / old).unlink(missing_ok=True)
     written = []
     for name in ALL:

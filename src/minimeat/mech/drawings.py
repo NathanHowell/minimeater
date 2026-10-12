@@ -1,5 +1,6 @@
 """2D drawings of the machined parts for the CNC quote: three views, overall sizes, and a table of threads, bores and
-tolerances, one A4 page per part in `drawings.pdf` (`uv run mech-export` writes it and puts it in minimeat-cnc.zip).
+tolerances, one A4 PDF per part named like its STEP file (`flap.pdf` beside `flap.step`: JLCCNC pairs a drawing with a 3D file
+by filename). `uv run mech-export` writes them to `cnc/`.
 The STEP files carry a thread only as a plain hole at the tap-drill diameter, so the callouts live here."""
 
 from dataclasses import dataclass
@@ -135,10 +136,12 @@ def _wrap(text, n):
     return lines + [cur]
 
 
-def write(out: Path) -> Path:
-    path = out / "drawings.pdf"
+def write(out: Path) -> list[Path]:
     feats = features()
-    with PdfPages(path) as pdf:
-        for name, build in MACHINED.items():
+    paths = []
+    for name, build in MACHINED.items():
+        path = out / f"{name}.pdf"
+        with PdfPages(path) as pdf:
             _page(pdf, name, build(), feats[name])
-    return path
+        paths.append(path)
+    return paths
