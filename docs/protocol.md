@@ -90,7 +90,7 @@ Error codes:
 - `ref`: shaped reference the controller is currently tracking. It equals `sp` except during `startup` and after a setpoint increase.
 - `pit`: the probe selected by `pit_probe`, with offset applied.
 - `amb`: on-board outside-air sensor (TMP117).
-- `tc`: the thermocouple reading in °F when the MAX31856 is fitted, otherwise `null`.
+- `tc`: the thermocouple reading in °F (no thermocouple input in this revision, ADR 0002 amendment), always `null`.
 
 **`mode`** (user-selected):
 
@@ -152,10 +152,10 @@ Error codes:
 | `board_hot` | board above 80C: the device keeps running and warns |
 | `pit_probe` | the selected pit probe isn't `ok` |
 | `fan_stall` | duty above 30 % but tach reads 0 |
-| `adc` | ADS1220 not responding |
+| `adc` | ADS122C04 not responding |
 | `ambient` | TMP117 not responding: feedforward falls back to 20C |
 
-- `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS1220 internal sensor). Detailed diagnostics go to OTLP, not here.
+- `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS122C04 internal sensor). Detailed diagnostics go to OTLP, not here.
 
 ## `~/config`
 

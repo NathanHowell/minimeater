@@ -17,7 +17,7 @@ Status: draft (2026-10-11), bead `minimeat-seq.1.2`. This is the contract betwee
 | Typical cook draw | about 0.12 A |
 | Worst normal draw | about 0.8 A |
 | Fault | servo stall 0.96-1.2 A, limited to about 0.6 A by a load switch |
-| Rails | 5 V (VBUS), 3.3 V buck, filtered analog supply for the ADS1220 |
+| Rails | 5 V (VBUS), 3.3 V buck, filtered analog supply for the ADS122C04 |
 
 Rules: the fan and the servo each have a power switch controlled by the MCU; the 5 V loads are limited by source class; a brownout resets the MCU and the cook resumes from flash.
 
@@ -25,7 +25,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 
 - Four interchangeable 2.5 mm stereo jacks for thermistor probes. Any jack can be the pit probe; the default is jack 0 for the pit and 1-3 for food.
 - Probes in use: ThermoWorks Pro-Series and generic imports (about 100 k at 25 C) and legacy Maverick ET-732 (about 1 M at 25 C).
-- TI ADS1220 on SPI with per-jack dividers; optional MAX31856 for a K-type pit probe is a DNP footprint.
+- TI ADS122C04 on I2C (same bus as the ambient sensor) with per-jack dividers. There is no K-type input in this revision (ADR 0002, amended).
 - Ambient (outside air) sensor TMP117 on I2C, on the board's underside in a vented well, isolated from the duct air.
 - Accuracy: +/-2 F at ambient and at boiling (`.4.7`).
 
@@ -55,7 +55,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 ## Environment
 
 - Outdoors next to the egg: ambient from -10 C to 45 C, rain and splash, no immersion. Target IPX4 (`docs/mech.md`, to be proven by a spray test).
-- Board and the ADS1220 are limited to 85 C. The module is rated to 85 C.
+- Board and the ADS122C04 are limited to 85 C. The module is rated to 85 C.
 - The egg shell models at 65-90 C at 225-325 F. The servo is rated 60 C maximum and sits near the tube, so the case must keep it cooler than the shell (`.2.9`, `.2.5`).
 - The cook must survive a power cut and come back by itself: the setpoint, mode, schedule and food estimates are persisted.
 

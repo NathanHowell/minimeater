@@ -18,9 +18,9 @@ use embedded_storage_async::nor_flash::{ErrorType, NorFlash, NorFlashError, NorF
 /// Why a peripheral read failed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HalError {
-    /// The bus transaction failed (SPI/I2C error, NAK).
+    /// The bus transaction failed (I2C error, NAK).
     Bus,
-    /// The device did not answer in time (e.g. ADS1220 DRDY never fell).
+    /// The device did not answer in time (e.g. ADS122C04 DRDY never fell).
     Timeout,
     /// The device answered but has no valid data yet (e.g. TMP117 before its first conversion).
     NotReady,

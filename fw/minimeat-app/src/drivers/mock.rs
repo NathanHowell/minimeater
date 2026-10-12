@@ -10,19 +10,21 @@ use embedded_hal::digital::{ErrorType as PinErrorType, InputPin};
 use embedded_hal_async::delay::DelayNs;
 use embedded_hal_async::digital::Wait;
 use embedded_hal_async::i2c::{self, I2c};
-use embedded_hal_async::spi::{self, Operation, SpiDevice};
 
 pub use embassy_futures::block_on;
 
-/// SPI device that records every write and answers reads from a queue.
-pub struct Bus {
+/// I2C device that records every write (one entry per write operation) and answers reads from a
+/// queue; other addresses NAK.
+pub struct I2cLog {
+    address: u8,
     writes: Vec<Vec<u8>>,
     reads: VecDeque<Vec<u8>>,
 }
 
-impl Bus {
-    pub fn with_reads(reads: impl IntoIterator<Item = Vec<u8>>) -> Self {
+impl I2cLog {
+    pub fn with_reads(address: u8, reads: impl IntoIterator<Item = Vec<u8>>) -> Self {
         Self {
+            address,
             writes: Vec::new(),
             reads: reads.into_iter().collect(),
         }
@@ -30,24 +32,6 @@ impl Bus {
 
     pub fn writes(&self) -> &[Vec<u8>] {
         &self.writes
-    }
-}
-
-impl spi::ErrorType for Bus {
-    type Error = Infallible;
-}
-
-impl SpiDevice for Bus {
-    async fn transaction(&mut self, ops: &mut [Operation<'_, u8>]) -> Result<(), Infallible> {
-        for op in ops {
-            match op {
-                Operation::Write(b) => self.writes.push(b.to_vec()),
-                Operation::Read(b) => b.copy_from_slice(&self.reads.pop_front().expect("unscripted read")),
-                Operation::Transfer(..) | Operation::TransferInPlace(..) => unimplemented!(),
-                Operation::DelayNs(_) => {}
-            }
-        }
-        Ok(())
     }
 }
 
@@ -157,6 +141,25 @@ impl I2c for I2cRegs {
                     let v = self.regs.iter().find(|x| x.0 == r).map_or(0, |x| x.1);
                     b.copy_from_slice(&v.to_be_bytes());
                 }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl i2c::ErrorType for I2cLog {
+    type Error = Nak;
+}
+
+impl I2c for I2cLog {
+    async fn transaction(&mut self, address: u8, ops: &mut [i2c::Operation<'_>]) -> Result<(), Nak> {
+        if address != self.address {
+            return Err(Nak);
+        }
+        for op in ops {
+            match op {
+                i2c::Operation::Write(b) => self.writes.push(b.to_vec()),
+                i2c::Operation::Read(b) => b.copy_from_slice(&self.reads.pop_front().expect("unscripted read")),
             }
         }
         Ok(())

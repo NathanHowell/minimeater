@@ -7,15 +7,17 @@
 //!
 //! | Signal | GPIO | | Signal | GPIO |
 //! |---|---|---|---|---|
-//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (TMP117) | 22 / 23 |
-//! | ADS1220 DRDY / CS | 2 / 3 | | fan PWM / tach | 18 / 19 |
-//! | SPI SCLK / MOSI / MISO | 4 / 5 / 6 | | servo PWM / power enable | 20 / 21 |
-//! | MAX31856 CS (DNP) | 7 | | status LED | 10 |
-//! | button (BOOT) | 9 | | | |
+//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117) | 22 / 23 |
+//! | ADS122C04 DRDY | 2 | | fan PWM / tach | 18 / 19 |
+//! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
+//! | status LED | 10 | | free | 3 / 4 / 5 / 6 / 7 |
 
 use embassy_embedded_hal::adapter::BlockingAsync;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::mutex::Mutex;
 use embassy_time::{Delay, Instant};
-use embedded_hal_bus::spi::ExclusiveDevice;
+use esp_hal::Async;
 use esp_hal::analog::adc::{Adc, AdcCalCurve, AdcConfig, AdcPin, Attenuation};
 use esp_hal::gpio::{DriveMode, Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::i2c::master::I2c;
@@ -24,11 +26,9 @@ use esp_hal::ledc::timer::{self, TimerIFace};
 use esp_hal::ledc::{LSGlobalClkSource, Ledc, LowSpeed};
 use esp_hal::pcnt::{Pcnt, channel::EdgeMode, unit::Unit};
 use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0};
-use esp_hal::spi::master::Spi;
 use esp_hal::time::Rate;
-use esp_hal::{Async, spi};
 use esp_storage::FlashStorage;
-use minimeat_app::drivers::{ads1220::Ads1220, tmp117, tmp117::Tmp117, usb_cc};
+use minimeat_app::drivers::{ads122c04, ads122c04::Ads122c04, tmp117, tmp117::Tmp117, usb_cc};
 use minimeat_app::hal::{Board, FlashRegion, Io, PwmServo, Tach, UsbPower};
 use static_cell::StaticCell;
 
@@ -47,12 +47,14 @@ const TACH_PULSES_PER_REV: f64 = 2.0;
 
 pub struct Esp;
 
-type Probes = Ads1220<ExclusiveDevice<Spi<'static, Async>, Output<'static>, Delay>, Input<'static>, Delay>;
+/// The one I2C bus, shared by the probe ADC and the ambient sensor.
+type Bus = I2cDevice<'static, CriticalSectionRawMutex, I2c<'static, Async>>;
+type Probes = Ads122c04<Bus, Input<'static>, Delay>;
 type Pwm = channel::Channel<'static, LowSpeed>;
 
 impl Board for Esp {
     type Probes = Probes;
-    type Ambient = Tmp117<I2c<'static, Async>>;
+    type Ambient = Tmp117<Bus>;
     type Fan = Pwm;
     type Tach = PcntTach;
     type Servo = PwmServo<Pwm>;
@@ -74,24 +76,6 @@ pub struct Rest {
 pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     let out = OutputConfig::default();
 
-    let spi = Spi::new(
-        p.SPI2,
-        spi::master::Config::default()
-            .with_frequency(Rate::from_mhz(1))
-            .with_mode(spi::Mode::_1),
-    )
-    .expect("spi config")
-    .with_sck(p.GPIO4)
-    .with_mosi(p.GPIO5)
-    .with_miso(p.GPIO6)
-    .into_async();
-    let cs_adc = Output::new(p.GPIO3, Level::High, out);
-    // The thermocouple chip is not fitted (ADR 0002); hold its CS high for good so it never drives MISO.
-    static TC_CS: StaticCell<Output<'static>> = StaticCell::new();
-    TC_CS.init(Output::new(p.GPIO7, Level::High, out));
-    let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
-    let probes = Ads1220::new(ExclusiveDevice::new(spi, cs_adc, Delay).expect("cs pin"), drdy, Delay);
-
     let i2c = I2c::new(
         p.I2C0,
         esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
@@ -100,7 +84,11 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     .with_sda(p.GPIO22)
     .with_scl(p.GPIO23)
     .into_async();
-    let ambient = Tmp117::new(i2c, tmp117::ADDRESS);
+    static I2C_BUS: StaticCell<Mutex<CriticalSectionRawMutex, I2c<'static, Async>>> = StaticCell::new();
+    let i2c = I2C_BUS.init(Mutex::new(i2c));
+    let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
+    let probes = Ads122c04::new(I2cDevice::new(i2c), ads122c04::ADDRESS, drdy, Delay);
+    let ambient = Tmp117::new(I2cDevice::new(i2c), tmp117::ADDRESS);
 
     static LEDC: StaticCell<Ledc<'static>> = StaticCell::new();
     static FAN_TIMER: StaticCell<timer::Timer<'static, LowSpeed>> = StaticCell::new();
