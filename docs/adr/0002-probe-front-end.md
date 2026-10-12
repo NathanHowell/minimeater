@@ -84,7 +84,7 @@ The control range is a 150-325F pit. Food probes also see 32F during an ice-bath
 
 ## Verify at schematic or bring-up
 
-- PJ-242 pinout and whether its tip switch exists (`.3.4`).
+- ~~PJ-242 pinout and whether its tip switch exists~~ Resolved from the manufacturer drawing (SHOU HAN spec sheet, wmsc.lcsc.com copy of C431536): six SMD pads plus two Ø1.3 positioning holes; pad 6 is the tip, pad 7 its normally-closed switch contact, pads 2, 3 and 4 the sleeve and ring contacts, pad 5 the ring switch. A mono probe plug's sleeve touches 2, 3 and 4. Wiring: 6 to the probe node, 7 to GND (an empty jack reads as a short), 2, 3 and 4 to GND, 5 unused. Which of pads 2/3/4 is the sleeve rather than a ring is read from the drawing's plug figure and should be confirmed with a plug on the first board.
 - TPD4E05U06 leakage at 60C.
 - ADS1220 offset and gain against a 0.1% resistor decade (`.3.12` SPICE / bring-up).
 - Steinhart-Hart coefficients for the user's actual probes: ice bath, boiling water, and a third point.
