@@ -13,7 +13,7 @@ import numpy as np
 from . import ngspice
 
 V_SRC = 5.25  # USB source at its upper limit
-R_PTC = 0.15  # F1 1.1 A hold, cold [est]; rises when it trips
+R_PTC = 0.05  # F1 MF-NSMF200-2 (2 A hold): 0.02-0.085 ohm [datasheet]; rises when it trips
 TVS = ".model DTVS D(IS=1e-12 N=1 BV=6.8 IBV=1m RS=0.11 CJO=80p)"  # SMF5V0A: ~6.8 V breakdown, ~9.2 V at 21 A [datasheet, approx]
 # MLCC DC-bias derating at 5 V [est]: 100 uF 1210 X5R ~45%, 10 uF 0805 ~55%, 100 nF ~90%.
 CAPS = {"nominal": (100e-6, 10e-6, 10e-6, 100e-9), "derated": (45e-6, 5.5e-6, 5.5e-6, 90e-9)}
