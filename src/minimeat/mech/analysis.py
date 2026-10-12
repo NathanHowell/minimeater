@@ -1,4 +1,4 @@
-"""Numbers the design is held to: closed-flap leakage, open-flap blockage and the overall envelope (mm, cm^2)."""
+"""Numbers the design is held to: closed-flap leakage, open-flap blockage, the O-ring and the envelope (mm, cm^2)."""
 
 import math
 
@@ -42,8 +42,13 @@ def oring_squeeze():
     return (c.oring_cs - gap) / c.oring_cs, (P.tube.od - c.oring_id) / c.oring_id
 
 
+def cone_half_angle():
+    """Degrees: the contraction from the fan's aperture to the bore."""
+    return math.degrees(math.atan((P.fan.aperture_d / 2 - g.bore_r) / P.cone_len))
+
+
 def sizes():
-    """Overall bounding box of each printed part in its assembly pose: {name: (dx, dy, dz)}."""
+    """Overall bounding box of each chassis part in its assembly pose: {name: (dx, dy, dz)}."""
     out = {}
     for n, build in PARTS.items():
         b = build().bounding_box()

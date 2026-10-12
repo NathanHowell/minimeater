@@ -1,15 +1,16 @@
 """Stand-ins for the parts that are bought, for fit and interference checks (mm, assembly frame)."""
 
-from build123d import Axis, Box, Cylinder, Pos, Rot, Torus
+from build123d import Axis, Pos, Rot, Torus
 
 from . import geom as G
 from .geom import g
-from .parts import PCB_X0, PCB_Z0, PCB_Z1, box, d_bore, xcyl, zcyl
+from .parts import _arm, box, d_bore, xcyl, ycyl, zcyl
 from .params import P
 
 
 def fan():
-    """The fan frame and hub (blades omitted): 60 x 60 x 25 with an aperture and four corner holes."""
+    """The fan frame and hub (blades omitted): 60 x 60 x 25 with an aperture and four corner holes, and the
+    heads of its four screws on the rear face."""
     f = P.fan
     s = box(G.FAN_X0, g.fan_face_x, -f.size / 2, f.size / 2, -f.size / 2, f.size / 2)
     s = s.fillet(f.corner_r, s.edges().filter_by(Axis.X))
@@ -18,35 +19,51 @@ def fan():
     for sy in (-1, 1):
         for sz in (-1, 1):
             s -= xcyl(f.hole_d / 2, G.FAN_X0 - 0.1, g.fan_face_x + 0.1, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
+            s += xcyl(3.0, G.FAN_X0 - 3.0, G.FAN_X0 + 0.2, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)  # screw heads
     return s
 
 
 def servo():
+    """Body, tabs, output boss and spline, standing beside the duct with the output up."""
     sv = P.servo
-    xf = g.flap_x
-    z0 = G.SERVO_FACE_Z
-    xc = G.SERVO_X_CENTRE
-    body = box(xc - sv.body_l / 2, xc + sv.body_l / 2, -sv.body_w / 2, sv.body_w / 2, z0, z0 + sv.body_h)
-    tab_z0 = z0 + sv.tab_to_face
-    tabs = box(xc - sv.tab_l / 2, xc + sv.tab_l / 2, -sv.body_w / 2, sv.body_w / 2, tab_z0, tab_z0 + sv.tab_t)
-    for s in (-1, 1):
-        tabs -= zcyl(sv.tab_hole_d / 2, tab_z0 - 0.1, tab_z0 + sv.tab_t + 0.1, xc + s * sv.tab_hole_pitch / 2, 0.0)
-    boss = zcyl(sv.boss_d / 2, z0 - sv.boss_h, z0 + 0.1, xf, 0.0)
-    spline = zcyl(sv.spline_d / 2, z0 - sv.boss_h - sv.spline_h, z0 - sv.boss_h + 0.1, xf, 0.0)
+    z1 = G.SERVO_FACE_Z
+    xc, yc = G.SERVO_X_CENTRE, G.SERVO_Y
+    body = box(xc - sv.body_l / 2, xc + sv.body_l / 2, yc - sv.body_w / 2, yc + sv.body_w / 2, G.SERVO_Z0, z1)
+    tabs = box(xc - sv.tab_l / 2, xc + sv.tab_l / 2, yc - sv.body_w / 2, yc + sv.body_w / 2, G.TAB_Z0, G.TAB_Z1)
+    for x in G.TAB_HOLE_XS:
+        tabs -= zcyl(sv.tab_hole_d / 2, G.TAB_Z0 - 0.1, G.TAB_Z1 + 0.1, x, yc)
+    boss = zcyl(sv.boss_d / 2, z1 - 0.1, z1 + sv.boss_h, G.SERVO_X, yc)
+    spline = zcyl(sv.spline_d / 2, z1 + sv.boss_h - 0.1, z1 + sv.boss_h + sv.spline_h, G.SERVO_X, yc)
     return body + tabs + boss + spline
 
 
 def horn():
-    """Round horn on the spline, conservatively a solid disc."""
-    return zcyl(P.servo.horn_d / 2, G.HORN_Z0, G.HORN_Z1, g.flap_x, 0.0) - zcyl(
-        P.servo.spline_d / 2, G.HORN_Z0 - 0.1, G.HORN_Z1 + 0.1, g.flap_x, 0.0
-    )
+    """A single-arm horn on the spline, pointing at -x when open; its hole at the linkage radius."""
+    sv, L = P.servo, P.linkage
+    z1 = G.ARM_Z1
+    h = zcyl(sv.horn_hub_d / 2, z1 - sv.horn_hub_h, z1, G.SERVO_X, G.SERVO_Y)
+    h += _arm(G.SERVO_X, G.SERVO_Y, z1 - sv.horn_arm_t, z1, sv.horn_len, sv.horn_arm_w)
+    h -= zcyl(sv.spline_d / 2, z1 - sv.horn_hub_h - 0.1, z1 + 0.1, G.SERVO_X, G.SERVO_Y)
+    h -= zcyl(L.pin_d / 2 - 0.2, z1 - sv.horn_arm_t - 0.1, z1 + 0.1, G.SERVO_X - L.arm_r, G.SERVO_Y)
+    return h
+
+
+def pin(x, y, z_tip):
+    """An M2 screw: shank from `z_tip` up through the coupler, head on top."""
+    L = P.linkage
+    return zcyl(L.pin_d / 2, z_tip, G.COUPLER_Z1, x, y) + zcyl(L.pin_head_d / 2, G.COUPLER_Z1, G.COUPLER_Z1 + L.pin_head_h, x, y)
+
+
+def pins():
+    """(crank pin, horn pin) at the open position: the part above the arms (the thread is in the arm)."""
+    L = P.linkage
+    x = g.flap_x - L.arm_r
+    return pin(x, 0.0, G.ARM_Z1), pin(x, G.SERVO_Y, G.ARM_Z1)
 
 
 def rod():
-    """Flap shaft: 3 mm rod with a flat, from the blind pocket in the bottom wall to the link hub."""
-    xf = g.flap_x
-    return d_bore(xf, 0.0, -g.duct_r + 0.7, G.LINK_Z0 + 3.6)
+    """Flap shaft: 3 mm rod with a flat, from the blind pocket in the bottom wall to the crank hub's top."""
+    return d_bore(g.flap_x, 0.0, -g.duct_r + 0.7, G.ARM_Z1 - 0.3)
 
 
 def tube():
@@ -63,8 +80,24 @@ def oring():
 
 
 def pcb():
-    """The board plus a keep-out box for the tallest parts above it and the lead clearance below."""
+    """The board, flat in the pan, plus a keep-out box for the tallest parts above it; the connectors on the
+    -y edge are inside the keep-out."""
     p = P.pcb
-    b = box(PCB_X0, PCB_X0 + p.x_len, -p.y_len / 2, p.y_len / 2, PCB_Z0, PCB_Z1)
-    top = box(PCB_X0, PCB_X0 + p.x_len, -p.y_len / 2, p.y_len / 2, PCB_Z1, PCB_Z1 + p.top_h)
+    b = box(G.g.board_x0, G.g.board_x1, -p.y_len / 2, p.y_len / 2, G.PCB_Z0, G.PCB_Z1)
+    top = box(G.g.board_x0, G.g.board_x1, -p.y_len / 2, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.top_h)
     return b, top
+
+
+def plugs():
+    """The probe plugs and the USB-C plug in their ports: overmolds outside the port wall, barrels through it."""
+    p = P.pcb
+    xc = (G.g.board_x0 + G.g.board_x1) / 2
+    out = None
+    y_face = G.PORT_WALL_Y - P.shell.bay_wall_t
+    for jx in p.jack_xs:
+        barrel = ycyl(1.25, y_face - 0.5, G.PORT_WALL_Y, xc + jx, G.PCB_Z1 + p.jack_h / 2)
+        mold = ycyl(p.plug_d / 2, y_face - 18.0, y_face, xc + jx, G.PCB_Z1 + p.jack_h / 2)
+        out = barrel + mold if out is None else out + barrel + mold
+    usb = box(xc + p.usb_x - 4.2, xc + p.usb_x + 4.2, y_face - 0.1, G.PORT_WALL_Y, G.PCB_Z1 + 0.3, G.PCB_Z1 + p.usb_h)
+    usb += box(xc + p.usb_x - 6.0, xc + p.usb_x + 6.0, y_face - 18.0, y_face, G.PCB_Z1 - 1.5, G.PCB_Z1 + p.usb_h + 1.5)
+    return out + usb

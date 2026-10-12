@@ -30,8 +30,8 @@ class Fan:
 
 @dataclass(frozen=True)
 class Servo:
-    """Hitec HS-5065MG (.2.9), the pick over the MG90S class: metal gears, digital, same mounting. The output
-    face points at the duct."""
+    """Hitec HS-5065MG (.2.9), the pick over the MG90S class: metal gears, digital, same mounting. It stands
+    beside the duct on the +y side, output face up, long axis along the flow."""
 
     body_l: float = 23.4  # [spec] long axis
     body_w: float = 11.4  # [spec]
@@ -40,41 +40,46 @@ class Servo:
     tab_hole_pitch: float = 27.9  # [est]
     tab_hole_d: float = 2.0  # [est]
     body_h: float = 23.9  # [spec] case height, taken as back face to output face
+    lead_w: float = 4.0  # [est] the cable leaves the body's end opposite the output
     tab_to_face: float = 4.1  # [est] tab's output-side face to the output face
     shaft_off: float = 6.0  # [est] output axis from the body end, along the long axis
     boss_d: float = 11.8  # [est] gear housing around the output
     boss_h: float = 2.5  # [est]
     spline_d: float = 4.8  # [spec]
     spline_h: float = 4.0  # [est]
-    horn_d: float = 20.0  # [est] round horn
-    horn_t: float = 4.0  # [est] hub + disc
-    horn_hole_r: float = 7.0  # [est] screw circle on the round horn
+    horn_hub_d: float = 7.0  # [est] single-arm horn: hub, arm, and a hole at Linkage.arm_r
+    horn_hub_h: float = 4.0
+    horn_arm_w: float = 5.0
+    horn_arm_t: float = 2.0  # the arm, flush with the hub's top
+    horn_len: float = 12.0  # hub centre to the arm's tip
 
 
 @dataclass(frozen=True)
 class Pcb:
-    """Provisional envelope; the board outline becomes the contract at .1.6 / .3.6."""
+    """Provisional envelope; the board outline becomes the contract at .1.6 / .3.6. The board lies flat in the
+    pan under the duct, parts up; its -y long edge carries the connectors (see envelope.py)."""
 
     x_len: float = 44.0  # along the flow axis
-    y_len: float = 54.0
+    y_len: float = 54.0  # across
     t: float = 1.6
     hole_inset: float = 3.5
     hole_d: float = 2.7  # [est] M2.5
-    top_h: float = 11.0  # [est] tallest part above the board (ESP32 module 3.2, jacks ~6, headers)
-    bottom_h: float = 2.5  # [est] through-hole lead clearance
+    top_h: float = 11.0  # [est] tallest part above the board (headers; the jacks are 3.2, the module 3.2)
+    bottom_h: float = 2.5  # [est] through-hole lead clearance: the standoff height
     corner_r: float = 2.0
-    # connectors on the rear edge, centre y (board frame, 0 = board centre) and the opening they need
-    rear_gap: float = 2.0  # board edge to the rear wall's inner face (the lid's lip also needs 1.8)
-    front_gap: float = 2.0
-    usb_y: float = -21.5
-    usb_w: float = 9.4  # [spec] USB-C receptacle shell
+    edge_gap: float = 0.1  # connector faces (the board's -y edge) to the port wall's inner face
+    # connectors on the -y edge, centre x in the board frame (0 = board centre, +x toward the egg)
+    usb_x: float = -17.1
+    usb_w: float = 9.4  # [spec] GCT USB4105-GF-A receptacle shell
     usb_h: float = 3.3
-    jack_ys: tuple[float, ...] = (-9.0, 1.0, 11.0, 21.0)
-    jack_w: float = 7.0  # [est] 2.5 mm stereo jack body
-    jack_h: float = 6.0  # [est]
-    jack_hole_d: float = 8.5  # [est] plug overmold; the board edge sits 4.4 mm behind the wall's outer face
-    usb_open_w: float = 13.4  # [est] USB-C overmold
-    usb_open_h: float = 7.3
+    jack_xs: tuple[float, ...] = (-7.9, 0.8, 9.5, 18.2)  # 8.7 pitch: 7 mm bodies, d8 plug overmolds 0.7 apart
+    jack_w: float = 5.0  # [spec] SHOU HAN PJ-242 (ADR 0002): 2.5 mm TRRS, SMD, 5 wide, 12 mm back from the edge
+    jack_h: float = 3.2  # [spec] body height; the plug axis is taken at half that above the board
+    jack_hole_d: float = 5.0  # [est] the plug's barrel and the jack's entry; the overmold stays outside the wall
+    plug_d: float = 8.0  # [est] probe plug overmold
+    usb_open_w: float = 12.4  # [est] USB-C overmold passes the 2.4 mm wall to reach the receptacle
+    usb_open_h: float = 6.8
+    sensor: tuple[float, float] = (-5.0, 20.0)  # ambient sensor, board frame: on the underside, in the pan's vented well
 
 
 @dataclass(frozen=True)
@@ -97,10 +102,27 @@ class Damper:
     rib_w: float = 6.0
     flap_gap: float = 0.15  # radial; closed leak target <= 0.3 cm^2 (.2.3)
     stub_len: float = 3.0
-    head_d: float = 18.0  # horn link flange
-    head_t: float = 3.0
     flap_x: float = -37.5  # shaft axis
-    swing_margin: float = 1.5
+    swing_margin: float = 1.5  # bore straight this far beyond the disc's swing, each end
+
+
+@dataclass(frozen=True)
+class Linkage:
+    """Parallelogram between the flap rod and the servo: equal arms, a coupler bar, flap angle = servo angle.
+    The plane is over the duct's crown, under the roof. Pins are M2 screws into the arms, heads retaining the
+    coupler."""
+
+    arm_r: float = 9.0  # pin radius on the crank and on the horn (the horn's hole at 9 mm [est])
+    arm_w: float = 5.0
+    arm_t: float = 3.0
+    hub_d: float = 8.0
+    hub_h: float = 3.5  # the crank's D-bored hub under its arm
+    coupler_t: float = 2.5
+    coupler_w: float = 6.0
+    pin_d: float = 2.0  # M2
+    pin_head_d: float = 3.8
+    pin_head_h: float = 1.3
+    lift: float = 0.8  # crank hub above the duct's crown
 
 
 @dataclass(frozen=True)
@@ -112,44 +134,72 @@ class Coupling:
     oring_x: float = -10.0  # groove centre
     od: float = 46.0
     lead_in: float = 1.5
+    boss_x: float = -4.7  # thumbscrew boss centre, on the socket's +y side, outside the hood
+    boss_w: float = 9.4  # the boss: a block flush with the mouth, round on top
+    collar_x: float = -12.5  # drip collar behind the hood's front ring: a 44 deg cone r23 -> r24.5 toward -x, 0.3 off the shells' cone
+    collar_r: float = 24.5
 
 
 @dataclass(frozen=True)
-class Skin:
-    """The exterior shells (skin.py): a hood and a pan around the v0 internals. x from the socket mouth, z from the
-    tube axis. The plan is straight to the shoulder, then tapers to the front; the bottom rises from the flange."""
+class Layout:
+    """x stations (from the socket mouth) that are not derived from a part: the board under the straight duct,
+    the front face, the rear gap."""
 
-    wall: float = 2.6  # a little over Print.wall: the walls taper 8.5 deg in plan
-    x_rear: float = -112.0  # rear face; the grille part is at -108.8
-    slab_t: float = 2.4  # the rear plate, half on each shell
-    x_shoulder: float = -56.0  # the tray's front edge: the plan is parallel behind it
-    x_front: float = -9.0  # the front face: the servo tower's corner at -15.1 needs 3.5 mm behind the inner face
-    x_nose: float = -9.0  # apex of an optional front bulge in plan (= x_front: flat)
-    hw_rear: float = 38.0  # half width: the tray is 66.8 wide
-    hw_front: float = 31.0
-    z_top: float = 62.0  # the servo top is 56.7, under the front-top fillet
-    z_bot: float = -34.8  # under the fan and the flange (-31)
-    z_bot_front: float = -29.5  # under the socket (-23)
-    r_top: float = 14.0  # the largest that clears the tray's top corners (33.4, 51)
-    r_bot: float = 15.0  # the largest that clears the flange's corners
-    r_shoulder: float = 120.0  # plan blend from the parallel sides into the taper
-    r_front: float = 14.0  # plan corners at the front (>= r_top, so the top fillet can turn them)
-    bevel: float = 2.4  # the rear face's edges: a 2.4 x 2.4 chamfer, 45 deg in both shells' print poses
-    z_part: float = 0.0  # the parting plane, through the tube axis
+    board_x1: float = -24.5  # board's front edge: under the socket flare's first mm, clear of the shells' front cone
+    straight_over: float = 1.0  # the board's rear edge may sit this far into the cone (its outer r grows 0.5/mm)
+    x_front: float = -11.0  # the front face: the socket's last 11 mm and the thumbscrew are outside
+    rear_gap: float = 4.5  # fan's rear face to the rear wall's inner face: the fan screw heads and the inlet
+    front_screw_x: float = -18.0  # the front shell screws, in the shells' thick front zone
+    slope: float = 1.0355  # run per rise of every designed overhang: 44 degrees, inside the 45 the printer allows
+
+
+@dataclass(frozen=True)
+class Shell:
+    """The exterior (shell.py): one lofted pebble split at the tube axis into the hood (above) and the pan
+    (below). Sections are rounded rectangles (w, h, r) at x stations; the belly is flat behind the nose."""
+
+    wall: float = 2.4
+    hw_in: float = 34.4  # inner half width at the full section
+    roof_in: float = 32.0  # inner roof at the fan (the flange top is 31)
+    crown: float = 2.0  # the roof rises this much from the fan station to the peak
+    peak_x: float = -62.0
+    rear_w: float = 72.0  # the rear face's section
+    rear_h: float = 70.0
+    rear_r: float = 14.0
+    full_r: float = 16.4  # corner round of the full section at the fan (inner 14: the fan's corners need it)
+    peak_r: float = 19.0  # at the peak: only the duct is there
+    nose_w: float = 60.0  # the front face's section (the hole is 47)
+    nose_top: float = 27.0
+    nose_bot: float = -33.0  # the belly rises only this much: the board's front edge is under the rise
+    nose_r: float = 18.0
+    x_taper: float = -28.0  # the plan is full back from here, closes to the nose in front of it
+    x_roof: float = -40.0  # the roof starts down to the nose here: earlier than the plan, so the corners stay under 45 deg
+    x_belly: float = -23.0  # the belly is flat back from here
+    front_t: float = 1.6  # the front ring's land around the nose hole; the cavity's 44 deg cone starts behind it
+    rear_chamfer: float = 3.0  # the rear face's edge, 45 deg: the print bed face
+    nose_round: float = 5.0  # the front ring's edge
     nose_hole_d: float = 47.0  # the socket is 46
-    key_w: float = 13.0  # slot above the nose for the thumbscrew boss (10) and its knob (12)
-    key_z1: float = 34.5  # top of the slot: the knob sits at 26-33
-    lip_t: float = 1.2
+    z_part: float = 0.0  # the parting plane: the tube axis
+    lip_t: float = 1.2  # the pan's tongue, up inside the hood's wall
     lip_h: float = 3.0
-    boss_xs: tuple[float, float] = (-60.0, -45.0)  # the screw columns, beside the cone: one rib, two screws a side
-    boss_w: float = 9.0  # block: 9 wide at the inner end, a 45 deg face on the -x side, merged into the wall
-    boss_h: float = 10.0  # hood boss height above the lip; a 45 deg gusset above it
-    screw_len: float = 20.0  # M2.5 x 20, head 8 mm up the column
-    label: tuple[float, float, float] = (53.5, 50.0, 9.0)  # recess in the rear plate above the connectors: z, w, h
-    grille_field: float = 58.0  # rounded square around the fan's axis
-    grille_r: float = 13.0
-    grille_pitch: float = 4.6  # the inner grille's slots: aligned
-    grille_slot: float = 2.6
+    rib_t: float = 1.0  # the hood's rib inside the tongue: the seam is a labyrinth
+    boss_d: float = 6.0  # shell screw columns, M2.5
+    screw_len: float = 20.0
+    screw_engage: float = 6.0  # thread in the hood's boss
+    rear_screw_y: float = 32.1  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads
+    label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
+    label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor
+    grille_field: float = 58.0  # rounded square of louvres around the fan's axis
+    grille_r: float = 14.0
+    grille_pitch: float = 5.3  # five slots a side; the blades between are 1.1 mm at the faces
+    grille_slot: float = 3.0  # slot height; cut 44 deg down and out (the first slot is centred 3.5 off the axis)
+    grille_n: int = 5
+    grille_bar: float = 1.6  # the slots stop this far from the parting plane
+    bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)
+    bay_x: tuple[float, float] = (-71.0, -19.0)
+    bay_wall_t: float = 2.4  # the port wall
+    vent_slots: tuple[tuple[float, float], ...] = ((-64.0, -56.0),)  # x ranges of the ambient louvres, +y wall
+    vent_z: float = -33.0
 
 
 @dataclass(frozen=True)
@@ -161,7 +211,9 @@ class Params:
     print: Print = field(default_factory=Print)
     damper: Damper = field(default_factory=Damper)
     coupling: Coupling = field(default_factory=Coupling)
-    skin: Skin = field(default_factory=Skin)
+    linkage: Linkage = field(default_factory=Linkage)
+    layout: Layout = field(default_factory=Layout)
+    shell: Shell = field(default_factory=Shell)
     cone_len: float = 26.0
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 

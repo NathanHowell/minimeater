@@ -1,105 +1,124 @@
 # Enclosure
 
-One printed box that slips onto the egg's stainless intake tube. The fan, the flap damper, the controller board and the USB-C port are all in it. The CAD is `src/minimeat/mech/` (build123d); everything below is generated from it, and `uv run pytest tests/test_mech.py` holds the claims.
+One printed pebble that slips onto the egg's stainless intake tube. The fan, the flap damper, the controller board and its connectors are all in it. The CAD is `src/minimeat/mech/` (build123d); everything below is generated from it, and `uv run pytest tests/test_mech.py tests/test_skin.py` holds the claims.
 
-This is a first design (v0). It is built on provisional parts: the Noctua NF-A6x25 fan (`.2.2`), a Hitec HS-5065MG servo (`.2.9`), a 54 × 44 mm board (`.1.6`) and the 34.93 mm tube from `docs/parts/heatermeter-adapter.md` (`.2.8`). Each of those is a parameter in `params.py`, tagged with how sure it is.
+This is the second design (v1): the v0 box with the board over the fan and the servo on a tower was 97 mm tall and read as a box with a pipe. v1 lays everything in one low body. It is built on the same provisional parts: the Noctua NF-A6x25 fan (`.2.2`), a Hitec HS-5065MG servo (`.2.9`), a 44 × 54 mm board (`.1.6`) and the 34.93 mm tube from `docs/parts/heatermeter-adapter.md` (`.2.8`). Each is a parameter in `params.py`, tagged with how sure it is.
 
-![assembly](mech/iso.png)
+![exterior](mech/exterior.png)
 
-![rear](mech/iso_back.png)
+![section through the tube axis](mech/section_axis.png)
 
-![section through the tube axis](mech/section.png)
+![section across the flap station](mech/section_across.png)
 
 ## Layout
 
-Frame: +X is the flow, the tube axis is the X axis, +Z is up. The socket mouth is the plane x = 0, the box extends to -X and the egg is at +X. Overall 109 × 67 × 88 mm for the internals (x × y × z, z from -31 to +57); the exterior shells below add up to 112 × 76 × 97.
+Frame: +X is the flow, the tube axis is the X axis, +Z is up, +Y is to the left looking along the flow (toward the egg). The socket mouth is the plane x = 0, the body extends to -X. Overall 126 × 74 × 73 mm (x × y × z) including the 11 mm of socket and the thumbscrew that show at the front; the shells alone are 115 long. v0 with its skin was 112 × 76 × 97.
 
-Air path, from the back: inlet grille, fan (60 × 60 × 25), a 26 mm cone from the fan's Ø57 aperture to the Ø31.6 bore, the flap station, then the socket on the tube. The tray with the board sits on top of the fan, as far from the hot tube as the box allows. The servo stands on a tower over the flap with its output pointing down at the flap shaft.
+Everything sits in one tunnel at the fan's height. From the back: the louvred rear wall, a 5 mm gap for the fan's screw heads, the fan (60 × 60 × 25, x = -118 to -93), the 26 mm cone from its Ø57 aperture to the Ø31.6 bore (half-angle 26°), 42 mm of straight bore with the flap at x = -37.5, a 44° flare up to the Ø46 socket, and the socket's 20 mm on the tube. The board lies flat under the straight section, parts up: its 11 mm keep-out ends 1 mm under the duct, and it is the belly's depth (the belly is 5.7 mm under the fan). The servo stands beside the duct on the +y side, output up, and drives the flap through a parallelogram over the duct's crown. The ports are in the -y flank, low, under the body's overhang.
 
 | Part | Print pose | What |
 |---|---|---|
-| `duct` | flange on the bed, flow axis up | fan flange (4 pilot holes for the fan screws), cone, bore, servo tower, socket with O-ring groove, thumbscrew boss |
-| `flap` | disc flat | Ø31.2 disc, 2.4 mm, on one side of a 6 × 5 mm rib that carries the Ø3 D-bore for the rod |
-| `link` | flange down | D-bored hub on the rod end and a flange with the round horn's screw circle (4 holes, 90° clocking) |
-| `grille` | flat | inlet guard on the fan's rear face; the fan screws pass through it |
-| `tray` | floor on the bed | board on four 4 mm standoffs, connector openings in the rear wall, four lid posts, cable slots |
-| `lid` | plate on the bed, lip up | four M2.5 screws |
+| `duct` | flange on the bed, flow axis up | fan flange (62 square, r8), cone, bore with the flap station, servo shelf, flare, socket with O-ring groove, drip collar and thumbscrew boss |
+| `flap` | disc flat | Ø31.2 disc, 2.4 mm, on one side of a 6 × 5 mm rib with the Ø3 D-bore for the rod |
+| `crank` | arm face down | D-bored hub on the rod's top end, a 9 mm arm with the M2 pin hole |
+| `coupler` | flat | 6 × 2.5 mm bar, 24.9 mm between pin holes |
+| `hood` | standing on its rear face, nose up | the upper shell: half the nose notch, half the grille, the screw bosses, the seam rib, the label recess |
+| `pan` | the same | the lower shell: the board on four standoffs, the port bay, the ambient well, the flange pads, the screw columns, the seam tongue |
 
-Bought: fan, servo and round horn, a Ø3 rod 40 mm long with a flat (steel or brass), a 34 × 2.5 O-ring (silicone or FKM), an M4 heat-set insert and a thumbscrew, M2.5 self-tapping screws for the tray and lid, M3 screws for the fan, 2 to 4 M2 screws for the horn.
+The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a single-arm horn and 2 M2 × 6, a Ø3 rod 43 mm long with a flat, two M2 × 6 as linkage pins, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
 
 ## Coupling to the tube
 
-- The socket is a Ø35.23 bore (tube Ø34.93 plus 0.3), 20 mm deep. A shoulder at the bottom stops the tube; it leaves 1.8 mm for a 1.67 mm tube wall, so the airway is flush.
-- The joint is downstream of the flap, so a leak there bypasses it (`docs/parts/heatermeter-adapter.md`). An O-ring in a groove seals it. A 34 × 2.5 ring stretches 2.7 % over the 34.93 mm tube and is pinched 0.45 mm (18 %) between the tube and the groove bottom; the test holds that to 10-30 % squeeze and under 5 % stretch.
-- Retention is friction plus an M4 thumbscrew through the top of the socket, 5 mm from the mouth.
-- The socket outer is Ø46, thick enough to take heat from the tube without softening the first layers. A real thermal break (a stand-off sleeve, or a ceramic washer behind the shoulder) waits for a measurement of the tube's temperature (`.2.5`).
+- The socket is a Ø35.23 bore (tube Ø34.93 plus 0.3), 20 mm deep. A 44° chamfer at its bottom is the shoulder the tube stops on; it leaves 1.8 mm for a 1.67 mm tube wall, so the airway is flush.
+- The joint is downstream of the flap, so a leak there bypasses it (`docs/parts/heatermeter-adapter.md`). An O-ring in a groove seals it: a 34 × 2.5 ring stretches 2.7 % over the tube and is pinched 0.45 mm (18 %) between the tube and the groove bottom; the test holds that to 10-30 % squeeze and under 5 % stretch.
+- Retention is friction plus an M4 thumbscrew, now on the socket's +y side, 4.7 mm from the mouth: a 9.4 mm block flush with the mouth (so it prints), outside the hood, reachable with the shells closed.
+- A collar behind the hood's front ring (Ø49, a 44° cone on its front, a chamfer behind) seats on the shells' front cone 0.3 mm away: it stops the chassis moving forward and catches water that gets past the nose.
 
-## Flap and servo
+## Flap and linkage
 
-- The flap turns about a vertical rod. Open is parallel to the flow, closed is across it. The rod sits in a blind pocket in the bottom wall and in a Ø3.4 bore through the top wall, so there is one shaft leak path, not two.
-- The disc is one-sided: it is flush with the rib's bottom face so it prints flat with no support. Its radius is trimmed so the edge stays 0.15 mm off the bore at every angle (checked with the flap at 0, 30, 60 and 90°).
-- Closed-flap leak: the ring around the disc plus the shaft bore is 0.23 cm² against the 0.3 cm² budget (`docs/modeling/README.md` §5). This is nominal; the printed gap will vary by a tenth of a millimetre either way. The smoke test in `.2.7` settles it.
-- Open-flap blockage is 20 % of the bore, mostly the rib. That is the loss to shave when CFD (`.2.13`) runs.
-- Drive: the rod's top end is in the link hub; the link flange bolts to a round horn; the horn sits on the servo's spline. The servo's long axis lies along the flow, with its tabs resting on the tower's plate and two screws into the plate.
+- The flap turns about a vertical rod in a blind pocket in the bottom wall and a Ø3.4 bore through the top wall: one shaft leak path. The disc is flush with the rib's bottom so it prints flat; its radius keeps the edge 0.15 mm off the bore at every angle (checked at 0, 30, 60 and 90°).
+- Closed-flap leak: 0.23 cm² (ring plus shaft) against the 0.3 cm² budget (`docs/modeling/README.md` §5). Open-flap blockage 20 % of the bore, mostly the rib; the loss to shave in CFD (`.2.13`).
+- Drive: a parallelogram. The crank on the rod's top end (hub Ø8 from z = 19, arm 5 × 3 at z = 22.5-25.5) and the servo's horn are equal 9 mm arms; the coupler bar lies over both at z = 25.6-28.1 on two M2 screws whose heads retain it. The servo's output axis is straight across from the rod at y = 24.9, so the coupler runs along y and the flap angle equals the servo angle: 0° open (arms pointing at the fan), 90° closed (arms pointing at -y, over the crown). The plane is 0.8 mm over the duct's crown and the pin heads stop 2.6 mm under the roof. The whole travel is checked for interference at four angles with every part and mock, shells included.
+- Servo: body at y = 19.2-30.6 (1 mm off the duct, 3.8 off the wall), z = -5.2 to 18.7, long axis along the flow toward the fan. It drops through a cutout in a 2.5 mm shelf cast on the duct at z = 9.6-12.1 and screws down into two Ø5.2 bosses under its tabs (M2 × 6, 6 mm pilot). The shelf is why the servo is aligned with the rod by the print, not by assembly. Its lead leaves the bottom of the body with 14 mm to the board. Heat: the servo is rated 60 °C. The body touches nothing but its tabs; the duct beside it carries the fan's air, and the shelf's front end stops 10 mm short of the socket, which is the hot part. The shelf is the one conduction path from the duct; if the tube measurement (`.2.5`) says the socket runs hot, slot the shelf between the socket and the tabs.
 
-## Electronics tray
+## Board and ports
 
-- The board sits on four standoffs at its mounting holes, 4 mm up, so the lead stubs clear. Above it there are 11 mm for the tallest part, and 1 mm of air to the lid.
-- The rear wall has the USB-C opening (13.4 × 7.3, for an overmolded plug) and four Ø8.5 holes at 10 mm pitch for the 2.5 mm probe plugs. The board edge is 4.4 mm behind the wall's outer face, so the plugs must be short enough to reach: a long USB-C shell is fine, but check the probe plug overmold.
-- Four slots in the +y wall are the ambient air window for the ambient sensor (`.3.10`), at the rear where the air is coolest.
-- Cables: the fan lead goes up through a slot in the floor, the servo lead through a slot in the front wall.
-- The tray is screwed to the flange from the inside with two M2.5 screws; its front-bottom edge is cut to clear the tower's slope.
-
-## Printing
-
-ASA (or PETG with a slower, cooler cook) at 0.4 mm, six perimeters (2.4 mm walls). Everything prints without support in the poses above; `tests/test_mech.py` totals the downward-facing faces steeper than 45° and what is left is bridges and small holes: the O-ring groove's 2 mm ceiling, the servo window (an 11.8 mm bridge), the connector openings and the rod bores. The 45° slope under the servo tower and the 6 mm flare at the socket are there for this.
-
-![print orientation](mech/plate.png)
+- The board (44 × 54 × 1.6, `uv run mech-envelope` for the contract) sits on four Ø5.5 standoffs on the pan floor at its corner holes, 2.5 mm up, parts up toward the duct: board at z = -31.8 to -30.2, keep-out to -19.2, duct bottom at -18.2. In x it spans -68.5 to -24.5: 1 mm into the cone's start and 0.5 into the flare, both still under the keep-out; the straight section is sized by it.
+- Connectors on the -y long edge, faces 0.1 mm behind the port wall: the USB-C receptacle (GCT USB4105-GF-A, 9.4 × 3.3) at board x = -17.1 (the rear end) and the four 2.5 mm TRRS jacks (SHOU HAN PJ-242 from ADR 0002: 5 wide, 3.2 tall, 12 mm back from the edge) at -7.9, 0.8, 9.5 and 18.2. The pitch, 8.7 mm, is set by the Ø8 plug overmolds (0.7 mm apart), not the jacks. Both connector axes come out 1.6 mm over the board, so the five openings are one row at z = -28.6. The port wall is the pan's own 2.4 mm wall moved in to y = -29.5: a 12.4 × 6.8 opening for the USB-C overmold (it has to reach the receptacle) and Ø5 holes for the jacks (the plug barrel passes, the overmold stays outside). The jack holes are teardrops pointed +x so they print.
+- The port bay is the recess that puts the port wall 7.3 mm inside the flank at the eave: x = -71 to -19, floor at z = -34 (the belly's round), ceiling at -21. The body's lower round above it is the eave, with a 1 mm drip lip along its edge; the rear end wall is scalloped 2 mm at its foot so nothing pools in the corner, and the front end wall is 45° in plan (for the print and for a thumb). Two Ø2 holes through the end walls take the caps' tethers. Plugs enter horizontally; the probe cables hang.
+- Ambient sensor: on the board's underside at (board x = -5, y = 20), in a well under the board's +y edge: three fins from the floor to the board's underside (x = -58.5 to -45.5, y from 17 to the wall) with one 10 × 1.4 louvre through the flank at z = -33, descending outward. The board itself is the well's lid, so the sensor sees outside air and not the duct's or the electronics' (`.3.10`); slot the board around the sensor for the thermal break.
+- Fan and servo leads stay inside: headers on the board, unplugged when the pan comes off.
 
 ## Exterior
 
-Two more printed shells go over everything above: `src/minimeat/mech/skin.py`, held by `tests/test_skin.py`. They are the product's outside; the duct, tray, grille and fan stay as they are inside them and the v0 lid is left out (the hood is the board's cover). The v0 box without them is still a complete, working unit.
+![underside](mech/underside.png)
 
-![hood and pan](mech/skin_iso.png)
+![rear](mech/rear.png)
 
-![rear plate](mech/skin_rear.png)
+Form. One lofted body: rounded-rectangle sections on smooth profiles. The rear face is 72 × 70 with r14 corners and a 3 mm 44° chamfer (it is the print bed face); over 10 mm it eases out to the full 74.4 × 71.1 section with r16.4 corners (the fan's corners need r ≤ 16.4); the roof then crowns 2 mm and the corners open to r19 at x = -62; from x = -40 the roof eases down and from -28 the plan closes to the nose, a 60 mm wide, 60 tall ring with r18 corners, a 1.6 mm land and an r5 round around the Ø47 hole the socket leaves through. The belly is flat (it sits on a bench) and rises 3.7 mm over the last 12 mm. Two massings were drawn: a loaf (the same body with a flat roof and r16.4 throughout) and this one; the crown and the wider mid-body rounds are what make it a pebble and cost 2 mm of height.
 
-![section](mech/skin_section.png)
+Parting line. The plane z = 0, the tube axis: the hood (the egg's green) above, the pan (charcoal) below, so the seam runs through the nose's centre and the socket is the one element that comes out of the body. The hood lifts straight off: the socket leaves through the half-round notch. The pan drops away with the board; the chassis can stay on the tube on its thumbscrew. The label (40 × 10, 0.8 deep) is on the hood's -y flank over the ports.
 
-Form. One body, 103 mm long, 76 wide, 97 tall, with the socket's last 9 mm and the thumbscrew showing at the front. In plan the sides are parallel over the board and fan, then taper 8.5° a side from the tray's front edge to the nose, blended with r120 at the shoulder and r14 at the front corners; the belly is flat under the fan and rises 5 mm toward the nose. The long top edges are a 4.1 × 4.6 mm facet rolling into r14, the bottom edges r15, the rear plate's edges a 2.4 mm chamfer; the top and front are flat. Two concepts were drawn first: a pale hood over a bare pipe and fan (the fan's square and the pipe show; it reads as a pump with a cover) and this one, a single tapered body split in two colours at the tube axis. The second was built because the split puts the seam through the nose's centre, so the socket reads as the one element that comes out of the body, and because every surface then belongs to one of two simple shells.
+Fixings. Four screws from below, all hidden in the belly: M2.5 × 20 at (x = -18, y = ±28) up through the pan's thick front zone into bosses that merge with the hood's front cone, and M2 × 16 at (x = -119.4, y = ±32.1) through columns beside the fan's rear gap. Each has a teardrop counterbore from the belly for the head and the driver. The chassis is captured, not screwed: the collar against the front cone, the fan's rear face on four Ø4 pads inside the rear wall (0.3 mm of play), the flange on two wedges on the pan floor, and blocks on both shells' side walls that hold the fan sideways with 0.4 mm of play.
 
-Parting line. The plane z = 0, the tube axis. The hood (the egg's green) is everything above it, the pan (charcoal) everything below; each carries its half of the flat rear plate. The hood lifts straight off: the socket leaves through the half-round notch in its front and the thumbscrew's boss and knob through the 13 × 34.5 slot above the notch, which also keys the hood on the socket. The chassis (duct, fan, tray) sits in the pan and drops out of it the same way.
+Grille. Ten louvres 3 mm tall at 5.3 mm pitch in a 58 mm rounded square around the fan's axis, cut 44° so each slot descends outward (the field is sheared the same way, so every slot is open through the whole wall). Open area through the slots 1583 mm² (the inner grille of v0 had 1294). The slots stop 1.6 mm each side of the parting plane: the two halves of the rear wall meet in a bar.
 
-Rear plate. 2.4 mm, flat, both halves bevelled to the body. The inlet grille is thirteen 2.6 mm vertical slots at 4.6 mm pitch in a 58 mm rounded square around the fan's axis, in line with the inner grille's slots, 1751 mm² open; the slots stop 1.6 mm each side of the parting plane, so the two halves meet in a 3.2 mm bar. Above it the four Ø9.5 jack holes and the 14.4 × 8.3 USB-C opening sit on the tray's axes, 1 mm bigger than the tray's; above those a 50 × 9 label recess, 0.5 deep. The plug goes through both plates: the board edge is then 7.2 mm behind the outer face, so the probe plugs must have at least that much shank.
+Walls 2.4 mm (the rear wall 3.2, so the louvre blades are 4.5 mm long), the taper leaves the normal thickness a little under that. Clearance is checked against every chassis part, the bought parts, the board's keep-out and the plugs, with the flap open and closed. The tightest spots are the board's keep-out corners against the front cone and wedge (under 1 mm) and the collar in its seat (0.3 mm).
 
-Fixings. Four M2.5 × 20 from below. In the pan, a rib along each side wall beside the cone (x = -60 and -45) carries two screw bores with Ø6 counterbores 8 mm up, so the head and the driver are inside the belly; the rib's front face is 45° so the pan prints. In the hood the same blocks, 10 mm tall, take the pilot holes, each with a 45° gusset above. A 1.2 mm lip on the pan's side walls locates the hood; the rear plate halves butt at the parting plane.
+## Rain
 
-Vents and cables. Four 1.6 mm slots in the hood's +y wall in line with the tray's ambient window. The fan and servo leads never leave the shells.
+The box lives outdoors; the target is IPX4 (splashed from any direction, no immersion). Per opening:
 
-Walls 2.6 mm (the taper takes the normal thickness a little under the plan offset), the rear plate 2.4. Clearance to the internals is checked against every v0 part but the lid plus the bought parts and the board's keep-out, with the flap open and closed; the tightest spots are the hood's front-top roll over the servo (1.2 mm) and the tower's corner behind the front wall (0.6 mm).
+- Ports: in the bay, 7.3 mm under the eave with its drip lip, in a vertical wall; the floor is the belly's round, open all along, and the rear corner where the end wall meets it is scalloped 2 mm so it cannot hold a drop. Tethered silicone caps for USB-C and unused jacks (Ø2 tether holes in the end walls). A probe plug in a jack is a 2.5 mm barrel in a Ø5 hole: not sealed; the jack's own body is the next barrier.
+- Inlet: 44° louvres, blades 4.5 mm long. No straight path to the fan at any angle up to 44° from the horizontal; spray from steeper below gets to the fan's rear face, which the fan tolerates.
+- Ambient louvre: one slot, descending outward, into the well; what gets in meets the board's underside.
+- Seam: along the flanks the pan's inner half-wall rises 3 mm inside the hood's wall and a 1 mm rib from the hood hangs 3 mm inside that: the path turns twice. At the rear wall the pan's inner half rises 1.2 mm behind a 44° face. At the nose the two half-round notches close on the socket with 0.5 mm of play; the collar inside the front ring stops what runs along the socket. The thumbscrew's insert hole is blind on the outside and opens into the bore between the mouth and the O-ring, which drains out of the mouth.
+- Top: the roof crowns and rolls; no flat pocket. The label is on a vertical flank.
 
-Printing. The hood prints top down: the facet-and-roll top edge is a 42° slope from the bed into the r14 round, which is what makes the dome printable without turning the top into a bridge. The pan prints standing on its rear plate; the rib's 45° face and the teardrop bores are for that pose. What is left (`tests/test_skin.py`): in the hood the ceilings of the USB-C opening (14 mm bridge) and the jack holes and the label's 0.5 mm step, 226 mm²; in the pan the inside of the front wall's fillets around the notch, 940 mm² of curved ceiling that is hidden inside. The rear plate's 45° chamfer is at the limit in both poses.
+Nothing is proven. The spray test (IEC 60529 IPX4: oscillating tube, 10 L/min, 10 min, then open and look) is a bead to file; the first thing it will say is whether the nose notch and the port holes need gaskets.
 
-What the form costs. Height: the board over the fan and the servo over the flap set 97 mm; a flat layout with the board beside the duct would lose about 25 mm and is the change to make if the box should sit lower. The hood is 103 long because the servo's far tab and the tower's corner sit 3.5 mm behind the front wall. Airflow: the skin's grille is in front of the inner grille with 0.8 mm between them; the open area is the inner grille's 1294 mm², not the skin's. The thumbscrew's knob sits in the slot with 2 mm of it behind the hood's face and 10 mm outside, so it still turns by hand. Heat: the socket stays outside the shells.
+## Printing
 
-![print orientation](mech/skin_plate.png)
+ASA at 0.4 mm, six perimeters (2.4 mm walls). Every designed overhang is 44°, inside the 45 the test allows, so the inventory (`overhangs()` in `printing.py`: downward faces steeper than 45° in the print pose) lists only what is meant to be there:
+
+- `duct`, flange down: the O-ring groove's 2 mm ceiling (221 mm², a bridge as in v0), the underside of the thumbscrew boss (13 mm², 9 × 3) and the rims of its hole and the insert's. The flare, the collar's chamfer, the shoulder, the shelf's ends and the shelf's bosses are the 44° features for this pose.
+- `flap`: the rib's top over the disc (70 mm², as in v0). `crank`, `coupler`: nothing.
+- `hood` and `pan`, nose up on the rear face: about 60 and 50 mm² of slivers at the ends of the rear pads and around the port openings (the test caps each shell at 150, no patch over 60). The cavity's front is a 44° cone down to the nose hole (plus a 44° wedge under it in the pan, so the board's corners fit), the screw bosses and standoffs are teardrop columns pointed down, every hole along z is a teardrop pointed up, and the bay's end walls and the ambient well's cross fins lean 44°. The USB-C opening's top is a 12 mm bridge.
+
+Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between port holes 1.3.
+
+![print orientation](mech/plate.png)
+
+![the chassis](mech/chassis.png)
+
+## What the form costs
+
+- Length: the front cone that makes the shells printable eats the cavity's corners for the last 25 mm, so the board had to move 1.5 mm back; with the 5 mm rear gap for the fan's screw heads the body is 126 long against the 124 aimed at. The horizontal board costs 7 mm of height over a vertical one (73 against 66).
+- Airflow: the inlet turns 44° through the louvres; the open area is still 22 % more than v0's grille. The rear gap is 5 mm, so the inlet sees the pads and the screw heads.
+- Heat: the socket is outside the shells; the board is under the straight section, not under the socket. The servo is beside the cone, in the fan's air.
+- Service: the hood comes off upward on four screws from below; the pan brings the board with it; the chassis stays on the tube. The fan comes off the flange from the rear once the chassis is out. The thumbscrew is on the side, not the top.
+- Plugs: the bay is under the body: plugging in is by feel from the side, the overmolds are 0.7 mm apart, and the recess is 7 mm, so a plug with an overmold longer than 18 mm stands proud of the flank.
+- Board: 44 × 54 with the keep-out capped at 11 mm everywhere; the two front corners have under 1 mm to the cone.
 
 ## Provisional values to confirm
 
 | Value | Where | Settled by |
 |---|---|---|
 | tube OD 34.93, ID 31.6, free length | `Tube` | calipers on the tube (`.2.8`) |
-| fan outline, hole size, aperture | `Fan` | the fan in hand (`.2.2`, `.2.11`) |
-| servo body, tab spacing, spline and horn | `Servo` | the servo in hand (`.2.9`) |
-| board size, hole positions, connectors | `Pcb`, `envelope.py` | the ICD and layout (`.1.2`, `.3.6`, `.3.7`) |
+| fan outline, hole size, aperture, screw head height | `Fan`, `Layout.rear_gap` | the fan in hand (`.2.2`, `.2.11`) |
+| servo body, tab spacing, horn and its hole radii | `Servo`, `Linkage.arm_r` | the servo in hand (`.2.9`) |
+| board size, hole positions, connector positions and heights, sensor spot | `Pcb`, `envelope.py` | the ICD and layout (`.1.2`, `.3.6`, `.3.7`) |
+| plug overmold Ø8, USB-C overmold 12.4 × 6.8 | `Pcb` | the probes and cable bought |
 | flap gap, rib size | `Damper` | a print and a smoke test (`.2.7`) |
+| rain: nose notch, port holes, seam | `Shell` | the IPX4 spray test |
 
-Run `uv run mech-envelope` for the board contract the tray assumes. Nothing here has been printed yet.
+Nothing here has been printed yet.
 
 ## Commands
 
 ```bash
-uv run pytest tests/test_mech.py     # builds the parts, fit and overhang checks
+uv run pytest tests/test_mech.py tests/test_skin.py   # builds the parts and shells, fit, leak and overhang checks
 uv run mech-export [dir]             # STEP and STL per part in print pose, assembly.step, envelope.json (default build/mech)
-uv run mech-render [dir]             # the images above, the skin's included (default build/)
+uv run mech-render [dir]             # the images above (default build/)
+uv run mech-envelope                 # the board contract
 ```

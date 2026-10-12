@@ -1,7 +1,8 @@
 """The board outline, mounting holes and connector positions the enclosure assumes (`.1.6`).
 
-Board frame: origin at the board centre, +x toward the front (the flow direction), +y to the left of the
-rear edge. The rear edge carries the USB-C receptacle and the four probe jacks and faces the tray's rear wall.
+Board frame: origin at the board centre, +x toward the front (the flow direction), +y to the left looking
+along the flow. The board lies flat, parts up, under the duct; its -y long edge carries the USB-C receptacle
+and the four probe jacks, facing the pan's port wall.
 """
 
 import json
@@ -18,11 +19,16 @@ def envelope():
             for sx in (-1, 1)
             for sy in (-1, 1)
         ],
-        "rear_edge_connectors": [{"kind": "usb-c", "y": p.usb_y, "w": p.usb_w, "h": p.usb_h}]
-        + [{"kind": "jack-2.5mm", "y": y, "w": p.jack_w, "h": p.jack_h} for y in p.jack_ys],
+        "edge_connectors": {
+            "edge": "-y",
+            "usb-c": {"x": p.usb_x, "w": p.usb_w, "h": p.usb_h, "wall_opening": [p.usb_open_w, p.usb_open_h]},
+            "jacks-2.5mm": [{"x": x, "w": p.jack_w, "h": p.jack_h, "wall_hole_d": p.jack_hole_d} for x in p.jack_xs],
+            "face_to_wall_inner": p.edge_gap,
+            "wall_thickness": P.shell.bay_wall_t,
+        },
+        "ambient_sensor": {"side": "bottom", "x": p.sensor[0], "y": p.sensor[1], "note": "in the vented well; slot the board around it"},
         "height_above_board": p.top_h,
         "clearance_below_board": p.bottom_h,
-        "rear_gap_to_wall": p.rear_gap,
         "note": "provisional until the ICD (.1.2) and the schematic (.3.x) fix the outline",
     }
 
