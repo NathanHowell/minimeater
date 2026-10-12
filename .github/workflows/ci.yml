@@ -1,0 +1,34 @@
+name: ci
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked
+      - run: uv run pytest -q
+      - run: uv run mech-export build/mech
+
+  firmware:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fw
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rust-src, clippy, rustfmt
+          targets: riscv32imac-unknown-none-elf
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fw
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --exclude minimeat-fw --all-targets -- -D warnings
+      - run: cargo test --workspace --exclude minimeat-fw --release
+      - run: cargo fw-build

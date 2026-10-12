@@ -23,8 +23,7 @@ Checked against JLCPCB stock on 2026-10-11 with `scripts/jlc_stock.py`. About 5 
 
 ## Not settled
 
-- **Fan connector.** The Noctua lead ends in a standard 4-pin fan plug that mates a 2.54 mm keyed header (Molex 22-23-2041 style). The Molex part is out of stock (C428629), and I did not find a keyed equivalent. Options: a JST XH-4 header (B4B-XH-A, C144395, 163k) with a short adapter lead, or a plain 2.54 mm pin header with a keyed-by-orientation silkscreen. Decide in `.3.5`.
-- **Servo connector.** Standard 3-pin 2.54 mm servo plug: a 3-pin header, any JLC-stocked one.
+- **Fan and servo headers: hand-soldered through-hole, not assembled by JLC.** The Noctua lead ends in a standard 4-pin fan plug, which mates a Molex KK 254 header, 2.54 mm, 4 positions, 22-23-2041 (the plug's polarising ramp locks onto it). The servo plug is the same family in 3 positions, 22-23-2031. JLC's copy of the Molex part is out of stock (C428629), so these go to Mouser or Digi-Key and are left unpopulated in the JLC assembly (DNP, but with the holes on the board). Check stock at order time: I could confirm only that distributors list the part, not their current counts. The footprints are `.3.5`.
 - **Servo and fan fault pins.** The TPS2553's fault flags need a GPIO, and the ADR 0001 budget is full after the fan enable. Options: wire both flags together into one input and reuse the UART0 RX test pad's pin, since USB Serial/JTAG already carries the logs.
 - **Board size.** The PJ-242 is 12 mm deep and 5 mm wide, much smaller across than the 7 x 6 mm the case drawings assumed, so the jack row is set by the plug overmold (about 8.7 mm pitch), not by the jack body.
 - **Servo temperature.** The HS-5065MG is rated 60 C. See ADR 0004.

@@ -73,3 +73,29 @@ ha-live-check:
     container rm -f mm-ha >/dev/null 2>&1 || true
     just stack-down
     exit $r
+
+# Everything CI runs, on a clean checkout: Python models and CAD, firmware on the host and for the target, KiCad checks.
+ci: ci-py ci-fw ci-hw
+
+# Python: model and doc tests, the CAD tests (parts build, fit, printability), the STEP/STL export.
+ci-py:
+    uv run pytest -q
+    uv run mech-export build/mech
+
+# Firmware: format, clippy, host tests, the twin scenario suite, the ESP32-C6 build. The container interop tests are separate (`just mqtt-interop`).
+ci-fw:
+    cd fw && cargo fmt --all -- --check
+    cd fw && cargo clippy --workspace --exclude minimeat-fw --all-targets -- -D warnings
+    cd fw && cargo test --workspace --exclude minimeat-fw --release
+    cd fw && cargo fw-build
+
+# KiCad: ERC and DRC on the project, and the fab outputs, once hw/ has one (`.3.1`); nothing to check before that.
+ci-hw:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    pro=$(ls hw/*.kicad_pro 2>/dev/null | head -1 || true)
+    if [ -z "$pro" ]; then echo "hw: no KiCad project yet, skipped"; exit 0; fi
+    base=${pro%.kicad_pro}
+    mkdir -p build/hw
+    kicad-cli sch erc --exit-code-violations --output build/hw/erc.rpt "$base.kicad_sch"
+    kicad-cli pcb drc --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
