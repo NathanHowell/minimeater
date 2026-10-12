@@ -3,6 +3,8 @@
 use minimeat_app::config::{Mode, Settings};
 use minimeat_app::pit::Command;
 use minimeat_app::proto;
+
+use crate::net;
 use minimeat_app::tasks::{Bus, Reply};
 use minimeat_core::food::Cut;
 use minimeat_core::model::airflow::AirPath;
@@ -30,6 +32,10 @@ pub enum Action {
     },
     /// The hardware faults in force from now on (all of them: set what should stay).
     Faults(Faults),
+    /// The broker delivers a message to the device (it must have an `mqtt` setting to be connected).
+    Publish(net::Inject),
+    /// The broker goes silent and refuses connections (`false`), or comes back.
+    Broker(bool),
     /// A `~/set/...` or `~/cmd/...` message, as the MQTT client would receive it: `topic` is the
     /// part after the base topic. It is parsed, then sent as request number `id`.
     Mqtt {
@@ -40,7 +46,7 @@ pub enum Action {
 }
 
 impl Action {
-    pub(crate) fn apply(self, w: &mut World, bus: &Bus) {
+    pub(crate) fn apply(self, w: &mut World, bus: &Bus, link: &net::Link) {
         match self {
             Action::Command(c) => {
                 if !bus.send(0, c.into()) {
@@ -52,6 +58,8 @@ impl Action {
             Action::Meat { slot, meat } => w.plant.meats[slot] = meat,
             Action::Wire { jack, wiring } => w.jacks[jack] = wiring,
             Action::Faults(f) => w.faults = f,
+            Action::Publish(m) => link.inject(m),
+            Action::Broker(up) => link.set_up(up),
             Action::Mqtt { id, topic, payload } => {
                 // a message that does not parse is answered at once, as the client would
                 match proto::parse(topic, payload.as_bytes(), false) {

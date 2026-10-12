@@ -14,6 +14,7 @@ embassy-executor         = "0.10.0"
 embassy-futures          = "0.1.2"
 embassy-sync             = "0.7.2"
 embassy-time-driver      = "0.2.2"
+embedded-io-async        = "0.6.1"
 embassy-time-queue-utils = { version = "0.3.2", features = ["generic-queue-64"] }
 log                      = "0.4.27"
 

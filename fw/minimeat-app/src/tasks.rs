@@ -43,7 +43,7 @@ use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
 
-type M = CriticalSectionRawMutex;
+pub(crate) type M = CriticalSectionRawMutex;
 
 /// How many tasks can read the status, events and replies: the MQTT client, OTLP, and one more
 /// (the twin's harness).

@@ -12,6 +12,7 @@
 
 pub mod clock;
 pub mod metrics;
+pub mod net;
 pub mod scenario;
 pub mod suite;
 
@@ -66,6 +67,22 @@ async fn actuators(
 }
 
 #[embassy_executor::task]
+async fn mqtt(mut conn: net::TwinConn, bus: &'static Bus, bufs: &'static mut minimeat_app::mqtt::Buffers) {
+    let who = minimeat_app::mqtt::Identity {
+        prefix: "minimeat",
+        id: "mm-twin01",
+        sw: "0.1.0",
+        hw: "A",
+    };
+    minimeat_app::mqtt::run(&mut conn, &who, bus, bufs, &|| Some(-60)).await
+}
+
+#[embassy_executor::task]
+async fn broker(link: &'static net::Link) {
+    net::broker(link).await
+}
+
+#[embassy_executor::task]
 async fn slow(bus: &'static Bus) {
     tasks::slow(bus).await
 }
@@ -97,6 +114,8 @@ pub struct Report {
     pub replies: Vec<(f64, u16, Result<(), minimeat_app::proto::Error>)>,
     /// Every time the settings changed enough for `~/config` to go out again, and what they were.
     pub configs: Vec<(f64, Settings)>,
+    /// What the broker saw the device do (empty without an `mqtt` setting).
+    pub mqtt: Vec<(f64, net::Seen)>,
 }
 
 static RAN: AtomicBool = AtomicBool::new(false);
@@ -134,6 +153,12 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
         .expect("actuators"),
     );
     spawner.spawn(slow(bus).expect("slow"));
+    let link: &'static net::Link = Box::leak(Box::new(net::Link::new()));
+    if sc.settings.mqtt.is_some() {
+        let bufs = Box::leak(Box::new(minimeat_app::mqtt::Buffers::new()));
+        spawner.spawn(mqtt(net::TwinConn(link), bus, bufs).expect("mqtt"));
+        spawner.spawn(broker(link).expect("broker"));
+    }
 
     let hz = clock::TICK_HZ;
     let end = (sc.hours * 3600.0 * hz as f64) as u64;
@@ -198,7 +223,7 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
             phys += step;
             world.borrow_mut().advance(step as f64 / hz as f64);
             while let Some((_, a)) = actions.next_if(|(t, _)| (*t * hz as f64) as u64 <= phys) {
-                a.apply(&mut world.borrow_mut(), bus);
+                a.apply(&mut world.borrow_mut(), bus, link);
             }
         }
         if let Some(speed) = opts.speed {
@@ -209,6 +234,7 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
         }
         clock::set(next);
         if next >= end {
+            report.mqtt = link.take_log();
             return report;
         }
     }

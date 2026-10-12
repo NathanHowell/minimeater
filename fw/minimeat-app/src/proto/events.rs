@@ -75,6 +75,23 @@ pub fn rejected<W: Write>(j: &mut Json<W>, topic: &str, error: &str, detail: &st
     j.end_obj();
 }
 
+/// The result published on a request's MQTT 5 response topic (docs/protocol.md).
+pub fn response<W: Write>(j: &mut Json<W>, result: &Result<(), super::request::Error>) {
+    j.begin_obj();
+    j.key("v").int(1);
+    match result {
+        Ok(()) => {
+            j.key("ok").bool(true);
+        }
+        Err(e) => {
+            j.key("ok").bool(false);
+            j.key("error").str(e.code.name());
+            j.key("detail").str(&e.detail);
+        }
+    }
+    j.end_obj();
+}
+
 /// Why the device started.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BootReason {

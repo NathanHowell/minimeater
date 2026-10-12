@@ -19,8 +19,17 @@ pub fn render<const N: usize>(f: impl FnOnce(&mut Json<String<N>>)) -> Option<St
     j.finish().ok()
 }
 
+/// Like [`render`], into a buffer the caller owns (a large payload that should not be copied
+/// through the stack). Clears `out` first; false if it did not fit.
+pub fn render_into<const N: usize>(out: &mut String<N>, f: impl FnOnce(&mut Json<&mut String<N>>)) -> bool {
+    out.clear();
+    let mut j = Json::new(out);
+    f(&mut j);
+    j.finish().is_ok()
+}
+
 pub use discovery::{Device, discovery};
-pub use events::{BootReason, boot, event, rejected};
+pub use events::{BootReason, boot, event, rejected, response};
 pub use json::Json;
 pub use request::{Error, ErrorCode, ProbeChange, Request, parse};
 pub use settings::config;
