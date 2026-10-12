@@ -9,10 +9,10 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 pub struct Tcp;
 
 impl Connector for Tcp {
-    type Reader = FromTokio<OwnedReadHalf>;
-    type Writer = FromTokio<OwnedWriteHalf>;
+    type Reader<'a> = FromTokio<OwnedReadHalf>;
+    type Writer<'a> = FromTokio<OwnedWriteHalf>;
 
-    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+    async fn connect<'a>(&'a mut self, host: &str, port: u16) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()> {
         let s = TcpStream::connect((host, port)).await.map_err(|_| ())?;
         let (r, w) = s.into_split();
         Ok((FromTokio::new(r), FromTokio::new(w)))

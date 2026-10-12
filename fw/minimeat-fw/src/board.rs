@@ -26,7 +26,7 @@ use esp_hal::ledc::channel::{self, ChannelIFace};
 use esp_hal::ledc::timer::{self, TimerIFace};
 use esp_hal::ledc::{LSGlobalClkSource, Ledc, LowSpeed};
 use esp_hal::pcnt::{Pcnt, channel::EdgeMode, unit::Unit};
-use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, USB_DEVICE};
+use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, USB_DEVICE, WIFI};
 use esp_hal::time::Rate;
 use esp_storage::FlashStorage;
 use minimeat_app::drivers::{ads122c04, ads122c04::Ads122c04, tmp117, tmp117::Tmp117, usb_cc};
@@ -74,6 +74,8 @@ pub struct Rest {
     pub sw_interrupt: FROM_CPU_INTR0<'static>,
     /// The USB Serial/JTAG port: console logs and Improv provisioning share it (`console.rs`).
     pub usb: USB_DEVICE<'static>,
+    /// The radio (`net.rs`).
+    pub wifi: WIFI<'static>,
 }
 
 /// Brings up every peripheral. Panics only on start-up bugs (bad static configuration); a missing
@@ -175,6 +177,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         timg0: p.TIMG0,
         sw_interrupt: p.FROM_CPU_INTR0,
         usb: p.USB_DEVICE,
+        wifi: p.WIFI,
     };
     (io, rest)
 }

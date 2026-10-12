@@ -113,10 +113,10 @@ impl Default for Link {
 pub struct TwinConn(pub &'static Link);
 
 impl Connector for TwinConn {
-    type Reader = &'static Pipe<M, PIPE>;
-    type Writer = &'static Pipe<M, PIPE>;
+    type Reader<'a> = &'static Pipe<M, PIPE>;
+    type Writer<'a> = &'static Pipe<M, PIPE>;
 
-    async fn connect(&mut self, _host: &str, _port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+    async fn connect<'a>(&'a mut self, _host: &str, _port: u16) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()> {
         let l = self.0;
         if !l.up.load(Ordering::SeqCst) {
             return Err(());
@@ -331,10 +331,10 @@ impl Default for RealConn {
 }
 
 impl Connector for RealConn {
-    type Reader = &'static Pipe<M, PIPE>;
-    type Writer = &'static Pipe<M, PIPE>;
+    type Reader<'a> = &'static Pipe<M, PIPE>;
+    type Writer<'a> = &'static Pipe<M, PIPE>;
 
-    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+    async fn connect<'a>(&'a mut self, host: &str, port: u16) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()> {
         use std::io::{Read as _, Write as _};
         use std::sync::atomic::Ordering::SeqCst;
         let (to_server, from_server, generation) = (self.to_server, self.from_server, self.generation);
@@ -404,10 +404,10 @@ pub enum AnyConn {
 }
 
 impl Connector for AnyConn {
-    type Reader = &'static Pipe<M, PIPE>;
-    type Writer = &'static Pipe<M, PIPE>;
+    type Reader<'a> = &'static Pipe<M, PIPE>;
+    type Writer<'a> = &'static Pipe<M, PIPE>;
 
-    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+    async fn connect<'a>(&'a mut self, host: &str, port: u16) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()> {
         match self {
             AnyConn::Mem(c) => c.connect(host, port).await,
             AnyConn::Real(c) => c.connect(host, port).await,

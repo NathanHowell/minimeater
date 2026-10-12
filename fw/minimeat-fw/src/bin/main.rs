@@ -15,7 +15,7 @@ use log::info;
 use minimeat_app::config::{ConfigStore, Settings};
 use minimeat_app::food::Foods;
 use minimeat_app::hal::Board;
-use minimeat_app::improv::{self, Network, Station};
+use minimeat_app::improv;
 use minimeat_app::net::Identity;
 use minimeat_app::pit::Pit;
 use minimeat_app::selftest;
@@ -23,6 +23,7 @@ use minimeat_app::tasks::{self, Bus};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_fw::board::{self, Esp};
 use minimeat_fw::console::{self, Port};
+use minimeat_fw::net::{self, Link, Tcp};
 use static_cell::StaticCell;
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
@@ -36,6 +37,8 @@ type B = Esp;
 )]
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
+    // the radio driver's heap; the application itself does not allocate
+    esp_alloc::heap_allocator!(size: 72 * 1024);
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let (mut io, rest) = board::init(peripherals);
     // the logger and the one USB serial port, shared with Improv provisioning
@@ -92,6 +95,38 @@ async fn main(spawner: Spawner) -> ! {
     static ID: StaticCell<heapless::String<12>> = StaticCell::new();
     let id: &'static str = ID.init(device_id());
     spawner.spawn(provisioning(port, id, bus).expect("provisioning task"));
+
+    // WiFi and the clients that use it: the radio joins the saved network, MQTT and OTLP connect when their settings
+    // exist and the link is up
+    static HOST: StaticCell<heapless::String<24>> = StaticCell::new();
+    let host: &'static str = HOST.init(hostname(id));
+    let rng = esp_hal::rng::Rng::new();
+    let seed = u64::from(rng.random()) << 32 | u64::from(rng.random());
+    let (controller, stack, runner) = net::init(rest.wifi, host, seed);
+    spawner.spawn(net::stack_runner(runner).expect("net task"));
+    spawner.spawn(net::wifi(controller, stack, bus).expect("wifi task"));
+    spawner.spawn(net::sntp_client(stack, seed).expect("sntp task"));
+    spawner.spawn(net::mdns_responder(stack, host).expect("mdns task"));
+    static MQTT_BUFS: StaticCell<minimeat_app::mqtt::Buffers> = StaticCell::new();
+    static OTLP_BUFS: StaticCell<minimeat_app::otlp::Buffers> = StaticCell::new();
+    spawner.spawn(
+        mqtt(
+            tcp!(stack),
+            id,
+            bus,
+            MQTT_BUFS.init_with(minimeat_app::mqtt::Buffers::new),
+        )
+        .expect("mqtt task"),
+    );
+    spawner.spawn(
+        otlp(
+            tcp!(stack),
+            id,
+            bus,
+            OTLP_BUFS.init_with(minimeat_app::otlp::Buffers::new),
+        )
+        .expect("otlp task"),
+    );
     spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
@@ -148,6 +183,24 @@ mod run {
 }
 use run::{actuators, control, probes, slow};
 
+/// A TCP connector with its own static buffers.
+macro_rules! tcp {
+    ($stack:expr) => {{
+        static RX: StaticCell<[u8; 2048]> = StaticCell::new();
+        static TX: StaticCell<[u8; 2048]> = StaticCell::new();
+        Tcp::new($stack, RX.init([0; 2048]), TX.init([0; 2048]))
+    }};
+}
+use tcp;
+
+/// `minimeat-` and the same three bytes: the DHCP and mDNS name (`minimeat-a1b2c3.local`).
+fn hostname(id: &str) -> heapless::String<24> {
+    let mut s = heapless::String::new();
+    let _ = s.push_str("minimeat-");
+    let _ = s.push_str(id.strip_prefix("mm-").unwrap_or(id));
+    s
+}
+
 /// `mm-` and the low three bytes of the MAC, the id MQTT and Home Assistant know the device by.
 fn device_id() -> heapless::String<12> {
     use core::fmt::Write as _;
@@ -158,24 +211,6 @@ fn device_id() -> heapless::String<12> {
     s
 }
 
-/// No radio driver yet (`.4.10`): the conversation answers state and device information, and a client that sends
-/// credentials is told they could not be used.
-struct NoRadio;
-
-impl Station for NoRadio {
-    async fn connect(&mut self, _ssid: &str, _pass: &str) -> bool {
-        false
-    }
-
-    async fn scan(&mut self) -> heapless::Vec<Network, 12> {
-        heapless::Vec::new()
-    }
-
-    fn online(&self) -> bool {
-        false
-    }
-}
-
 #[embassy_executor::task]
 async fn provisioning(mut port: Port, id: &'static str, bus: &'static Bus) {
     let who = Identity {
@@ -184,7 +219,30 @@ async fn provisioning(mut port: Port, id: &'static str, bus: &'static Bus) {
         sw: env!("CARGO_PKG_VERSION"),
         hw: "A",
     };
-    improv::run(&mut port, &mut NoRadio, &who, bus).await
+    improv::run(&mut port, &mut Link, &who, bus).await
+}
+
+#[embassy_executor::task]
+async fn mqtt(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static mut minimeat_app::mqtt::Buffers) {
+    let who = Identity {
+        prefix: "minimeat",
+        id,
+        sw: env!("CARGO_PKG_VERSION"),
+        hw: "A",
+    };
+    minimeat_app::mqtt::run(&mut tcp, &who, bus, bufs, &net::rssi).await
+}
+
+#[embassy_executor::task]
+async fn otlp(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static mut minimeat_app::otlp::Buffers) {
+    let who = Identity {
+        prefix: "minimeat",
+        id,
+        sw: env!("CARGO_PKG_VERSION"),
+        hw: "A",
+    };
+    let heap_free = || Some(esp_alloc::HEAP.free() as u32);
+    minimeat_app::otlp::run(&mut tcp, &who, bus, bufs, &net::unix_ns, &net::rssi, &heap_free).await
 }
 
 #[embassy_executor::task]
