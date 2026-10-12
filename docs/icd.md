@@ -38,6 +38,11 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 | Control | 25 kHz PWM, open-collector tach to a pull-up and clamp | 50 Hz PWM, 900-2100 us, 3.3 V logic |
 | Gate pin | fan power enable | servo power enable |
 
+## Identity (ADR 0005)
+
+- Microchip ATECC608B on the shared I2C bus at 0x60 (ADS122C04 at 0x40, TMP117 at 0x48). It holds a P-256 device key that never leaves the chip and the device certificate, for mutual TLS to the MQTT broker and signed OIDC client assertions.
+- Provisioning locks the chip; the lock is one-way.
+
 ## Controls and indication
 
 - One status LED (not on GPIO8 or GPIO9) and one button on GPIO9, which doubles as BOOT. Their positions on the shell are an enclosure decision.

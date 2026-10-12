@@ -15,6 +15,7 @@ Checked against JLCPCB stock on 2026-10-11 with `scripts/jlc_stock.py`. About 5 
 | Servo and fan switches | TI TPS2553DBVR, two | C55266 | 56k | $0.54 | adjustable current limit (servo about 0.6 A, fan about 0.5 A to ride the start-up), enable pin, fault flag |
 | Probe ADC | TI ADS122C04IPWR | C2872338 | 4.5k | $7.92 | ADR 0002 (amended): the I2C variant of the ADS1220, saves five pins; address 0x40 (A1 = A0 = GND); I2C pull-ups needed |
 | Jack ESD | TI TPD4E05U06DQAR | C138714 | 105k | $0.084 | ADR 0002; check max leakage at 60 C |
+| Secure element | Microchip ATECC608B-SSHDA-T | C1518769 | 1.6k | $1.00 | ADR 0005: device key pair on I2C (0x60); the blank part, not the TNGTLS pre-provisioned one; UDFN alternative C1518773 |
 | Probe jacks | SHOU HAN PJ-242, four | C431536 | 20k | $0.21 | ADR 0002; 2.5 mm TRRS SMD, body 5 x 3.2 x 12 mm, -30..70 C; pinout and tip switch still unverified |
 | Ambient sensor | TI TMP117AIDRVR | C699536 | 29k | $1.02 | over the $0.5-0.7 Mysentech clones |
 | Button | XKB TS-1187A-B-A-B | C318884 | 378k | $0.021 | 5.1 x 5.1 SMD tact |
