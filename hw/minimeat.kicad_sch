@@ -6071,6 +6071,409 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Connector_Generic:Conn_01x04"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x04"
+				(at 0 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x04_1_1"
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -6.35)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector_Generic:Conn_01x03"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x03"
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x03_1_1"
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(junction
 		(at 302.26 60.96)
@@ -7582,6 +7985,41 @@
 		)
 		(uuid "d873de3b-5a4c-40b8-94f2-6d760a6a6457")
 	)
+	(wire
+		(pts
+			(xy 259.08 236.22)
+			(xy 267.97 236.22)
+		)
+		(uuid "7a6c4f6a-74cc-49e0-92c8-917be728dd5c")
+	)
+	(wire
+		(pts
+			(xy 259.08 238.76)
+			(xy 267.97 238.76)
+		)
+		(uuid "0e5fb4cc-1f5b-4341-9b4f-06a5eebed75e")
+	)
+	(wire
+		(pts
+			(xy 373.38 238.76)
+			(xy 382.27 238.76)
+		)
+		(uuid "02e29354-2064-4dd2-b21e-062bf2269728")
+	)
+	(wire
+		(pts
+			(xy 259.08 243.84)
+			(xy 261.62 243.84)
+		)
+		(uuid "61f26fc4-98bd-4fec-b74a-9c674b2f9c65")
+	)
+	(wire
+		(pts
+			(xy 373.38 243.84)
+			(xy 375.92 243.84)
+		)
+		(uuid "52280ced-3810-4e86-8c44-c9f6a6ade6e8")
+	)
 	(text "POWER TREE\nVBUS (5 V, 1.1 A PTC F1) -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO (0.6 A), VFAN (0.52 A)\nNOTE: SMF5.0A clamps ~9.2 V peak but TLV62569 abs max is 6 V;\nthe PTC and 100uF bulk absorb surge energy. Accepted risk."
 		(at 150 125 0)
 		(effects
@@ -7622,6 +8060,120 @@
 			(justify left top)
 		)
 		(uuid "b1da903e-7b06-4021-8892-18965afe534e")
+	)
+	(text "PROBE ADC: ADS122C04 24-bit I2C delta-sigma, address 0x40 (A0=A1=GND), AVDD from 3V3A"
+		(at 455 150 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "a4515147-a57d-4a06-8c13-270df152dc67")
+	)
+	(text "Ratiometric NTC read: REFP = VREF_PROBE = bias rail, AIN0..AIN3 = probe channels 1..4; bus at 100 kHz for the ATECC wake"
+		(at 455 154 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "049abdb9-8603-4fe7-8772-a666bf6ebbcf")
+	)
+	(text "VREF_PROBE rail: 3V3A - ferrite - 10R - 10uF + 100nF; feeds only the four 47k bias resistors and REFP"
+		(at 455 104 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f051c035-a4dc-4007-95b8-a37347dc9989")
+	)
+	(text "PROBE INPUTS 1..4 (J2..J5, TIP1..TIP4 -> AIN0..AIN3): 47k 0.1% bias to VREF_PROBE, 1k series, 100nF to GND"
+		(at 20 212 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "410c9309-2a9b-426b-9671-f6bc8340f9b3")
+	)
+	(text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3/4 = sleeve/ring (GND), 5 = ring switch (unused)"
+		(at 20 217 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b10c0e4d-0bfd-4deb-bed5-b108aa071bee")
+	)
+	(text "Probe ESD: TPD4E05U06DQAR, channels D1+ D1- D2+ D2- (pins 1,2,4,5) on the jack side of the series resistors; NC pins 6,7,9,10"
+		(at 95 272 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6afc9a07-9a9b-4bc6-8ce6-7e2e3d647441")
+	)
+	(text "AMBIENT SENSOR: TMP117, I2C 0x48 (ADD0=GND)"
+		(at 440 236 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "0c926450-9a3b-4c20-a326-139e8ee26426")
+	)
+	(text "SECURE ELEMENT: ATECC608B, I2C 0x60; bus at 100 kHz for the wake pulse"
+		(at 500 236 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "b7c162bf-38d2-461e-82cd-eee458d09fb6")
+	)
+	(text "Pins 1,2,3,7 are NC per datasheet"
+		(at 500 240 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4c9cf3c3-c0db-4992-9841-7966ec6120d3")
+	)
+	(text "Sensor is on the board underside in the vented well"
+		(at 440 240 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2892327c-5ab2-42ce-b4ff-65bcf37c49a5")
+	)
+	(text "(docs/mech.md), isolated from copper pours"
+		(at 440 243.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9b0c159c-5fb6-4a78-beb1-ed70719265df")
 	)
 	(label "VBUS_RAW"
 		(at 60.96 60.96 0)
@@ -8202,6 +8754,46 @@
 			(justify left bottom)
 		)
 		(uuid "0df7b29f-8344-4c21-9314-c43f80bb64a5")
+	)
+	(label "FAN_TACH_J"
+		(at 261.62 238.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ffcd5306-452e-4036-95c7-0648e43912d4")
+	)
+	(label "FAN_PWM_J"
+		(at 261.62 236.22 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f04aaaeb-503f-4e22-8952-9a8e70bbfadf")
+	)
+	(label "SERVO_SIG_J"
+		(at 375.92 238.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b61545fe-2867-4256-8f36-929a68aceb0a")
+	)
+	(label "SERVO_SIG_J"
+		(at 350.52 240.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b2f751c8-d143-4f57-b9b9-c94fc7e77734")
 	)
 	(global_label "USB_DP"
 		(shape bidirectional)
@@ -8830,60 +9422,103 @@
 		)
 		(uuid "1a4e8057-67ab-4cd8-8326-1b57b9b4cf59")
 	)
-  (text "PROBE ADC: ADS122C04 24-bit I2C delta-sigma, address 0x40 (A0=A1=GND), AVDD from 3V3A"
-    (at 455 150 0)
-    (effects (font (size 1.8 1.8) (bold yes)) (justify left bottom))
-    (uuid "a4515147-a57d-4a06-8c13-270df152dc67")
+	(global_label "VFAN"
+		(shape bidirectional)
+		(at 259.08 241.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "eb412c76-4bec-4775-a8f4-1cd451981bfd")
+	)
+	(global_label "VFAN"
+		(shape bidirectional)
+		(at 240.03 240.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3236669d-c905-4076-ba2d-c918d5b062fb")
+	)
+	(global_label "FAN_TACH"
+		(shape bidirectional)
+		(at 275.59 238.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "fafc4cfb-43ec-4c77-a2d3-31595ef540fd")
+	)
+	(global_label "FAN_PWM"
+		(shape bidirectional)
+		(at 275.59 236.22 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e9f9fdb3-5cf1-4750-89ad-d798d7292141")
+	)
+	(global_label "VSERVO"
+		(shape bidirectional)
+		(at 373.38 241.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f4774d1b-0271-4d9b-82d1-3eae2ab4c1ff")
+	)
+	(global_label "VSERVO"
+		(shape bidirectional)
+		(at 335.28 240.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ad87857e-c17a-4bba-bd5a-af40d2eaec40")
+	)
+	(global_label "VSERVO"
+		(shape bidirectional)
+		(at 342.9 240.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "17475739-c061-46bc-ae93-99176295e59d")
+	)
+	(global_label "SERVO_PWM"
+		(shape bidirectional)
+		(at 389.89 238.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7f2b5900-3540-4e9e-9499-0c7e8d1e0c04")
+	)
+  (text "J6 FAN (Molex KK 254 22-23-2041, 4-pin PWM fan plug)\n1 GND (black)   2 +V = VFAN (yellow/red)\n3 TACH (green) -> FAN_TACH_J -> 1k -> FAN_TACH\n4 PWM (blue) <- FAN_PWM_J <- 100R <- FAN_PWM\nNo pull-down on FAN_PWM: floating = full speed (fail-safe); fan power gated by FAN_EN.\nFAN_TACH 10k pull-up to 3V3 is in the MCU block.\nHand-soldered; not in the JLC BOM/assembly."
+    (at 232.41 255.27 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "879a8f2a-5935-425c-8113-be450df14f62")
   )
-  (text "Ratiometric NTC read: REFP = VREF_PROBE = bias rail, AIN0..AIN3 = probe channels 1..4; bus at 100 kHz for the ATECC wake"
-    (at 455 154 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "049abdb9-8603-4fe7-8772-a666bf6ebbcf")
-  )
-  (text "VREF_PROBE rail: 3V3A - ferrite - 10R - 10uF + 100nF; feeds only the four 47k bias resistors and REFP"
-    (at 455 104 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "f051c035-a4dc-4007-95b8-a37347dc9989")
-  )
-  (text "PROBE INPUTS 1..4 (J2..J5, TIP1..TIP4 -> AIN0..AIN3): 47k 0.1% bias to VREF_PROBE, 1k series, 100nF to GND"
-    (at 20 212 0)
-    (effects (font (size 1.8 1.8) (bold yes)) (justify left bottom))
-    (uuid "410c9309-2a9b-426b-9671-f6bc8340f9b3")
-  )
-  (text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3/4 = sleeve/ring (GND), 5 = ring switch (unused)"
-    (at 20 217 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "b10c0e4d-0bfd-4deb-bed5-b108aa071bee")
-  )
-  (text "Probe ESD: TPD4E05U06DQAR, channels D1+ D1- D2+ D2- (pins 1,2,4,5) on the jack side of the series resistors; NC pins 6,7,9,10"
-    (at 95 272 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "6afc9a07-9a9b-4bc6-8ce6-7e2e3d647441")
-  )
-  (text "AMBIENT SENSOR: TMP117, I2C 0x48 (ADD0=GND)"
-    (at 440 236 0)
-    (effects (font (size 1.8 1.8) (bold yes)) (justify left bottom))
-    (uuid "0c926450-9a3b-4c20-a326-139e8ee26426")
-  )
-  (text "SECURE ELEMENT: ATECC608B, I2C 0x60; bus at 100 kHz for the wake pulse"
-    (at 500 236 0)
-    (effects (font (size 1.8 1.8) (bold yes)) (justify left bottom))
-    (uuid "b7c162bf-38d2-461e-82cd-eee458d09fb6")
-  )
-  (text "Pins 1,2,3,7 are NC per datasheet"
-    (at 500 240 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "4c9cf3c3-c0db-4992-9841-7966ec6120d3")
-  )
-  (text "Sensor is on the board underside in the vented well"
-    (at 440 240 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "2892327c-5ab2-42ce-b4ff-65bcf37c49a5")
-  )
-  (text "(docs/mech.md), isolated from copper pours"
-    (at 440 243.5 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "9b0c159c-5fb6-4a78-beb1-ed70719265df")
+  (text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red)\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current.\nHand-soldered; not in the JLC BOM/assembly."
+    (at 330.2 255.27 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "bd36e4f8-df59-4049-96af-c5b73b62c5a1")
   )
 	(symbol
 		(lib_id "Connector:USB_C_Receptacle_USB2.0_16P")
@@ -19242,6 +19877,1019 @@
 			(project "minimeat"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "#PWR062")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 254 241.3 180)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e0cb922e-4305-4f92-8474-7790f1a94dae")
+		(property "Reference" "J6"
+			(at 254 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22-23-2041"
+			(at 254 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_Molex:Molex_KK-254_AE-6410-04A_1x04_P2.54mm_Vertical"
+			(at 254 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 254 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 254 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "J6")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "Assembly" "hand-solder"
+			(at 254 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-23-2041)"
+			(at 254 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:R")
+		(at 271.78 238.76 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c1d78fe1-dbdd-4f1d-887a-abfb1ee551d9")
+		(property "Reference" "R27"
+			(at 271.78 240.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 271.78 238.76 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R27")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C11702"
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:R")
+		(at 271.78 236.22 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3a530556-74aa-49e7-951e-03afae1a815c")
+		(property "Reference" "R28"
+			(at 271.78 233.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100R 1%"
+			(at 271.78 236.22 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R28")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C25076"
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:C")
+		(at 240.03 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cdc8cdfb-a2b1-4d14-90d9-59ec1a7b33ae")
+		(property "Reference" "C35"
+			(at 240.665 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 240.665 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C35")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C1525"
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x03")
+		(at 368.3 241.3 180)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5392f02c-fa0b-4a86-8474-bbb587ebf121")
+		(property "Reference" "J7"
+			(at 368.3 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22-23-2031"
+			(at 368.3 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_Molex:Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical"
+			(at 368.3 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 368.3 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 368.3 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "Assembly" "hand-solder"
+			(at 368.3 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-23-2031)"
+			(at 368.3 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:R")
+		(at 386.08 238.76 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "edecdf87-8bb0-47da-9e88-b4fe0304691a")
+		(property "Reference" "R29"
+			(at 386.08 236.728 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "330R 1%"
+			(at 386.08 238.76 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R29")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C25104"
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:R")
+		(at 350.52 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "370005ab-2c65-4856-b1c0-3191c0deb0f7")
+		(property "Reference" "R30"
+			(at 352.552 243.84 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k 1%"
+			(at 350.52 243.84 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R30")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C60490"
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:C")
+		(at 335.28 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ef4521af-6ecc-443f-ab4c-82ee12fa5a2e")
+		(property "Reference" "C36"
+			(at 335.915 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100uF 10V"
+			(at 335.915 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C36")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C23742"
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:C")
+		(at 342.9 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ff8a2462-11ab-474a-adb1-fe72d0c86884")
+		(property "Reference" "C37"
+			(at 343.535 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 343.535 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C37")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "C1525"
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "power:GND")
+		(at 261.62 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b9f03e72-27aa-456e-8c86-6ffeac1a5d58")
+		(property "Reference" "#PWR063"
+			(at 261.62 250.19 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 261.62 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 261.62 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 261.62 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 261.62 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR063")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 375.92 243.84 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2a3fcc22-083f-4867-915b-f079c0616ce9")
+		(property "Reference" "#PWR064"
+			(at 375.92 250.19 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 375.92 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 375.92 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 375.92 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 375.92 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR064")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 240.03 247.65 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e4826987-8c9c-45aa-b631-b8139e3c024a")
+		(property "Reference" "#PWR065"
+			(at 240.03 254 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 240.03 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 240.03 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 240.03 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 240.03 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR065")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 335.28 247.65 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a21ee800-bec5-40bb-92d1-9fc556cffbc2")
+		(property "Reference" "#PWR066"
+			(at 335.28 254 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 335.28 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 335.28 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 335.28 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 335.28 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR066")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 342.9 247.65 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b0b111ce-845e-4534-b4fc-c527a8ffec3b")
+		(property "Reference" "#PWR067"
+			(at 342.9 254 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 342.9 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 342.9 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 342.9 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 342.9 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR067")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 350.52 247.65 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0e1045f6-472d-4663-a190-85160a7bc8f7")
+		(property "Reference" "#PWR068"
+			(at 350.52 254 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 350.52 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 350.52 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 350.52 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 350.52 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR068")
 					(unit 1)
 				)
 			)
