@@ -12,12 +12,12 @@ use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
 use log::info;
-use minimeat_app::config::{ConfigStore, Mode};
+use minimeat_app::config::{ConfigStore, Settings};
+use minimeat_app::food::Foods;
 use minimeat_app::hal::Board;
-use minimeat_app::pit::{PERIOD_S, Pit};
+use minimeat_app::pit::Pit;
 use minimeat_app::selftest;
-use minimeat_core::control::Schedule;
-use minimeat_core::model::Ambient;
+use minimeat_app::tasks::{self, Bus};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_fw::board::{self, Esp};
 use static_cell::StaticCell;
@@ -25,9 +25,11 @@ use static_cell::StaticCell;
 // App descriptor required by the ESP-IDF second-stage bootloader.
 esp_bootloader_esp_idf::esp_app_desc!();
 
+type B = Esp;
+
 #[allow(
     clippy::large_stack_frames,
-    reason = "main holds the peripherals and demo state for the device's lifetime"
+    reason = "main holds the peripherals for the device's lifetime"
 )]
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
@@ -43,9 +45,7 @@ async fn main(spawner: Spawner) -> ! {
     selftest::survey(&mut io).await;
 
     // Settings, the learned model and the cook in progress: a power cut resumes from here.
-    static STORE: StaticCell<ConfigStore<<Esp as Board>::Config>> = StaticCell::new();
     let (store, settings) = ConfigStore::open(io.config).await;
-    let _store = STORE.init(store);
     info!(
         "config: {:?} at {}F ({:?}), autotune {}, {} learned models, wifi {}",
         settings.cook.mode,
@@ -56,46 +56,89 @@ async fn main(spawner: Spawner) -> ! {
         settings.wifi.is_some()
     );
 
-    // Until the probe pipeline (.4.7) and actuator drivers (.4.8) exist, run the control loop
-    // (.4.14) against an in-memory FOPDT egg that runs 15F colder than the model, so a flashed board
-    // reports what one period and one autotune fit cost on target (budget: well under the 10 s
-    // period; the fit belongs on a low-priority executor once it is measured).
-    let ambient = Ambient::default();
-    let mut settings = settings;
-    settings.cook.mode = Mode::Run;
+    // The application's tasks on the board, as the twin runs them on the simulated one: probes scan,
+    // control runs the cook, actuators drive the fan and flap and watch the supply and the load switches
+    // (a source under 1.5 A or a tripped switch is a fault with both loads off), slow does the fits.
+    let model = AirPath::default();
+    static BUS: StaticCell<Bus> = StaticCell::new();
+    let bus: &'static Bus = BUS.init(Bus::new());
     static PIT: StaticCell<Pit> = StaticCell::new();
-    let pit = PIT.init_with(|| Pit::new(&settings, AirPath::default(), ambient));
-    let m = Schedule::default().at(settings.cook.sp_f);
-    let a = libm::exp(-PERIOD_S / m.tau_s);
-    let delay = libm::round(m.theta_s / PERIOD_S) as usize;
-    let q0 = AirPath::default().feedforward_cfm(&ambient, settings.cook.sp_f);
-    let (mut y, mut hist, mut k) = (150.0, [0.0f64; 32], 0usize);
-    let mut tick = Ticker::every(Duration::from_secs(10));
+    let pit = PIT.init_with(|| Pit::new(&settings, model, minimeat_core::model::Ambient::default()));
+    static FOODS: StaticCell<Foods> = StaticCell::new();
+    let foods = FOODS.init_with(|| Foods::new(&settings.probes));
+
+    spawner.spawn(probes(io.probes, bus).expect("probes task"));
+    spawner.spawn(
+        actuators(
+            io.fan,
+            io.tach,
+            io.servo,
+            io.servo_power,
+            io.fan_power,
+            io.load_fault,
+            io.usb,
+            model.fan.s_min(),
+            model.fan.rpm_max,
+            bus,
+        )
+        .expect("actuators task"),
+    );
+    spawner.spawn(slow(bus).expect("slow task"));
+    spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
-        let t0 = Instant::now();
-        let (out, events) = pit.step(Some(y), ambient, PERIOD_S);
-        let us = t0.elapsed().as_micros();
-        info!(
-            "pit: {y:.1}F {:?} ref {:.1} q {:.3} CFM flap {:.0}% fan {:.0}% in {us} us, events {events:?}",
-            out.phase,
-            out.ref_f,
-            out.q,
-            out.flap_pct,
-            out.act.fan * 100.0
-        );
-        if let Some((due, id)) = pit.take_fit() {
-            let t0 = Instant::now();
-            let fit = id.fit();
-            info!("autotune fit {fit:?} in {} ms", t0.elapsed().as_millis());
-            pit.fitted(due, fit);
-        }
-        hist[k % 32] = out.q;
-        let q_delayed = hist[(k + 32 - delay) % 32];
-        y = a * y + (1.0 - a) * (settings.cook.sp_f + m.k * (q_delayed - q0) - 15.0);
-        k += 1;
-        tick.next().await;
+        core::future::pending::<()>().await;
     }
 }
+
+/// The application's tasks bound to the board. Their futures are large (the config store's 1.7 kB buffer, the
+/// pit) and built once in `main`'s frame before they live in the task pool; the tasks take their peripherals as
+/// arguments, as the twin's do.
+mod run {
+    #![allow(clippy::large_stack_frames, clippy::too_many_arguments)]
+
+    use super::*;
+
+    #[embassy_executor::task]
+    pub async fn control(
+        ambient: <B as Board>::Ambient,
+        store: ConfigStore<<B as Board>::Config>,
+        settings: Settings,
+        pit: &'static mut Pit,
+        foods: &'static mut Foods,
+        bus: &'static Bus,
+    ) {
+        tasks::control::<B>(ambient, store, settings, pit, foods, bus).await
+    }
+
+    #[embassy_executor::task]
+    pub async fn probes(adc: <B as Board>::Probes, bus: &'static Bus) {
+        tasks::probes::<B>(adc, bus).await
+    }
+
+    #[embassy_executor::task]
+    pub async fn actuators(
+        fan: <B as Board>::Fan,
+        tach: <B as Board>::Tach,
+        servo: <B as Board>::Servo,
+        power: <B as Board>::ServoPower,
+        fan_power: <B as Board>::FanPower,
+        load_fault: <B as Board>::LoadFault,
+        usb: <B as Board>::Usb,
+        s_min: f64,
+        rpm_max: f64,
+        bus: &'static Bus,
+    ) {
+        tasks::actuators::<B>(fan, tach, servo, power, fan_power, load_fault, usb, s_min, rpm_max, bus).await
+    }
+
+    // The fits (autotune, airflow map) take long: they belong on a low-priority executor once a target
+    // run has measured them (budget: well under the 10 s control period); until then they share this one.
+    #[embassy_executor::task]
+    pub async fn slow(bus: &'static Bus) {
+        tasks::slow(bus).await
+    }
+}
+use run::{actuators, control, probes, slow};
 
 #[embassy_executor::task]
 async fn heartbeat() {
