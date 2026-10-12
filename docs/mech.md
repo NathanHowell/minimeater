@@ -26,7 +26,7 @@ Everything sits in one tunnel at the fan's height. From the back: the louvred re
 | `hood` | standing on its rear face, nose up | the upper shell: half the nose notch, half the grille, the screw bosses, the seam rib, the label recess |
 | `pan` | the same | the lower shell: the board on three standoffs, the port bay, the ambient louvres, the flange pads, the screw columns, the seam tongue |
 
-The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a Secraft 15 mm aluminium arm (Hitec 24T) and 2 M2 × 6, a Ø3 rod 43 mm long with a flat, the made `crank` and `coupler` (below), two M2 shoulder screws with nyloc nuts and washers for the pivots, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
+The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a Secraft 15 mm aluminium arm (Hitec 24T) and 2 M2 × 6, a Ø3 rod 42.1 mm long (-0.2/0: the coupler lies 0.4 mm over its top end when the flap is closed) with a 2.5 mm D flat, not yet sourced, the made `crank` and `coupler` (below), two M2 shoulder screws with nyloc nuts and washers for the pivots, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
 
 ## Coupling to the tube
 
@@ -122,7 +122,7 @@ Nothing here has been printed yet.
 
 ```bash
 uv run pytest tests/test_mech.py tests/test_skin.py   # builds the parts and shells, fit, leak and overhang checks
-uv run mech-export [dir]             # build/mech: 3dprint/ (duct, hood, pan: STEP and STL in print pose) and cnc/ (flap, crank, coupler: STEP and a PDF drawing each, same names), each with a README and a zip of the same files; assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), envelope.json, plugs_mock.step (docs/jlc3dp.md)
+uv run mech-export [dir]             # build/mech: 3dprint/ (duct, hood, pan: STEP and STL in print pose) and cnc/ (flap, crank, coupler: STEP and a PDF drawing each, same names), each with a README and a zip of the same files; assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), assembly.glb (the same for Blender: File > Import > glTF; metres, one object per part and the board in five colours), envelope.json, plugs_mock.step (docs/jlc3dp.md)
 uv run mech-render [dir]             # the images above (default build/)
 uv run mech-envelope                 # the board contract
 ```

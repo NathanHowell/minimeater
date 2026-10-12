@@ -5,10 +5,11 @@ import sys
 import zipfile
 from pathlib import Path
 
-from build123d import Compound, export_step, export_stl
+from build123d import Color, Compound, export_step, export_stl
 
 from . import assembly as A
 from . import board3d, drawings, mock
+from .glb import write_glb
 from . import shell as K
 from .envelope import envelope
 from .parts import MACHINED
@@ -26,6 +27,14 @@ CNC_NOTES = {
     "flap": "damper blade: a Ø31.2 disc 2.0 thick with a 4.0 x 5.0 rib along its diameter; the rib's D-bore (Ø3 with a 2.5 across-flats flat, +0.03 mm over) takes the rod with retaining compound; edge diameter +-0.05 matters (closed-flap leak); no threads",
     "crank": "Ø8 hub with a D-bore slip fit (0.1 mm) for the rod's flat, an M2 set screw radial on the flat, an arm out to a tapped M2 hole",
     "coupler": "flat bar 6 x 2 mm, two Ø2.1 holes on the 25 mm centres (parallelogram linkage); deburr, no sharp edges",
+}
+
+
+# viewer colours for the assembly files (the board keeps the colours of its own model)
+COLORS = {
+    "hood": "#9aa0a6", "pan": "#80868b", "duct": "#b8956a", "fan": "#2b2b2b", "servo": "#3a3a3a", "horn": "#d8d8d8",
+    "flap": "#c0c4c8", "crank": "#c0c4c8", "coupler": "#c0c4c8", "pin_crank": "#c0c4c8", "pin_horn": "#c0c4c8",
+    "rod": "#c0c4c8", "tube": "#b87333", "oring": "#202020",
 }
 
 
@@ -91,7 +100,22 @@ def export(out: Path):
     # one flat piece (`board3d.frozen`), its few hundred components do not fly apart
     for name, shape in asm.items():
         shape.label = name
-    export_step(Compound(label="minimeat", children=list(asm.values())), str(out / "assembly.step"))
+        if name in COLORS:
+            shape.color = Color(COLORS[name])
+    product = Compound(label="minimeat", children=list(asm.values()))
+    export_step(product, str(out / "assembly.step"))
+    # the same assembly for Blender and other viewers (File > Import > glTF): binary glTF, metres, one node per part
+    # (the board one per colour)
+    glb = []
+    for name, shape in asm.items():
+        if name == "pcb":
+            for part, solids, colour in zip(("pcb_substrate", "pcb_module", "pcb_usb", "pcb_jacks", "pcb_parts"), board3d.pieces(shape),
+                                            ("#1d6b3a", "#3b3b3b", "#c8c8c8", "#202020", "#2a2a2a")):
+                if solids:
+                    glb.append((part, Compound(obj=solids), colour))
+        else:
+            glb.append((name, shape, COLORS.get(name, "#a0a0a0")))
+    write_glb(out / "assembly.glb", glb)
     (out / "envelope.json").write_text(json.dumps(envelope(), indent=2))
     drawings.write(cnc)
     write_packages(out)
@@ -101,4 +125,4 @@ def export(out: Path):
 def main():
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "build/mech")
     names = export(out)
-    print(f"wrote {', '.join(names)}, assembly.step and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")
+    print(f"wrote {', '.join(names)}, assembly.step, assembly.glb and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")

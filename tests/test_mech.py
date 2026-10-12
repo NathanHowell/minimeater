@@ -111,6 +111,8 @@ def test_export_writes_step_and_stl(tmp_path):
         assert names == {f.name for f in (tmp_path / folder).iterdir() if f.name != z}  # the zip is the folder
     assert not list(tmp_path.glob("duct.*")) and not list(tmp_path.glob("*_machined.step"))  # only the order folders hold them
     assert (tmp_path / "assembly.step").exists()
+    glb = (tmp_path / "assembly.glb").read_bytes()  # a binary glTF, one mesh per part, not one per face
+    assert glb[:4] == b"glTF" and glb.count(b'"POSITION"') < 40
     assert (tmp_path / "envelope.json").exists()
 
 

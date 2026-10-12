@@ -72,12 +72,15 @@ Fixed:
 - **The seam, 0.8-1.0 mm**: the hood's outer skirt is the wall less the pan's tongue and 0.2 clearance. The shell wall is now 2.8 mm (seven perimeters) with a 1.3 mm tongue and rib, so the skirt is 1.3 mm. The envelope grows to 75.2 × 73.9.
 - **The rod's blind pocket** left a 0.6 mm skin under the duct; now 1.2 mm (the rod is 0.6 mm shorter, 42.4 mm).
 - **The shelf's rear edge**, a knife edge: a 1.2 mm vertical land now stops the lean.
+- **The rear screw columns' sleeve, 0.08 mm** (second upload): the pan's M2 head channel (radius 2.15) was nearly tangent to the cavity wall at y 29.9, so a sheet of that thickness stood between them over 20 mm of height. The pair moved out to |y| 33.3 (`rear_screw_y`): 1.2 mm to the cavity, 1.3 mm to the hull, and the fan's screw heads still clear.
 - **The front shell screw columns**: the head channel (Ø5.8) nearly equalled the column (Ø6), a 0.1 mm sleeve. The column is 6.7 mm with a Ø4.6 channel, a 1.05 mm sleeve. 6.7 is the most that works: bigger columns make the pan fail to tessellate in OpenCascade.
 
 Left, and why:
 
 - **Knife edges** where a 44° face or a fillet meets a surface (the teardrop tips of the servo bosses, the bay's 45° end wall and floor edge, louvre blade tips at the faces): they come with the supportless geometry. The flagged volume is small and a slicer or MJF handles them. Roughly 100 duct samples and the bay's end-wall clusters in the pan are of this kind.
-- **The rear screw columns** (M2, 4.5 mm): the fan's 4.5 mm rear gap fixes the width, and the column stands in the fan shim block. The sleeve there is thin on paper; check it in the first print.
+- **The hood roof's rear edge above the grille**: the louvre field's cutter runs 4 mm into the cavity and leaves the roof's rear underside as a 44° wedge that comes to a point (red, 0.0-0.5 mm, 20 mm wide). Ending the cutter at the wall instead leaves a square 2.8 mm edge, which prints as an overhang over the 60 mm² per-patch limit in `test_prints_without_support`, so it stays.
+- **Blade tips and the grille's rim**: each louvre blade is a parallelogram with 46° corners, so its ends are flagged yellow along every edge, and the 1.2 mm rear lip sits exactly on the threshold. Both come with the 44° louvres.
+- **A 3 mm² patch where the rear screw channel meets the fan shim block's bottom face** (z -26 to -30, 0.1-0.3 mm): small, and the block is a locating aid, not a structural part.
 - **The eave and its drip lip** at about 1.0 mm.
 - **Around the ambient vents** (x -87 to -60) the seam skirt is 1.1 mm.
 

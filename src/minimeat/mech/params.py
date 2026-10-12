@@ -210,7 +210,7 @@ class Shell:
     boss_d: float = 6.7  # shell screw columns, M2.5: the pan's head channel is d/2 - 1.05 = 2.3 radius (an M2.5 head is 4.5), leaving a 1.05 mm sleeve; it was 2.9 and a 0.1 mm sleeve. Larger columns make the pan fail to tessellate (OCC), 6.7 is the largest that works
     screw_len: float = 20.0
     screw_engage: float = 6.0  # thread in the hood's boss
-    rear_screw_y: float = 32.1  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads
+    rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves 1.2 mm to the cavity wall at y 29.9, and the hull 1.3 mm outside (at 32.1 the channel left 0.08 mm)
     label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
     label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor
     grille_field: float = 58.0  # rounded square of louvres around the fan's axis
