@@ -1,0 +1,7 @@
+(version 1)
+
+# J1's own land pattern (GCT USB4105-GF-A): the GND pads A1/B12 and A12/B1 sit 0.1944 mm from the connector's two
+# locating pegs (NPTH). The vendor's footprint, so the board default (0.25 mm) is relaxed for J1 only.
+(rule j1_land_pattern
+	(constraint hole_clearance (min 0.19mm))
+	(condition "A.Parent == 'J1' || B.Parent == 'J1'"))
