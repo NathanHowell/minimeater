@@ -197,18 +197,30 @@ def _arm(x, y, z0, z1, r, w, toward=-1.0):
 
 
 def crank():
-    """Machined aluminium, on the rod's top end: a hub clamped on the rod's flat by an M2 set screw, and an arm out
-    to the tapped M2 hole for the E-Z connector's screw. Open (0 deg) points at -x."""
+    """Machined aluminium (or stainless), on the rod's top end: a hub clamped on the rod's flat by an M2 set screw, and an arm out
+    to the tapped M2 hole for the coupler's pin. Open (0 deg) points at -x."""
     L = P.linkage
     xf = g.flap_x
     k = zcyl(L.hub_d / 2, G.CRANK_Z0, G.ARM_Z1, xf, 0.0)
     k += _arm(xf, 0.0, G.ARM_Z0, G.ARM_Z1, L.arm_r, L.arm_w)
     k -= d_bore(xf, 0.0, G.CRANK_Z0 - 0.5, G.ARM_Z1 + 0.5, clear=L.slip)
-    k -= zcyl(L.set_screw_d / 2, G.ARM_Z0 - 0.1, G.ARM_Z1 + 0.1, xf - L.arm_r, 0.0)  # tapped M2 for the barrel's screw
+    k -= zcyl(L.set_screw_d / 2, G.ARM_Z0 - 0.1, G.ARM_Z1 + 0.1, xf - L.arm_r, 0.0)  # tapped M2 for the coupler's pin
     zs = (G.CRANK_Z0 + G.ARM_Z0) / 2  # the set screw: radial, on the flat's side (+y), in the hub under the arm
     k -= ycyl(L.set_screw_d / 2, 0.0, L.hub_d, xf, zs)
     return k
 
 
+def coupler():
+    """The flat bar between the crank's pin and the horn's pin, at the open position."""
+    L = P.linkage
+    x = g.flap_x - L.arm_r
+    bar = box(x - L.coupler_w / 2, x + L.coupler_w / 2, 0.0, G.SERVO_Y, G.COUPLER_Z0, G.COUPLER_Z1)
+    bar += zcyl(L.coupler_w / 2, G.COUPLER_Z0, G.COUPLER_Z1, x, 0.0)
+    bar += zcyl(L.coupler_w / 2, G.COUPLER_Z0, G.COUPLER_Z1, x, G.SERVO_Y)
+    for y in (0.0, G.SERVO_Y):
+        bar -= zcyl(L.pin_d / 2 + L.pin_hole_clear, G.COUPLER_Z0 - 0.1, G.COUPLER_Z1 + 0.1, x, y)
+    return bar
+
+
 PARTS = {"duct": duct, "flap": flap}  # printed
-MACHINED = {"crank": crank}  # CNC aluminium, 5 off
+MACHINED = {"crank": crank, "coupler": coupler}  # CNC, 5 off

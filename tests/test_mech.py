@@ -25,7 +25,7 @@ def test_part_is_one_valid_solid(printed, name):
 
 @pytest.mark.parametrize("deg", [0, 30, 60, 90])
 def test_no_interference_at_any_flap_angle(deg):
-    """Every chassis part and bought part, with the flap, crank, horn, connectors and pushrod at `deg`."""
+    """Every chassis part and bought part, with the flap, crank, horn, pins and coupler at `deg`."""
     allp = {**A.printed(deg), **A.bought(deg)}
     hits = [h for h in A.interferences(allp) if set(h[:2]) != {"duct", "oring"}]  # the ring is squeezed by design
     assert hits == []
@@ -37,8 +37,7 @@ def test_linkage_is_a_parallelogram():
     assert G.SERVO_X == G.g.flap_x
     assert abs(A.coupler_shift(90).position.Y + L.arm_r) < 1e-9 and abs(A.coupler_shift(90).position.X - L.arm_r) < 1e-9
     assert G.CRANK_Z0 > G.g.duct_r  # the linkage plane is over the duct's crown
-    assert G.BARREL_Z1 < P.shell.roof_in  # the E-Z connectors stand under the roof
-    assert abs(G.SERVO_Y) > L.barrel_d + 2.0  # the wire's span is longer than the barrels are wide
+    assert G.COUPLER_Z1 + L.pin_head_h < P.shell.roof_in
     assert G.SERVO_Z0 > G.PCB_Z1 + P.pcb.top_h + 2.0  # the servo clears the board's keep-out
 
 
@@ -95,11 +94,12 @@ def test_export_writes_step_and_stl(tmp_path):
     assert (tmp_path / "envelope.json").exists()
 
 
-def test_crank_is_machined_and_clamps_the_flat():
-    """The crank is a made part (a clamp hub with a radial set screw hole, a tapped hole for the connector's screw),
-    one valid solid; the wire is as long as the pin spacing."""
+def test_made_parts_are_valid_and_the_bar_spans_the_pins():
+    """The crank (a clamp hub with a radial set screw hole and a tapped pin hole) and the coupler are one valid
+    solid each; the bar's holes are as far apart as the shaft and the servo's output axis."""
     from minimeat.mech.parts import MACHINED
-    from minimeat.mech.mock import wire
-    k = MACHINED["crank"]()
-    assert k.is_valid and len(k.solids()) == 1
-    assert abs(wire().bounding_box().size.Y - (G.SERVO_Y + 2.0)) < 1e-6  # 1 mm through each barrel
+    for build in MACHINED.values():
+        s = build()
+        assert s.is_valid and len(s.solids()) == 1
+    bar = MACHINED["coupler"]()
+    assert abs(bar.bounding_box().size.Y - (G.SERVO_Y + P.linkage.coupler_w)) < 1e-6  # centres SERVO_Y apart, round ends

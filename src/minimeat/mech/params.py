@@ -117,11 +117,11 @@ class Damper:
 
 @dataclass(frozen=True)
 class Linkage:
-    """Parallelogram between the flap rod and the servo: equal arms, a straight wire pushrod, flap angle = servo
-    angle. The plane is over the duct's crown, under the roof. All RC hardware but the crank: the servo's
-    aluminium arm, an E-Z connector (a swivel barrel on an M2 screw through the arm's hole, a set screw on the
-    wire) on each arm, and a plain Ø2 stainless wire cut to the pin spacing. The crank is machined aluminium
-    (JLCPCB CNC, 5 pieces): a clamp hub with an M2 set screw on the rod's flat, and a tapped M2 hole for the barrel."""
+    """Parallelogram between the flap rod and the servo: equal arms, a flat coupler bar, flap angle = servo angle.
+    The plane is over the duct's crown, under the roof. The servo's arm is bought (Secraft 15 mm aluminium, Hitec
+    24T: the spline is not worth machining); the crank and the coupler are machined (JLCPCB CNC, 5 off). The
+    pivots are plain: an M2 shoulder screw through each bar hole into the arm (a nut under the horn), no ball
+    joints, so the pin spacing is free."""
 
     arm_r: float = 12.0  # [spec] pin radius on the crank and on the horn (the Secraft 15 mm arm's near hole)
     arm_w: float = 5.5
@@ -130,10 +130,12 @@ class Linkage:
     hub_h: float = 3.5  # the crank's D-bored hub under its arm
     slip: float = 0.1  # the crank's bore over the rod; the set screw clamps it
     set_screw_d: float = 1.6  # tap drill for the M2 set screw, radial on the flat
-    pin_d: float = 2.0  # M2 screw through the barrel and the arm's hole
-    barrel_d: float = 5.0  # [est] E-Z connector barrel (Du-Bro #121 class)
-    barrel_h: float = 4.5  # [est] barrel standing on the arm
-    wire_d: float = 2.0  # stainless pushrod through both barrels
+    coupler_t: float = 2.0  # 304 stainless (or 6061) flat bar
+    coupler_w: float = 6.0
+    pin_d: float = 2.0  # M2 shoulder screw
+    pin_hole_clear: float = 0.05  # radial: the bar's holes are Ø2.1
+    pin_head_d: float = 3.8
+    pin_head_h: float = 1.3
     lift: float = 0.8  # crank hub above the duct's crown
 
 

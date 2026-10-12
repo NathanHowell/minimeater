@@ -42,8 +42,8 @@ L = P.linkage
 CRANK_Z0 = g.duct_r + L.lift
 ARM_Z0 = CRANK_Z0 + L.hub_h
 ARM_Z1 = ARM_Z0 + L.arm_t
-BARREL_Z1 = ARM_Z1 + L.barrel_h  # the E-Z connectors stand on the arms
-WIRE_Z = ARM_Z1 + L.barrel_h / 2  # the pushrod wire runs through their cross holes
+COUPLER_Z0 = ARM_Z1 + 0.1  # the bar lies on both arms
+COUPLER_Z1 = COUPLER_Z0 + L.coupler_t
 # the servo beside the duct on +y, output face up, its horn's arm level with the crank's
 SERVO_FACE_Z = ARM_Z1 - P.servo.horn_hub_h - P.servo.boss_h - 0.3
 SERVO_Z0 = SERVO_FACE_Z - P.servo.body_h

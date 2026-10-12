@@ -83,26 +83,16 @@ def horn():
     return h
 
 
-def barrel(x, y):
-    """An E-Z connector on an arm: a swivel barrel on an M2 screw through the arm's hole, a cross hole for the
-    wire; its screw and set screw are left out. Its pivot is the arm's hole."""
+def pin(x, y):
+    """An M2 shoulder screw: the shank through the bar's hole from the arm's top, the head on the bar."""
     L = P.linkage
-    b = zcyl(L.barrel_d / 2, G.ARM_Z1, G.BARREL_Z1, x, y)
-    b -= ycyl(L.wire_d / 2 + 0.05, y - L.barrel_d, y + L.barrel_d, x, G.WIRE_Z)
-    return b
+    return zcyl(L.pin_d / 2, G.ARM_Z1, G.COUPLER_Z1, x, y) + zcyl(L.pin_head_d / 2, G.COUPLER_Z1, G.COUPLER_Z1 + L.pin_head_h, x, y)
 
 
-def barrels():
-    """(crank's, horn's) at the open position."""
+def pins():
+    """(crank pin, horn pin) at the open position."""
     x = g.flap_x - P.linkage.arm_r
-    return barrel(x, 0.0), barrel(x, G.SERVO_Y)
-
-
-def wire():
-    """The Ø2 stainless pushrod, between the barrels' axes plus a little through each (held by the set screws)."""
-    L = P.linkage
-    x = g.flap_x - L.arm_r
-    return ycyl(L.wire_d / 2, -1.0, G.SERVO_Y + 1.0, x, G.WIRE_Z)
+    return pin(x, 0.0), pin(x, G.SERVO_Y)
 
 
 def rod():
