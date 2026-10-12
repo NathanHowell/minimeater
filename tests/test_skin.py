@@ -38,8 +38,8 @@ def test_shells_clear_the_internals(shells, deg):
 
 def test_envelope():
     shell, with_nose = K.envelope()
-    assert shell == (118.2, 74.4, 73.1)  # x, y, z: the rear face to the front ring, the width, the belly to the crown
-    assert with_nose == (129.2, 74.4, 73.1)  # plus the exposed socket and the thumbscrew boss
+    assert shell == (118.2, 75.2, 73.9)  # x, y, z: the rear face to the front ring, the width, the belly to the crown
+    assert with_nose == (129.2, 75.2, 73.9)  # plus the exposed socket and the thumbscrew boss
 
 
 def test_grille_breathes():
@@ -77,6 +77,20 @@ def test_connectors_reach_into_the_wall():
     assert G.PCB_Y0 + p.jack_face - K.PORT_FACE_Y <= 1.0  # the plug's barrel travels at most this far past the outer face to the jack
 
 
+def test_no_web_thinner_than_the_printers_minimum(shells):
+    """JLC3DP flags walls under 1.2 mm (ASA's minimum): the louvre blades, the seam's tongue and rib, and the
+    wall between the USB-C opening and the first jack's (they are joined, not 0.2 mm apart)."""
+    import math
+    sh = P.shell
+    assert sh.grille_pitch * math.cos(math.radians(44)) - sh.grille_slot >= 1.2  # a blade, across its faces
+    assert min(sh.lip_t, sh.rib_t) >= 1.2
+    p = P.pcb
+    zj = G.PCB_Z1 + p.jack_h / 2
+    xu = K.PCB_XC + p.usb_x + p.usb_open_w / 2
+    web = box(xu + 0.05, K.PCB_XC + p.jack_xs[0] - p.jack_hole_d / 2 - 0.05, K.PORT_FACE_Y, G.PORT_WALL_Y, zj - 1.0, zj + 1.0)
+    assert A.overlap(web, shells["pan"]) < 0.5  # where the sliver was, the pan is open
+
+
 def test_bay_is_under_the_eave_and_drains(shells):
     """The port wall is recessed behind the flank, the ceiling of the bay is the eave with its drip lip, and
     the rear end wall has its drain notch at the foot."""
@@ -104,7 +118,7 @@ def test_rain_features(shells):
     lip = box(K.X_REAR + 2.9, G.REAR_IN_X - 0.1, -20, 20, 0.1, K.LAP - 0.1)
     assert A.overlap(lip, pan) > 0.9 * lip.volume and A.overlap(lip, hood) < 0.01
     # a louvre: open at the outer face lower than at the inner face
-    z = K.GRILLE_ZS[-1]
+    z = K.GRILLE_ZS[-2]  # (the last slot is clipped by the field)
     outer_probe = box(K.X_REAR - 0.5, K.X_REAR + 0.3, -5, 5, z - 1.0, z + 1.0)
     inner_probe = box(G.REAR_IN_X - 0.3, G.REAR_IN_X + 0.5, -5, 5, z + K.REAR_T - 1.0, z + K.REAR_T + 1.0)
     assert A.overlap(outer_probe, hood) < 0.05 * outer_probe.volume and A.overlap(inner_probe, hood) < 0.05 * inner_probe.volume

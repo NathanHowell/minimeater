@@ -182,7 +182,7 @@ class Shell:
     """The exterior (shell.py): one lofted pebble split at the tube axis into the hood (above) and the pan
     (below). Sections are rounded rectangles (w, h, r) at x stations; the belly is flat behind the nose."""
 
-    wall: float = 2.4
+    wall: float = 2.8  # seven perimeters: the seam's skirt is wall - tongue - 0.2 and both must stay over the printer's 1.2 mm minimum
     hw_in: float = 34.4  # inner half width at the full section
     roof_in: float = 32.0  # inner roof at the fan (the flange top is 31)
     crown: float = 2.0  # the roof rises this much from the fan station to the peak
@@ -204,10 +204,10 @@ class Shell:
     nose_round: float = 5.0  # the front ring's edge
     nose_hole_d: float = 47.0  # the socket is 46
     z_part: float = 0.0  # the parting plane: the tube axis
-    lip_t: float = 1.2  # the pan's tongue, up inside the hood's wall
+    lip_t: float = 1.3  # the pan's tongue, up inside the hood's wall; the hood's skirt outside it is wall - lip_t - 0.2 = 1.3
     lip_h: float = 3.0
-    rib_t: float = 1.0  # the hood's rib inside the tongue: the seam is a labyrinth
-    boss_d: float = 6.0  # shell screw columns, M2.5
+    rib_t: float = 1.3  # the hood's rib inside the tongue: the seam is a labyrinth
+    boss_d: float = 6.7  # shell screw columns, M2.5: the pan's head channel is d/2 - 1.05 = 2.3 radius (an M2.5 head is 4.5), leaving a 1.05 mm sleeve; it was 2.9 and a 0.1 mm sleeve. Larger columns make the pan fail to tessellate (OCC), 6.7 is the largest that works
     screw_len: float = 20.0
     screw_engage: float = 6.0  # thread in the hood's boss
     rear_screw_y: float = 32.1  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads
@@ -215,8 +215,8 @@ class Shell:
     label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor
     grille_field: float = 58.0  # rounded square of louvres around the fan's axis
     grille_r: float = 14.0
-    grille_pitch: float = 5.3  # five slots a side; the blades between are 1.1 mm at the faces
-    grille_slot: float = 3.0  # slot height; cut 44 deg down and out (the first slot is centred 3.5 off the axis)
+    grille_pitch: float = 6.2  # five slots a side, vertical pitch; the slots are cut 44 deg, so the blades between are pitch x cos 44 - slot thick
+    grille_slot: float = 3.2  # slot height; cut 44 deg down and out (the first slot is centred 3.5 off the axis)
     grille_n: int = 5
     grille_bar: float = 1.6  # the slots stop this far from the parting plane
     bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)

@@ -153,7 +153,7 @@ def grille_cut():
     # the field is sheared along the louvres' tilt, so the top slot is open through the whole wall
     k = math.tan(math.radians(44))
     field = loft([Plane.YZ.offset(X_REAR + dx) * Pos(0, dx * k + REAR_T / 2 * (1 - k)) *
-                  RectangleRounded(S.grille_field, S.grille_field, S.grille_r) for dx in (-3.0, REAR_T + 4.0)], ruled=True)
+                  RectangleRounded(S.grille_field, S.grille_field + 4.0, S.grille_r) for dx in (-3.0, REAR_T + 4.0)], ruled=True)
     cut = None
     for z in GRILLE_ZS:
         s = louvre(z, X_REAR, REAR_T, 80.0, S.grille_slot)
@@ -215,6 +215,9 @@ def port_openings():
         cut += ycyl(r, y0, y1, x, zj) + prism_xz([(x + k, zj - k), (x + k * (1 + KS), zj), (x + k, zj + k)], y0, y1)
         z0, z1 = p.jack_open_z
         cut += box(x - p.jack_open_w / 2, x + p.jack_open_w / 2, y0, y1, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
+        if jx == p.jack_xs[0]:  # the USB-C opening reaches to within 0.2 mm of this one: join them, a 0.2 mm web cannot print
+            xu = PCB_XC + p.usb_x + p.usb_open_w / 2
+            cut += box(xu - 0.3, x - r + 0.3, y0, y1, zj - r, zj + r)
     return cut
 
 
@@ -257,7 +260,7 @@ def tether_holes():
 
 FRONT_BOSS = (P.layout.front_screw_x, 28.0)
 REAR_BOSS = (G.REAR_IN_X + P.layout.rear_gap / 2, S.rear_screw_y)
-REAR_BOSS_D = 4.5  # M2
+REAR_BOSS_D = 4.5  # M2: the fan's rear gap (4.5) sets it; the column stands in the fan shim block, so the channel's sleeve is the block
 LAP = 1.2  # the rear wall's lip at the parting plane
 
 
@@ -391,7 +394,7 @@ def pan():
     for x, y, d in boss_points():
         p += teardrop_z(x, y, d / 2, -60.0, S.z_part, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
         seat = S.z_part + S.screw_engage - (S.screw_len if d == S.boss_d else 16.0)
-        p -= teardrop_z(x, y, d / 2 - 0.1, -60.0, seat, toward=1)  # the head and the driver, from the belly
+        p -= teardrop_z(x, y, d / 2 - (1.05 if d == S.boss_d else 0.1), -60.0, seat, toward=1)  # the head and the driver, from the belly; the front column keeps a 1.05 mm sleeve
         p -= teardrop_z(x, y, 1.4 if d == S.boss_d else 1.15, seat - 0.1, S.z_part + 0.1, toward=1)
     p += tongue()
     return p

@@ -60,3 +60,25 @@ The M3 types (hole Ø3.6, a 9.6 mm boss, the same flat) are no better. Use the s
 ### The flap is machined, not printed
 
 The disc's edge and its D-bore need ±0.05 mm; the vendors print to ±0.3 mm. The flap is a CNC part in `minimeat-cnc.zip` with the crank and the coupler, and the printed duct's bore at the flap station is reamed to size after printing (Ø31.6 +0.03/0, about 40 mm: an adjustable or fixed reamer in a drill press). Without the ream the gap swings from jammed to a 0.38 cm² leak (`tests/test_mech.py::test_flap_fit_needs_the_bore_reamed`).
+
+## JLC3DP's thin-wall heatmap (checked 2026-10-12)
+
+The upload page colours walls under 1.2 mm yellow and under 0.5 mm red. A first upload of `duct`, `hood` and `pan` lit up in several places. Each one was checked by casting a ray inward from 40,000 sample points on the surface of each part (the distance to the opposite face is the wall there) and clustering the thin ones; edge samples are noisy, so what follows is what the clusters and the geometry agree on.
+
+Fixed:
+
+- **The 0.2 mm web between the USB-C opening and the first jack's** (the one that was too thin): the two openings are now one cut (`shell.port_openings`). I made it by widening the USB-C opening to 13.2 mm; the web was my mistake.
+- **Louvre blades, 0.81 mm** (the 3.0 mm slots cut at 44° leave 5.3 × cos 44° - 3.0): slots 3.2 at a 6.2 mm vertical pitch, blades 1.26 mm, open area 1520 mm² (it was 1583; the test wants 1500). The louvre field is 4 mm taller so the last slot leaves no sliver.
+- **The seam, 0.8-1.0 mm**: the hood's outer skirt is the wall less the pan's tongue and 0.2 clearance. The shell wall is now 2.8 mm (seven perimeters) with a 1.3 mm tongue and rib, so the skirt is 1.3 mm. The envelope grows to 75.2 × 73.9.
+- **The rod's blind pocket** left a 0.6 mm skin under the duct; now 1.2 mm (the rod is 0.6 mm shorter, 42.4 mm).
+- **The shelf's rear edge**, a knife edge: a 1.2 mm vertical land now stops the lean.
+- **The front shell screw columns**: the head channel (Ø5.8) nearly equalled the column (Ø6), a 0.1 mm sleeve. The column is 6.7 mm with a Ø4.6 channel, a 1.05 mm sleeve. 6.7 is the most that works: bigger columns make the pan fail to tessellate in OpenCascade.
+
+Left, and why:
+
+- **Knife edges** where a 44° face or a fillet meets a surface (the teardrop tips of the servo bosses, the bay's 45° end wall and floor edge, louvre blade tips at the faces): they come with the supportless geometry. The flagged volume is small and a slicer or MJF handles them. Roughly 100 duct samples and the bay's end-wall clusters in the pan are of this kind.
+- **The rear screw columns** (M2, 4.5 mm): the fan's 4.5 mm rear gap fixes the width, and the column stands in the fan shim block. The sleeve there is thin on paper; check it in the first print.
+- **The eave and its drip lip** at about 1.0 mm.
+- **Around the ambient vents** (x -87 to -60) the seam skirt is 1.1 mm.
+
+All of it passes MJF PA12's 1.0 mm minimum; the ASA minimum is 1.2, and these leftovers would still be flagged for ASA. That is one more reason to order the shells in PA12-HP/PA12S-HP as well.

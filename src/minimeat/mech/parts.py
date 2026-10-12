@@ -106,7 +106,9 @@ def servo_shelf():
     s = box(SHELF_X0, SHELF_X1, SHELF_Y0, SHELF_Y1, z0, z1)
     s = s.fillet(3.0, s.edges().filter_by(Axis.Z).filter_by(lambda e: e.center().X > SHELF_X1 - 1))
     # faces toward -x hang in the print pose (flange down): the rear end and the cutout's front face lean 44 deg
-    s -= prism_xz([(SHELF_X0 - 0.1, z0 - 0.1), (SHELF_X0 - 0.1 + run, z0 - 0.1), (SHELF_X0 - 0.1, z1 + 0.1)], SHELF_Y0 - 1, SHELF_Y1 + 1)
+    land = 1.2  # the lean stops this far under the shelf's top: a land, not a knife edge
+    lean = (z1 - land - z0) * P.layout.slope + 0.02
+    s -= prism_xz([(SHELF_X0 - 0.1, z0 - 0.1), (SHELF_X0 - 0.1 + lean, z0 - 0.1), (SHELF_X0 - 0.1, z1 - land)], SHELF_Y0 - 1, SHELF_Y1 + 1)
     cut_x0 = G.SERVO_X_CENTRE - sv.body_l / 2 - 0.2
     cut_x1 = G.SERVO_X_CENTRE + sv.body_l / 2 + 0.2
     s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, z0 - 1, z1 + 1)
@@ -161,7 +163,7 @@ def duct():
     body -= xcone(br, sock_r() + 0.01, g.socket_x0 - (sock_r() - br) * k, g.socket_x0 + 0.01)  # the shoulder, 44 deg
     body -= xcone(sock_r(), sock_r() + c.lead_in, -c.lead_in, 0.0)  # lead-in chamfer at the mouth
     body -= xcyl(groove_r(), c.oring_x - 1.6, c.oring_x + 1.6)
-    body -= zcyl(1.7, -dr + 0.6, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom
+    body -= zcyl(1.7, -dr + 1.2, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom: a 1.2 mm skin
     body -= ycyl(2.8, BOSS_Y0 + 2.0, BOSS_Y1 + 0.1, c.boss_x, 0.0)  # M4 heat-set insert for the thumbscrew
     body -= ycyl(2.1, br - 0.5, BOSS_Y0 + 2.1, c.boss_x, 0.0)  # the screw reaches the tube
     for sy in (-1, 1):
