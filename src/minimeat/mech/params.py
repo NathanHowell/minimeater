@@ -22,10 +22,10 @@ class Fan:
     size: float = 60.0  # [spec]
     depth: float = 25.0  # [spec]
     hole_pitch: float = 50.0  # [spec]
-    hole_d: float = 4.3  # [est]
-    aperture_d: float = 57.0  # [est] open area of the frame at the outlet
-    hub_d: float = 24.0  # [est]
-    corner_r: float = 5.0  # [est]
+    hole_d: float = 4.3  # [spec] Noctua's public model
+    aperture_d: float = 58.0  # [spec] the frame's bore (the model's inner wall at r = 29)
+    hub_d: float = 26.5  # [spec] the motor plate's hub on the outlet face (r = 13.25 at 1 mm in)
+    corner_r: float = 4.0  # [spec] from the model's corner extent
 
 
 @dataclass(frozen=True)
@@ -224,7 +224,7 @@ class Params:
     linkage: Linkage = field(default_factory=Linkage)
     layout: Layout = field(default_factory=Layout)
     shell: Shell = field(default_factory=Shell)
-    cone_len: float = 26.0
+    cone_len: float = 27.0
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 
 
