@@ -10,7 +10,9 @@ use embassy_executor::Spawner;
 use embassy_time::{Duration, Instant, Ticker};
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
+use esp_hal::interrupt::Priority;
 use esp_hal::timer::timg::TimerGroup;
+use esp_rtos::embassy::InterruptExecutor;
 use log::info;
 use minimeat_app::config::{ConfigStore, Settings};
 use minimeat_app::food::Foods;
@@ -67,6 +69,13 @@ async fn main(spawner: Spawner) -> ! {
     // The application's tasks on the board, as the twin runs them on the simulated one: probes scan,
     // control runs the cook, actuators drive the fan and flap and watch the supply and the load switches
     // (a source under 1.5 A or a tripped switch is a fault with both loads off), slow does the fits.
+    // Those three run on an interrupt-mode executor, above this thread-mode one that carries slow, the
+    // network and the console: a fit (seconds of arithmetic that cannot yield) is preempted, so it cannot
+    // delay the 10 s control period or the supply watch.
+    static CONTROL_EXEC: StaticCell<InterruptExecutor<1>> = StaticCell::new();
+    let hi = CONTROL_EXEC
+        .init(InterruptExecutor::new(rest.sw_interrupt1))
+        .start(Priority::Priority1);
     let model = AirPath::default();
     static BUS: StaticCell<Bus> = StaticCell::new();
     let bus: &'static Bus = BUS.init(Bus::new());
@@ -75,21 +84,26 @@ async fn main(spawner: Spawner) -> ! {
     static FOODS: StaticCell<Foods> = StaticCell::new();
     let foods = FOODS.init_with(|| Foods::new(&settings.probes));
 
-    spawner.spawn(probes(io.probes, bus).expect("probes task"));
-    spawner.spawn(
-        actuators(
-            io.fan,
-            io.tach,
-            io.servo,
-            io.servo_power,
-            io.fan_power,
-            io.load_fault,
-            io.usb,
-            model.fan.s_min(),
-            model.fan.rpm_max,
+    hi.spawn(
+        run::hi_start(Handoff(Hi {
+            probes: io.probes,
+            ambient: io.ambient,
+            store,
+            settings,
+            pit,
+            foods,
+            fan: io.fan,
+            tach: io.tach,
+            servo: io.servo,
+            servo_power: io.servo_power,
+            fan_power: io.fan_power,
+            load_fault: io.load_fault,
+            usb: io.usb,
+            s_min: model.fan.s_min(),
+            rpm_max: model.fan.rpm_max,
             bus,
-        )
-        .expect("actuators task"),
+        }))
+        .expect("control executor task"),
     );
     spawner.spawn(slow(bus).expect("slow task"));
     static ID: StaticCell<heapless::String<12>> = StaticCell::new();
@@ -127,11 +141,36 @@ async fn main(spawner: Spawner) -> ! {
         )
         .expect("otlp task"),
     );
-    spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
     }
 }
+
+/// What the control executor's tasks own.
+struct Hi {
+    probes: <B as Board>::Probes,
+    ambient: <B as Board>::Ambient,
+    store: ConfigStore<<B as Board>::Config>,
+    settings: Settings,
+    pit: &'static mut Pit,
+    foods: &'static mut Foods,
+    fan: <B as Board>::Fan,
+    tach: <B as Board>::Tach,
+    servo: <B as Board>::Servo,
+    servo_power: <B as Board>::ServoPower,
+    fan_power: <B as Board>::FanPower,
+    load_fault: <B as Board>::LoadFault,
+    usb: <B as Board>::Usb,
+    s_min: f64,
+    rpm_max: f64,
+    bus: &'static Bus,
+}
+
+/// Moves the peripherals to the interrupt executor once.
+struct Handoff<T>(T);
+// SAFETY: there is one core, and nothing on the main thread touches the value after the hand-off; the interrupt
+// executor's three tasks are its only users, and they never preempt each other.
+unsafe impl<T> Send for Handoff<T> {}
 
 /// The application's tasks bound to the board. Their futures are large (the config store's 1.7 kB buffer, the
 /// pit) and built once in `main`'s frame before they live in the task pool; the tasks take their peripherals as
@@ -140,6 +179,32 @@ mod run {
     #![allow(clippy::large_stack_frames, clippy::too_many_arguments)]
 
     use super::*;
+
+    /// Starts the three tasks on the interrupt-mode executor it runs on. The drivers are `!Send` in esp-hal (they
+    /// are not for sharing between interrupt contexts); the spawner of the current executor takes them all the same.
+    #[embassy_executor::task]
+    pub async fn hi_start(h: Handoff<Hi>) {
+        // SAFETY: this task runs on the interrupt executor whose tasks it spawns
+        let spawner = unsafe { Spawner::for_current_executor() }.await;
+        let h = h.0;
+        spawner.spawn(probes(h.probes, h.bus).expect("probes task"));
+        spawner.spawn(
+            actuators(
+                h.fan,
+                h.tach,
+                h.servo,
+                h.servo_power,
+                h.fan_power,
+                h.load_fault,
+                h.usb,
+                h.s_min,
+                h.rpm_max,
+                h.bus,
+            )
+            .expect("actuators task"),
+        );
+        spawner.spawn(control(h.ambient, h.store, h.settings, h.pit, h.foods, h.bus).expect("control task"));
+    }
 
     #[embassy_executor::task]
     pub async fn control(
@@ -174,14 +239,14 @@ mod run {
         tasks::actuators::<B>(fan, tach, servo, power, fan_power, load_fault, usb, s_min, rpm_max, bus).await
     }
 
-    // The fits (autotune, airflow map) take long: they belong on a low-priority executor once a target
-    // run has measured them (budget: well under the 10 s control period); until then they share this one.
+    // The fits (autotune, airflow map) take long: they run on the thread-mode executor, which the
+    // interrupt-mode one above preempts.
     #[embassy_executor::task]
     pub async fn slow(bus: &'static Bus) {
         tasks::slow(bus).await
     }
 }
-use run::{actuators, control, probes, slow};
+use run::slow;
 
 /// A TCP connector with its own static buffers.
 macro_rules! tcp {

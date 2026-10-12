@@ -26,7 +26,7 @@ use esp_hal::ledc::channel::{self, ChannelIFace};
 use esp_hal::ledc::timer::{self, TimerIFace};
 use esp_hal::ledc::{LSGlobalClkSource, Ledc, LowSpeed};
 use esp_hal::pcnt::{Pcnt, channel::EdgeMode, unit::Unit};
-use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, USB_DEVICE, WIFI};
+use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, FROM_CPU_INTR1, GPIO0, GPIO1, Peripherals, TIMG0, USB_DEVICE, WIFI};
 use esp_hal::time::Rate;
 use esp_storage::FlashStorage;
 use minimeat_app::drivers::{ads122c04, ads122c04::Ads122c04, tmp117, tmp117::Tmp117, usb_cc};
@@ -72,6 +72,8 @@ impl Board for Esp {
 pub struct Rest {
     pub timg0: TIMG0<'static>,
     pub sw_interrupt: FROM_CPU_INTR0<'static>,
+    /// The control executor's software interrupt (`bin/main.rs`).
+    pub sw_interrupt1: FROM_CPU_INTR1<'static>,
     /// The USB Serial/JTAG port: console logs and Improv provisioning share it (`console.rs`).
     pub usb: USB_DEVICE<'static>,
     /// The radio (`net.rs`).
@@ -176,6 +178,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     let rest = Rest {
         timg0: p.TIMG0,
         sw_interrupt: p.FROM_CPU_INTR0,
+        sw_interrupt1: p.FROM_CPU_INTR1,
         usb: p.USB_DEVICE,
         wifi: p.WIFI,
     };
