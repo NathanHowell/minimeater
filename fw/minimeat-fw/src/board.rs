@@ -78,7 +78,9 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
 
     let i2c = I2c::new(
         p.I2C0,
-        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(400)),
+        // 100 kHz: the ATECC608B (ADR 0005) wakes on SDA held low 60 us, which a write to address 0 gives
+        // only at this speed; the ADC and the TMP117 need no more.
+        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(100)),
     )
     .expect("i2c config")
     .with_sda(p.GPIO22)

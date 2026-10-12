@@ -34,5 +34,6 @@ What the ESP32-C6 offers (ADR 0001):
 ## Consequences
 
 - **Parts:** one SOIC-8 on the I2C bus, with the shared pull-ups; nothing else. Power and ground decoupling only.
-- **Firmware:** a driver for the chip's command protocol (wake, CRC-16, Info, Random, GenKey, Sign, Read, Lock), a provisioning flow, and the TLS signing hook. The wake condition needs a short low pulse on SDA, so the driver and the I2C controller must be able to produce it.
+- **Firmware:** the driver is `minimeat-app::drivers::atecc608` (wake, CRC-16, Info, Read for the serial number and lock state, Random, GenKey, Nonce + Sign), tested on the host against a model of the chip; its CRC matches Microchip's published Info-command example. Still to do: writing and locking the configuration (the provisioning flow), and the TLS signing hook.
+- **Bus speed:** the chip wakes on SDA held low for at least 60 us, which the driver makes with a write to address 0x00; that is 80 us at 100 kHz but only 20 us at 400 kHz. The shared I2C bus therefore runs at 100 kHz (`board.rs`); the ADC and the TMP117 need no more.
 - **Docs:** the interface document lists the new part and address; the part list has the part number.

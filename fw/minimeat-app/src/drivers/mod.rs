@@ -2,6 +2,7 @@
 //! ESP32-C6 and are tested on the host. Each implements a [`crate::hal`] trait.
 
 pub mod ads122c04;
+pub mod atecc608;
 pub mod tmp117;
 pub mod usb_cc;
 
