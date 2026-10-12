@@ -31,6 +31,7 @@ cd fw && cargo test                    # firmware core, app and sim on the host
 cd fw && cargo run -p minimeat-fw --release   # build and flash over USB-C (ESP32-C6)
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
 just scenarios                         # the 17-scenario suite on the twin: bounds + baselines, PNG per run
+just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
 ```
 
 Work is tracked with [beads](https://github.com/gastownhall/beads): run `bd ready`.

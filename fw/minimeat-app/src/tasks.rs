@@ -215,7 +215,8 @@ impl Bus {
         self.config.lock(|c| c.borrow().clone())
     }
 
-    fn publish_config(&self, settings: &Settings) {
+    /// Publishes the settings for `~/config` and moves the revision readers wait on.
+    pub fn publish_config(&self, settings: &Settings) {
         self.config.lock(|c| *c.borrow_mut() = Some(settings.clone()));
         let rev = self.config_rev.try_get().unwrap_or(0).wrapping_add(1);
         self.config_rev.sender().send(rev);

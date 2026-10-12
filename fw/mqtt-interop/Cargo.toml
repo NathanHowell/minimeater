@@ -1,0 +1,25 @@
+[package]
+name         = "mqtt-interop"
+description  = "The MQTT client against a real broker (Mosquitto in a container) and an independent client (rumqttc). Its own workspace: it needs embassy-time's std driver, which would clash with the twin's."
+edition      = "2024"
+version      = "0.0.0"
+publish      = false
+
+# not a member of ../Cargo.toml
+[workspace]
+
+[dependencies]
+minimeat-app  = { path = "../minimeat-app" }
+minimeat-core = { path = "../minimeat-core", features = ["std"] }
+
+[dev-dependencies]
+embassy-futures       = "0.1.2"
+embassy-sync          = "0.7.2"
+embassy-time          = { version = "0.5.1", features = ["std", "generic-queue-64"] }
+embedded-io-adapters  = { version = "0.6", features = ["tokio-1"] }
+embedded-io-async     = "0.6.1"
+heapless              = "0.9.1"
+critical-section      = { version = "1.1", features = ["std"] }
+rumqttc               = { version = "0.25", default-features = false }
+serde_json            = "1"
+tokio                 = { version = "1", features = ["rt", "net", "time", "macros", "sync"] }
