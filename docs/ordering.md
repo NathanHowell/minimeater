@@ -35,7 +35,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 
 ### Tool you may need
 
-- **Ø31.6 mm reamer, +0.03/0, about 40 mm long.** The duct's bore at the flap station is reamed after printing; as printed (±0.3 mm) it would jam the flap or leak. You can instead ask a machine shop to ream the five ducts. See `docs/mech.md` and `docs/jlc3dp.md`.
+- **Ø31.6 mm reamer, +0.03/0, about 40 mm long.** The duct's bore at the flap station is reamed after printing; as printed (±0.3 mm) it would jam the flap or leak. Ø31.6 is not a stock size: the nearest catalogue items are an adjustable hand reamer from 31.5 mm up (Hoffmann 160600-31,5) and fixed H7 machine reamers at 31 and 32 mm. So either buy the adjustable reamer and set it to 31.6, have a machine shop bore or ream the five ducts (a boring head on a lathe or mill does it), or change the bore to a standard size (bead filed). See `docs/mech.md` and `docs/jlc3dp.md`.
 
 ## 3. Electronics, hand-soldered
 
