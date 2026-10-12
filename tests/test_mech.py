@@ -117,10 +117,10 @@ def test_the_flaps_rib_is_round_ended_not_square():
     assert f.is_inside((xf + dm.rib_w / 2 - 0.1, 0.0, 5.0))
 
 
-def test_the_two_sided_flap_variant_is_a_valid_solid(monkeypatch):
+def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
     from minimeat.mech.parts import flap
 
-    monkeypatch.setattr(type(P.damper), "rib_both_sides", True)  # the dataclass is frozen: patch the class default
+    monkeypatch.setattr(type(P.damper), "rib_both_sides", False)  # the dataclass is frozen: patch the class default
     f = flap()
     assert f.is_valid and len(f.solids()) == 1
     assert analysis.flap_leak_cm2() < 0.3

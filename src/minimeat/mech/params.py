@@ -114,7 +114,7 @@ class Damper:
     flap_t: float = 2.0  # machined (CNC, 304 or 6061), not printed
     rib_t: float = 4.0  # the rib that carries the rod bore: the open flap's main blockage
     rib_w: float = 5.0
-    rib_both_sides: bool = False  # True: the disc is centred on the rib (a bump each side, two machining setups); False: the disc is flush with the rib's bottom (one side machined from plate)
+    rib_both_sides: bool = True  # the disc is centred on the rib (a 1 mm bump each side; JLCCNC quoted it $21.90 against $21.34 for one side); False: the disc is flush with the rib's bottom (one side machined from plate)
     rib_round: float = 2.0  # the rib's ends along the flow are rounded to this radius (half the rib's thickness: a stadium section), not square
     bore_clear: float = 0.03  # diametral, the D-bore on the rod's flat: a retaining-compound fit (a machined part; the printed one was 0.05)
     flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
