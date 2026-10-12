@@ -1,0 +1,21 @@
+{
+  "board": {
+    "design_settings": {
+      "rules": {
+        "min_clearance": 0.127,
+        "min_hole_to_hole": 0.5,
+        "min_through_hole_diameter": 0.3,
+        "min_track_width": 0.127,
+        "min_via_diameter": 0.6
+      }
+    }
+  },
+  "meta": {
+    "filename": "minimeat.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  }
+}
