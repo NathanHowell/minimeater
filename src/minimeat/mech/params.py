@@ -30,23 +30,25 @@ class Fan:
 
 @dataclass(frozen=True)
 class Servo:
-    """Hitec HS-5065MG (.2.9), the pick over the MG90S class: metal gears, digital, same mounting. It stands
+    """Hitec HS-5065MG (.2.9), the pick over the MG90S class: metal gears, digital. Dimensions from Hitec's drawing
+    (HS-5065MG-Servo-Specs, hitecrcd.com product page). It stands
     beside the duct on the +y side, output face up, long axis along the flow."""
 
-    body_l: float = 23.4  # [spec] long axis
-    body_w: float = 11.4  # [spec]
-    tab_l: float = 32.5  # [est] over both mounting tabs (MG90S value; same tab pattern class)
-    tab_t: float = 2.5  # [est]
-    tab_hole_pitch: float = 27.9  # [est]
-    tab_hole_d: float = 2.0  # [est]
-    body_h: float = 23.9  # [spec] case height, taken as back face to output face
+    body_l: float = 23.6  # [spec] Hitec drawing: long axis
+    body_w: float = 11.6  # [spec]
+    tab_l: float = 32.3  # [spec] over both mounting flanges
+    tab_t: float = 2.0  # [spec]
+    tab_hole_pitch: float = 27.0  # [spec] 19.2 on one side of the output axis, 7.8 on the other (three holes in the long
+    # end's column and two in the short end's, Ø2.0; the model drills one at the axis line of each end)
+    tab_hole_d: float = 2.0  # [spec]
+    body_h: float = 20.0  # [spec] back face to the case top; the gear housing and spline stand on it
     lead_w: float = 4.0  # [est] the cable leaves the body's end opposite the output
-    tab_to_face: float = 4.1  # [est] tab's output-side face to the output face
-    shaft_off: float = 6.0  # [est] output axis from the body end, along the long axis
-    boss_d: float = 11.8  # [est] gear housing around the output
-    boss_h: float = 2.5  # [est]
-    spline_d: float = 4.8  # [spec]
-    spline_h: float = 4.0  # [est]
+    tab_to_face: float = 1.0  # [spec] case top to the flange's top face (flange underside 17.0, top 19.0)
+    shaft_off: float = 5.9  # [spec] output axis from the short end of the body (the drawing's 19.2 is to the far holes)
+    boss_d: float = 11.6  # [spec] gear housing, as wide as the case; it is a lobe 15 mm long, drawn here as a cylinder
+    boss_h: float = 6.0  # [spec] housing top 26.0 above the back face
+    spline_d: float = 4.8  # [est] 24T output (Hitec); third parties give 5.0 for the 25T clone, measure on the first servo
+    spline_h: float = 4.0  # [spec] spline top 30.0 above the back face
     horn_hub_d: float = 7.0  # [est] single-arm horn: hub, arm, and a hole at Linkage.arm_r
     horn_hub_h: float = 4.0
     horn_arm_w: float = 5.0
