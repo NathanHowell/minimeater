@@ -478,7 +478,14 @@ fn limits_and_errors_use_the_documented_codes() {
         "24 bytes of UTF-8"
     );
     assert_eq!(err("set/probe/0/type", "k_type"), ErrorCode::BadPayload);
-    assert_eq!(err("set/probe/0/type", "custom"), ErrorCode::BadPayload);
+    // `custom` parses (the HA select offers it); applying it needs coefficients already set
+    assert_eq!(
+        ok("set/probe/0/type", "custom"),
+        Request::Probe {
+            n: 0,
+            change: ProbeChange::KeepCustom
+        }
+    );
     assert_eq!(err("set/probe/0/offset", "10.5"), ErrorCode::OutOfRange);
     assert_eq!(err("set/probe/0/hi", "701"), ErrorCode::OutOfRange);
     assert_eq!(err("set/probe/0/lo", "-5"), ErrorCode::OutOfRange);
@@ -534,4 +541,205 @@ fn error_details_say_what_was_wrong_and_fit() {
     assert_eq!(e.detail.as_str(), "sp 400 outside 150..325");
     let e = proto::Error::new(ErrorCode::BadPayload, &"x".repeat(200));
     assert_eq!(e.detail.len(), 48, "a long detail is cut");
+}
+
+// ------------------------------------------------------------------ Home Assistant discovery
+
+fn discovery() -> (String, Value) {
+    let d = proto::Device {
+        prefix: "minimeat",
+        id: "mm-a1b2c3",
+        sw: "0.1.0",
+        hw: "A",
+    };
+    let text = proto::render::<24576>(|j| proto::discovery(j, &d, ["Pit", "Brisket", "Probe 3", "Probe 4"]))
+        .expect("fits 24 KB");
+    let v: Value = serde_json::from_str(&text).expect("valid JSON");
+    (text.as_str().to_string(), v)
+}
+
+#[test]
+fn discovery_matches_the_docs_excerpt() {
+    let (text, got) = discovery();
+    println!("discovery message: {} bytes", text.len());
+    let doc = doc_example("cmps");
+    // the device-level fields are the doc's, exactly
+    for k in ["dev", "o", "avty_t", "stat_t", "qos"] {
+        same(&got[k], &doc[k], k);
+    }
+    // and the three components it excerpts
+    for k in ["pit", "probe1", "events"] {
+        same(&got["cmps"][k], &doc["cmps"][k], k);
+    }
+}
+
+#[test]
+fn every_entity_is_unique_and_named() {
+    let (_, v) = discovery();
+    let cmps = v["cmps"].as_object().unwrap();
+    assert!(cmps.len() >= 60, "{} components", cmps.len());
+    let mut ids = std::collections::BTreeSet::new();
+    for (key, c) in cmps {
+        assert_eq!(c["uniq_id"], format!("mm-a1b2c3_{key}"), "{key}");
+        assert!(
+            ids.insert(c["uniq_id"].as_str().unwrap().to_string()),
+            "{key}: duplicate unique_id"
+        );
+        assert!(
+            c["p"].is_string() && c["name"].as_str().is_some_and(|n| !n.is_empty()),
+            "{key}"
+        );
+    }
+    // every platform the doc's table lists is there
+    for p in [
+        "climate",
+        "sensor",
+        "binary_sensor",
+        "select",
+        "text",
+        "number",
+        "switch",
+        "button",
+        "event",
+    ] {
+        assert!(cmps.values().any(|c| c["p"] == p), "no {p}");
+    }
+    // probe entities follow the probe names
+    assert_eq!(cmps["probe1"]["name"], "Brisket");
+    assert_eq!(cmps["probe1_eta"]["name"], "Brisket ETA");
+    assert_eq!(cmps["probe3_hi"]["name"], "Probe 4 high limit");
+    assert_eq!(cmps["probe3_name"]["name"], "Probe 4 name");
+}
+
+#[test]
+fn every_command_an_entity_sends_is_accepted_by_the_parser() {
+    let (_, v) = discovery();
+    let suffix = |topic: &str| {
+        topic
+            .strip_prefix("minimeat/mm-a1b2c3/")
+            .unwrap_or_else(|| panic!("{topic}"))
+            .to_string()
+    };
+    let accepts = |topic: &str, payload: &str, what: &str| {
+        proto::parse(&suffix(topic), payload.as_bytes(), false)
+            .unwrap_or_else(|e| panic!("{what}: {topic} <- {payload:?}: {e:?}"));
+    };
+    for (key, c) in v["cmps"].as_object().unwrap() {
+        match c["p"].as_str().unwrap() {
+            "select" => {
+                for o in c["ops"].as_array().unwrap() {
+                    accepts(c["cmd_t"].as_str().unwrap(), o.as_str().unwrap(), key);
+                }
+            }
+            "number" => {
+                let t = c["cmd_t"].as_str().unwrap();
+                for b in ["min", "max"] {
+                    accepts(t, &format!("{}", c[b].as_f64().unwrap()), key);
+                }
+            }
+            "text" => accepts(c["cmd_t"].as_str().unwrap(), "x", key),
+            "switch" => {
+                accepts(c["cmd_t"].as_str().unwrap(), "ON", key);
+                accepts(c["cmd_t"].as_str().unwrap(), "OFF", key);
+            }
+            "button" => accepts(c["cmd_t"].as_str().unwrap(), c["pl_prs"].as_str().unwrap(), key),
+            "climate" => {
+                accepts(c["mode_cmd_t"].as_str().unwrap(), "run", key);
+                accepts(c["mode_cmd_t"].as_str().unwrap(), "off", key);
+                for t in [c["min_temp"].as_f64().unwrap(), c["max_temp"].as_f64().unwrap()] {
+                    accepts(c["temp_cmd_t"].as_str().unwrap(), &format!("{t:.1}"), key);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// `value_json.a.b[2].c` paths in a template.
+fn paths(tpl: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut rest = tpl;
+    while let Some(i) = rest.find("value_json.") {
+        rest = &rest[i + "value_json.".len()..];
+        let end = rest
+            .find(|c: char| !(c.is_alphanumeric() || "._[]".contains(c)))
+            .unwrap_or(rest.len());
+        out.push(rest[..end].to_string());
+        rest = &rest[end..];
+    }
+    out
+}
+
+fn resolve(root: &Value, path: &str) -> bool {
+    let mut v = root;
+    for seg in path.split('.') {
+        let (name, idx) = match seg.split_once('[') {
+            Some((n, i)) => (n, Some(i.trim_end_matches(']').parse::<usize>().unwrap())),
+            None => (seg, None),
+        };
+        if v.is_null() {
+            return true; // guarded by an `is not none` in the template
+        }
+        let Some(next) = v.get(name) else { return false };
+        v = next;
+        if let Some(i) = idx {
+            let Some(next) = v.get(i) else { return false };
+            v = next;
+        }
+    }
+    true
+}
+
+#[test]
+fn every_template_reads_a_field_the_device_publishes() {
+    let (_, v) = discovery();
+    let state = write(|j| proto::state(j, &status(), Some(-61)));
+    let config = write(|j| proto::config(j, &doc_settings()));
+    for (key, c) in v["cmps"].as_object().unwrap() {
+        // settings read ~/config, the rest ~/state
+        let from_config = c["stat_t"].as_str().is_some_and(|t| t.ends_with("/config"));
+        let root = if from_config { &config } else { &state };
+        for field in ["val_tpl", "mode_stat_tpl", "temp_stat_tpl", "curr_temp_tpl", "act_tpl"] {
+            let Some(tpl) = c[field].as_str() else { continue };
+            for p in paths(tpl) {
+                assert!(
+                    resolve(root, &p),
+                    "{key}.{field}: `{p}` is not in {}",
+                    if from_config { "~/config" } else { "~/state" }
+                );
+            }
+        }
+        // ... and the topics it reads are ones the device publishes
+        for t in ["stat_t", "mode_stat_t", "temp_stat_t", "curr_temp_t", "act_t"] {
+            if let Some(t) = c[t].as_str() {
+                assert!(
+                    [
+                        "minimeat/mm-a1b2c3/state",
+                        "minimeat/mm-a1b2c3/config",
+                        "minimeat/mm-a1b2c3/event"
+                    ]
+                    .contains(&t),
+                    "{key}: {t}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn discovery_escapes_probe_names() {
+    let d = proto::Device {
+        prefix: "minimeat",
+        id: "mm-000001",
+        sw: "0.1.0",
+        hw: "A",
+    };
+    let text = proto::render::<24576>(|j| proto::discovery(j, &d, ["Pit \"A\"", "Ribs\\x", "é☃", "Probe 4"])).unwrap();
+    let v: Value = serde_json::from_str(&text).expect("valid JSON");
+    assert_eq!(v["cmps"]["probe0"]["name"], "Pit \"A\"");
+    assert_eq!(v["cmps"]["probe1_eta"]["name"], "Ribs\\x ETA");
+    assert_eq!(v["cmps"]["probe2"]["name"], "é☃");
+    let mut topic = heapless::String::<64>::new();
+    proto::discovery::topic(&mut topic, &d).unwrap();
+    assert_eq!(topic.as_str(), "homeassistant/device/mm-000001/config");
 }

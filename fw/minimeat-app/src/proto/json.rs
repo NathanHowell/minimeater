@@ -97,6 +97,11 @@ impl<W: Write> Json<W> {
 
     fn string_raw(&mut self, s: &str) {
         self.put("\"");
+        self.escaped(s);
+        self.put("\"");
+    }
+
+    fn escaped(&mut self, s: &str) {
         for c in s.chars() {
             match c {
                 '"' => self.put("\\\""),
@@ -111,7 +116,6 @@ impl<W: Write> Json<W> {
                 }
             }
         }
-        self.put("\"");
     }
 
     // ---- values (as an array element, or after `key`)
@@ -119,6 +123,22 @@ impl<W: Write> Json<W> {
     pub fn str(&mut self, s: &str) -> &mut Self {
         self.sep_value();
         self.string_raw(s);
+        self
+    }
+
+    /// A string built from format arguments, escaped as it is written (no intermediate buffer).
+    pub fn strf(&mut self, args: core::fmt::Arguments) -> &mut Self {
+        struct Esc<'a, W: Write>(&'a mut Json<W>);
+        impl<W: Write> Write for Esc<'_, W> {
+            fn write_str(&mut self, s: &str) -> core::fmt::Result {
+                self.0.escaped(s);
+                Ok(())
+            }
+        }
+        self.sep_value();
+        self.put("\"");
+        let _ = Esc(self).write_fmt(args);
+        self.put("\"");
         self
     }
 
@@ -212,6 +232,16 @@ mod tests {
         });
         assert_eq!(out, r#"{"v":1,"a":[1,2.0,null,{"x":true}],"o":{},"s":"hi"}"#);
         serde_json::from_str::<serde_json::Value>(&out).expect("valid JSON");
+    }
+
+    #[test]
+    fn formatted_strings_are_escaped_too() {
+        let out = json(|j| {
+            j.begin_arr();
+            j.strf(format_args!("{}/{}", "mm-1", "set\"x"));
+            j.end_arr();
+        });
+        assert_eq!(out, r#"["mm-1/set\"x"]"#);
     }
 
     #[test]

@@ -31,6 +31,8 @@ fn messages_change_the_cook_and_every_state_fits_its_buffer() {
             "set/probe/3/coeffs",
             r#"{"a":7.3431e-4,"b":2.1574e-4,"c":9.5157e-8}"#,
         ),
+        msg(115.0, 18, "set/probe/3/type", "custom"),
+        msg(120.0, 19, "set/probe/0/type", "custom"),
         msg(7200.0, 12, "set/mode", "off"),
         msg(7201.0, 13, "cmd/autotune", ""),
         msg(7202.0, 14, "set/mode", "manual"),
@@ -55,6 +57,8 @@ fn messages_change_the_cook_and_every_state_fits_its_buffer() {
     assert_eq!(code(5), ErrorCode::BadPayload, "a reboot needs its guard word");
     assert_eq!(code(13), ErrorCode::NotAllowed, "autotune in off mode");
     assert_eq!(code(16), ErrorCode::Unknown);
+    assert!(reply(18).is_ok(), "custom on a probe that has coefficients");
+    assert_eq!(code(19), ErrorCode::NotAllowed, "custom without coefficients");
 
     // `~/config` went out at boot and after the accepted changes, and carries them
     let last = |t: f64| r.configs.iter().rev().find(|(at, _)| *at <= t).map(|(_, c)| c).unwrap();

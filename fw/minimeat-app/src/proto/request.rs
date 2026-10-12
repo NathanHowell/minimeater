@@ -18,6 +18,9 @@ use crate::pit::{Command, SP_MAX_F, SP_MIN_F};
 pub enum ProbeChange {
     Name(String<24>),
     Kind(ProbeKind),
+    /// `type` set to `custom`: allowed only for a probe that already has coefficients (the select in
+    /// Home Assistant shows `custom` as an option; the curve itself comes from `coeffs`).
+    KeepCustom,
     Offset(f64),
     /// Low alarm limit, `None` to disable.
     Lo(Option<f64>),
@@ -198,7 +201,7 @@ fn probe(rest: &str, text: &str) -> Parsed {
             )
         }
         "type" => match text {
-            "custom" => return Err(bad("send probe/<n>/coeffs to make a custom curve")),
+            "custom" => ProbeChange::KeepCustom,
             t => ProbeChange::Kind(ProbeKind::Preset(
                 Preset::from_name(t).ok_or_else(|| bad("expected thermoworks_pro, maverick_et732, generic_b3950"))?,
             )),

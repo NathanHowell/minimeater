@@ -199,7 +199,7 @@ The current value of every setting. It is the same set the device stores in flas
 | `manual_flap` | number | 0-100 | takes effect only in `manual` mode |
 | `manual_fan` | number | 0-100 | takes effect only in `manual` mode |
 | `probe/<n>/name` | text | 1-24 UTF-8 bytes | republishes discovery |
-| `probe/<n>/type` | `thermoworks_pro` \| `maverick_et732` \| `generic_b3950` \| `custom` | | presets from `probes.py` |
+| `probe/<n>/type` | `thermoworks_pro` \| `maverick_et732` \| `generic_b3950` \| `custom` | | presets from `probes.py`. `custom` is accepted only for a probe that already has coefficients (`not_allowed` otherwise) |
 | `probe/<n>/coeffs` | `{"a":..,"b":..,"c":..}` | the curve must be monotonic and give 20 Ω-50 MΩ over -20 to 700F | Steinhart-Hart. Setting it switches `type` to `custom` |
 | `probe/<n>/offset` | number | ±10 | °F, added after conversion |
 | `probe/<n>/lo`, `probe/<n>/hi` | number, or `0`/`off` to disable | 0-700 | 5F hysteresis; `hi` is also the food target for `eta` |
@@ -322,4 +322,4 @@ Excerpt, using HA's abbreviated keys:
 }
 ```
 
-**Sizing:** the full discovery message is about 10-12 KB. The MQTT TX buffer must hold it, or the client must stream the publish body. Everything else fits in 2 KB.
+**Sizing:** the full discovery message is about 16 KB (64 components). The MQTT TX buffer must hold it, or the client must stream the publish body. Everything else fits in 2 KB.

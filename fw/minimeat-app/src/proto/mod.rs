@@ -2,6 +2,7 @@
 //! ([`state`], [`config`], [`event`]) and how it reads what it is sent ([`request::parse`]). No
 //! transport here: the client (`.5.2`) and Home Assistant discovery (`.5.3`) sit on top.
 
+pub mod discovery;
 pub mod events;
 pub mod json;
 pub mod names;
@@ -18,6 +19,7 @@ pub fn render<const N: usize>(f: impl FnOnce(&mut Json<String<N>>)) -> Option<St
     j.finish().ok()
 }
 
+pub use discovery::{Device, discovery};
 pub use events::{BootReason, boot, event, rejected};
 pub use json::Json;
 pub use request::{Error, ErrorCode, ProbeChange, Request, parse};

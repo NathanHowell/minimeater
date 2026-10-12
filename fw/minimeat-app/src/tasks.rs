@@ -33,7 +33,7 @@ use minimeat_core::model::airflow::{Actuation, AirPath, AirflowMap};
 use minimeat_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
-use crate::config::{ConfigStore, Cook, Mode, Settings};
+use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
 use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
 use crate::food::Foods;
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach};
@@ -256,6 +256,11 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             match change {
                 ProbeChange::Name(name) => p.name = name,
                 ProbeChange::Kind(kind) => p.kind = kind,
+                ProbeChange::KeepCustom => {
+                    if !matches!(p.kind, ProbeKind::Custom(_)) {
+                        return Err(Error::new(ErrorCode::NotAllowed, "send probe/<n>/coeffs first"));
+                    }
+                }
                 ProbeChange::Offset(o) => p.offset_f = o,
                 ProbeChange::Lo(l) => p.lo_f = l,
                 ProbeChange::Hi(h) => p.hi_f = h,
