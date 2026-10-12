@@ -20,3 +20,16 @@ def test_series_resistor_inside_the_bias_node_is_wrong():
 def test_plug_in_settles_within_a_conversion():
     for p in PROBES:
         assert F.settle_f("bias_at_tip", p, 225)[0] < 0.05
+
+
+def test_hot_plug_stays_inside_the_6v_limit_with_a_normal_cable():
+    from minimeat.sim import power as W
+
+    assert W.hotplug(W.HotPlug(1e-6, 0.2, "derated"))["vbus_f_peak"] < 5.5
+    assert W.hotplug(W.HotPlug(1e-6, 0.05, "derated"))["vbus_f_peak"] < 6.0
+
+
+def test_servo_inrush_keeps_the_rail_up():
+    from minimeat.sim import power as W
+
+    assert W.inrush(110e-6, 0.6, 0.5, 0.3)["vin_min"] > 4.0
