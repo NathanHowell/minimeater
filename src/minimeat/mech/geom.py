@@ -35,7 +35,8 @@ BELLY_Z = FLOOR_Z - P.shell.wall
 PCB_Z0 = FLOOR_Z + P.pcb.bottom_h
 PCB_Z1 = PCB_Z0 + P.pcb.t
 PCB_Y0 = -P.pcb.y_len / 2  # the connector edge
-PORT_WALL_Y = PCB_Y0 - P.pcb.edge_gap  # inner face of the port wall
+PCB_EDGE_Y = PCB_Y0 + P.pcb.edge_trim  # the board's actual connector edge
+PORT_WALL_Y = PCB_EDGE_Y - P.pcb.edge_gap  # inner face of the port wall: the connectors reach into it
 
 # the linkage plane over the duct's crown, bottom up
 L = P.linkage

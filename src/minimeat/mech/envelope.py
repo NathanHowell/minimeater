@@ -13,12 +13,13 @@ from .params import P
 def envelope():
     p = P.pcb
     return {
-        "outline": {"x": p.x_len, "y": p.y_len, "corner_r": p.corner_r, "thickness": p.t},
+        "outline": {"x": p.x_len, "y": p.y_len - p.edge_trim, "corner_r": p.corner_r, "thickness": p.t,
+                    "note": "the -y edge corners are square; the sheet frame is the untrimmed 54 mm (edge_trim is cut from the -y edge)"},
         "holes": [{"x": x, "y": y, "d": p.hole_d} for x, y in p.holes],
         "edge_connectors": {
             "edge": "-y",
-            "usb-c": {"x": p.usb_x, "w": p.usb_w, "h": p.usb_h, "wall_opening": [p.usb_open_w, p.usb_open_h]},
-            "jacks-2.5mm": [{"x": x, "w": p.jack_w, "h": p.jack_h, "wall_hole_d": p.jack_hole_d} for x in p.jack_xs],
+            "usb-c": {"x": p.usb_x, "w": p.usb_w, "h": p.usb_h, "wall_opening": [p.usb_open_w, p.usb_open_h], "mouth_past_edge": p.edge_trim - p.usb_face},
+            "jacks-2.5mm": [{"x": x, "w": p.jack_w, "h": p.jack_h, "wall_hole_d": p.jack_hole_d, "wall_opening_w": p.jack_open_w, "front_past_edge": p.edge_trim - p.jack_face} for x in p.jack_xs],
             "face_to_wall_inner": p.edge_gap,
             "wall_thickness": P.shell.bay_wall_t,
         },

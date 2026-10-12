@@ -199,8 +199,9 @@ PCB_XC = (g.board_x0 + g.board_x1) / 2
 
 
 def port_openings():
-    """The USB-C opening and the four jack holes through the port wall, on the board's connector axes. The jack
-    holes are teardrops pointed +x: they print standing on the rear face."""
+    """The USB-C opening and the four jack openings through the port wall, on the board's connector axes: the
+    plug's round hole, which the jack's housing, standing in the wall, widens to a rectangle. The jack holes are
+    teardrops pointed +x: they print standing on the rear face."""
     p = P.pcb
     y0, y1 = PORT_FACE_Y - 1.0, G.PORT_WALL_Y + 1.0
     zu = G.PCB_Z1 + p.usb_h / 2
@@ -212,6 +213,8 @@ def port_openings():
     for jx in p.jack_xs:
         x = PCB_XC + jx
         cut += ycyl(r, y0, y1, x, zj) + prism_xz([(x + k, zj - k), (x + k * (1 + KS), zj), (x + k, zj + k)], y0, y1)
+        z0, z1 = p.jack_open_z
+        cut += box(x - p.jack_open_w / 2, x + p.jack_open_w / 2, y0, y1, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
     return cut
 
 

@@ -41,7 +41,7 @@ def bought(flap_deg=0.0):
             "coupler": coupler_shift(flap_deg) * MACHINED["coupler"](),
             "pin_crank": about_shaft(pin_c, flap_deg), "pin_horn": about_servo(pin_h, flap_deg),
             "rod": about_shaft(mock.rod(), flap_deg), "tube": mock.tube(), "oring": mock.oring(),
-            "pcb": pcb, "pcb_keepout": keepout, "plugs": mock.plugs()}
+            "pcb": pcb, "pcb_keepout": keepout, "connectors": mock.connectors(), "plugs": mock.plugs()}
 
 
 def overlap(a, b):

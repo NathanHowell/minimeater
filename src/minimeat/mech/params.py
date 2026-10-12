@@ -71,7 +71,11 @@ class Pcb:
     top_h: float = 11.0  # [est] tallest part above the board (headers; the jacks are 3.2, the module 3.2)
     bottom_h: float = 2.5  # [est] through-hole lead clearance: the standoff height
     corner_r: float = 2.0
-    edge_gap: float = 0.1  # connector faces (the board's -y edge) to the port wall's inner face
+    edge_trim: float = 1.75  # the board's connector edge is trimmed this far back from the frame's -y edge (hw/tools/connector_edge.py)
+    # so the connectors reach into the port wall: the jacks' fronts are 0.1 mm inside the frame's edge, the USB-C's mouth 0.95
+    jack_face: float = 0.1
+    usb_face: float = 0.95
+    edge_gap: float = 0.1  # the trimmed board edge to the port wall's inner face
     # connectors on the -y edge, centre x in the board frame (0 = board centre, +x toward the egg)
     usb_x: float = -17.3
     usb_w: float = 9.4  # [spec] GCT USB4105-GF-A receptacle shell
@@ -81,8 +85,10 @@ class Pcb:
     jack_h: float = 3.2  # [spec] body height; the plug axis is taken at half that above the board
     jack_hole_d: float = 5.0  # [est] the plug's barrel and the jack's entry; the overmold stays outside the wall
     plug_d: float = 8.0  # [est] probe plug overmold
-    usb_open_w: float = 12.4  # [est] USB-C overmold passes the 2.4 mm wall to reach the receptacle
-    usb_open_h: float = 6.8
+    usb_open_w: float = 13.2  # [est] USB-C overmold (spec maximum 12.35 x 6.5; cables run larger) passes the wall to reach the receptacle; the widest the jack beside it allows
+    usb_open_h: float = 7.4
+    jack_open_w: float = 5.4  # the jack's housing (5.0 wide, 3.15 tall plus a 0.45 tab, axis 1.6 above the board) stands in the wall
+    jack_open_z: tuple[float, float] = (-0.2, 3.8)  # above the board's top face
     # the status LED and the button on the +y edge (the side away from the ports), both facing +y
     led_x: float = 15.0  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
     btn_x: float = 14.3  # ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open

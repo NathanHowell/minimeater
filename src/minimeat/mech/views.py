@@ -13,7 +13,7 @@ from .render import render
 
 COLOURS = {"duct": "#9aa6b2", "flap": "#d9822b", "crank": "#b8b8c0", "coupler": "#bcbcc4", "fan": "#333333",
            "servo": "#2c4a8a", "horn": "#eeeeee", "pin_crank": "#dddddd", "pin_horn": "#dddddd", "rod": "#cccccc",
-           "tube": "#c9c9c9", "oring": "#111111", "pcb": "#1f7a3a", "pcb_keepout": "#7fbf8f", "plugs": "#1a1a1a",
+           "tube": "#c9c9c9", "oring": "#111111", "pcb": "#1f7a3a", "pcb_keepout": "#7fbf8f", "connectors": "#2b2b2b", "plugs": "#1a1a1a",
            "hood": "#2f6b45", "pan": "#444444"}
 NAMES = ["exterior.png", "underside.png", "rear.png", "section_axis.png", "section_across.png", "chassis.png", "plate.png"]
 

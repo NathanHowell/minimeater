@@ -52,13 +52,29 @@ def test_ports_line_up_with_the_board(shells):
     p = P.pcb
     pan = shells["pan"]
     for jx in p.jack_xs:
-        probe = ycyl(p.jack_hole_d / 2 - 0.1, K.PORT_FACE_Y - 3.0, G.PORT_WALL_Y + 0.05, K.PCB_XC + jx, G.PCB_Z1 + p.jack_h / 2)
+        # the plug's barrel reaches the jack's front, past the wall's inner face
+        probe = ycyl(p.jack_hole_d / 2 - 0.1, K.PORT_FACE_Y - 3.0, G.PCB_Y0 + p.jack_face + 0.1, K.PCB_XC + jx, G.PCB_Z1 + p.jack_h / 2)
         assert A.overlap(probe, pan) < 0.5
+        # and the jack's housing stands in the wall through its opening
+        housing = box(K.PCB_XC + jx - p.jack_w / 2, K.PCB_XC + jx + p.jack_w / 2, G.PCB_Y0 + p.jack_face, G.PORT_WALL_Y + 0.05,
+                      G.PCB_Z1, G.PCB_Z1 + p.jack_h)
+        assert A.overlap(housing, pan) < 0.5
     zu = G.PCB_Z1 + p.usb_h / 2
     probe = box(K.PCB_XC + p.usb_x - p.usb_open_w / 2 + 1.6, K.PCB_XC + p.usb_x + p.usb_open_w / 2 - 1.6,
-                K.PORT_FACE_Y - 3.0, G.PORT_WALL_Y + 0.05, zu - p.usb_open_h / 2 + 0.1, zu + p.usb_open_h / 2 - 0.1)
+                K.PORT_FACE_Y - 3.0, G.PCB_Y0 + p.usb_face + 0.1, zu - p.usb_open_h / 2 + 0.1, zu + p.usb_open_h / 2 - 0.1)
     assert A.overlap(probe, pan) < 0.5
     assert K.BAY_X0 < K.PCB_XC + p.usb_x - p.usb_open_w / 2 and K.PCB_XC + p.jack_xs[-1] + p.plug_d / 2 < K.BAY_X1
+
+
+def test_connectors_reach_into_the_wall():
+    """The jacks' fronts and the USB-C's mouth are past the trimmed board edge and inside the wall's thickness, with
+    the plug's travel from the wall's outer face short."""
+    p = P.pcb
+    assert G.PORT_WALL_Y == G.PCB_Y0 + p.edge_trim - p.edge_gap
+    for face in (p.jack_face, p.usb_face):
+        y = G.PCB_Y0 + face
+        assert K.PORT_FACE_Y < y < G.PORT_WALL_Y  # inside the wall
+    assert G.PCB_Y0 + p.jack_face - K.PORT_FACE_Y <= 1.0  # the plug's barrel travels at most this far past the outer face to the jack
 
 
 def test_bay_is_under_the_eave_and_drains(shells):
