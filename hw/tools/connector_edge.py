@@ -1,9 +1,9 @@
 """The connectors reach into the enclosure's port wall: `connector_edge.py <in> <out>`.
 
-The jacks' fronts are 0.1 mm inside the board's connector edge (y = 0) and the USB-C's mouth 0.95 mm, with a 2.4 mm wall
+The jacks' fronts are 0.1 mm inside the board's connector edge (y = 0) and the USB-C's shell front 0.6 mm, with a 2.4 mm wall
 to pass, and the strip in front of the pads is empty (nearest copper: the jacks' pads 2.25 mm from the edge, the USB-C's
 shield tabs 2.305 mm). So the connector edge is trimmed back to y = 1.75, 0.5 mm (the board's edge-clearance rule) from
-the nearest copper (once the jacks' pads are the datasheet's 1.8 x 1.5, not 1.8 x 1.8: 2.4 mm from the edge): the jacks hang 1.65 mm past it and the USB-C 0.8 mm, into the port wall, whose inner face moves in with
+the nearest copper (once the jacks' pads are the datasheet's 1.8 x 1.5, not 1.8 x 1.8: 2.4 mm from the edge): the jacks hang 1.65 mm past it and the USB-C 1.15 mm, into the port wall, whose inner face moves in with
 the edge (`Pcb.edge_trim` in the mechanical model). The two corners on that edge are square: a rounded one would come
 within 0.15 mm of the USB-C's tab or the last jack's pad. The pours refill.
 """

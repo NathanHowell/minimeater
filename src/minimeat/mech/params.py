@@ -72,9 +72,9 @@ class Pcb:
     bottom_h: float = 2.5  # [est] through-hole lead clearance: the standoff height
     corner_r: float = 2.0
     edge_trim: float = 1.75  # the board's connector edge is trimmed this far back from the frame's -y edge (hw/tools/connector_edge.py)
-    # so the connectors reach into the port wall: the jacks' fronts are 0.1 mm inside the frame's edge, the USB-C's mouth 0.95
+    # so the connectors reach into the port wall: the jacks' fronts are 0.1 mm inside the frame's edge, the USB-C's shell front 0.6
     jack_face: float = 0.1
-    usb_face: float = 0.95
+    usb_face: float = 0.6  # the metal shell's front (the plastic housing is at 0.95)
     edge_gap: float = 0.1  # the trimmed board edge to the port wall's inner face
     # connectors on the -y edge, centre x in the board frame (0 = board centre, +x toward the egg)
     usb_x: float = -17.3
