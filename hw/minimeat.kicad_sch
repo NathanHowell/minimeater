@@ -15000,7 +15000,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25130"
+		(property "LCSC" "C137948"
 			(at 365.76 313.69 0)
 			(hide yes)
 			(effects
@@ -15009,7 +15009,7 @@
 				)
 			)
 		)
-		(property "MPN" "0402WGF6800TCE"
+		(property "MPN" "RC0402FR-07680RL"
 			(at 365.76 313.69 0)
 			(hide yes)
 			(effects
