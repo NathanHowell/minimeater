@@ -35,6 +35,7 @@ mod key {
     pub const PROBE0: u16 = 0x0110;
     pub const WIFI: u16 = 0x0201;
     pub const MQTT: u16 = 0x0202;
+    pub const OTLP: u16 = 0x0203;
 }
 
 /// Largest serialized record plus key, word-aligned (a full schedule: 2 + 1 + 8 x 32 = 259).
@@ -156,6 +157,15 @@ pub struct Mqtt {
     pub pass: String<64>,
 }
 
+/// Where metrics go (`.4.11`): an OTLP/HTTP collector, every `interval_s`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Otlp {
+    pub host: String<64>,
+    /// 4318 is the collector's OTLP/HTTP default.
+    pub port: u16,
+    pub interval_s: u16,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Settings {
     pub cook: Cook,
@@ -165,6 +175,7 @@ pub struct Settings {
     pub probes: [Probe; PROBE_JACKS],
     pub wifi: Option<Wifi>,
     pub mqtt: Option<Mqtt>,
+    pub otlp: Option<Otlp>,
 }
 
 impl Default for Settings {
@@ -176,6 +187,7 @@ impl Default for Settings {
             probes: core::array::from_fn(Probe::default_for),
             wifi: None,
             mqtt: None,
+            otlp: None,
         }
     }
 }
@@ -459,6 +471,22 @@ impl Record for Mqtt {
     }
 }
 
+impl Record for Otlp {
+    fn encode(&self, w: &mut W) -> Result<(), SerializationError> {
+        w.str(&self.host)?;
+        w.u16(self.port)?;
+        w.u16(self.interval_s)
+    }
+
+    fn decode(r: &mut R) -> Option<Self> {
+        Some(Self {
+            host: r.str()?,
+            port: r.u16().filter(|&p| p != 0)?,
+            interval_s: r.u16().filter(|&i| (5..=3600).contains(&i))?,
+        })
+    }
+}
+
 // ----------------------------------------------------------------------------- store
 
 /// Storage failed (the flash itself, or a full store). Saving is best effort: the caller logs this
@@ -532,6 +560,7 @@ impl<F: NorFlash> ConfigStore<F> {
         }
         s.wifi = self.fetch(key::WIFI).await?;
         s.mqtt = self.fetch(key::MQTT).await?;
+        s.otlp = self.fetch(key::OTLP).await?;
         Ok(s)
     }
 
@@ -573,6 +602,12 @@ impl<F: NorFlash> ConfigStore<F> {
         {
             self.store(key::MQTT, m.clone()).await?;
             self.saved.mqtt = s.mqtt.clone();
+        }
+        if s.otlp != self.saved.otlp
+            && let Some(o) = &s.otlp
+        {
+            self.store(key::OTLP, o.clone()).await?;
+            self.saved.otlp = s.otlp.clone();
         }
         Ok(())
     }

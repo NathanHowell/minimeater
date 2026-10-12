@@ -69,6 +69,7 @@ just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (de
 just scenarios                         # the 17-scenario suite on the twin: bounds + baselines, PNG per run
 just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
 just ha-discovery-check                # Home Assistant's own code validates the device-discovery message
+just otlp-interop                     # the OTLP exporter against a real OpenTelemetry collector in a container (docs/telemetry.md)
 ```
 
 ## Architecture Overview

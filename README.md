@@ -15,6 +15,7 @@ The controller commands airflow with an offset-free MPC. It reports to Home Assi
 | `docs/adr/` | architecture decisions: MCU, probe front-end, control protocol, ... | |
 | `docs/modeling/` | generated airflow, thermal, controller and probe-budget reports, plus hand-written conclusions | `uv run minimeat-model`, `minimeat-control`, `minimeat-probes` |
 | `docs/protocol.md` | MQTT topic and payload schema (normative) | |
+| `docs/telemetry.md` | OpenTelemetry metrics the device exports | |
 | `src/minimeat/model/` | Python plant, airflow and controller models; the reference for the firmware | uv |
 | `src/minimeat/mech/` | build123d enclosure, damper and tube coupling (`.2.x`, not started) | uv |
 | `hw/` | KiCad project, JLCPCB-assembled; every part must be in JLC stock | KiCad 9 |
@@ -33,6 +34,7 @@ just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (de
 just scenarios                         # the 17-scenario suite on the twin: bounds + baselines, PNG per run
 just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
 just ha-discovery-check                # Home Assistant's own code validates the device-discovery message
+just otlp-interop                     # the OTLP exporter against a real OpenTelemetry collector in a container (docs/telemetry.md)
 ```
 
 Work is tracked with [beads](https://github.com/gastownhall/beads): run `bd ready`.

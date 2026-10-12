@@ -10,6 +10,8 @@ pub mod drivers;
 pub mod food;
 pub mod hal;
 pub mod mqtt;
+pub mod net;
+pub mod otlp;
 pub mod pit;
 pub mod probes;
 pub mod proto;

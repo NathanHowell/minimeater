@@ -4,4 +4,5 @@
 pub mod packet;
 pub mod session;
 
-pub use session::{Buffers, Connector, Identity, run};
+pub use crate::net::{Connector, Identity};
+pub use session::{Buffers, run};

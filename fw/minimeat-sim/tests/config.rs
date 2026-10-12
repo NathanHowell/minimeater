@@ -65,6 +65,11 @@ fn cooking() -> Settings {
         user: "minimeat".try_into().unwrap(),
         pass: "pw".try_into().unwrap(),
     });
+    s.otlp = Some(minimeat_app::config::Otlp {
+        host: "collector.local".try_into().unwrap(),
+        port: 4318,
+        interval_s: 15,
+    });
     s
 }
 

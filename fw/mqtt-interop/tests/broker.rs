@@ -6,74 +6,27 @@
 use std::time::Duration;
 
 use embassy_futures::select::{Either, select};
-use embedded_io_adapters::tokio_1::FromTokio;
 use minimeat_app::config::{Mqtt, Settings};
-use minimeat_app::mqtt::{Buffers, Connector, Identity, run};
-use minimeat_app::pit::{Command, Output, Phase};
-use minimeat_app::probes::ProbeSt;
+use minimeat_app::mqtt::{Buffers, Identity, run};
+use minimeat_app::pit::Command;
 use minimeat_app::proto::Request;
-use minimeat_app::tasks::{AutotuneInfo, Bus, Faults, Reply, Status};
-use minimeat_core::control::Fire;
-use minimeat_core::model::airflow::Actuation;
+use minimeat_app::tasks::{Bus, Reply};
 use rumqttc::v5::mqttbytes::QoS;
 use rumqttc::v5::mqttbytes::v5::PublishProperties;
 use rumqttc::v5::{AsyncClient, Event, Incoming, MqttOptions};
 use serde_json::{Value, json};
-use tokio::net::TcpStream;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
 use tokio::task::{LocalSet, spawn_local};
 
+mod common;
+use common::{Tcp, status};
+
 const BASE: &str = "minimeat/mm-it";
-
-struct Tcp;
-
-impl Connector for Tcp {
-    type Reader = FromTokio<OwnedReadHalf>;
-    type Writer = FromTokio<OwnedWriteHalf>;
-
-    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
-        let s = TcpStream::connect((host, port)).await.map_err(|_| ())?;
-        let (r, w) = s.into_split();
-        Ok((FromTokio::new(r), FromTokio::new(w)))
-    }
-}
 
 fn broker() -> (String, u16) {
     let addr = std::env::var("MQTT_BROKER").unwrap_or_else(|_| "127.0.0.1:1883".into());
     let (h, p) = addr.rsplit_once(':').expect("host:port");
     (h.to_string(), p.parse().unwrap())
-}
-
-fn status(up_s: u64, sp: f64) -> Status {
-    let cook = minimeat_app::config::Cook {
-        sp_f: sp,
-        mode: minimeat_app::config::Mode::Run,
-        ..Default::default()
-    };
-    Status {
-        up_s,
-        cook,
-        out: Output {
-            phase: Phase::Hold,
-            q: 0.8,
-            act: Actuation { damper: 0.3, fan: 0.0 },
-            flap_pct: 34.0,
-            ref_f: sp,
-            lid: false,
-            fire: Fire::Ok,
-        },
-        temps: [Some(sp - 0.4), Some(150.0), None, None],
-        probe_st: [ProbeSt::Ok, ProbeSt::Ok, ProbeSt::Open, ProbeSt::Open],
-        alarms: [None; 4],
-        alarm_led: false,
-        adc_die_c: Some(40.0),
-        fan_rpm: Some(0.0),
-        faults: Faults::default(),
-        autotune: AutotuneInfo::default(),
-        foods: [None; 4],
-        ambient_c: Some(20.0),
-    }
 }
 
 /// Stands in for the control task: answers requests, republishes the config when the setpoint

@@ -24,28 +24,10 @@ use log::{info, warn};
 
 use super::packet::{self, Connect, Packet, PublishIn, PublishOut, Will};
 use crate::config::Settings;
+use crate::net::{Connector, Identity};
 use crate::proto::request::{Error, ErrorCode, Request};
 use crate::proto::{self, Device};
 use crate::tasks::{Bus, Reply};
-
-/// Who this device is on the broker.
-#[derive(Clone, Copy, Debug)]
-pub struct Identity<'a> {
-    pub prefix: &'a str,
-    /// `mm-` and the low three MAC bytes.
-    pub id: &'a str,
-    pub sw: &'a str,
-    pub hw: &'a str,
-}
-
-/// How the session reaches the broker.
-#[allow(async_fn_in_trait, reason = "single-threaded embassy executor; no Send bound wanted")]
-pub trait Connector {
-    type Reader: Read;
-    type Writer: Write;
-    /// Opens a TCP connection and splits it. Any failure is `Err`.
-    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()>;
-}
 
 /// The largest payload the session publishes (the discovery message is about 16 KB).
 pub const PAYLOAD: usize = 20 * 1024;

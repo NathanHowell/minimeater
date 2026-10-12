@@ -1,0 +1,14 @@
+# An OpenTelemetry collector for the interop test: OTLP/HTTP in, Prometheus text out.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]

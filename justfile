@@ -23,3 +23,10 @@ ha-discovery-check:
     mkdir -p fw/target/tmp
     cd fw && DISCOVERY_OUT=$PWD/target/tmp/discovery.json cargo test -p minimeat-app --release --test proto discovery_matches
     uv run --no-project --python 3.14 --with homeassistant --with paho-mqtt python -I scripts/check_ha_discovery.py fw/target/tmp/discovery.json
+
+# The OTLP exporter against a real OpenTelemetry collector (tools/otel-collector.yaml) in a container.
+otlp-interop:
+    -container rm -f mm-otel >/dev/null 2>&1
+    container run -d --name mm-otel -v $PWD/tools/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro docker.io/otel/opentelemetry-collector-contrib:latest
+    sleep 4
+    ip=$(container ls | awk '/mm-otel/ {split($6, a, "/"); print a[1]}'); cd fw/mqtt-interop && OTLP_COLLECTOR=$ip cargo test --release --test otlp -- --ignored --nocapture; r=$?; container rm -f mm-otel >/dev/null 2>&1; exit $r
