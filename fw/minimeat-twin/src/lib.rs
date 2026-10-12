@@ -11,6 +11,7 @@
 //! in-process broker ([`net`]: deterministic, any speed, with outages on demand), or with
 //! [`NetMode::Real`] (`--mqtt`/`--otlp`, a paced run) to a real Mosquitto and OpenTelemetry
 //! collector in containers (`just twin-stack`). Not yet: a live plot.
+#![allow(clippy::too_many_arguments)] // the executor tasks take their peripherals as arguments
 
 pub mod clock;
 pub mod metrics;
@@ -55,7 +56,6 @@ async fn probes(adc: SimProbes<'static>, bus: &'static Bus) {
     tasks::probes::<B>(adc, bus).await
 }
 
-#[allow(clippy::too_many_arguments)]
 #[embassy_executor::task]
 async fn actuators(
     fan: SimFan<'static>,
