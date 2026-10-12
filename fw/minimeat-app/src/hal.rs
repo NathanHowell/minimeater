@@ -80,6 +80,10 @@ pub trait Board {
     type Servo: Servo;
     /// High powers the servo; it is cut while stationary to stop hold current and jitter.
     type ServoPower: OutputPin;
+    /// High powers the fan through its load switch, so 0 % really stops it.
+    type FanPower: OutputPin;
+    /// The load switches' shared open-drain fault line: low while one of them is limiting its current.
+    type LoadFault: InputPin;
     type Led: OutputPin;
     /// The user button (GPIO9/BOOT on the target, ADR 0001): low while pressed.
     type Button: InputPin + Wait;
@@ -96,6 +100,8 @@ pub struct Io<B: Board> {
     pub tach: B::Tach,
     pub servo: B::Servo,
     pub servo_power: B::ServoPower,
+    pub fan_power: B::FanPower,
+    pub load_fault: B::LoadFault,
     pub led: B::Led,
     pub button: B::Button,
     pub config: B::Config,

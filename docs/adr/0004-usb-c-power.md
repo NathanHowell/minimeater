@@ -54,3 +54,9 @@ The Default-class rules above ("fan duty capped, servo moves only while WiFi is 
 - **Cables:** use USB-C to USB-C. A USB-A to USB-C cable carries a fixed 56k pull-up that always reads as Default, even from a capable charger, so it faults. A PD controller would not change this (the cable carries no PD signalling), and BC1.2 charger detection on D+/D- cannot prove 1.5 A; neither is used.
 - **Firmware:** `drive::SupplyWatch` debounces the CC reading (two good reads to accept, three bad to reject); the actuator task holds the fan at 0 and the servo unpowered until it accepts. Twin test: `fault_supply`.
 - **Servo hold:** the servo is power-gated between moves, so the flap is held by the gear train alone; check at bring-up that the flap does not creep in the fan's airflow (`.3.9`).
+
+## Amendment (2026-10-12): load-switch fault and fan power in firmware
+
+- **Fan power:** GPIO11 drives the fan's TPS2553 enable: the task sets it high only while the fan duty is above zero and the supply is good, so 0 % really stops the fan.
+- **Fault line:** GPIO3 reads the two switches' shared open-drain fault output. Three one-second samples in a row low raise `load` and cut both loads until the next reboot (`drive::LoadWatch`). There is no retry: the TPS2553 thermal-cycles by itself in current limit, and the servo's turn-on surge (under a millisecond) is far shorter than the sampling. The line is shared, so the fault does not name the load.
+- Twin tests: `fault_load` (the latch, the flap held, the fan stopped) and `fault_supply`.

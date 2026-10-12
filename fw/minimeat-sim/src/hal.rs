@@ -66,6 +66,8 @@ pub struct Faults {
     pub servo_stuck: bool,
     /// The ambient sensor NACKs.
     pub ambient_nack: bool,
+    /// A load switch is in current limit: the shared fault line reads low.
+    pub load_fault: bool,
     /// Flash erases and writes fail.
     pub flash_fail: bool,
 }
@@ -82,6 +84,8 @@ pub struct World {
     /// Flap angle from closed, degrees; it only moves while the servo is powered.
     pub flap_deg: f64,
     pub servo_powered: bool,
+    /// The fan's load switch is on; without it the rotor does not turn whatever the duty.
+    pub fan_powered: bool,
     servo_pulse_us: u16,
     /// Fan PWM duty, 0..1. The fan runs at speed = duty and stalls below its minimum speed. [est]
     pub fan_duty: f64,
@@ -109,6 +113,7 @@ impl World {
             servo: ServoMech::default(),
             flap_deg: 0.0,
             servo_powered: false,
+            fan_powered: false,
             servo_pulse_us: 0,
             fan_duty: 0.0,
             faults: Faults::default(),
@@ -131,7 +136,7 @@ impl World {
 
     /// Fan speed fraction actually reached.
     pub fn fan_speed(&self) -> f64 {
-        let s = self.fan_duty.clamp(0.0, 1.0);
+        let s = if self.fan_powered { self.fan_duty.clamp(0.0, 1.0) } else { 0.0 };
         if self.faults.fan_jam || s < self.plant.path.fan.s_min() {
             0.0
         } else {
@@ -183,6 +188,8 @@ pub struct SimFan<'a>(Shared<'a>);
 pub struct SimTach<'a>(Shared<'a>);
 pub struct SimServo<'a>(Shared<'a>);
 pub struct SimServoPower<'a>(Shared<'a>);
+pub struct SimFanPower<'a>(Shared<'a>);
+pub struct SimLoadFault<'a>(Shared<'a>);
 pub struct SimLed<'a>(Shared<'a>);
 pub struct SimButton<'a>(Shared<'a>);
 pub struct SimConfig<'a>(Shared<'a>);
@@ -197,6 +204,8 @@ impl<'a> Board for SimBoard<'a> {
     type Tach = SimTach<'a>;
     type Servo = SimServo<'a>;
     type ServoPower = SimServoPower<'a>;
+    type FanPower = SimFanPower<'a>;
+    type LoadFault = SimLoadFault<'a>;
     type Led = SimLed<'a>;
     type Button = SimButton<'a>;
     type Config = SimConfig<'a>;
@@ -212,6 +221,8 @@ pub fn io(world: Shared<'_>) -> Io<SimBoard<'_>> {
         tach: SimTach(world),
         servo: SimServo(world),
         servo_power: SimServoPower(world),
+        fan_power: SimFanPower(world),
+        load_fault: SimLoadFault(world),
         led: SimLed(world),
         button: SimButton(world),
         config: SimConfig(world),
@@ -328,6 +339,36 @@ impl OutputPin for SimServoPower<'_> {
         w.servo_powered = true;
         w.move_flap();
         Ok(())
+    }
+}
+
+impl PinErrorType for SimFanPower<'_> {
+    type Error = Infallible;
+}
+
+impl OutputPin for SimFanPower<'_> {
+    fn set_low(&mut self) -> Result<(), Infallible> {
+        self.0.borrow_mut().fan_powered = false;
+        Ok(())
+    }
+
+    fn set_high(&mut self) -> Result<(), Infallible> {
+        self.0.borrow_mut().fan_powered = true;
+        Ok(())
+    }
+}
+
+impl PinErrorType for SimLoadFault<'_> {
+    type Error = Infallible;
+}
+
+impl InputPin for SimLoadFault<'_> {
+    fn is_high(&mut self) -> Result<bool, Infallible> {
+        Ok(!self.0.borrow().faults.load_fault)
+    }
+
+    fn is_low(&mut self) -> Result<bool, Infallible> {
+        Ok(self.0.borrow().faults.load_fault)
     }
 }
 

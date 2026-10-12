@@ -71,6 +71,8 @@ pub enum FaultCode {
     Ambient,
     /// The USB-C source does not advertise 1.5 A: the fan and the servo stay off (ADR 0004).
     Supply,
+    /// A load switch is limiting its current (a stalled servo, a jammed fan, a short): both loads are cut until reboot.
+    Load,
 }
 
 impl FaultCode {
@@ -83,16 +85,18 @@ impl FaultCode {
             FaultCode::Adc => "adc",
             FaultCode::Ambient => "ambient",
             FaultCode::Supply => "supply",
+            FaultCode::Load => "load",
         }
     }
 
-    pub const ALL: [FaultCode; 6] = [
+    pub const ALL: [FaultCode; 7] = [
         FaultCode::PitProbe,
         FaultCode::BoardHot,
         FaultCode::FanStall,
         FaultCode::Adc,
         FaultCode::Ambient,
         FaultCode::Supply,
+        FaultCode::Load,
     ];
 }
 

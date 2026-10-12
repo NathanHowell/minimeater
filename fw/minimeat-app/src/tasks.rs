@@ -24,7 +24,7 @@ use embassy_sync::pubsub::PubSubChannel;
 use embassy_sync::signal::Signal;
 use embassy_sync::watch::Watch;
 use embassy_time::{Duration, Instant, Ticker, Timer};
-use embedded_hal::digital::OutputPin;
+use embedded_hal::digital::{InputPin, OutputPin};
 use embedded_hal::pwm::SetDutyCycle;
 use log::warn;
 use minimeat_core::control::autotune::{Due, Fit, Identifier};
@@ -36,7 +36,7 @@ use minimeat_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
-use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, SupplyWatch, TachWatch};
+use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
@@ -492,6 +492,8 @@ pub async fn actuators<B: Board>(
     mut tach: B::Tach,
     mut servo: B::Servo,
     mut power: B::ServoPower,
+    mut fan_power: B::FanPower,
+    mut load_fault: B::LoadFault,
     mut usb: B::Usb,
     s_min: f64,
     rpm_max: f64,
@@ -499,6 +501,7 @@ pub async fn actuators<B: Board>(
 ) -> ! {
     const DT: f64 = 1.0;
     let mut supply = SupplyWatch::default();
+    let mut load = LoadWatch::default();
     let mut tick = Ticker::every(Duration::from_secs(1));
     let mut cycler = FanCycler::default();
     let mut fan_drive = FanDrive::new(FanCurve::LINEAR, None);
@@ -514,14 +517,21 @@ pub async fn actuators<B: Board>(
             bus.fault(FaultCode::Supply, raised);
         }
         let speed = cycler.tick(act.fan, s_min, DT);
-        let duty = if supply.ok() { fan_drive.duty(speed) } else { 0.0 };
+        if load.tick(load_fault.is_low().unwrap_or(false)) {
+            bus.fault(FaultCode::Load, true);
+        }
+        // both loads run only on a good source and until a load switch has tripped
+        let live = supply.ok() && !load.tripped();
+        let duty = if live { fan_drive.duty(speed) } else { 0.0 };
+        // the duty first, then the power; power off first when the duty is zero: 0 % really stops the fan
+        let _ = if duty > 0.0 { fan_power.set_high() } else { fan_power.set_low() };
         let max = f64::from(fan.max_duty_cycle());
         let _ = fan.set_duty_cycle((duty * max) as u16);
 
         // pulse first, then power: a servo waking up goes straight to the new position
         let s = flap.tick(flap_angle_deg(act.damper), DT);
         servo.set_pulse_us(s.pulse_us);
-        let _ = if s.power && supply.ok() { power.set_high() } else { power.set_low() };
+        let _ = if s.power && live { power.set_high() } else { power.set_low() };
 
         tick.next().await;
         // the tach's mean over the second just run

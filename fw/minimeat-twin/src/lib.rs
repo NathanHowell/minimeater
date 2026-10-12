@@ -32,7 +32,7 @@ use minimeat_app::pit::{Event, Pit};
 use minimeat_app::tasks::{self, Bus, Status};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_sim::hal::{
-    SimAmbient, SimBoard, SimConfig, SimFan, SimProbes, SimServo, SimServoPower, SimTach, SimUsb, World, io,
+    SimAmbient, SimBoard, SimConfig, SimFan, SimFanPower, SimLoadFault, SimProbes, SimServo, SimServoPower, SimTach, SimUsb, World, io,
 };
 
 pub use scenario::{Action, Scenario};
@@ -62,12 +62,14 @@ async fn actuators(
     tach: SimTach<'static>,
     servo: SimServo<'static>,
     power: SimServoPower<'static>,
+    fan_power: SimFanPower<'static>,
+    load_fault: SimLoadFault<'static>,
     usb: SimUsb<'static>,
     s_min: f64,
     rpm_max: f64,
     bus: &'static Bus,
 ) {
-    tasks::actuators::<B>(fan, tach, servo, power, usb, s_min, rpm_max, bus).await
+    tasks::actuators::<B>(fan, tach, servo, power, fan_power, load_fault, usb, s_min, rpm_max, bus).await
 }
 
 #[embassy_executor::task]
@@ -188,6 +190,8 @@ pub fn run_with(
             io.tach,
             io.servo,
             io.servo_power,
+            io.fan_power,
+            io.load_fault,
             io.usb,
             model.fan.s_min(),
             model.fan.rpm_max,

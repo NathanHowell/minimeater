@@ -246,9 +246,50 @@ impl SupplyWatch {
     }
 }
 
+/// Consecutive one-second samples of the fault line held low before it counts: the TPS2553 only asserts it after a
+/// deglitch of several ms, and a start-up into the output capacitors never lasts that long, so a real trip is steady.
+const LOAD_TRIP_READS: u8 = 3;
+
+/// Latches when a load switch holds the shared fault line low (ADR 0004): the servo stalled or the fan jammed or a
+/// short. Both loads then stay off until the next reboot; the switches thermal-cycle on their own, and retrying
+/// from here would only keep cycling them.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LoadWatch {
+    low: u8,
+    tripped: bool,
+}
+
+impl LoadWatch {
+    pub fn tripped(&self) -> bool {
+        self.tripped
+    }
+
+    /// One read of the line (`low` = asserted). Returns `true` once, when it latches.
+    pub fn tick(&mut self, low: bool) -> bool {
+        if self.tripped {
+            return false;
+        }
+        self.low = if low { self.low + 1 } else { 0 };
+        self.tripped = self.low >= LOAD_TRIP_READS;
+        self.tripped
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_steady_fault_latches_and_a_blip_does_not() {
+        let mut w = LoadWatch::default();
+        assert!(!w.tick(true) && !w.tick(true));
+        assert!(!w.tick(false), "a blip resets the count");
+        assert!(!w.tick(true) && !w.tick(true));
+        assert!(w.tick(true), "the third in a row latches");
+        assert!(w.tripped());
+        assert!(!w.tick(false), "stays latched, and says so once");
+        assert!(w.tripped());
+    }
 
     #[test]
     fn supply_needs_1500_ma_and_debounces_both_ways() {

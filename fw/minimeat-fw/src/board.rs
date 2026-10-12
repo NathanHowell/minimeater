@@ -9,8 +9,8 @@
 //! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117, ATECC608B) | 22 / 23 |
 //! | ADS122C04 DRDY | 2 | | fan PWM / tach | 18 / 19 |
 //! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
-//! | status LED | 10 | | fan power enable (TPS2553) | 11, not driven yet |
-//! | load-switch fault (open drain, shared) | 3, not read yet | | spare (no-connect) | 4 / 5 / 6 / 7 / 15 |
+//! | status LED | 10 | | fan power enable (TPS2553) | 11 |
+//! | load-switch fault (open drain, shared) | 3 | | spare (no-connect) | 4 / 5 / 6 / 7 / 15 |
 //! | UART0 TX / RX (test pads) | 16 / 17 | | USB D- / D+ | 12 / 13 |
 
 use embassy_embedded_hal::adapter::BlockingAsync;
@@ -60,6 +60,8 @@ impl Board for Esp {
     type Tach = PcntTach;
     type Servo = PwmServo<Pwm>;
     type ServoPower = Output<'static>;
+    type FanPower = Output<'static>;
+    type LoadFault = Input<'static>;
     type Led = Output<'static>;
     type Button = Input<'static>;
     type Config = FlashRegion<BlockingAsync<FlashStorage<'static>>>;
@@ -151,6 +153,9 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         tach: PcntTach { unit, since: None },
         servo: PwmServo::new(servo, SERVO_PERIOD_US),
         servo_power: Output::new(p.GPIO21, Level::Low, out),
+        fan_power: Output::new(p.GPIO11, Level::Low, out),
+        // the shared open-drain fault line has its own pull-up on the board
+        load_fault: Input::new(p.GPIO3, InputConfig::default().with_pull(Pull::None)),
         led: Output::new(p.GPIO10, Level::Low, out),
         button: Input::new(p.GPIO9, InputConfig::default().with_pull(Pull::Up)),
         config: FlashRegion::new(
