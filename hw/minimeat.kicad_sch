@@ -6605,6 +6605,46 @@
 		(diameter 0)
 		(uuid "93783e4b-4e94-450d-a2ff-905402fcd186")
 	)
+	(junction
+		(at 57.15 236.22)
+		(diameter 0)
+		(uuid "c8c571fc-0e43-4117-a9c4-e9cfb88f83ac")
+	)
+	(junction
+		(at 57.15 274.32)
+		(diameter 0)
+		(uuid "318e0196-425b-43a2-a639-b515ac225901")
+	)
+	(junction
+		(at 57.15 312.42)
+		(diameter 0)
+		(uuid "70462366-93a5-4485-9650-cacc88a6ab65")
+	)
+	(junction
+		(at 57.15 350.52)
+		(diameter 0)
+		(uuid "c70930e6-8f4d-4bf5-932e-79339731033b")
+	)
+	(junction
+		(at 57.15 236.22)
+		(diameter 0)
+		(uuid "8b5bff05-94a7-4910-9bc0-a9068e001ec3")
+	)
+	(junction
+		(at 57.15 274.32)
+		(diameter 0)
+		(uuid "3cecae56-612f-4d59-b0ac-136cda207ac6")
+	)
+	(junction
+		(at 57.15 312.42)
+		(diameter 0)
+		(uuid "21433788-7329-43d4-992b-e5997fa77327")
+	)
+	(junction
+		(at 57.15 350.52)
+		(diameter 0)
+		(uuid "d1a5e807-0414-4516-b4a3-e5104bbb85e7")
+	)
 	(no_connect
 		(at 55.88 88.9)
 		(uuid "f80bdf49-ee91-427a-a8fd-bf18b91e79e2")
@@ -7483,13 +7523,6 @@
 	)
 	(wire
 		(pts
-			(xy 76.2 232.41)
-			(xy 76.2 236.22)
-		)
-		(uuid "50c8116b-4ed2-483f-a035-8de3527ba7e6")
-	)
-	(wire
-		(pts
 			(xy 50.8 238.76)
 			(xy 55.88 238.76)
 		)
@@ -7564,13 +7597,6 @@
 			(xy 83.82 274.32)
 		)
 		(uuid "61d57807-5087-460b-ab7d-a27de4a243dd")
-	)
-	(wire
-		(pts
-			(xy 76.2 270.51)
-			(xy 76.2 274.32)
-		)
-		(uuid "24b1fb16-433d-4cf7-9622-98e052f6210a")
 	)
 	(wire
 		(pts
@@ -7651,13 +7677,6 @@
 	)
 	(wire
 		(pts
-			(xy 76.2 308.61)
-			(xy 76.2 312.42)
-		)
-		(uuid "2df4ef7b-f247-4753-b4eb-351ac3678d29")
-	)
-	(wire
-		(pts
 			(xy 50.8 314.96)
 			(xy 55.88 314.96)
 		)
@@ -7732,13 +7751,6 @@
 			(xy 83.82 350.52)
 		)
 		(uuid "8db1e825-a8d9-4e65-a959-c046aef6f5d0")
-	)
-	(wire
-		(pts
-			(xy 76.2 346.71)
-			(xy 76.2 350.52)
-		)
-		(uuid "0e4d97cc-23bf-4411-84db-21a3cdd8d78c")
 	)
 	(wire
 		(pts
@@ -8020,6 +8032,62 @@
 		)
 		(uuid "52280ced-3810-4e86-8c44-c9f6a6ade6e8")
 	)
+	(wire
+		(pts
+			(xy 76.2 232.41)
+			(xy 57.15 232.41)
+		)
+		(uuid "fa82ffb2-006d-443b-a4f4-755e8f4fce94")
+	)
+	(wire
+		(pts
+			(xy 57.15 232.41)
+			(xy 57.15 236.22)
+		)
+		(uuid "1633babd-252b-40bd-977b-8a5ce6391897")
+	)
+	(wire
+		(pts
+			(xy 76.2 270.51)
+			(xy 57.15 270.51)
+		)
+		(uuid "cdf89043-9948-48f5-be5e-eebc7e598cfd")
+	)
+	(wire
+		(pts
+			(xy 57.15 270.51)
+			(xy 57.15 274.32)
+		)
+		(uuid "4bfa88a9-8e62-4502-bd46-e4d45c956bb4")
+	)
+	(wire
+		(pts
+			(xy 76.2 308.61)
+			(xy 57.15 308.61)
+		)
+		(uuid "c1e98303-dc25-47c3-b95e-4e725fdce5c4")
+	)
+	(wire
+		(pts
+			(xy 57.15 308.61)
+			(xy 57.15 312.42)
+		)
+		(uuid "c5ca0d75-e96d-4de1-a429-e7aaf9287a13")
+	)
+	(wire
+		(pts
+			(xy 76.2 346.71)
+			(xy 57.15 346.71)
+		)
+		(uuid "e977253e-b4d6-4289-a8e5-61c5b61eaa31")
+	)
+	(wire
+		(pts
+			(xy 57.15 346.71)
+			(xy 57.15 350.52)
+		)
+		(uuid "4fc30485-64fd-490a-98c1-2537531b7967")
+	)
 	(text "POWER TREE\nVBUS (5 V, 1.1 A PTC F1) -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO (0.6 A), VFAN (0.52 A)\nNOTE: SMF5.0A clamps ~9.2 V peak but TLV62569 abs max is 6 V;\nthe PTC and 100uF bulk absorb surge energy. Accepted risk."
 		(at 150 125 0)
 		(effects
@@ -8174,6 +8242,26 @@
 			(justify left bottom)
 		)
 		(uuid "9b0c159c-5fb6-4a78-beb1-ed70719265df")
+	)
+	(text "J6 FAN (Molex KK 254 22-23-2041, 4-pin PWM fan plug)\n1 GND (black)   2 +V = VFAN (yellow/red)\n3 TACH (green) -> FAN_TACH_J -> 1k -> FAN_TACH\n4 PWM (blue) <- FAN_PWM_J <- 100R <- FAN_PWM\nNo pull-down on FAN_PWM: floating = full speed (fail-safe); fan power gated by FAN_EN.\nFAN_TACH 10k pull-up to 3V3 is in the MCU block.\nHand-soldered; not in the JLC BOM/assembly."
+		(at 232.41 255.27 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "879a8f2a-5935-425c-8113-be450df14f62")
+	)
+	(text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red)\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current.\nHand-soldered; not in the JLC BOM/assembly."
+		(at 330.2 255.27 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "bd36e4f8-df59-4049-96af-c5b73b62c5a1")
 	)
 	(label "VBUS_RAW"
 		(at 60.96 60.96 0)
@@ -9510,16 +9598,6 @@
 		)
 		(uuid "7f2b5900-3540-4e9e-9499-0c7e8d1e0c04")
 	)
-  (text "J6 FAN (Molex KK 254 22-23-2041, 4-pin PWM fan plug)\n1 GND (black)   2 +V = VFAN (yellow/red)\n3 TACH (green) -> FAN_TACH_J -> 1k -> FAN_TACH\n4 PWM (blue) <- FAN_PWM_J <- 100R <- FAN_PWM\nNo pull-down on FAN_PWM: floating = full speed (fail-safe); fan power gated by FAN_EN.\nFAN_TACH 10k pull-up to 3V3 is in the MCU block.\nHand-soldered; not in the JLC BOM/assembly."
-    (at 232.41 255.27 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "879a8f2a-5935-425c-8113-be450df14f62")
-  )
-  (text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red)\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current.\nHand-soldered; not in the JLC BOM/assembly."
-    (at 330.2 255.27 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "bd36e4f8-df59-4049-96af-c5b73b62c5a1")
-  )
 	(symbol
 		(lib_id "Connector:USB_C_Receptacle_USB2.0_16P")
 		(at 40.64 76.2 0)
@@ -17087,15 +17165,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "U10")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "Footprint note" "No exposed-pad land: TI says leave the TMP117 thermal pad unsoldered (accuracy). Keep copper pour out from under it."
 			(at 469.9 266.7 0)
 			(hide yes)
@@ -17104,7 +17173,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "U10")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 485.14 255.27 0)
@@ -19942,15 +20020,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "J6")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "Assembly" "hand-solder"
 			(at 254 241.3 0)
 			(hide yes)
@@ -19968,7 +20037,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "J6")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 238.76 90)
@@ -20021,15 +20099,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R27")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C11702"
 			(at 271.78 238.76 0)
 			(hide yes)
@@ -20038,7 +20107,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R27")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 236.22 90)
@@ -20091,15 +20169,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R28")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C25076"
 			(at 271.78 236.22 0)
 			(hide yes)
@@ -20108,7 +20177,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R28")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 240.03 243.84 0)
@@ -20162,15 +20240,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C35")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C1525"
 			(at 240.03 243.84 0)
 			(hide yes)
@@ -20179,7 +20248,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C35")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x03")
 		(at 368.3 241.3 180)
@@ -20231,15 +20309,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "J7")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "Assembly" "hand-solder"
 			(at 368.3 241.3 0)
 			(hide yes)
@@ -20257,7 +20326,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 386.08 238.76 90)
@@ -20309,15 +20387,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R29")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C25104"
 			(at 386.08 238.76 0)
 			(hide yes)
@@ -20326,7 +20395,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R29")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 350.52 243.84 0)
@@ -20378,15 +20456,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R30")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C60490"
 			(at 350.52 243.84 0)
 			(hide yes)
@@ -20395,7 +20464,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R30")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 335.28 243.84 0)
@@ -20449,15 +20527,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C36")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C23742"
 			(at 335.28 243.84 0)
 			(hide yes)
@@ -20466,7 +20535,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C36")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 342.9 243.84 0)
@@ -20520,15 +20598,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeat"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C37")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "C1525"
 			(at 342.9 243.84 0)
 			(hide yes)
@@ -20537,7 +20606,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeat"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C37")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 261.62 243.84 0)
