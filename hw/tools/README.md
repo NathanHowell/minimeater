@@ -12,3 +12,5 @@ The routed board replaces `hw/minimeat.kicad_pcb`; reload it in KiCad. Never edi
 Closing the last open items (v8): `islandvias.py <in> <out>` puts a ground via in every top-pour fragment that has none (checked against copper on all layers). TIP2/TIP3 at U9 were joined by hand: a 0.6 mm via and an In2 stub for TIP2, an F.Cu run for TIP3; TIP1's tail from R19 was rerouted to make room.
 
 Probe bias rework (after the ngspice check, `docs/sim/probe-frontend.md`): `probe_bias_rework.py <in> <out> <dir>` moves each R23-R26 pad 2 from AINx to TIPx, reroutes the affected links with a small maze router (`maze.py` on F.Cu, `maze3.py` with vias; copy them to `<dir>` as `mr.py` and `mr3.py`), refills the pours.
+
+TMP117 isolation: `tmp117_keepout.py <in> <out> <dir>` drops the ground vias under the sensor, routes its two ground pins with traces to the ground via at C33 (F.Cu, with `maze3.py`) and adds a no-pour rule area (F.Cu, In1, B.Cu; tracks and vias allowed) over x 0.5-7.0 mm, y 50.9-53.6 mm, so the sensor follows the air at the louvre, not the board's ground planes. No board slot: J7 sits right above, and a slot would cost routing for little.
