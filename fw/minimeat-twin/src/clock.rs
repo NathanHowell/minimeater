@@ -34,9 +34,25 @@ embassy_time_driver::time_driver_impl!(static CLOCK: Clock = Clock {
 /// Set by the executor's pender: some task was woken and the executor should be polled.
 static PENDING: AtomicBool = AtomicBool::new(false);
 
+/// The thread that runs the twin's main loop: waking a task from another thread (a socket bridge)
+/// also wakes it from its pacing sleep.
+static MAIN: std::sync::OnceLock<std::thread::Thread> = std::sync::OnceLock::new();
+
+pub fn register_main_thread() {
+    let _ = MAIN.set(std::thread::current());
+}
+
 #[unsafe(export_name = "__pender")]
 fn pender(_context: *mut ()) {
     PENDING.store(true, Ordering::SeqCst);
+    if let Some(t) = MAIN.get() {
+        t.unpark();
+    }
+}
+
+/// True if some task has been woken since the last [`take_pending`].
+pub fn pending() -> bool {
+    PENDING.load(Ordering::SeqCst)
 }
 
 /// Clears and returns the pending flag.

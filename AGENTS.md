@@ -138,6 +138,8 @@ just scenarios                         # the 17-scenario suite on the twin: boun
 just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
 just ha-discovery-check                # Home Assistant's own code validates the device-discovery message
 just otlp-interop                     # the OTLP exporter against a real OpenTelemetry collector in a container (docs/telemetry.md)
+just stack-up / twin-stack / stack-down  # Mosquitto + OTel collector in containers; the twin's cook against them (--speed 300)
+just ha-live-check                     # real Home Assistant (container) onboarded, MQTT added: the twin's entities appear and a setpoint round-trips
 ```
 
 ## Architecture Overview

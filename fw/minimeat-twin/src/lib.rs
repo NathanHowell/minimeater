@@ -7,8 +7,10 @@
 //!
 //! One run per process: the time driver, the executor and the task pools are statics.
 //!
-//! Not yet: the network stack, MQTT and OTLP against a local Mosquitto / collector / Home Assistant
-//! (waiting on `.5.2` and `.4.11`), and a live plot.
+//! The application's network clients run too: with an `mqtt` setting the MQTT client talks to an
+//! in-process broker ([`net`]: deterministic, any speed, with outages on demand), or with
+//! [`NetMode::Real`] (`--mqtt`/`--otlp`, a paced run) to a real Mosquitto and OpenTelemetry
+//! collector in containers (`just twin-stack`). Not yet: a live plot.
 
 pub mod clock;
 pub mod metrics;
@@ -67,7 +69,25 @@ async fn actuators(
 }
 
 #[embassy_executor::task]
-async fn mqtt(mut conn: net::TwinConn, bus: &'static Bus, bufs: &'static mut minimeat_app::mqtt::Buffers) {
+async fn otlp(
+    mut conn: net::RealConn,
+    bus: &'static Bus,
+    bufs: &'static mut minimeat_app::otlp::Buffers,
+    wall0_ns: u64,
+) {
+    let who = minimeat_app::net::Identity {
+        prefix: "minimeat",
+        id: "mm-twin01",
+        sw: "0.1.0",
+        hw: "A",
+    };
+    // wall-clock time as the cook would see it: the start, plus the twin's own clock
+    let unix = move || Some(wall0_ns + (clock::now() as u128 * 1_000_000_000 / clock::TICK_HZ as u128) as u64);
+    minimeat_app::otlp::run(&mut conn, &who, bus, bufs, &unix, &|| Some(-60), &|| Some(200_000)).await
+}
+
+#[embassy_executor::task]
+async fn mqtt(mut conn: net::AnyConn, bus: &'static Bus, bufs: &'static mut minimeat_app::mqtt::Buffers) {
     let who = minimeat_app::mqtt::Identity {
         prefix: "minimeat",
         id: "mm-twin01",
@@ -90,6 +110,15 @@ async fn slow(bus: &'static Bus) {
 pub struct Opts {
     /// Multiple of real time; `None` runs flat out.
     pub speed: Option<f64>,
+}
+
+/// Where the application's network clients connect.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NetMode {
+    /// The in-process broker (and no OTLP): deterministic, any speed.
+    Memory,
+    /// The servers in the settings, over real sockets (Mosquitto, a collector). Use a paced run.
+    Real,
 }
 
 /// One control period as the twin saw it.
@@ -122,7 +151,18 @@ static RAN: AtomicBool = AtomicBool::new(false);
 
 /// Runs `sc` to its end, calling `watch` with each sample and the events raised since the last.
 /// Panics if called twice in one process.
-pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Event)])) -> Report {
+pub fn run(sc: Scenario, opts: &Opts, watch: impl FnMut(&Sample, &[(f64, Event)])) -> Report {
+    run_with(sc, opts, NetMode::Memory, watch)
+}
+
+/// Like [`run`], with the network clients' servers chosen.
+pub fn run_with(
+    sc: Scenario,
+    opts: &Opts,
+    net_mode: NetMode,
+    mut watch: impl FnMut(&Sample, &[(f64, Event)]),
+) -> Report {
+    clock::register_main_thread();
     assert!(!RAN.swap(true, Ordering::SeqCst), "one twin run per process");
     let world: &'static RefCell<World> = Box::leak(Box::new(RefCell::new(sc.world())));
     let bus: &'static Bus = Box::leak(Box::new(Bus::new()));
@@ -156,8 +196,21 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
     let link: &'static net::Link = Box::leak(Box::new(net::Link::new()));
     if sc.settings.mqtt.is_some() {
         let bufs = Box::leak(Box::new(minimeat_app::mqtt::Buffers::new()));
-        spawner.spawn(mqtt(net::TwinConn(link), bus, bufs).expect("mqtt"));
-        spawner.spawn(broker(link).expect("broker"));
+        let conn = match net_mode {
+            NetMode::Memory => {
+                spawner.spawn(broker(link).expect("broker"));
+                net::AnyConn::Mem(net::TwinConn(link))
+            }
+            NetMode::Real => net::AnyConn::Real(net::RealConn::new()),
+        };
+        spawner.spawn(mqtt(conn, bus, bufs).expect("mqtt"));
+    }
+    if sc.settings.otlp.is_some() && net_mode == NetMode::Real {
+        let bufs = Box::leak(Box::new(minimeat_app::otlp::Buffers::new()));
+        let wall0 = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos() as u64);
+        spawner.spawn(otlp(net::RealConn::new(), bus, bufs, wall0).expect("otlp"));
     }
 
     let hz = clock::TICK_HZ;
@@ -228,8 +281,17 @@ pub fn run(sc: Scenario, opts: &Opts, mut watch: impl FnMut(&Sample, &[(f64, Eve
         }
         if let Some(speed) = opts.speed {
             let want = Duration::from_secs_f64(phys as f64 / hz as f64 / speed);
-            if let Some(ahead) = want.checked_sub(started.elapsed()) {
-                std::thread::sleep(ahead);
+            let mut woken = false;
+            while let Some(ahead) = want.checked_sub(started.elapsed()) {
+                std::thread::park_timeout(ahead);
+                // a socket bridge woke a task: let it run now, and finish the wait afterwards
+                if clock::pending() {
+                    woken = true;
+                    break;
+                }
+            }
+            if woken {
+                continue;
             }
         }
         clock::set(next);

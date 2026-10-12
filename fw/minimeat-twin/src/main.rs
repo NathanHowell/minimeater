@@ -1,21 +1,29 @@
 //! `cargo run --release -p minimeat-twin -- [--scenario kamado-brisket] [--speed 60|max]
-//! [--every MIN] [--csv FILE] [--metrics]` (or `just twin ...`): runs a scenario on the twin and
-//! prints the cook, or with `--metrics` only its control metrics as one line of JSON.
+//! [--every MIN] [--csv FILE] [--metrics] [--mqtt HOST:PORT] [--otlp HOST:PORT]` (or `just twin ...`):
+//! runs a scenario on the twin and prints the cook, or with `--metrics` only its control metrics as
+//! one line of JSON. `--mqtt` and `--otlp` connect the app's clients to a real broker and collector
+//! (`just stack-up`); they need a paced run (`--speed 60`), since the app's timeouts are virtual.
 
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
+use minimeat_app::config::{Mqtt, Otlp};
 use minimeat_app::pit::Event;
 use minimeat_core::food::Stall;
 use minimeat_twin::metrics::Metrics;
-use minimeat_twin::{Opts, Sample, Scenario, run};
+use minimeat_twin::{NetMode, Opts, Sample, Scenario, run_with};
 
 fn usage() -> ! {
     eprintln!(
-        "usage: minimeat-twin [--scenario {}] [--speed N|max] [--every MIN] [--csv FILE] [--metrics]",
+        "usage: minimeat-twin [--scenario {}] [--speed N|max] [--every MIN] [--csv FILE] [--metrics] [--mqtt HOST:PORT] [--otlp HOST:PORT]",
         Scenario::NAMES.join("|")
     );
     std::process::exit(2)
+}
+
+fn endpoint(s: &str) -> (String, u16) {
+    let (h, p) = s.rsplit_once(':').unwrap_or_else(|| usage());
+    (h.to_string(), p.parse().unwrap_or_else(|_| usage()))
 }
 
 fn hm(s: f64) -> String {
@@ -57,6 +65,7 @@ fn main() {
     let mut args = std::env::args().skip(1);
     let (mut name, mut speed, mut every_min, mut csv) = ("kamado-brisket".to_string(), None, 10.0, None);
     let mut metrics = false;
+    let (mut mqtt, mut otlp) = (None, None);
     while let Some(a) = args.next() {
         let mut val = || args.next().unwrap_or_else(|| usage());
         match a.as_str() {
@@ -71,10 +80,36 @@ fn main() {
             "--every" => every_min = val().parse().unwrap_or_else(|_| usage()),
             "--csv" => csv = Some(val()),
             "--metrics" => metrics = true,
+            "--mqtt" => mqtt = Some(endpoint(&val())),
+            "--otlp" => otlp = Some(endpoint(&val())),
             _ => usage(),
         }
     }
-    let sc = Scenario::named(&name).unwrap_or_else(|| usage());
+    let mut sc = Scenario::named(&name).unwrap_or_else(|| usage());
+    let net = if mqtt.is_some() || otlp.is_some() {
+        if speed.is_none() {
+            eprintln!("--mqtt and --otlp need a paced run: add --speed 60");
+            usage();
+        }
+        NetMode::Real
+    } else {
+        NetMode::Memory
+    };
+    if let Some((host, port)) = mqtt {
+        sc.settings.mqtt = Some(Mqtt {
+            host: host.as_str().try_into().unwrap_or_else(|_| usage()),
+            port,
+            user: Default::default(),
+            pass: Default::default(),
+        });
+    }
+    if let Some((host, port)) = otlp {
+        sc.settings.otlp = Some(Otlp {
+            host: host.as_str().try_into().unwrap_or_else(|_| usage()),
+            port,
+            interval_s: 15,
+        });
+    }
     let mut out = csv.map(|p| BufWriter::new(File::create(p).expect("csv file")));
     if let Some(w) = out.as_mut() {
         writeln!(
@@ -93,7 +128,7 @@ fn main() {
     }
     let sc_for_metrics = sc.clone();
     let mut next_print = 0.0;
-    let report = run(sc, &Opts { speed }, |s, events| {
+    let report = run_with(sc, &Opts { speed }, net, |s, events| {
         for (t, e) in events {
             if !metrics {
                 println!("{} event {e:?}", hm(*t));

@@ -299,3 +299,118 @@ async fn session(l: &'static Link) {
     // device finds out from its pings)
     select3(reader, writer, down).await;
 }
+
+// ------------------------------------------------------------------- real sockets (paced runs)
+
+/// A connection to a real server (Mosquitto, an OpenTelemetry collector) for a paced twin run.
+/// The twin's tasks see a pair of pipes; two threads move bytes between them and the TCP socket,
+/// and waking a pipe's reader wakes the twin's main loop (see `clock`).
+///
+/// Only sensible when the twin runs at a modest multiple of real time: timeouts are virtual, so at
+/// `--speed max` an acknowledgement would arrive after the client gave up.
+pub struct RealConn {
+    to_server: &'static Pipe<M, PIPE>,
+    from_server: &'static Pipe<M, PIPE>,
+    generation: &'static std::sync::atomic::AtomicU64,
+}
+
+impl RealConn {
+    pub fn new() -> Self {
+        RealConn {
+            to_server: Box::leak(Box::new(Pipe::new())),
+            from_server: Box::leak(Box::new(Pipe::new())),
+            generation: Box::leak(Box::new(std::sync::atomic::AtomicU64::new(0))),
+        }
+    }
+}
+
+impl Default for RealConn {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Connector for RealConn {
+    type Reader = &'static Pipe<M, PIPE>;
+    type Writer = &'static Pipe<M, PIPE>;
+
+    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+        use std::io::{Read as _, Write as _};
+        use std::sync::atomic::Ordering::SeqCst;
+        let (to_server, from_server, generation) = (self.to_server, self.from_server, self.generation);
+        // the previous connection's threads see the new generation and stop
+        let mine = generation.fetch_add(1, SeqCst) + 1;
+        to_server.clear();
+        from_server.clear();
+        let done: &'static Signal<M, bool> = Box::leak(Box::new(Signal::new()));
+        let addr = format!("{host}:{port}");
+        std::thread::spawn(move || {
+            let Ok(sock) = std::net::TcpStream::connect(&addr) else {
+                done.signal(false);
+                return;
+            };
+            let _ = sock.set_nodelay(true);
+            let Ok(mut reader) = sock.try_clone() else {
+                done.signal(false);
+                return;
+            };
+            done.signal(true);
+            let mut writer = sock;
+            // server -> device
+            let rt = std::thread::spawn(move || {
+                let mut buf = [0u8; 2048];
+                while generation.load(SeqCst) == mine {
+                    match reader.read(&mut buf) {
+                        Ok(0) | Err(_) => return,
+                        Ok(n) => {
+                            let mut left = &buf[..n];
+                            while !left.is_empty() && generation.load(SeqCst) == mine {
+                                match from_server.try_write(left) {
+                                    Ok(w) => left = &left[w..],
+                                    Err(_) => std::thread::sleep(std::time::Duration::from_millis(1)),
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            // device -> server
+            let mut buf = [0u8; 2048];
+            while generation.load(SeqCst) == mine {
+                match to_server.try_read(&mut buf) {
+                    Ok(n) if n > 0 => {
+                        if writer.write_all(&buf[..n]).is_err() {
+                            break;
+                        }
+                    }
+                    _ => std::thread::sleep(std::time::Duration::from_millis(1)),
+                }
+            }
+            let _ = writer.shutdown(std::net::Shutdown::Both);
+            let _ = rt.join();
+        });
+        if done.wait().await {
+            Ok((from_server, to_server))
+        } else {
+            Err(())
+        }
+    }
+}
+
+/// Either the in-process broker or a real server.
+pub enum AnyConn {
+    Mem(TwinConn),
+    Real(RealConn),
+}
+
+impl Connector for AnyConn {
+    type Reader = &'static Pipe<M, PIPE>;
+    type Writer = &'static Pipe<M, PIPE>;
+
+    async fn connect(&mut self, host: &str, port: u16) -> Result<(Self::Reader, Self::Writer), ()> {
+        match self {
+            AnyConn::Mem(c) => c.connect(host, port).await,
+            AnyConn::Real(c) => c.connect(host, port).await,
+        }
+    }
+}
