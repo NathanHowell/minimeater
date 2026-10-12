@@ -144,7 +144,7 @@ just ha-live-check                     # real Home Assistant (container) onboard
 
 ## Architecture Overview
 
-- **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds build123d parts. There is one uv project.
+- **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds the build123d enclosure (`docs/mech.md`; `uv run mech-export`, `uv run mech-render docs/mech`). There is one uv project.
 - **Firmware:** the `fw/` cargo workspace.
   - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, the food estimator and probe conversion.
   - `minimeat-app` is the application, generic over the peripheral traits in `minimeat-app::hal`; it must not use esp-hal or target `cfg`s. It holds the tasks, the probe and actuator drivers, alarms and the MQTT payload codec (`proto`).

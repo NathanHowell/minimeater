@@ -247,7 +247,8 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `lid_open`, `lid_closed` | `pit` |
 | `fire_low`, `fire_out` | `pit`, `q` |
 | `setpoint_reached` | `sp` |
-| `stall_start`, `stall_end`, `wrap_reminder` | `probe`, `t` |
+| `stall_start`, `stall_end` | `probe`, `t` |
+| `wrap_reminder` | `probe`, `t` |
 | `stall_bump` | `probe`, `sp` (the new setpoint) |
 | `stall_restore` | `sp` (the setpoint it went back to) |
 | `autotune_done` | `sp`, `k`, `tau`, `dead` (the model at that setpoint now), `accepted` (fits taken during the dither; 0 means the model is unchanged) |

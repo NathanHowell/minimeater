@@ -11,3 +11,6 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+
+# CAD output
+build/

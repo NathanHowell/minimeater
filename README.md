@@ -14,10 +14,11 @@ The controller commands airflow with an offset-free MPC. It reports to Home Assi
 |---|---|---|
 | `docs/adr/` | architecture decisions: MCU, probe front-end, control protocol, ... | |
 | `docs/modeling/` | generated airflow, thermal, controller and probe-budget reports, plus hand-written conclusions | `uv run minimeat-model`, `minimeat-control`, `minimeat-probes` |
+| `docs/mech.md` | the enclosure: layout, coupling, flap, tray, print notes and the provisional values | |
 | `docs/protocol.md` | MQTT topic and payload schema (normative) | |
 | `docs/telemetry.md` | OpenTelemetry metrics the device exports | |
 | `src/minimeat/model/` | Python plant, airflow and controller models; the reference for the firmware | uv |
-| `src/minimeat/mech/` | build123d enclosure, damper and tube coupling (`.2.x`, not started) | uv |
+| `src/minimeat/mech/` | build123d enclosure: duct, flap, tube coupling, electronics tray and lid (v0, `docs/mech.md`) | `uv run mech-export`, `mech-render` |
 | `hw/` | KiCad project, JLCPCB-assembled; every part must be in JLC stock | KiCad 9 |
 | `fw/` | Rust cargo workspace: `minimeat-core` (`no_std` control, food estimator and probe conversion), `minimeat-app` (application over peripheral traits, with the MQTT payload codec), `minimeat-sim` (plant model and simulated board), `minimeat-twin` (the app's tasks on a virtual clock against the simulated board) and `minimeat-fw` (ESP32-C6 board bindings, embassy) | cargo, espflash |
 | `tests/` | Python tests for the models and doc examples | `uv run pytest` |
@@ -28,6 +29,7 @@ The controller commands airflow with an offset-free MPC. It reports to Home Assi
 ```bash
 uv run pytest                    # Python models and doc checks
 uv run minimeat-model            # regenerate docs/modeling/*.md (also -control, -probes)
+uv run mech-export               # STEP + STL per printed part in print pose (build/mech); mech-render draws docs/mech
 cd fw && cargo test                    # firmware core, app and sim on the host
 cd fw && cargo run -p minimeat-fw --release   # build and flash over USB-C (ESP32-C6)
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
