@@ -20,12 +20,10 @@ Everything sits in one tunnel at the fan's height. From the back: the louvred re
 |---|---|---|
 | `duct` | flange on the bed, flow axis up | fan flange (62 square, r8), cone, bore with the flap station, servo shelf, flare, socket with O-ring groove, drip collar and thumbscrew boss |
 | `flap` | disc flat | Ø31.2 disc, 2.4 mm, on one side of a 6 × 5 mm rib with the Ø3 D-bore for the rod |
-| `crank` | arm face down | D-bored hub on the rod's top end, a 9 mm arm with the M2 pin hole |
-| `coupler` | flat | 6 × 2.5 mm bar, 24.9 mm between pin holes |
 | `hood` | standing on its rear face, nose up | the upper shell: half the nose notch, half the grille, the screw bosses, the seam rib, the label recess |
 | `pan` | the same | the lower shell: the board on three standoffs, the port bay, the ambient louvres, the flange pads, the screw columns, the seam tongue |
 
-The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a single-arm horn and 2 M2 × 6, a Ø3 rod 43 mm long with a flat, two M2 × 6 as linkage pins, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
+The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a Secraft 15 mm aluminium arm (Hitec 24T) and 2 M2 × 6, a Ø3 rod 43 mm long with a flat, the machined aluminium `crank` (below), two E-Z connectors (Du-Bro #121 class) with an M2 screw each, a Ø2 stainless wire 27 mm long for the pushrod, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 4 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five tethered silicone caps.
 
 ## Coupling to the tube
 
@@ -38,7 +36,9 @@ The chassis is the duct with the fan screwed to its flange, the servo on its she
 
 - The flap turns about a vertical rod in a blind pocket in the bottom wall and a Ø3.4 bore through the top wall: one shaft leak path. The disc is flush with the rib's bottom so it prints flat; its radius keeps the edge 0.15 mm off the bore at every angle (checked at 0, 30, 60 and 90°).
 - Closed-flap leak: 0.23 cm² (ring plus shaft) against the 0.3 cm² budget (`docs/modeling/README.md` §5). Open-flap blockage 20 % of the bore, mostly the rib; the loss to shave in CFD (`.2.13`).
-- Drive: a parallelogram. The crank on the rod's top end (hub Ø8 from z = 19, arm 5 × 3 at z = 22.5-25.5) and the servo's horn are equal 9 mm arms; the coupler bar lies over both at z = 25.6-28.1 on two M2 screws whose heads retain it. The servo's output axis is straight across from the rod at y = 24.9, so the coupler runs along y and the flap angle equals the servo angle: 0° open (arms pointing at the fan), 90° closed (arms pointing at -y, over the crown). The plane is 0.8 mm over the duct's crown and the pin heads stop 2.6 mm under the roof. The whole travel is checked for interference at four angles with every part and mock, shells included.
+- Drive: a parallelogram of RC hardware, metal where it is hot or wears. The crank on the rod's top end and the servo's arm are equal 12 mm arms (the Secraft 15 mm Hitec-24T aluminium arm has M2 holes at 12 and 15 mm; the 12 is used). Each arm carries an E-Z connector, a brass swivel barrel on an M2 screw through the arm's hole, and a straight Ø2 stainless wire runs through both barrels' cross holes and is clamped by their set screws. The servo's output axis is straight across from the rod at y = 24.9, so the wire runs along y and the flap angle equals the servo angle: 0° open (arms pointing at the fan), 90° closed (arms pointing at -y, over the crown). The wire's length sets flap zero, so it is adjusted by loosening one set screw. The plane is 0.8 mm over the duct's crown. The whole travel is checked for interference at four angles with every part and mock, shells included.
+- Why not ball links on a threaded rod (the usual RC coupler): their bodies are about 18 mm long, so two of them need the pin spacing to be 30 mm or more, and here it is 24.9 (fixed by the duct radius and the servo's width). The wire and barrels need only the barrels' width. If E-Z connectors turn out not to suit the arm's holes, a Z-bend wire in an unthreaded hole is the same geometry.
+- Crank: the one made part that is not printed, machined aluminium (JLCPCB CNC, 5 off, `crank_machined.step`): a Ø8 hub with a slip-fit D-bore (0.1 mm) and an M2 set screw, radial on the rod's flat, and an arm out to a tapped M2 hole. Printed plastic would creep and wear its pin hole next to a duct that can reach 65-90 °C (`.2.5`), which is why it is metal. The flap itself stays printed: it sits in the fan's cool air, and a flat steel disc would need a clamped hub as well.
 - Servo: body at y = 19.2-30.8 (1 mm off the duct, 3.8 off the wall), z = -4.8 to 15.2, long axis along the flow toward the fan. It drops through a cutout in a 2.5 mm shelf cast on the duct at z = 9.7-12.2 and screws down into two Ø5.2 bosses under its tabs (M2 × 6, 6 mm pilot). The mounting holes are 27.0 mm apart (Hitec's drawing; the first guess was 27.9). The shelf is why the servo is aligned with the rod by the print, not by assembly. Its lead leaves the bottom of the body with 14 mm to the board. Heat: the servo is rated 60 °C. The body touches nothing but its tabs; the duct beside it carries the fan's air, and the shelf's front end stops 10 mm short of the socket, which is the hot part. The shelf is the one conduction path from the duct; if the tube measurement (`.2.5`) says the socket runs hot, slot the shelf between the socket and the tabs.
 
 ## Board and ports
@@ -83,7 +83,7 @@ Nothing is proven. The spray test (IEC 60529 IPX4: oscillating tube, 10 L/min, 1
 ASA at 0.4 mm, six perimeters (2.4 mm walls). Every designed overhang is 44°, inside the 45 the test allows, so the inventory (`overhangs()` in `printing.py`: downward faces steeper than 45° in the print pose) lists only what is meant to be there:
 
 - `duct`, flange down: the O-ring groove's 2 mm ceiling (221 mm², a bridge as in v0), the underside of the thumbscrew boss (13 mm², 9 × 3) and the rims of its hole and the insert's. The flare, the collar's chamfer, the shoulder, the shelf's ends and the shelf's bosses are the 44° features for this pose.
-- `flap`: the rib's top over the disc (70 mm², as in v0). `crank`, `coupler`: nothing.
+- `flap`: the rib's top over the disc (70 mm², as in v0). 
 - `hood` and `pan`, nose up on the rear face: about 60 and 50 mm² of slivers at the ends of the rear pads and around the port openings (the test caps each shell at 150, no patch over 60). The cavity's front is a 44° cone down to the nose hole (plus a 44° wedge under it in the pan, so the board's corners fit), the screw bosses and standoffs are teardrop columns pointed down, every hole along z is a teardrop pointed up, and the bay's end walls and the ambient well's cross fins lean 44°. The USB-C opening's top is a 12 mm bridge.
 
 Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between port holes 1.3.
@@ -107,7 +107,8 @@ Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between
 |---|---|---|
 | tube OD 34.93, ID 31.6, free length | `Tube` | calipers on the tube (`.2.8`) |
 | fan outline, hole size, aperture, screw head height | `Fan`, `Layout.rear_gap` | the fan in hand (`.2.2`, `.2.11`) |
-| servo body, tab spacing, horn and its hole radii | `Servo`, `Linkage.arm_r` | the servo in hand (`.2.9`) |
+| servo body, tab spacing, horn (hub, thickness are estimates) and its hole radii | `Servo`, `Linkage.arm_r` | the servo and arm in hand (`.2.9`) |
+| E-Z connector barrel size, its fit to the arm's M2 holes | `Linkage.barrel_d`, `barrel_h` | the connectors in hand (the `.2.9` bring-up) |
 | board size, hole positions, connector positions and heights, sensor spot | `Pcb`, `envelope.py` | the ICD and layout (`.1.2`, `.3.6`, `.3.7`) |
 | plug overmold Ø8, USB-C overmold 12.4 × 6.8 | `Pcb` | the probes and cable bought |
 | flap gap, rib size | `Damper` | a print and a smoke test (`.2.7`) |

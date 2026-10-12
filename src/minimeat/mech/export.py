@@ -10,6 +10,7 @@ from . import assembly as A
 from . import board3d, mock
 from . import shell as K
 from .envelope import envelope
+from .parts import MACHINED
 from .printing import ALL, print_pose
 
 
@@ -21,6 +22,8 @@ def export(out: Path):
         export_step(s, str(out / f"{name}.step"))
         export_stl(s, str(out / f"{name}.stl"), tolerance=0.02, angular_tolerance=0.1)
         written.append(name)
+    export_step(MACHINED["crank"](), str(out / "crank_machined.step"))  # the one made part that is not printed
+    written.append("crank_machined")
     asm = {**A.printed(0.0), **A.bought(0.0), "hood": K.hood(), "pan": K.pan()}
     asm.pop("pcb_keepout")
     # the plugs are fit-check stand-ins for the probe and USB-C plugs, not parts of the product: a file of their own

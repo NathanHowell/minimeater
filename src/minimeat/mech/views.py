@@ -11,8 +11,8 @@ from .printing import ALL, print_pose
 from .parts import box
 from .render import render
 
-COLOURS = {"duct": "#9aa6b2", "flap": "#d9822b", "crank": "#d9822b", "coupler": "#e0a050", "fan": "#333333",
-           "servo": "#2c4a8a", "horn": "#eeeeee", "pin_crank": "#dddddd", "pin_horn": "#dddddd", "rod": "#cccccc",
+COLOURS = {"duct": "#9aa6b2", "flap": "#d9822b", "crank": "#b8b8c0", "pushrod": "#cccccc", "fan": "#333333",
+           "servo": "#2c4a8a", "horn": "#eeeeee", "ez_crank": "#c9a227", "ez_horn": "#c9a227", "rod": "#cccccc",
            "tube": "#c9c9c9", "oring": "#111111", "pcb": "#1f7a3a", "pcb_keepout": "#7fbf8f", "plugs": "#1a1a1a",
            "hood": "#2f6b45", "pan": "#444444"}
 NAMES = ["exterior.png", "underside.png", "rear.png", "section_axis.png", "section_across.png", "chassis.png", "plate.png"]
@@ -46,7 +46,7 @@ def main():
         b = s.bounding_box()
         plate.append((Pos(x - b.min.X, -(b.min.Y + b.max.Y) / 2, 0) * s, COLOURS[n]))
         x += b.size.X + 16.0
-    render(plate, out / "plate.png", view=(32, -62), size=(14, 6), tight=True, title="print orientation: duct, flap, crank, coupler, hood, pan")
+    render(plate, out / "plate.png", view=(32, -62), size=(14, 6), tight=True, title="print orientation: duct, flap, hood, pan")
     print("wrote", ", ".join(sorted(p.name for p in out.glob("*.png"))))
 
 

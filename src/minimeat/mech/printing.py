@@ -12,8 +12,6 @@ ALL = {**PARTS, **SHELLS}
 POSES = {
     "duct": Rot(0, -90, 0),  # flow axis up, fan flange on the bed: the flare and the collar's chamfer are for this
     "flap": Rot(90, 0, 0),  # disc flat
-    "crank": Rot(180, 0, 0),  # arm's top face on the bed, hub up
-    "coupler": Rot(0, 0, 0),  # flat
     "hood": Rot(0, -90, 0),  # standing on its rear face, nose up
     "pan": Rot(0, -90, 0),  # the same
 }

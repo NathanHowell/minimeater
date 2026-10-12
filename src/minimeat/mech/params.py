@@ -49,11 +49,11 @@ class Servo:
     boss_h: float = 6.0  # [spec] housing top 26.0 above the back face
     spline_d: float = 5.0  # [spec] 24T output, outer diameter from Hitec's STEP model
     spline_h: float = 3.0  # [spec] spline top 29.0 above the back face in Hitec's STEP model (the drawing's 30.0 has the horn)
-    horn_hub_d: float = 7.0  # [est] single-arm horn: hub, arm, and a hole at Linkage.arm_r
-    horn_hub_h: float = 4.0
-    horn_arm_w: float = 5.0
-    horn_arm_t: float = 2.0  # the arm, flush with the hub's top
-    horn_len: float = 12.0  # hub centre to the arm's tip
+    horn_hub_d: float = 9.0  # [est] Secraft 15 mm aluminium arm (Hitec 24T): hub, arm, M2 holes at 12 and 15 mm
+    horn_hub_h: float = 4.0  # [est]
+    horn_arm_w: float = 5.5  # [est]
+    horn_arm_t: float = 2.5  # [est] the arm, flush with the hub's top
+    horn_len: float = 15.0  # [spec] hub centre to the far hole (the arm's tip); the near hole, at Linkage.arm_r, is 12
 
 
 @dataclass(frozen=True)
@@ -117,20 +117,23 @@ class Damper:
 
 @dataclass(frozen=True)
 class Linkage:
-    """Parallelogram between the flap rod and the servo: equal arms, a coupler bar, flap angle = servo angle.
-    The plane is over the duct's crown, under the roof. Pins are M2 screws into the arms, heads retaining the
-    coupler."""
+    """Parallelogram between the flap rod and the servo: equal arms, a straight wire pushrod, flap angle = servo
+    angle. The plane is over the duct's crown, under the roof. All RC hardware but the crank: the servo's
+    aluminium arm, an E-Z connector (a swivel barrel on an M2 screw through the arm's hole, a set screw on the
+    wire) on each arm, and a plain Ø2 stainless wire cut to the pin spacing. The crank is machined aluminium
+    (JLCPCB CNC, 5 pieces): a clamp hub with an M2 set screw on the rod's flat, and a tapped M2 hole for the barrel."""
 
-    arm_r: float = 9.0  # pin radius on the crank and on the horn (the horn's hole at 9 mm [est])
-    arm_w: float = 5.0
+    arm_r: float = 12.0  # [spec] pin radius on the crank and on the horn (the Secraft 15 mm arm's near hole)
+    arm_w: float = 5.5
     arm_t: float = 3.0
     hub_d: float = 8.0
     hub_h: float = 3.5  # the crank's D-bored hub under its arm
-    coupler_t: float = 2.5
-    coupler_w: float = 6.0
-    pin_d: float = 2.0  # M2
-    pin_head_d: float = 3.8
-    pin_head_h: float = 1.3
+    slip: float = 0.1  # the crank's bore over the rod; the set screw clamps it
+    set_screw_d: float = 1.6  # tap drill for the M2 set screw, radial on the flat
+    pin_d: float = 2.0  # M2 screw through the barrel and the arm's hole
+    barrel_d: float = 5.0  # [est] E-Z connector barrel (Du-Bro #121 class)
+    barrel_h: float = 4.5  # [est] barrel standing on the arm
+    wire_d: float = 2.0  # stainless pushrod through both barrels
     lift: float = 0.8  # crank hub above the duct's crown
 
 
