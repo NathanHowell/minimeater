@@ -38,7 +38,7 @@ class Servo:
     body_w: float = 11.6  # [spec]
     tab_l: float = 32.3  # [spec] over both mounting flanges
     tab_t: float = 2.0  # [spec]
-    tab_hole_dx: tuple[float, float] = (-20.0, 8.6)  # [stl] x of the two screw holes on the axis line, from the output axis, read off Hitec's STEP: each end has three Ø2.0 holes, 6 mm across, the middle one 0.8 mm further out than the other two (the drawing's 19.2 and 7.8 are those two). The shelf's pilots are under the middle pair, 28.6 apart
+    tab_holes: tuple[tuple[float, float], ...] = ((-20.0, 0.0), (-19.2, -3.0), (-19.2, 3.0), (8.6, 0.0), (7.8, -3.0), (7.8, 3.0))  # [stl] all six Ø2.0 screw holes, (x from the output axis, y from the axis line), read off Hitec's STEP: a group of three at each end, 6 mm across, the middle one 0.8 mm further out (the drawing's 19.2 and 7.8 are the outer pairs). The shelf has a pilot under each: fit 2, 4 or 6 screws in the field
     tab_hole_d: float = 2.0  # [spec]
     body_h: float = 20.0  # [spec] back face to the case top; the gear housing and spline stand on it
     lead_w: float = 4.0  # [est] the cable leaves the body's end opposite the output

@@ -56,7 +56,8 @@ SERVO_X_CENTRE = SERVO_X - (P.servo.body_l / 2 - P.servo.shaft_off)  # body towa
 TAB_Z1 = SERVO_FACE_Z - P.servo.tab_to_face  # top of the tabs
 TAB_Z0 = TAB_Z1 - P.servo.tab_t
 PAD_T = 2.5  # the duct's pads under the tabs
-TAB_HOLE_XS = (SERVO_X + P.servo.tab_hole_dx[0], SERVO_X + P.servo.tab_hole_dx[1])
+TAB_HOLES = tuple((SERVO_X + dx, SERVO_Y + dy) for dx, dy in P.servo.tab_holes)  # all six, in the assembly frame
+TAB_HOLE_XS = (min(x for x, _ in TAB_HOLES), max(x for x, _ in TAB_HOLES))  # the group extremes
 
 # the shell: section height and the roof
 ROOF_IN_Z = P.shell.roof_in

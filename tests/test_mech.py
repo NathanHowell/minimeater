@@ -53,7 +53,7 @@ def test_rod_stands_above_the_crank_and_under_the_bar():
 
 
 def test_shelf_pilots_are_under_the_servos_screw_holes():
-    """The duct's M2 pilots sit under the tab holes of Hitec's own model (the first version had them between holes)."""
+    """The duct's six M2 pilots sit under the tab holes of Hitec's own model (the first version had two, between holes)."""
     halves = {}
     for f in mock.servo().faces():
         bb = f.bounding_box()
@@ -61,8 +61,9 @@ def test_shelf_pilots_are_under_the_servos_screw_holes():
             halves.setdefault(round(bb.center().X, 2), []).append(bb.center().Y)
     holes = [(x, (y0 + y1) / 2) for x, ys in halves.items() for y0 in ys for y1 in ys if abs(y1 - y0 - 1.0) < 0.05]  # two half-cylinders a hole
     assert len(holes) >= 6
-    for x in G.TAB_HOLE_XS:
-        assert any(abs(hx - x) < 0.05 and abs(hy - G.SERVO_Y) < 0.05 for hx, hy in holes), (x, holes)
+    assert len(G.TAB_HOLES) == 6
+    for x, y in G.TAB_HOLES:
+        assert any(abs(hx - x) < 0.05 and abs(hy - y) < 0.05 for hx, hy in holes), (x, y, holes)
 
 
 def test_board_lies_under_the_straight_duct():
@@ -108,7 +109,7 @@ def test_open_flap_does_not_choke_the_bore():
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 375}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2, a bridge as short as its height)
+OVERHANG_AREA_MM2 = {"duct": 465}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep)
 
 
 @pytest.mark.parametrize("name", list(PARTS))

@@ -91,34 +91,36 @@ def d_bore(x, y, z0, z1, clear=0.0):
 
 SHELF_Y0 = 14.0  # the servo shelf starts inside the duct wall
 SHELF_Y1 = G.SERVO_Y0 + P.servo.body_w + 0.2
-SHELF_X0 = G.TAB_HOLE_XS[0] - 5.0
+SHELF_X0 = G.TAB_HOLE_XS[0] - 6.5  # the rear end leans 44 deg: room for the pilots to reach full depth
 SHELF_X1 = G.TAB_HOLE_XS[1] + 2.3  # short of the shells' front cone
+BLOCK_D = 7.0  # the blocks under the tabs, from the tab's underside: a 6 mm pilot and a 1 mm floor
 BOSS_Y0 = G.g.duct_r + 1.8  # the thumbscrew boss: from inside the socket wall out past it
 BOSS_Y1 = P.coupling.od / 2 + 3.0
 
 
 def servo_shelf():
-    """A shelf under the servo's tabs, beside the duct on +y, with a cutout the body drops through and a
-    boss under each tab screw. Its front end merges with the socket's step."""
+    """A shelf under the servo's tabs, beside the duct on +y, with a cutout the body drops through and a solid block
+    under each end's tab, with a M2 pilot under each of the six screw holes (2, 4 or 6 screws, chosen in the field).
+    The rear end of the shelf and its block lean 44 deg; the block's face toward the body at the front is a vertical
+    12 mm wide bridge, as short as the block is deep. Its front end merges with the socket's step."""
     sv = P.servo
-    z0, z1 = G.TAB_Z0 - G.PAD_T, G.TAB_Z0
-    run = (G.PAD_T + 0.2) * P.layout.slope + 0.02
+    z1 = G.TAB_Z0
+    z0 = z1 - G.PAD_T
+    zb = z1 - BLOCK_D
     s = box(SHELF_X0, SHELF_X1, SHELF_Y0, SHELF_Y1, z0, z1)
     s = s.fillet(3.0, s.edges().filter_by(Axis.Z).filter_by(lambda e: e.center().X > SHELF_X1 - 1))
-    # faces toward -x hang in the print pose (flange down): the rear end and the cutout's front face lean 44 deg
-    land = 1.2  # the lean stops this far under the shelf's top: a land, not a knife edge
-    lean = (z1 - land - z0) * P.layout.slope + 0.02
-    s -= prism_xz([(SHELF_X0 - 0.1, z0 - 0.1), (SHELF_X0 - 0.1 + lean, z0 - 0.1), (SHELF_X0 - 0.1, z1 - land)], SHELF_Y0 - 1, SHELF_Y1 + 1)
     cut_x0 = G.SERVO_X_CENTRE - sv.body_l / 2 - 0.2
     cut_x1 = G.SERVO_X_CENTRE + sv.body_l / 2 + 0.2
-    s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, z0 - 1, z1 + 1)
-    s -= prism_xz([(cut_x1 - 0.01, z0 - 0.1), (cut_x1 - 0.01 + run, z1 + 0.1), (cut_x1 - 0.01, z1 + 0.1)],
-                  G.SERVO_Y0 - 0.2, SHELF_Y1 + 1)
-    for x in G.TAB_HOLE_XS:
-        s += teardrop_z(x, G.SERVO_Y, 2.6, z0 - 4.0, z0 + 0.1)
-    s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, z0 - 5, z0 + 0.1)  # the bosses stop at the body
-    for x in G.TAB_HOLE_XS:
-        s -= zcyl(0.85, z0 - 3.5, z1 + 0.1, x, G.SERVO_Y)  # M2 pilot, 6 mm
+    by0 = G.SERVO_Y0 - 0.1  # the blocks stand under the tabs, the width of the body
+    s += box(SHELF_X0, cut_x0, by0, SHELF_Y1, zb, z0 + 0.01)
+    s += box(cut_x1, SHELF_X1, by0, SHELF_Y1, zb, z0 + 0.01)
+    # the rear end faces toward -x and hangs in the print pose (flange down): it leans 44 deg, ending in a land
+    land = 1.2  # the lean stops this far under the shelf's top: a land, not a knife edge
+    lean = (z1 - land - zb) * P.layout.slope + 0.02
+    s -= prism_xz([(SHELF_X0 - 0.1, zb - 0.1), (SHELF_X0 - 0.1 + lean, zb - 0.1), (SHELF_X0 - 0.1, z1 - land)], SHELF_Y0 - 1, SHELF_Y1 + 1)
+    s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, zb - 1, z1 + 1)  # the body's cutout
+    for x, y in G.TAB_HOLES:
+        s -= zcyl(0.85, zb + 1.0, z1 + 0.1, x, y)  # M2 pilot, 6 mm
     return s
 
 

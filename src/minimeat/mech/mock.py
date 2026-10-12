@@ -65,8 +65,8 @@ def servo_box():
     xc, yc = G.SERVO_X_CENTRE, G.SERVO_Y
     body = box(xc - sv.body_l / 2, xc + sv.body_l / 2, yc - sv.body_w / 2, yc + sv.body_w / 2, G.SERVO_Z0, z1)
     tabs = box(xc - sv.tab_l / 2, xc + sv.tab_l / 2, yc - sv.body_w / 2, yc + sv.body_w / 2, G.TAB_Z0, G.TAB_Z1)
-    for x in G.TAB_HOLE_XS:
-        tabs -= zcyl(sv.tab_hole_d / 2, G.TAB_Z0 - 0.1, G.TAB_Z1 + 0.1, x, yc)
+    for x, y in G.TAB_HOLES:
+        tabs -= zcyl(sv.tab_hole_d / 2, G.TAB_Z0 - 0.1, G.TAB_Z1 + 0.1, x, y)
     boss = zcyl(sv.boss_d / 2, z1 - 0.1, z1 + sv.boss_h, G.SERVO_X, yc)
     spline = zcyl(sv.spline_d / 2, z1 + sv.boss_h - 0.1, z1 + sv.boss_h + sv.spline_h, G.SERVO_X, yc)
     return body + tabs + boss + spline
