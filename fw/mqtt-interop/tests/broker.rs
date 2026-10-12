@@ -46,9 +46,11 @@ fn broker() -> (String, u16) {
 }
 
 fn status(up_s: u64, sp: f64) -> Status {
-    let mut cook = minimeat_app::config::Cook::default();
-    cook.sp_f = sp;
-    cook.mode = minimeat_app::config::Mode::Run;
+    let cook = minimeat_app::config::Cook {
+        sp_f: sp,
+        mode: minimeat_app::config::Mode::Run,
+        ..Default::default()
+    };
     Status {
         up_s,
         cook,
@@ -224,13 +226,15 @@ async fn the_client_works_against_mosquitto() {
     LocalSet::new()
         .run_until(async {
             let (host, port) = broker();
-            let mut settings = Settings::default();
-            settings.mqtt = Some(Mqtt {
-                host: host.as_str().try_into().unwrap(),
-                port,
-                user: Default::default(),
-                pass: Default::default(),
-            });
+            let settings = Settings {
+                mqtt: Some(Mqtt {
+                    host: host.as_str().try_into().unwrap(),
+                    port,
+                    user: Default::default(),
+                    pass: Default::default(),
+                }),
+                ..Default::default()
+            };
             let bus: &'static Bus = Box::leak(Box::new(Bus::new()));
             bus.publish_config(&settings);
             spawn_local(stub_control(bus, settings));
