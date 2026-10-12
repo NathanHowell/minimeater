@@ -79,6 +79,11 @@ class Pcb:
     plug_d: float = 8.0  # [est] probe plug overmold
     usb_open_w: float = 12.4  # [est] USB-C overmold passes the 2.4 mm wall to reach the receptacle
     usb_open_h: float = 6.8
+    # the status LED and the button on the +y edge (the side away from the ports), both facing +y
+    led_x: float = -2.0  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
+    btn_x: float = 8.0  # ALPS SKRPACE010 side-actuated tact switch, C139797 (4.2 x 3.2 mm)
+    led_z: float = 0.5  # emitter and actuator heights above the board's top face [est]
+    btn_z: float = 1.0
     sensor: tuple[float, float] = (-5.0, 20.0)  # ambient sensor, board frame: on the underside, in the pan's vented well
 
 
@@ -200,6 +205,10 @@ class Shell:
     bay_wall_t: float = 2.4  # the port wall
     vent_slots: tuple[tuple[float, float], ...] = ((-64.0, -56.0),)  # x ranges of the ambient louvres, +y wall
     vent_z: float = -33.0
+    pipe_d: float = 1.75  # the LED's light pipe: a piece of clear 1.75 mm filament, glued flush in a 1.9 mm hole
+    plunger_d: float = 3.0  # the button's plunger: a piece of the 3 mm rod, behind a printed skin
+    plunger_pocket_d: float = 5.0  # the pocket round it: the skin over it flexes
+    skin_t: float = 0.8  # the skin left over the button pocket
 
 
 @dataclass(frozen=True)

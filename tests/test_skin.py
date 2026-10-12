@@ -106,3 +106,20 @@ def test_prints_without_support(shells, name):
     total = sum(p["area"] for p in patches)
     assert total <= OVERHANG_AREA_MM2[name], patches
     assert all(p["area"] <= 60 for p in patches), patches
+
+
+def test_led_pipe_and_button_plunger_pass_the_flank(shells):
+    """The light pipe runs from the board's edge out through the +y flank; the plunger reaches a skin that is
+    still there, and both sit on the board's +y edge, clear of the ambient louvres."""
+    p = P.pcb
+    pan = shells["pan"]
+    xl, xb = K.PCB_XC + p.led_x, K.PCB_XC + p.btn_x
+    zl, zb = G.PCB_Z1 + p.led_z, G.PCB_Z1 + p.btn_z
+    pipe = ycyl(P.shell.pipe_d / 2, p.y_len / 2 + 0.6, 45.0, xl, zl)
+    assert A.overlap(pipe, pan) < 0.5  # a clear way through
+    plunger = ycyl(P.shell.plunger_d / 2, p.y_len / 2 + 0.6, K._outer_y(xb, zb) - P.shell.skin_t - 0.1, xb, zb)
+    assert A.overlap(plunger, pan) < 0.5
+    skin = ycyl(0.5, K._outer_y(xb, zb) - P.shell.skin_t + 0.1, K._outer_y(xb, zb) - 0.1, xb, zb)  # on the axis: the face leans, so a wide probe would leave it
+    assert A.overlap(skin, pan) > 0.9 * skin.volume  # the skin is there: a sealed face
+    lo, hi = P.shell.vent_slots[0]
+    assert not (lo - 1.5 < xl < hi + 1.5 or lo - 1.5 < xb < hi + 1.5)

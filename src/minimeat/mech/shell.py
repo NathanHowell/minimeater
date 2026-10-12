@@ -172,6 +172,27 @@ def vent_cut():
     return cut
 
 
+def _outer_y(x, z):
+    """The shell's outer +y face at (x, z): the flank leans out going up, so the holes below start from it."""
+    return (outer() & Pos(x, 0, z) * Box(0.4, 200, 0.2)).bounding_box().max.Y
+
+
+def indicator_cuts():
+    """Through the pan's +y flank, on the board's +y edge: a Ø1.9 hole for the LED's clear light pipe and a Ø5
+    blind pocket for the button's plunger that leaves a skin over it. Both are teardrops pointing +x, so they
+    print standing on the rear face."""
+    p = P.pcb
+    y0 = p.y_len / 2 + 0.5 - 0.5  # from the board's edge
+    zl, zb = G.PCB_Z1 + p.led_z, G.PCB_Z1 + p.btn_z
+    xl, xb = PCB_XC + p.led_x, PCB_XC + p.btn_x
+
+    def tear(r, x, z, y1):
+        k = r * math.sqrt(0.5)
+        return ycyl(r, y0, y1, x, z) + prism_xz([(x + k, z - k), (x + k * (1 + KS), z), (x + k, z + k)], y0, y1)
+
+    return tear(S.pipe_d / 2 + 0.075, xl, zl, 50.0) + tear(S.plunger_pocket_d / 2, xb, zb, _outer_y(xb, zb) - S.skin_t)
+
+
 def label_cut():
     x, z, w, h = S.label
     f = Plane.XZ.offset(45.0) * Pos(x, z) * RectangleRounded(w, h, 2.5)
@@ -383,6 +404,7 @@ def pan():
     p += drip_lip() & o
     p -= tether_holes()
     p -= vent_cut()
+    p -= indicator_cuts()
     p += _half(fan_shims(), False) & o
     p += _half(rear_bumps(), False)
     p += (flange_pads() + standoffs() + ambient_well()) & o

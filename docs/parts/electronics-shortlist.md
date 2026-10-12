@@ -18,8 +18,8 @@ Checked against JLCPCB stock on 2026-10-11 with `scripts/jlc_stock.py`. About 5 
 | Secure element | Microchip ATECC608B-SSHDA-T | C1518769 | 1.6k | $1.00 | ADR 0005: device key pair on I2C (0x60); the blank part, not the TNGTLS pre-provisioned one; UDFN alternative C1518773 |
 | Probe jacks | SHOU HAN PJ-242, four | C431536 | 20k | $0.21 | ADR 0002; 2.5 mm TRRS SMD, body 5 x 3.2 x 12 mm, -30..70 C; pinout and tip switch still unverified |
 | Ambient sensor | TI TMP117AIDRVR | C699536 | 29k | $1.02 | over the $0.5-0.7 Mysentech clones |
-| Button | XKB TS-1187A-B-A-B | C318884 | 378k | $0.021 | 5.1 x 5.1 SMD tact |
-| LED | Lite-On LTST-C191KGKT, 0603 green | C125098 | 200k | $0.023 | over the generic 19-217 types |
+| Button | ALPS SKRPACE010 | C139797 | 126k | $0.063 | side-actuated tact, 4.2 x 3.2 mm, on the board's +y edge facing the flank (see docs/mech.md); replaces the top-press XKB TS-1187A (C318884) |
+| LED | Lite-On LTST-S220KGKT, side-view green | C160469 | 39.8k | $0.047 | on the board's +y edge facing the flank, into a clear light pipe (see docs/mech.md); replaces the top-view LTST-C191KGKT (C125098) |
 
 ## Not settled
 
