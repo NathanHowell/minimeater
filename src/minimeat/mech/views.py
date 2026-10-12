@@ -24,8 +24,8 @@ def main():
     hood, pan = K.hood(), K.pan()
     parts = {**A.printed(0.0), **A.bought(0.0)}
     keepout = parts.pop("pcb_keepout")
-    ext = [(hood, COLOURS["hood"]), (pan, COLOURS["pan"]), (parts["duct"], COLOURS["duct"]), (parts["tube"], COLOURS["tube"]),
-           (parts["plugs"], COLOURS["plugs"])]
+    parts.pop("plugs")  # fit-check stand-ins for the mating plugs (tests/test_skin.py), not part of the product
+    ext = [(hood, COLOURS["hood"]), (pan, COLOURS["pan"]), (parts["duct"], COLOURS["duct"]), (parts["tube"], COLOURS["tube"])]
     render(ext, out / "exterior.png", view=(24, -48), title="minimeat on the egg's intake tube (egg to the right)")
     render(ext, out / "underside.png", view=(-30, -125), title="from below: the port bay in the -y flank, the four screws", light=(-0.3, -0.6, -0.7))
     render(ext, out / "rear.png", view=(14, 152), title="rear: the louvred inlet, the two-tone seam", light=(-0.7, 0.4, 0.6))
