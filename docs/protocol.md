@@ -154,6 +154,7 @@ Error codes:
 | `fan_stall` | duty above 30 % but tach reads 0 |
 | `adc` | ADS122C04 not responding |
 | `ambient` | TMP117 not responding: feedforward falls back to 20C |
+| `supply` | the USB-C source advertises less than 1.5 A (or nothing): the fan and servo are off, probes and alarms keep running |
 
 - `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS122C04 internal sensor). Detailed diagnostics go to OTLP, not here.
 

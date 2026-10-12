@@ -13,13 +13,13 @@ Status: draft (2026-10-11), bead `minimeat-seq.1.2`. This is the contract betwee
 | | |
 |---|---|
 | Input | USB-C, 5 V only, sink with 5.1 k Rd on both CC pins; no PD |
-| Source class | read from CC on ADC1 pins: Default 500 mA, 1.5 A, 3 A; an unknown source is Default |
+| Source class | read from CC on ADC1 pins: Default 500 mA, 1.5 A, 3 A; an unknown source is Default. The box needs 1.5 A or 3 A (7.5 W): on less, the fan and servo are off and the `supply` fault is raised. There is no reduced mode. Use a USB-C to USB-C cable: a USB-A to USB-C cable always reads as Default |
 | Typical cook draw | about 0.12 A |
 | Worst normal draw | about 0.8 A |
 | Fault | servo stall 0.96-1.2 A, limited to about 0.6 A by a load switch |
 | Rails | 5 V (VBUS), 3.3 V buck, filtered analog supply for the ADS122C04 |
 
-Rules: the fan and the servo each have a power switch controlled by the MCU; the 5 V loads are limited by source class; a brownout resets the MCU and the cook resumes from flash.
+Rules: the fan and the servo each have a power switch controlled by the MCU; the 5 V loads run only on a 1.5 A or 3 A source; a brownout resets the MCU and the cook resumes from flash.
 
 ## Probes (ADR 0002)
 

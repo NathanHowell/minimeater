@@ -44,3 +44,13 @@ The currents are the parts' own figures and need checking at bring-up (`.3.9`). 
 - **Power banks** often cut the output when the load stays under 50-100 mA. The typical cook draws about 120 mA with the fan off and WiFi idle, which is close to that. For overnight cooks, use a wall charger. If testing shows a power bank cuts out, add a small keep-alive load (a resistor and a MOSFET footprint) in `.3.2`.
 - **Pin budget** (ADR 0001): fan power enable takes the last spare GPIO. Nothing else changes.
 - **Part selection** (`.3.2`, `.3.5`): 5 V fan and servo, VBUS TVS, two load switches (servo 0.6 A limit, fan about 0.3 A), a buck, a low-noise LDO for the ADC, and a USB-C receptacle that suits the case's port panel.
+
+## Amendment (2026-10-12): 1.5 A or nothing
+
+The Default-class rules above ("fan duty capped, servo moves only while WiFi is idle, servo and fan never run together") are replaced by a hard requirement. The damper servo and the fan are both needed for control: the model's low-airflow regime is natural draft throttled by the damper with the fan stopped, and its high-airflow regime is the damper open with the fan modulated. With either one missing the pit cannot be held, so a half-working mode is worse than none.
+
+- **Rule:** the source must advertise 1.5 A or 3 A on CC (7.5 W or more). Anything else, including no source or an unreadable CC, is a `supply` fault: the fan and the servo are off, the probes, alarms and MQTT keep running, and the fault says why. There is no reduced mode and no sequencing.
+- **Budget behind 1.5 A:** the 3.3 V rail at the radio's TX burst (about 0.25 A at 5 V), the fan (0.19 A) and a servo at its 0.6 A limit come to about 1.1 A, and the servo's turn-on surge (0.9 A for about a millisecond, `docs/sim/power.md`) fits inside 1.5 A. A bulk-capacitor fix for a 500 mA source is not possible: the surge needs about 0.5 mC and the steady worst case already exceeds 500 mA.
+- **Cables:** use USB-C to USB-C. A USB-A to USB-C cable carries a fixed 56k pull-up that always reads as Default, even from a capable charger, so it faults. A PD controller would not change this (the cable carries no PD signalling), and BC1.2 charger detection on D+/D- cannot prove 1.5 A; neither is used.
+- **Firmware:** `drive::SupplyWatch` debounces the CC reading (two good reads to accept, three bad to reject); the actuator task holds the fan at 0 and the servo unpowered until it accepts. Twin test: `fault_supply`.
+- **Servo hold:** the servo is power-gated between moves, so the flap is held by the gear train alone; check at bring-up that the flap does not creep in the fan's airflow (`.3.9`).

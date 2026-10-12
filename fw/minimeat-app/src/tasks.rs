@@ -36,9 +36,9 @@ use minimeat_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
-use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, TachWatch};
+use crate::drive::{FanCurve, FanDrive, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
-use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach};
+use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
@@ -486,16 +486,19 @@ async fn handle<B: Board>(
 
 /// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`
 /// its speed at full duty.
+#[allow(clippy::too_many_arguments)]
 pub async fn actuators<B: Board>(
     mut fan: B::Fan,
     mut tach: B::Tach,
     mut servo: B::Servo,
     mut power: B::ServoPower,
+    mut usb: B::Usb,
     s_min: f64,
     rpm_max: f64,
     bus: &Bus,
 ) -> ! {
     const DT: f64 = 1.0;
+    let mut supply = SupplyWatch::default();
     let mut tick = Ticker::every(Duration::from_secs(1));
     let mut cycler = FanCycler::default();
     let mut fan_drive = FanDrive::new(FanCurve::LINEAR, None);
@@ -506,15 +509,19 @@ pub async fn actuators<B: Board>(
         if let Some(a) = bus.act.try_take() {
             act = a;
         }
+        // the fan and the servo run on a 1.5 A source or not at all
+        if let Some(raised) = supply.tick(usb.source_current_ma()) {
+            bus.fault(FaultCode::Supply, raised);
+        }
         let speed = cycler.tick(act.fan, s_min, DT);
-        let duty = fan_drive.duty(speed);
+        let duty = if supply.ok() { fan_drive.duty(speed) } else { 0.0 };
         let max = f64::from(fan.max_duty_cycle());
         let _ = fan.set_duty_cycle((duty * max) as u16);
 
         // pulse first, then power: a servo waking up goes straight to the new position
         let s = flap.tick(flap_angle_deg(act.damper), DT);
         servo.set_pulse_us(s.pulse_us);
-        let _ = if s.power { power.set_high() } else { power.set_low() };
+        let _ = if s.power && supply.ok() { power.set_high() } else { power.set_low() };
 
         tick.next().await;
         // the tach's mean over the second just run

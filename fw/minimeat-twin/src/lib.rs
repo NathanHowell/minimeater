@@ -31,7 +31,7 @@ use minimeat_app::pit::{Event, Pit};
 use minimeat_app::tasks::{self, Bus, Status};
 use minimeat_core::model::airflow::AirPath;
 use minimeat_sim::hal::{
-    SimAmbient, SimBoard, SimConfig, SimFan, SimProbes, SimServo, SimServoPower, SimTach, World, io,
+    SimAmbient, SimBoard, SimConfig, SimFan, SimProbes, SimServo, SimServoPower, SimTach, SimUsb, World, io,
 };
 
 pub use scenario::{Action, Scenario};
@@ -55,17 +55,19 @@ async fn probes(adc: SimProbes<'static>, bus: &'static Bus) {
     tasks::probes::<B>(adc, bus).await
 }
 
+#[allow(clippy::too_many_arguments)]
 #[embassy_executor::task]
 async fn actuators(
     fan: SimFan<'static>,
     tach: SimTach<'static>,
     servo: SimServo<'static>,
     power: SimServoPower<'static>,
+    usb: SimUsb<'static>,
     s_min: f64,
     rpm_max: f64,
     bus: &'static Bus,
 ) {
-    tasks::actuators::<B>(fan, tach, servo, power, s_min, rpm_max, bus).await
+    tasks::actuators::<B>(fan, tach, servo, power, usb, s_min, rpm_max, bus).await
 }
 
 #[embassy_executor::task]
@@ -186,6 +188,7 @@ pub fn run_with(
             io.tach,
             io.servo,
             io.servo_power,
+            io.usb,
             model.fan.s_min(),
             model.fan.rpm_max,
             bus,

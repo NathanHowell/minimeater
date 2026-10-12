@@ -203,9 +203,84 @@ impl TachWatch {
     }
 }
 
+/// The advertised source current the fan and servo need together (ADR 0004): worst case is the radio's burst, the
+/// fan and a servo at its 0.6 A limit, about 1.1 A. Below this the box does not run them at all.
+pub const SUPPLY_MIN_MA: u16 = 1500;
+/// Consecutive reads, one a second, before the supply is judged good or bad (a CC reading can glitch).
+const SUPPLY_GOOD_READS: u8 = 2;
+const SUPPLY_BAD_READS: u8 = 3;
+
+/// Decides whether the USB-C source can run the fan and the servo, from its advertised current. All or nothing:
+/// there is no reduced mode. Until the first verdict the actuators stay off and no fault is raised.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct SupplyWatch {
+    verdict: Option<bool>,
+    run: u8,
+}
+
+impl SupplyWatch {
+    /// The actuators may run.
+    pub fn ok(&self) -> bool {
+        self.verdict == Some(true)
+    }
+
+    /// One read of the advertised current. Returns the new fault state (`true` = `supply` raised) when it changed.
+    pub fn tick(&mut self, advertised_ma: Option<u16>) -> Option<bool> {
+        let good = advertised_ma.is_some_and(|ma| ma >= SUPPLY_MIN_MA);
+        // the run counts reads that disagree with the current verdict (or with nothing yet)
+        let agrees = self.verdict == Some(good);
+        if agrees {
+            self.run = 0;
+            return None;
+        }
+        self.run += 1;
+        let need = if good { SUPPLY_GOOD_READS } else { SUPPLY_BAD_READS };
+        if self.run < need {
+            return None;
+        }
+        let first = self.verdict.is_none();
+        self.verdict = Some(good);
+        self.run = 0;
+        // the first verdict being good is not a change; being bad is a fault
+        (!(first && good)).then_some(!good)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn supply_needs_1500_ma_and_debounces_both_ways() {
+        let mut w = SupplyWatch::default();
+        assert!(!w.ok(), "off until the first verdict");
+        assert_eq!(w.tick(Some(3000)), None);
+        assert!(!w.ok());
+        assert_eq!(w.tick(Some(3000)), None, "a good source from the start raises nothing");
+        assert!(w.ok());
+        // a glitch does not drop it, a lasting loss does
+        assert_eq!(w.tick(Some(500)), None);
+        assert_eq!(w.tick(Some(500)), None);
+        assert_eq!(w.tick(Some(3000)), None);
+        assert!(w.ok());
+        for _ in 0..2 {
+            assert_eq!(w.tick(None), None);
+        }
+        assert_eq!(w.tick(None), Some(true));
+        assert!(!w.ok());
+        assert_eq!(w.tick(Some(1500)), None);
+        assert_eq!(w.tick(Some(1500)), Some(false), "1.5 A is enough");
+        assert!(w.ok());
+    }
+
+    #[test]
+    fn a_default_source_is_a_fault_from_the_start() {
+        let mut w = SupplyWatch::default();
+        assert_eq!(w.tick(Some(500)), None);
+        assert_eq!(w.tick(Some(500)), None);
+        assert_eq!(w.tick(Some(500)), Some(true));
+        assert!(!w.ok());
+    }
 
     #[test]
     fn servo_pulse_follows_the_calibration_either_way_round() {

@@ -69,6 +69,8 @@ pub enum FaultCode {
     Adc,
     /// The ambient sensor is not answering: feedforward falls back to 20C.
     Ambient,
+    /// The USB-C source does not advertise 1.5 A: the fan and the servo stay off (ADR 0004).
+    Supply,
 }
 
 impl FaultCode {
@@ -80,15 +82,17 @@ impl FaultCode {
             FaultCode::FanStall => "fan_stall",
             FaultCode::Adc => "adc",
             FaultCode::Ambient => "ambient",
+            FaultCode::Supply => "supply",
         }
     }
 
-    pub const ALL: [FaultCode; 5] = [
+    pub const ALL: [FaultCode; 6] = [
         FaultCode::PitProbe,
         FaultCode::BoardHot,
         FaultCode::FanStall,
         FaultCode::Adc,
         FaultCode::Ambient,
+        FaultCode::Supply,
     ];
 }
 
