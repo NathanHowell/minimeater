@@ -1,5 +1,37 @@
 //! Small numeric helpers shared by the models (no_std, no alloc).
 
+use core::future::Future;
+use core::pin::pin;
+use core::task::{Context, Poll, Waker};
+
+/// Gives the executor a turn: pending once, woken at once. The long computations (the autotune fit, the airflow
+/// map) await it between their steps so that the other tasks run on a single-core cooperative executor.
+pub async fn yield_now() {
+    let mut yielded = false;
+    core::future::poll_fn(|cx| {
+        if yielded {
+            Poll::Ready(())
+        } else {
+            yielded = true;
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        }
+    })
+    .await
+}
+
+/// Runs a future that only ever waits on [`yield_now`] to its end (the synchronous callers of the stepwise
+/// computations: boot, the host tests).
+pub fn finish<T>(fut: impl Future<Output = T>) -> T {
+    let mut fut = pin!(fut);
+    let mut cx = Context::from_waker(Waker::noop());
+    loop {
+        if let Poll::Ready(v) = fut.as_mut().poll(&mut cx) {
+            return v;
+        }
+    }
+}
+
 /// Brent's method on a bracketing interval [a, b] with f(a), f(b) of opposite sign (or zero).
 /// Same algorithm as scipy's `brentq`; `None` if the interval does not bracket a root.
 pub fn brent(mut f: impl FnMut(f64) -> f64, mut a: f64, mut b: f64, xtol: f64) -> Option<f64> {

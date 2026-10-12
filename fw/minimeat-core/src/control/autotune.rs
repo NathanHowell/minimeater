@@ -25,6 +25,7 @@
 use libm::{exp, log, round, sqrt};
 
 use super::{Fopdt, Obs, Schedule};
+use crate::numeric::yield_now;
 
 /// Window length in samples (60 min at the 10 s control period).
 pub const WINDOW: usize = 360;
@@ -169,8 +170,15 @@ impl Identifier {
         false
     }
 
-    /// Best fit over the current window; `None` if the data are degenerate.
+    /// Best fit over the current window; `None` if the data are degenerate. Runs to the end without yielding; see
+    /// [`Self::fit_async`].
     pub fn fit(&self) -> Option<Fit> {
+        crate::numeric::finish(self.fit_async())
+    }
+
+    /// [`Self::fit`] giving the executor a turn after every least-squares solve, so a task sharing the executor
+    /// waits for one solve at most.
+    pub async fn fit_async(&self) -> Option<Fit> {
         let (l0, l1) = (log(TAU_MIN), log(TAU_MAX));
         let mut best: Option<(f64, f64, usize)> = None;
         // coarse grid: tau log-spaced, dead time every 3 samples
@@ -182,6 +190,7 @@ impl Identifier {
                 {
                     best = Some((s.sse, lt, d));
                 }
+                yield_now().await;
             }
         }
         let (_, lt_grid, d_grid) = best?;
@@ -194,7 +203,8 @@ impl Identifier {
                 |l| self.solve(exp(l), nd).map_or(f64::INFINITY, |s| s.sse),
                 (lt_grid - cell).max(l0),
                 (lt_grid + cell).min(l1),
-            );
+            )
+            .await;
             if e < sse {
                 (sse, lt, d) = (e, l, nd);
             }
@@ -293,7 +303,7 @@ fn std(xs: impl Iterator<Item = f64> + Clone) -> f64 {
 }
 
 /// Minimum of a unimodal `f` on [lo, hi] (golden-section, 30 iterations: 1e-6 of the interval).
-fn golden(f: impl Fn(f64) -> f64, mut lo: f64, mut hi: f64) -> (f64, f64) {
+async fn golden(f: impl Fn(f64) -> f64, mut lo: f64, mut hi: f64) -> (f64, f64) {
     const R: f64 = 0.618_033_988_749_895;
     let (mut x1, mut x2) = (hi - R * (hi - lo), lo + R * (hi - lo));
     let (mut f1, mut f2) = (f(x1), f(x2));
@@ -307,6 +317,7 @@ fn golden(f: impl Fn(f64) -> f64, mut lo: f64, mut hi: f64) -> (f64, f64) {
             x2 = lo + R * (hi - lo);
             f2 = f(x2);
         }
+        yield_now().await;
     }
     if f1 <= f2 { (x1, f1) } else { (x2, f2) }
 }
@@ -553,6 +564,39 @@ mod tests {
     /// Square-wave-ish input with a slow wander, like the MPC's under setpoint dither.
     fn dithered(i: usize) -> f64 {
         1.0 + if (i / 90).is_multiple_of(2) { 0.08 } else { -0.08 } + 0.02 * libm::sin(i as f64 / 37.0)
+    }
+
+    /// Polls `fut` to its end, counting the times it gave the executor a turn.
+    fn turns<T>(fut: impl core::future::Future<Output = T>) -> (T, usize) {
+        let mut fut = core::pin::pin!(fut);
+        let mut cx = core::task::Context::from_waker(core::task::Waker::noop());
+        let mut n = 0;
+        loop {
+            if let core::task::Poll::Ready(v) = fut.as_mut().poll(&mut cx) {
+                return (v, n);
+            }
+            n += 1;
+        }
+    }
+
+    #[test]
+    fn the_fit_yields_between_solves_and_gives_the_same_answer() {
+        let id = record(116.0, 505.0, 11, dithered, 0.5);
+        let (stepwise, n) = turns(id.fit_async());
+        // 25 tau x 31 dead times on the grid, then 30 iterations at each of nine dead times
+        assert!(n >= 25 * 31 + 9 * 30, "{n}");
+        assert_eq!(stepwise, id.fit());
+    }
+
+    #[test]
+    fn the_airflow_map_yields_after_every_solve_and_gives_the_same_table() {
+        let (path, amb) = (crate::model::airflow::AirPath::default(), crate::model::Ambient::default());
+        let (stepwise, n) = turns(crate::model::airflow::AirflowMap::build_async(&path, amb));
+        assert_eq!(n, 41 * 41);
+        let whole = crate::model::airflow::AirflowMap::build(&path, amb);
+        for t in [150.0, 225.0, 325.0] {
+            assert_eq!(stepwise.limits(t), whole.limits(t));
+        }
     }
 
     #[test]

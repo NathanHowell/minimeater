@@ -556,12 +556,13 @@ pub async fn actuators<B: Board>(
     }
 }
 
-/// Runs the slow jobs the control task hands over.
+/// Runs the slow jobs the control task hands over. They are stepwise (`fit_async`, `build_async` yield after every
+/// solve), so on the one cooperative executor they delay the other tasks by one solve at most.
 pub async fn slow(bus: &Bus) -> ! {
     loop {
         let done = match bus.job.wait().await {
-            Job::Fit(due, id) => Done::Fit(due, id.fit()),
-            Job::Map(path, amb) => Done::Map(AirflowMap::build(&path, amb)),
+            Job::Fit(due, id) => Done::Fit(due, id.fit_async().await),
+            Job::Map(path, amb) => Done::Map(AirflowMap::build_async(&path, amb).await),
         };
         bus.done.signal(done);
     }

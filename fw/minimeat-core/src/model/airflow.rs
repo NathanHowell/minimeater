@@ -137,8 +137,15 @@ pub struct AirflowMap {
 }
 
 impl AirflowMap {
-    /// About 1700 root solves: run at boot and on ambient changes, off the control path.
+    /// About 1700 root solves: run at boot and on ambient changes, off the control path. Runs to the end without
+    /// yielding; see [`Self::build_async`].
     pub fn build(path: &AirPath, ambient: Ambient) -> Self {
+        crate::numeric::finish(Self::build_async(path, ambient))
+    }
+
+    /// [`Self::build`] giving the executor a turn after every root solve, so a task sharing the executor waits
+    /// for one solve at most.
+    pub async fn build_async(path: &AirPath, ambient: Ambient) -> Self {
         let mut table = [[0.0f32; N_U]; N_T];
         for (i, row) in table.iter_mut().enumerate() {
             let t_k = f_to_k(T0_F + i as f64 * DT_F);
@@ -149,6 +156,7 @@ impl AirflowMap {
                 // enforce monotonic in u so the table inverts
                 running = running.max(path.air_flow(&ambient, s, damper, t_k) / CFM);
                 *cell = running as f32;
+                crate::numeric::yield_now().await;
             }
         }
         Self { table, ambient }
