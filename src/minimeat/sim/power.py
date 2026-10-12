@@ -3,7 +3,7 @@ inrush of the servo and fan outputs.
 
 Board, as on the schematic (sheet power): J1 -> VBUS_RAW (D1 SMF5V0A TVS) -> F1 PTC -> VBUS_F with C1 100 uF 1210,
 C2 and C4 10 uF 0805, three 100 nF; U4 (buck), U5 (LDO), U6/U7 (load switches) hang on VBUS_F. Absolute maxima at
-VBUS_F: 6 V on TLV62569, TLV75533 and TPS2553 [from the datasheets, to confirm in ICD].
+VBUS_F: 6 V on the TLV62569 (datasheet); TLV75533 and TPS2553 to confirm.
 """
 
 from dataclasses import dataclass
