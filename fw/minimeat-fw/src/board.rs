@@ -1,16 +1,17 @@
 //! The ESP32-C6 board: `minimeat-app`'s peripheral traits bound to esp-hal (`.4.16.1`). This module is
 //! the only place that knows pin numbers and peripheral instances.
 //!
-//! Pin map: PROVISIONAL, ESP32-C6-DevKitC-1 header wiring for the breadboard alpha (`.6.1`), until
-//! the schematic (`.3.3`) assigns pins. Constraints honoured (ADR 0001): CC sense on ADC1 pins
-//! (GPIO0-6), button on GPIO9 (BOOT), nothing on GPIO8 (strapping) or GPIO12/13 (USB).
+//! Pin map: the schematic's contract (`.3.3`; hw/minimeat.kicad_sch). Constraints honoured (ADR 0001): CC sense
+//! on ADC1 pins (GPIO0-6), button on GPIO9 (BOOT), nothing on GPIO8 (strapping) or GPIO12/13 (USB).
 //!
 //! | Signal | GPIO | | Signal | GPIO |
 //! |---|---|---|---|---|
-//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117) | 22 / 23 |
+//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117, ATECC608B) | 22 / 23 |
 //! | ADS122C04 DRDY | 2 | | fan PWM / tach | 18 / 19 |
 //! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
-//! | status LED | 10 | | free | 3 / 4 / 5 / 6 / 7 |
+//! | status LED | 10 | | fan power enable (TPS2553) | 11, not driven yet |
+//! | load-switch fault (open drain, shared) | 3, not read yet | | spare (no-connect) | 4 / 5 / 6 / 7 / 15 |
+//! | UART0 TX / RX (test pads) | 16 / 17 | | USB D- / D+ | 12 / 13 |
 
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
