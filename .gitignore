@@ -20,3 +20,6 @@ build/
 hw/fab/gerber/
 hw/minimeat_models.kicad_pcb
 hw/minimeat_models.*
+
+# KiCad auto-backups
+hw/minimeat-backups/
