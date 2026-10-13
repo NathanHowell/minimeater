@@ -61,3 +61,28 @@ C12; U6 servo: C16, R8, R5, C11, C10).
 - EN pull-down (R9/R8) beside EN; the MCU's EN comes in from below.
 - FAULT leaves under the body and out the top between the IN and OUT fills, as in figure 30. R7 (the shared
   LOAD_FAULT pull-up) is placed when the two blocks go on the board.
+
+## U2, U3 USBLC6-2SC6 ESD with C38, R1/R2, origin (100, 75)
+
+![U2, U3](u2_u3.png)
+
+Datasheet DS4260 section 2.3 and figure 17. Pins 1/6 and 3/4 are the same I/O inside the part; the schematic puts
+the J1 side on 6/4 and the MCU side on 1/3 so the lines flow straight through. Turned 90 degrees: J1 side up
+(6 left, 5 VBUS middle, 4 right), MCU side down (1, 2 GND, 3).
+
+- "The track from VCC to VBUS and from the GND plane to GND must be as short as possible." VBUS (pin 5) sits between
+  the two lines it protects, so it leaves under the package body (as the EN ties on U4/U5) to C38, the 100 nF C_BUS
+  of figure 17, which sits between U3 and U2 and serves both. Both data lanes and both CC lanes stay free: nothing
+  crosses the pair.
+- GND (pin 2) has a via straight below it, between the MCU-side lines; C38's ground has its own via.
+- R1/R2 (Rd 5.1k) sit on U3's CC_J pins, each with a ground via.
+- The J1 fan-out (merging D+ B6/A6 and D- A7/B7 with the In2 hop for the crossing, the CC lines, VBUS) is drawn when
+  the block goes behind J1; see bead minimeat-bk4 for the planned geometry.
+
+## VBUS entry: D1, F1, C1-C3, origin (110-121, 75)
+
+![VBUS entry](vbus_entry.png)
+
+D1 (SMF5V0A TVS) on VBUS_RAW at the input, then F1 (PTC), then the VBUS_F bulk: C3 100 nF, C2 10 uF, C1 100 uF,
+all on one fill per net with their ground pads on a common ground strip. Vias in the ground pads (D1, C2, two in
+C1's) and one beside C3. In placement D1 goes as close to J1's VBUS pads as it can.
