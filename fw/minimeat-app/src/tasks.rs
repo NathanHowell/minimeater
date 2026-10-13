@@ -285,6 +285,16 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             settings.wifi = w;
             Ok(changed)
         }
+        Request::Mqtt(m) => {
+            let changed = settings.mqtt != m;
+            settings.mqtt = m;
+            Ok(changed)
+        }
+        Request::Otlp(o) => {
+            let changed = settings.otlp != o;
+            settings.otlp = o;
+            Ok(changed)
+        }
         Request::Identify => {
             bus.identify.signal(());
             Ok(false)

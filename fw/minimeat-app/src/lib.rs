@@ -17,6 +17,7 @@ pub mod otlp;
 pub mod pit;
 pub mod probes;
 pub mod proto;
+pub mod repl;
 pub mod sntp;
 pub mod selftest;
 pub mod tasks;

@@ -621,8 +621,9 @@ impl<F: NorFlash> ConfigStore<F> {
         }
         // forgetting the credentials is stored as an empty SSID (a tombstone); provisioning never accepts one
         s.wifi = self.fetch::<Wifi>(key::WIFI).await?.filter(|w| !w.ssid.is_empty());
-        s.mqtt = self.fetch(key::MQTT).await?;
-        s.otlp = self.fetch(key::OTLP).await?;
+        // the same for the broker and the collector: an empty host is "forgotten"
+        s.mqtt = self.fetch::<Mqtt>(key::MQTT).await?.filter(|m| !m.host.is_empty());
+        s.otlp = self.fetch::<Otlp>(key::OTLP).await?.filter(|o| !o.host.is_empty());
         Ok(s)
     }
 
@@ -661,16 +662,23 @@ impl<F: NorFlash> ConfigStore<F> {
             self.store(key::WIFI, w).await?;
             self.saved.wifi = s.wifi.clone();
         }
-        if s.mqtt != self.saved.mqtt
-            && let Some(m) = &s.mqtt
-        {
-            self.store(key::MQTT, m.clone()).await?;
+        if s.mqtt != self.saved.mqtt {
+            let m = s.mqtt.clone().unwrap_or(Mqtt {
+                host: String::new(),
+                port: 1883,
+                user: String::new(),
+                pass: String::new(),
+            });
+            self.store(key::MQTT, m).await?;
             self.saved.mqtt = s.mqtt.clone();
         }
-        if s.otlp != self.saved.otlp
-            && let Some(o) = &s.otlp
-        {
-            self.store(key::OTLP, o.clone()).await?;
+        if s.otlp != self.saved.otlp {
+            let o = s.otlp.clone().unwrap_or(Otlp {
+                host: String::new(),
+                port: 4318,
+                interval_s: 60,
+            });
+            self.store(key::OTLP, o).await?;
             self.saved.otlp = s.otlp.clone();
         }
         Ok(())

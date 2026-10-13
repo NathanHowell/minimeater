@@ -103,6 +103,22 @@ fn forgotten_wifi_credentials_stay_forgotten() {
 }
 
 #[test]
+fn a_forgotten_broker_and_collector_stay_forgotten() {
+    let w = world();
+    let mut s = cooking();
+    block_on(async {
+        let (mut store, _) = ConfigStore::open(io(&w).config).await;
+        store.save(&s).await.unwrap();
+        s.mqtt = None;
+        s.otlp = None;
+        store.save(&s).await.unwrap();
+    });
+    let got = boot(&w);
+    assert_eq!((got.mqtt.clone(), got.otlp.clone()), (None, None));
+    assert_eq!(got, s);
+}
+
+#[test]
 fn unchanged_settings_are_not_rewritten() {
     let w = world();
     let s = cooking();

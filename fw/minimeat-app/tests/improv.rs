@@ -204,3 +204,49 @@ fn info_scan_and_the_commands_it_does_not_have() {
         ])
     );
 }
+
+fn line(s: &str) -> Vec<u8, 160> {
+    Vec::from_slice(s.as_bytes()).unwrap()
+}
+
+#[test]
+fn repl_lines_set_the_broker_through_the_control_task_and_improv_still_works_beside_them() {
+    use minimeat_app::config::Mqtt;
+    let (out, _, req) = converse(
+        &[line("mqtt set broker.lan "), line("8883 egg \"a b\"\r"), rpc(0x03, &[])],
+        true,
+        true,
+    );
+    assert_eq!(
+        req,
+        Some(Request::Mqtt(Some(Mqtt {
+            host: "broker.lan".try_into().unwrap(),
+            port: 8883,
+            user: "egg".try_into().unwrap(),
+            pass: "a b".try_into().unwrap(),
+        })))
+    );
+    let text = std::string::String::from_utf8_lossy(&out).into_owned();
+    // the echo hid nothing it should show, the answer came, the password was not printed back
+    assert!(text.contains("mqtt set broker.lan 8883 egg \"a b\"\r\n"), "{text:?}");
+    assert!(text.contains("saved; the broker is used from the next connection\r\nminimeat> "), "{text:?}");
+    // and the Improv information request after it was answered as a frame
+    let info = improv::result_packet(0x03, &["minimeat", "0.1.0", "ESP32-C6", "mm-a1b2c3"]).unwrap();
+    assert!(out.windows(info.len()).any(|w| w == &info[..]));
+}
+
+#[test]
+fn an_improv_frame_prints_no_repl_text() {
+    let (out, _, _) = converse(&[rpc(0x03, &[])], true, false);
+    assert!(!std::string::String::from_utf8_lossy(&out).contains("unknown command"));
+    assert!(!out.windows(9).any(|w| w == b"minimeat>"));
+}
+
+#[test]
+fn help_and_a_bad_line_answer_in_text() {
+    let (out, _, _) = converse(&[line("help\rfrobnicate\r"), line("wifi set\r")], true, false);
+    let text = std::string::String::from_utf8_lossy(&out).into_owned();
+    assert!(text.contains("mqtt"), "{text:?}");
+    assert!(text.contains("unknown command \"frobnicate\""), "{text:?}");
+    assert!(text.contains("usage: wifi set <ssid> [password] | wifi clear"), "{text:?}");
+}

@@ -14,6 +14,7 @@ use heapless::{String, Vec};
 use crate::config::Wifi;
 use crate::net::Identity;
 use crate::proto::Request;
+use crate::repl::{self, Editor};
 use crate::tasks::Bus;
 
 const HEADER: &[u8; 6] = b"IMPROV";
@@ -214,7 +215,7 @@ async fn send<I: Write>(io: &mut I, p: Option<Packet>) {
     }
 }
 
-/// The conversation with a client on `io`, for ever. The device is `Ready` (or `Provisioned` if it has
+/// The conversation with a client on `io`, for ever; the serial REPL (`repl`) lives on the same bytes. The device is `Ready` (or `Provisioned` if it has
 /// credentials already); credentials that join the network are handed to the control task as a request, which
 /// saves them and publishes them for the network task.
 pub async fn run<I: Read + Write, S: Station>(io: &mut I, station: &mut S, who: &Identity<'_>, bus: &Bus) -> ! {
@@ -225,11 +226,22 @@ pub async fn run<I: Read + Write, S: Station>(io: &mut I, station: &mut S, who: 
     } else {
         State::Ready
     };
+    let mut editor = Editor::new();
     let mut buf = [0u8; 32];
     send(io, Some(state_packet(state))).await;
     loop {
         let n = io.read(&mut buf).await.unwrap_or(0);
         for &b in &buf[..n] {
+            // the same bytes feed the REPL; its editor leaves Improv frames alone
+            let step = editor.push(b);
+            if !step.echo.is_empty() {
+                let _ = io.write_all(&step.echo).await;
+                let _ = io.flush().await;
+            }
+            if let Some(line) = step.line {
+                repl::execute(io, &line, who, bus, &mut replies).await;
+                repl::prompt(io).await;
+            }
             let Some(rpc) = parser.push(b) else { continue };
             send(io, Some(error_packet(ErrorCode::None))).await;
             match rpc {
