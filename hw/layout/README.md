@@ -43,3 +43,21 @@ GND left middle, EN bottom left, NC bottom right.
 - FB1 (from VBUS_F) feeds the VBUS_LDO fill at the far left, so VBUS_F arrives from outside the block.
 - EN is tied to IN under the package body, as on U4. NC (pin 4) is left unconnected.
 - FB2, R18 and C27/C28 (the VREF_PROBE filter) belong to the ADC end of 3V3A and go in the U8 block.
+
+## U7, U6 TPS2553 load switches (fan, servo), origins (60, 75) and (75, 75)
+
+![U6, U7](u6_u7.png)
+
+Datasheet SLVS841F section 12, figure 30, at the footprint's own orientation: IN top left, GND left middle, EN bottom
+left, OUT top right, ILIM right middle, FAULT bottom right. The two blocks are identical (U7 fan: C17, R9, R6, C13,
+C12; U6 servo: C16, R8, R5, C11, C10).
+
+- The 100 nF bypass on IN (C17/C16) sits at pin 1 with its ground pad beside GND pin 2, joined on top: the
+  "low-inductance" IN-GND connection, plus a via.
+- R_ILIM (R6/R5) stands right beside ILIM, under 1 mm of trace ("as short as possible" for current-limit accuracy),
+  grounded with a via and through the output-cap ground fill.
+- Output: 100 nF (C13/C11) then 10 uF (C12/C10, via in the ground pad) on the OUT fill, which runs over R_ILIM. The
+  bulk at the connectors (C35, C36/C37) is placed with J6/J7.
+- EN pull-down (R9/R8) beside EN; the MCU's EN comes in from below.
+- FAULT leaves under the body and out the top between the IN and OUT fills, as in figure 30. R7 (the shared
+  LOAD_FAULT pull-up) is placed when the two blocks go on the board.
