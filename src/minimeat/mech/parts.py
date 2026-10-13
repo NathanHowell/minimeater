@@ -101,14 +101,15 @@ BOSS_Y1 = P.coupling.od / 2 + 3.0
 def servo_shelf():
     """A shelf under the servo's tabs, beside the duct on +y, with a cutout the body drops through and a solid block
     under each end's tab, with a M2 pilot under each of the six screw holes (2, 4 or 6 screws, chosen in the field).
-    The outer corners of the shelf and both blocks are rounded (R3) straight down to the blocks' base. The rear end of the shelf and its block lean 44 deg; the block's face toward the body at the front is a vertical
+    The corners of the shelf and both blocks away from the duct are rounded (R3; the duct side stays square) straight down to the blocks' base. The rear end of the shelf and its block lean 44 deg; the block's face toward the body at the front is a vertical
     12 mm wide bridge, as short as the block is deep. Its front end merges with the socket's step."""
     sv = P.servo
     z1 = G.TAB_Z0
     z0 = z1 - G.PAD_T
     zb = z1 - BLOCK_D
-    def round_ends(b):  # the plan's outer corners, at both ends of the shelf, 3 mm radius; the blocks take the same curve to their base
-        return b.fillet(3.0, b.edges().filter_by(Axis.Z).filter_by(lambda e: e.center().X > SHELF_X1 - 1 or e.center().X < SHELF_X0 + 1))
+    def round_ends(b):  # the plan's free corners (the side away from the duct), at both ends of the shelf, 3 mm radius; the blocks take the same curve to their base
+        far = lambda e: e.center().Y > (SHELF_Y0 + SHELF_Y1) / 2
+        return b.fillet(3.0, b.edges().filter_by(Axis.Z).filter_by(far).filter_by(lambda e: e.center().X > SHELF_X1 - 1 or e.center().X < SHELF_X0 + 1))
 
     s = round_ends(box(SHELF_X0, SHELF_X1, SHELF_Y0, SHELF_Y1, z0, z1))
     cut_x0 = G.SERVO_X_CENTRE - sv.body_l / 2 - 0.2
