@@ -26,7 +26,7 @@ Companion to `docs/ordering.md` (what and how many). Researched 2026-10-12 from 
 
 ## Not found: the real problems
 
-1. **Ø3 rod with a 2.5 mm D flat, 42.7 ± 0.1.** No stock 3 mm D-shaft turned up (the stainless D-shafts on offer are ¼ in, from ServoCity, SparkFun and McMaster). Options:
+1. **Ø3 rod with a 2.5 mm D flat, 42.7 ± 0.1.** Quoted at JLCCNC: SUS304, ISO 2768 medium, $30.80 for one (2026-10-13); see `docs/ordering.md` for the tolerance to add. No stock 3 mm D-shaft turned up (the stainless D-shafts on offer are ¼ in, from ServoCity, SparkFun and McMaster). Options:
    - **Have it made.** Ask JLCCNC for six pieces in the same order as the flap, crank and coupler: turning is offered with ±0.02 mm, and stainless with the grade to be confirmed on the instant quote. This is what I'd do.
    - **Cut and mill it yourself:** Misumi's 3 mm SUS440C straight shaft is sold cut to length (100 mm and up), then mill the flat.
    - Pololu's "3 mm D-shaft" category is wheels and collets; it does not sell the shaft.

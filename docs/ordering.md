@@ -17,7 +17,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 | Noctua NF-A6x25 5V PWM fan | 1 | 5 | named | 60 × 60 × 25, 4-pin PWM with tach. It is mounted from the rear with 4 screws: check that the retail box includes them (`docs/parts/fan-noctua-nf-a6x25.md`). |
 | Hitec HS-5065MG servo | 1 | 5 | named | 3-pin lead, 160 mm (`docs/parts/servo-hs-5065mg.md`). |
 | Secraft 15 mm aluminium servo arm, Hitec 24T | 1 | 5 | named | The linkage uses its M2 hole at 12 mm radius. Comes with its centre screw. |
-| Ø3 rod, 2.5 mm D flat, **42.7 mm ±0.1** | 1 | 5 + 1 | **unsourced** | Stainless or hardened steel. Cut a plain Ø3 rod to length and file or mill the flat (2.5 mm across), or buy 3 mm D-shaft and cut it. The length matters: the end stands 0.3 mm above the crank and 0.6 mm under the coupler (`docs/mech.md`). |
+| Ø3 rod, 2.5 mm D flat, **42.7 mm ±0.1** | 1 | 5 + 1 | JLCCNC, `rod-d-shaft.step`, SUS304: **$30.80 at quantity 1** (instant quote, 2026-10-13; get the price at 6) | Made with the flap, crank and coupler. The quote's general tolerance is ISO 2768 medium (±0.1 on Ø3), too loose for the flap's D-bore (+0.03 over, with retaining compound): the rod needs Ø3 h7 and the flat held to ±0.05 on a drawing. The length matters: the end stands 0.3 mm above the crank and 0.6 mm under the coupler (`docs/mech.md`). |
 | M2 shoulder screw, Ø3 shoulder × 3 mm long, M2 thread | 2 | 10 + 2 | named (head size to check) | ISO 7379 style, stainless. One into the crank's tapped M2 hole, one through the servo arm's M2 hole with a nyloc nut. Head about Ø5.5 × 2.0: confirm against the supplier's drawing, since the pin heads stop about 1 mm under the hood's roof. The shoulder must be 3 mm (the bar and its boss are 2.9) and the thread long enough for the crank (3 mm arm) or the horn plus the nut: M2 × 4 or longer. |
 | M2 nyloc nut | 1 | 5 + 5 | named | Under the servo arm. |
 | M2 washer | 2 | 10 + 5 | named | |
@@ -56,6 +56,6 @@ Not on this list because you already have them: the egg and its Ø34.93 intake t
 
 ## 5. Open items
 
-- The rod, the port caps and the thumbscrew length are not sourced.
+- The port caps and the thumbscrew length are not sourced. The rod is quoted (above), not yet ordered.
 - The shoulder screw's head size and thread length are to confirm with the supplier.
 - The O-ring material waits for the tube temperature measurement (`.2.5`).
