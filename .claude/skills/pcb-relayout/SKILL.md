@@ -57,8 +57,21 @@ vias; J1-J7, D2, U10 locked). We are rebuilding it by hand, in this order:
 
 A temporary second board outline (Edge.Cuts rectangle x 0-130, y 64-124) and an In1 GND zone
 `STAGING_In1_GND` over it: KiCad only fills zones inside an outline, and block vias need a plane. Both are
-removed once every block is on the board. Block origins so far (y = 75 row): U4 (20, 75), U5 (40, 75), U7 (60, 75),
-U6 (75, 75). Next free: x >= 88 on that row, then a second row at y ~ 95.
+removed once every block is on the board. Blocks in staging (all done, 2026-10-13): row y 75: U4 buck (20),
+U5 LDO (40), U7 fan switch (60), U6 servo switch (75), U2/U3 ESD + C38 + R1/R2 (100, J1 side up), VBUS entry
+D1/F1/C1-C3 (110-121); row y 95-102: U9 probe ESD (20, 95; jack side up), U11 (40, 95), U8 ADC (80, 102; jacks
+above, MCU below). Not in blocks (placed around fixed parts in placement): U1 decoupling C21/C22, EN RC R10/C18,
+SW1/R13/C23, R12 + D2, U10's C33, CC filters C19/C20 at the MCU, R7 LOAD_FAULT pull-up, C35-C37 at J6/J7,
+pull-ups R11/R14-R16, R27-R30, test points. The J1 fan-out (D+/D- merge with the In2 hop, CC, VBUS) is drawn when
+U2/U3 go behind J1 (geometry in bead minimeat-bk4).
+
+## Geometry lessons
+
+- Parallel 45 degree jogs at 0.5 mm pitch come within 0.354 mm centre to centre; fan at 1:3 or shallower.
+- 45 degree runs into adjacent 0.65 mm-pitch pins are 0.46 mm apart square to the lines: 0.2 mm lines keep 0.26.
+- Through vias are on every layer: an inner-layer trace must clear every via in the block, not just same-layer copper.
+- Escape a pin boxed in by its neighbours (SOT-23 EN/VBUS between two lines) under the package body.
+- Render with --layers F.Cu,In2.Cu when a block uses In2; check courtyards with DRC before routing.
 
 ## Netclasses (hw/minimeater.kicad_pro)
 
