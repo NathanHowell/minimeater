@@ -101,3 +101,11 @@ join down the middle and leave to a via on each side.
   0.25 mm at 1:3 (about 18 degrees) to make room for the GND vias. A 45 degree fan does not fit: two parallel 45
   degree jogs at 0.5 mm pitch come within 0.354 mm centre to centre (0.15 mm of copper gap).
 - The 0.2 mm lines match the 0.2 mm pads; 0.3 mm gaps between lines meet the Analog class 0.25 mm.
+
+## U11 ATECC608B secure element, origin (40, 95)
+
+![U11](u11.png)
+
+The summary datasheet (DS40002239B) gives no layout guidance; standard practice: C34 (100 nF) beside VCC (pin 8)
+with its own ground via, GND (pin 4) to a via at its outer end. NC pins 1-3, 7 left open. SDA/SCL (5, 6) leave to
+the right toward the bus; the pull-ups (R14/R15) sit with the MCU.
