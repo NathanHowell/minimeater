@@ -6,6 +6,7 @@ its one-off rework scripts were retired (in git history before the re-layout).
 - `pcbdump.py <board> <out.json>` (KiCad's python): pads, tracks, vias, zone fills, courtyards to JSON.
 - `render.py <dump.json> <out.png> [--refs ... | --bbox ...] [--layers ...] [--rats]` (uv, matplotlib): copper
   coloured and labelled by net, for layout reviews.
+- `blockcheck.sh <x0,y0,x1,y1> <out.png> "<title>"`: DRC items inside a block's box (`drcbox.py`) plus its F.Cu render.
 - `parts.py <out.json>`: each reference's footprint and courtyard box from the schematic and libraries.
 - `kdrc.py`: kicad-cli DRC from KiCad's python, returns the violations.
 - `fab.py` (`uv run python hw/tools/fab.py`): gerber zip, JLC BOM and CPL into `hw/fab/`.
