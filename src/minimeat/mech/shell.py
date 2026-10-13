@@ -246,21 +246,9 @@ def bay_walls():
     return w
 
 
-def drain_notch():
-    """A 2 mm scallop where the bay's rear end wall meets the belly's round, outside the port wall: the corner
-    cannot hold water. It takes 1.6 mm off the outside of a wall that is 4 mm thick there."""
-    return box(BAY_X0 - W - 1, BAY_X0 + 0.01, -31.0, PORT_FACE_Y + 0.1, G.BELLY_Z - 1, BAY_Z0 + 2.0)
-
-
 def drip_lip():
     """A ridge under the eave's outer edge, so water running down the flank drips clear of the ports."""
     return box(BAY_X0 - 1.0, BAY_X1 + 1.0, -G.FULL_W / 2 - 0.3, -G.FULL_W / 2 + 1.0, BAY_Z1 - 1.5, BAY_Z1 + 0.5)
-
-
-def tether_holes():
-    """Through the bay's end walls, along x: the loops of the silicone caps' tethers."""
-    z = BAY_Z0 + 4.0
-    return xcyl(1.0, BAY_X0 - W - 1, BAY_X0 + 1, -33.0, z) + xcyl(1.0, BAY_X1 - 1, BAY_X1 + 10, -33.5, z)
 
 
 # --- fixings and locators ---------------------------------------------------------------------------------------
@@ -389,10 +377,8 @@ def pan():
     p = _half(_shell(True), False) + (_shell(True) & rear_lip())
     p -= bay_pocket()
     p += (bay_walls() + bay_ceiling()) & o
-    p -= drain_notch()
     p -= port_openings()
     p += drip_lip() & o
-    p -= tether_holes()
     p -= vent_cut()
     p -= indicator_cuts()
     p += _half(fan_shims(), False) & o

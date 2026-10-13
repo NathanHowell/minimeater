@@ -29,7 +29,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 | 34 × 2.5 O-ring | 1 | 5 + 5 | size named, **material is my pick** | Seals the duct's socket on the egg's tube, which can reach 65-90 °C (the `.2.5` thermal check is still open): FKM or silicone, not NBR. |
 | M4 brass heat-set insert | 1 | 5 + 5 | named | Into the thumbscrew boss on the duct; check the bore size against the insert's data sheet, or use JLC3DP's insert service (`docs/jlc3dp.md`, bead `minimeat-dx8`). |
 | M4 thumbscrew, stainless | 1 | 5 + 5 | length not chosen | Reaches the 34.93 mm tube through a short boss: measure on the first print. |
-| Silicone port caps, tethered | 5 | 25 | **unsourced** | One for the USB-C port and four for the jacks; each has a tether loop through a Ø2 hole in the bay's end walls. Any tethered USB-C cap and 2.5 mm jack cap that fit the openings (USB-C 13.2 × 7.4, jack Ø5): measure the first print. |
+| Silicone port caps | 5 | 25 | **unsourced** | One for the USB-C port and four for the jacks; the bay has nowhere to tie them. Any USB-C cap and 2.5 mm jack cap that fit the openings (USB-C 13.2 × 7.4, jack Ø5): measure the first print. |
 | Clear Ø1.75 mm filament | ~15 mm | 1 piece | named | The LED's light pipe, glued flush in a Ø1.9 hole. |
 | Retaining compound, removable grade (Loctite 641 or similar) | | 1 bottle | my pick | The flap on the rod. A permanent grade (638) would make the rod impossible to pull for sanding the duct. |
 
