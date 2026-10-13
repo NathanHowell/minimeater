@@ -18,9 +18,9 @@ use crate::repl::{self, Editor};
 use crate::tasks::Bus;
 
 const HEADER: &[u8; 6] = b"IMPROV";
-const VERSION: u8 = 1;
+pub(crate) const VERSION: u8 = 1;
 /// Longest RPC data: command, length, ssid length and 32, password length and 64.
-const MAX_DATA: usize = 2 + 1 + 32 + 1 + 64;
+pub(crate) const MAX_DATA: usize = 2 + 1 + 32 + 1 + 64;
 const MAX_FRAME: usize = 9 + MAX_DATA + 2;
 /// The id the application's requests from here carry on the bus.
 const REQUEST_ID: u16 = 0xFF10;

@@ -15,6 +15,7 @@ use embedded_io_async::Write;
 use heapless::{String, Vec};
 
 use crate::config::{Mode, Mqtt, Otlp, Settings, Wifi};
+use crate::improv;
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
 use crate::proto::Request;
@@ -186,14 +187,48 @@ impl Step {
     }
 }
 
+/// Where an Improv frame is, after `IMPROV`: the version, type and length bytes, then the data, checksum and newline.
+#[derive(Clone, Copy)]
+struct Frame {
+    seen: u8,
+    left: u16,
+}
+
+impl Frame {
+    /// Takes one byte; false when the frame is over (or was never one: the wrong version or too long a length,
+    /// which the Improv parser also refuses).
+    fn take(&mut self, b: u8) -> bool {
+        match self.seen {
+            0 => {
+                self.seen = 1;
+                b == improv::VERSION
+            }
+            1 => {
+                self.seen = 2;
+                true
+            }
+            2 => {
+                self.seen = 3;
+                self.left = u16::from(b) + 2;
+                usize::from(b) <= improv::MAX_DATA
+            }
+            _ => {
+                self.left -= 1;
+                self.left > 0
+            }
+        }
+    }
+}
+
 /// Line editing: printable characters, backspace, ^U (clear), ^W (word), ^C (cancel), Tab (complete), the arrow
 /// keys for the last few lines, and CR, LF or CRLF to end a line.
 pub struct Editor {
     line: String<LINE>,
     /// The line so far could still be the start of an Improv frame, so nothing of it has been echoed.
     held: bool,
-    /// Inside an Improv frame: ignored up to its newline.
-    frame: bool,
+    /// Inside an Improv frame, after its marker: ignored for as many bytes as its length byte says (the length, the
+    /// data and the checksum can all be `\n`, so the first newline is not its end).
+    frame: Option<Frame>,
     after_cr: bool,
     /// 0 nothing, 1 saw ESC, 2 saw ESC [.
     esc: u8,
@@ -214,7 +249,7 @@ impl Editor {
         Self {
             line: String::new(),
             held: false,
-            frame: false,
+            frame: None,
             after_cr: false,
             esc: 0,
             history: Vec::new(),
@@ -308,9 +343,9 @@ impl Editor {
     /// Feeds one byte from the terminal.
     pub fn push(&mut self, b: u8) -> Step {
         let mut s = Step::default();
-        if self.frame {
-            if b == b'\n' {
-                self.frame = false;
+        if let Some(f) = &mut self.frame {
+            if !f.take(b) {
+                self.frame = None;
             }
             return s;
         }
@@ -399,7 +434,7 @@ impl Editor {
                         // an Improv frame: not ours
                         self.line.clear();
                         self.held = false;
-                        self.frame = true;
+                        self.frame = Some(Frame { seen: 0, left: 0 });
                     } else {
                         self.held = true;
                     }
@@ -776,6 +811,26 @@ mod tests {
         // and the next line works
         let (_, lines) = type_in(&mut e, b"help\r");
         assert_eq!(lines, ["help"]);
+    }
+
+    #[test]
+    fn a_frame_with_newline_bytes_inside_it_is_skipped_whole() {
+        // a length byte of 10 (0x0A) and a checksum of 0x0A: neither ends the frame
+        let mut frame = std::vec::Vec::from(&b"IMPROV\x01\x03\x0a"[..]);
+        frame.extend_from_slice(b"\x01\x08 ab cd e"); // ten data bytes with printable ones and spaces
+        frame.extend_from_slice(&[0x0a, b'\n']);
+        let mut e = Editor::new();
+        let (echo, lines) = type_in(&mut e, &frame);
+        assert!(lines.is_empty() && echo.is_empty(), "{echo:?} {lines:?}");
+        let (_, lines) = type_in(&mut e, b"status\r");
+        assert_eq!(lines, ["status"]);
+    }
+
+    #[test]
+    fn a_marker_with_the_wrong_version_is_not_a_frame() {
+        let mut e = Editor::new();
+        let (_, lines) = type_in(&mut e, b"IMPROV\x07status\r");
+        assert_eq!(lines, ["status"]);
     }
 
     #[test]
