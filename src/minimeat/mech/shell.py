@@ -163,13 +163,19 @@ def grille_cut():
 
 
 def vent_cut():
-    """The ambient louvres in the pan's +y flank, under the board's sensor corner: slots along x, tilted so
-    they descend outward."""
+    """The ambient louvres through the pan's floor under the board's sensor (it faces down, a few mm above): two
+    slots along x, straight through (standing on the rear face the wall is vertical and a 1.4 mm slot bridges)."""
     cut = None
     for x0, x1 in S.vent_slots:
-        s = Pos((x0 + x1) / 2, 30.0, S.vent_z) * Rot(-44, 0, 0) * Box(x1 - x0, 20.0, 1.4)
-        cut = s if cut is None else cut + s
+        for dy in (-S.vent_dy, S.vent_dy):
+            s = box(x0, x1, P.pcb.sensor[1] + dy - S.vent_w / 2, P.pcb.sensor[1] + dy + S.vent_w / 2, G.BELLY_Z - 1.0, G.FLOOR_Z + 2.0)
+            cut = s if cut is None else cut + s
     return cut
+
+
+def reset_cut():
+    """The reset button faces the floor: a hole under it for a paper clip."""
+    return zcyl(S.reset_d / 2, G.BELLY_Z - 1.0, G.FLOOR_Z + 1.0, PCB_XC + P.pcb.btn_x, P.pcb.btn_y)
 
 
 def indicator_cuts():
@@ -177,7 +183,7 @@ def indicator_cuts():
     pointing +x so it prints standing on the rear face. The button is inside, under the hood (the case opens)."""
     p = P.pcb
     y0 = p.y_len / 2
-    zl = G.PCB_Z1 + p.led_z
+    zl = G.PCB_Z0 - p.led_z
     xl = PCB_XC + p.led_x
     r = S.pipe_d / 2 + 0.075
     k = r * math.sqrt(0.5)
@@ -204,17 +210,17 @@ def port_openings():
     teardrops pointed +x: they print standing on the rear face."""
     p = P.pcb
     y0, y1 = PORT_FACE_Y - 1.0, G.PORT_WALL_Y + 1.0
-    zu = G.PCB_Z1 + p.usb_h / 2
+    zu = G.PCB_Z0 - p.usb_h / 2
     cut = box(PCB_XC + p.usb_x - p.usb_open_w / 2, PCB_XC + p.usb_x + p.usb_open_w / 2, y0, y1, zu - p.usb_open_h / 2, zu + p.usb_open_h / 2)
     cut = cut.fillet(1.5, cut.edges().filter_by(Axis.Y))
-    zj = G.PCB_Z1 + p.jack_h / 2
+    zj = G.PCB_Z0 - p.jack_h / 2
     r = p.jack_hole_d / 2
     k = r * math.sqrt(0.5)
     for jx in p.jack_xs:
         x = PCB_XC + jx
         cut += ycyl(r, y0, y1, x, zj) + prism_xz([(x + k, zj - k), (x + k * (1 + KS), zj), (x + k, zj + k)], y0, y1)
         z0, z1 = p.jack_open_z
-        cut += box(x - p.jack_open_w / 2, x + p.jack_open_w / 2, y0, y1, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
+        cut += box(x - p.jack_open_w / 2, x + p.jack_open_w / 2, y0, y1, G.PCB_Z0 - z1, G.PCB_Z0 - z0)
     return cut
 
 
@@ -307,7 +313,7 @@ def standoffs():
     out = None
     for hx, hy in p.holes:
         x, y = PCB_XC + hx, hy
-        c = teardrop_z(x, y, 2.75, G.FLOOR_Z - 2.0, G.PCB_Z0, toward=-1)
+        c = teardrop_z(x, y, p.standoff_d / 2, G.FLOOR_Z - 2.0, G.PCB_Z0, toward=-1)
         c -= teardrop_z(x, y, 1.05, G.PCB_Z0 - 6.0, G.PCB_Z0 + 0.1, toward=1)
         out = c if out is None else out + c
     return out
@@ -377,6 +383,7 @@ def pan():
     p -= port_openings()
     p += drip_lip() & o
     p -= vent_cut()
+    p -= reset_cut()
     p -= indicator_cuts()
     p += _half(fan_shims(), False) & o
     p += _half(rear_bumps(), False)

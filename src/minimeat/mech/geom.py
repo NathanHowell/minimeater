@@ -30,10 +30,10 @@ REAR_IN_X = FAN_X0 - P.layout.rear_gap  # the rear wall's inner face
 REAR_X = REAR_IN_X - P.shell.wall  # the rear face
 
 # the board, flat in the pan: standoffs on the pan floor, parts up toward the duct
-FLOOR_Z = -g.duct_r - 1.0 - P.pcb.top_h - P.pcb.t - P.pcb.bottom_h  # inner floor: the belly
+PCB_Z0 = P.pcb.axis_z + P.pcb.jack_h / 2  # the board's parts face, down on the standoffs; the parts hang under it
+PCB_Z1 = PCB_Z0 + P.pcb.t  # its back, up toward the duct
+FLOOR_Z = PCB_Z0 - P.pcb.under_h - P.pcb.floor_gap  # inner floor: the belly
 BELLY_Z = FLOOR_Z - P.shell.wall
-PCB_Z0 = FLOOR_Z + P.pcb.bottom_h
-PCB_Z1 = PCB_Z0 + P.pcb.t
 PCB_Y0 = -P.pcb.y_len / 2  # the connector edge
 PCB_EDGE_Y = PCB_Y0 + P.pcb.edge_trim  # the board's actual connector edge
 PORT_WALL_Y = PCB_EDGE_Y - P.pcb.edge_gap  # inner face of the port wall: the connectors reach into it

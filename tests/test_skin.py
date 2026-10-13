@@ -6,7 +6,7 @@ import pytest
 from minimeat.mech import assembly as A, shell as K
 from minimeat.mech import geom as G
 from minimeat.mech.params import P
-from minimeat.mech.parts import box, ycyl
+from minimeat.mech.parts import box, ycyl, zcyl
 from minimeat.mech.printing import overhangs, print_pose
 
 
@@ -60,13 +60,13 @@ def test_ports_line_up_with_the_board(shells):
     pan = shells["pan"]
     for jx in p.jack_xs:
         # the plug's barrel reaches the jack's front, past the wall's inner face
-        probe = ycyl(p.jack_hole_d / 2 - 0.1, K.PORT_FACE_Y - 3.0, G.PCB_Y0 + p.jack_face + 0.1, K.PCB_XC + jx, G.PCB_Z1 + p.jack_h / 2)
+        probe = ycyl(p.jack_hole_d / 2 - 0.1, K.PORT_FACE_Y - 3.0, G.PCB_Y0 + p.jack_face + 0.1, K.PCB_XC + jx, G.PCB_Z0 - p.jack_h / 2)
         assert A.overlap(probe, pan) < 0.5
         # and the jack's housing stands in the wall through its opening
         housing = box(K.PCB_XC + jx - p.jack_w / 2, K.PCB_XC + jx + p.jack_w / 2, G.PCB_Y0 + p.jack_face, G.PORT_WALL_Y + 0.05,
-                      G.PCB_Z1, G.PCB_Z1 + p.jack_h)
+                      G.PCB_Z0 - p.jack_h, G.PCB_Z0)
         assert A.overlap(housing, pan) < 0.5
-    zu = G.PCB_Z1 + p.usb_h / 2
+    zu = G.PCB_Z0 - p.usb_h / 2
     probe = box(K.PCB_XC + p.usb_x - p.usb_open_w / 2 + 1.6, K.PCB_XC + p.usb_x + p.usb_open_w / 2 - 1.6,
                 K.PORT_FACE_Y - 3.0, G.PCB_Y0 + p.usb_face + 0.1, zu - p.usb_open_h / 2 + 0.1, zu + p.usb_open_h / 2 - 0.1)
     assert A.overlap(probe, pan) < 0.5
@@ -96,7 +96,7 @@ def test_no_web_thinner_than_the_printers_minimum(shells):
     xj = K.PCB_XC + p.jack_xs[0] - p.jack_open_w / 2
     assert xj - xu >= 1.2  # the web is a printable wall
     z0, z1 = p.jack_open_z
-    web = box(xu + 0.05, xj - 0.05, K.PORT_FACE_Y, G.PORT_WALL_Y, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
+    web = box(xu + 0.05, xj - 0.05, K.PORT_FACE_Y, G.PORT_WALL_Y, G.PCB_Z0 - z1, G.PCB_Z0 - z0)
     assert A.overlap(web, shells["pan"]) > 0.99 * web.volume  # the pan is solid there: no shared slot
 
 
@@ -152,8 +152,23 @@ def test_led_pipe_passes_the_flank(shells):
     p = P.pcb
     pan = shells["pan"]
     xl = K.PCB_XC + p.led_x
-    zl = G.PCB_Z1 + p.led_z
+    zl = G.PCB_Z0 - p.led_z
     pipe = ycyl(P.shell.pipe_d / 2, p.y_len / 2 + 0.6, 45.0, xl, zl)
     assert A.overlap(pipe, pan) < 0.5  # a clear way through
     lo, hi = P.shell.vent_slots[0]
     assert not (lo - 1.5 < xl < hi + 1.5)
+
+
+def test_reset_hole_and_louvres_open_the_floor_under_the_parts(shells):
+    """The reset button and the sensor face the pan floor: a paper clip's way up to the button, and the louvre slots, are open."""
+    p, pan = P.pcb, shells["pan"]
+    clip = zcyl(1.0, G.BELLY_Z - 5.0, G.PCB_Z0 - p.btn_z - 0.5, K.PCB_XC + p.btn_x, p.btn_y)  # a 2 mm wire, up to the actuator
+    assert A.overlap(clip, pan) < 0.01
+    assert P.shell.reset_d >= 3.0
+    for x0, x1 in P.shell.vent_slots:
+        for dy in (-P.shell.vent_dy, P.shell.vent_dy):
+            slot = box(x0 + 0.1, x1 - 0.1, p.sensor[1] + dy - 0.5, p.sensor[1] + dy + 0.5, G.BELLY_Z - 0.5, G.FLOOR_Z + 0.5)
+            assert A.overlap(slot, pan) < 0.01
+    # the floor is otherwise closed beside them
+    solid = box(P.shell.vent_slots[0][0] + 0.1, P.shell.vent_slots[0][1] - 0.1, p.sensor[1] - 0.5, p.sensor[1] + 0.5, G.BELLY_Z + 1.1, G.FLOOR_Z - 0.2)  # the rib between the slots
+    assert A.overlap(solid, pan) > 0.5 * solid.volume

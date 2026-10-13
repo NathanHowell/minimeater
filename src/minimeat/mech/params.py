@@ -58,18 +58,28 @@ class Servo:
 @dataclass(frozen=True)
 class Pcb:
     """Provisional envelope; the board outline becomes the contract at .1.6 / .3.6. The board lies flat in the
-    pan under the duct, parts up; its -y long edge carries the connectors (see envelope.py)."""
+    pan under the duct, turned over: the SMT face (F.Cu) down on the standoffs with the parts hanging under it, the
+    back (B.Cu, the through-hole tails) up toward the duct. Board frame: x toward the egg, y as the KiCad sheet's (the
+    connector edge at -y), z up. That is the real board: seen from above with its parts up, the sheet's connectors
+    are at the top and its USB-C at the left; turned over about x they are at -y and the USB-C stays at -x. Its -y
+    long edge carries the connectors (see envelope.py)."""
 
     x_len: float = 47.5  # along the flow axis: 46 for the USB-C and four jacks side by side (45), plus usb_end
     usb_end: float = 1.5  # the board's extra length past the USB-C (x_len includes it): moves the USB-C out of the first jack's 0.2 mm web (hw/tools/usb_shift.py)
     y_len: float = 54.0  # across
     t: float = 1.6
     hole_d: float = 2.7  # [est] M2.5
+    standoff_d: float = 5.5  # the pan's columns under the holes
     # three mounting holes, board frame (centre origin, y toward +y): the corners are taken by the connector row and the
     # module, so the screws sit where the layout left room; the connector row is held by the port wall
     holes: tuple[tuple[float, float], ...] = ((-11.65, 1.7), (20.75, 2.8), (20.75, 22.6))
-    top_h: float = 11.0  # [est] tallest part above the board (headers; the jacks are 3.2, the module 3.2)
-    bottom_h: float = 2.5  # [est] through-hole lead clearance: the standoff height
+    axis_z: float = -28.6  # the connector axes' height: the port row, wall and bay, as before the board was turned over
+    under_h: float = 6.4  # the tallest thing under the board: the right-angle KK housings, 6.36 (STEP); the jacks are 3.7, the module 3.3
+    floor_gap: float = 0.9  # under_h to the pan floor
+    over_h: float = 2.5  # the through-hole tails (2 mm) and their solder above the board's back face
+    kk: tuple[tuple[float, float], ...] = ((8.78, 10.6), (18.91, 8.1))  # the fan and servo plugs on the right-angle KK headers at the rear edge: y centre, width (J6 4 pins, J7 3)
+    kk_plug_len: float = 9.0  # [est] the plug's housing past the header's front face (the pins go 6.7 into it); the cable leaves along -x, low, under the duct's fan transition
+    edge_band: tuple[float, float] = (23.5, 3.7)  # beyond this y the pan floor curves up: only SMT parts (3.7: the tallest) hang under the board there
     corner_r: float = 2.0
     edge_trim: float = 1.75  # the board's connector edge is trimmed this far back from the frame's -y edge (hw/tools/connector_edge.py)
     # so the connectors reach into the port wall: the jacks' fronts are 0.1 mm inside the frame's edge, the USB-C's shell front 0.6
@@ -92,9 +102,10 @@ class Pcb:
     # the status LED and the button on the +y edge (the side away from the ports), both facing +y
     led_x: float = 15.75  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
     btn_x: float = 15.05  # ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open
-    led_z: float = 0.5  # emitter and actuator heights above the board's top face [est]
+    led_z: float = 0.5  # emitter and actuator heights, under the board's parts face [est]
     btn_z: float = 1.0
-    sensor: tuple[float, float] = (-18.85, 24.8)  # ambient sensor TMP117, board frame: top side (single-sided assembly), rear corner, at the +y flank's louvres
+    sensor: tuple[float, float] = (-18.85, 24.8)  # ambient sensor TMP117, board frame: on the parts face (single-sided assembly), facing down at the louvres in the pan floor, rear corner
+    btn_y: float = 4.8  # the reset button (SW1) faces down: a hole in the pan floor under it takes a paper clip
 
 
 @dataclass(frozen=True)
@@ -240,8 +251,10 @@ class Shell:
     bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)
     bay_x: tuple[float, float] = (-74.5, -19.0)
     bay_wall_t: float = 2.4  # the port wall
-    vent_slots: tuple[tuple[float, float], ...] = ((-71.0, -63.0),)  # x ranges of the ambient louvres, +y wall, at the TMP117 on the board's top
-    vent_z: float = -29.0  # just above the board's top face: outside air reaches the sensor on top
+    vent_slots: tuple[tuple[float, float], ...] = ((-71.0, -63.0),)  # x ranges of the ambient louvres through the pan floor, under the TMP117
+    vent_dy: float = 1.5  # two slots, this far either side of the sensor
+    vent_w: float = 1.4
+    reset_d: float = 3.2  # the reset hole in the pan floor
     pipe_d: float = 1.75  # the LED's light pipe: a piece of clear 1.75 mm filament, glued flush in a 1.9 mm hole
 
 

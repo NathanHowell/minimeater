@@ -78,7 +78,7 @@ def main():
         render([(pan, "#8d8d8d")] + board_items(pieces) + inner, out / "assembled.png", view=(52, -62), size=(11, 8), max_edge=12.0,
                title="assembled, hood off, chassis translucent: the real board in the pan under the duct")
         # a horizontal section through the connector axes, from above: the housings standing in the port wall
-        zj = G.PCB_Z1 + P.pcb.jack_h / 2
+        zj = G.PCB_Z0 - P.pcb.jack_h / 2
         keep = box(-90, 20, -45, -10, G.PCB_Z0 - 8, zj)
         render([(pan & keep, "#9a9a9a")] + board_items(pieces, keep) + [(A.mock.plugs() & keep, "#4b6fb5")],
                out / "ports.png", view=(90, -90), size=(12, 5), tight=True, max_edge=12.0,

@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from build123d import Compound, Plane, import_step, mirror
+from build123d import Axis, Compound, import_step
 
 from . import geom as G
 from .params import P
@@ -35,11 +35,14 @@ def export_board(out: Path) -> Path | None:
 
 
 def placed(step: Path):
-    """The board in the assembly frame: KiCad's export has y up where the sheet has y down, the mech frame follows the
-    sheet (connectors on -y), so mirror across y = 0, then the board's underside to PCB_Z0 and its middle to the pan."""
-    s = mirror(import_step(step), Plane.XZ)
+    """The board in the assembly frame. KiCad's export is the real board seen from above, parts up, with y up and the
+    connectors at +y; the board lies in the pan turned over about x (parts down, connectors toward -y, the USB-C still
+    at the rear). A mirror here would make a board that cannot be built. Its parts face goes to PCB_Z0 and its middle
+    to the pan."""
+    s = import_step(step).rotate(Axis.X, 180)
+    sub = max(s.solids(), key=lambda so: so.bounding_box().size.X * so.bounding_box().size.Y).bounding_box()
     xc = (G.g.board_x0 + G.g.board_x1) / 2
-    s = s.moved(__import__("build123d").Location((xc, 0.0, G.PCB_Z0)))
+    s = s.moved(__import__("build123d").Location((xc, 0.0, G.PCB_Z0 - sub.min.Z)))
     return frozen(s)
 
 

@@ -25,12 +25,12 @@ def envelope():
         },
         "indicators": {
             "edge": "+y",
-            "led": {"x": p.led_x, "z_above_board": p.led_z, "part": "LTST-S220KGKT side-view, facing +y"},
-            "button": {"x": p.btn_x, "z_above_board": p.btn_z, "part": "SKRPACE010 top-push, inside the case (open it to press)"},
+            "led": {"x": p.led_x, "z_below_board": p.led_z, "part": "LTST-S220KGKT side-view, facing +y"},
+            "button": {"x": p.btn_x, "z_below_board": p.btn_z, "part": "SKRPACE010 top-push, facing down: a paper-clip hole in the pan floor"},
         },
-        "ambient_sensor": {"side": "top", "x": p.sensor[0], "y": p.sensor[1], "note": "top side at the rear +y corner, no copper under its thermal pad, at the flank louvres"},
-        "height_above_board": p.top_h,
-        "clearance_below_board": p.bottom_h,
+        "ambient_sensor": {"side": "top", "x": p.sensor[0], "y": p.sensor[1], "note": "parts face (down) at the rear +y corner, no copper under its thermal pad, at the flank louvres"},
+        "height_under_board": p.under_h,
+        "height_above_board": p.over_h,
         "note": "provisional until the ICD (.1.2) and the schematic (.3.x) fix the outline",
     }
 

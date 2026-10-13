@@ -7,7 +7,7 @@ from build123d import Axis, Pos, Rot, Torus, import_step
 
 from . import geom as G
 from .geom import g
-from .parts import _arm, box, d_bore, xcyl, ycyl, zcyl
+from .parts import _arm, box, d_bore, teardrop_z, xcyl, ycyl, zcyl
 from .params import P
 
 
@@ -114,13 +114,22 @@ def oring():
 
 
 def pcb():
-    """The board, flat in the pan, plus a keep-out box for the tallest parts above it. The connectors on the -y edge
-    hang past the board's trimmed edge into the port wall (their housings are `connectors()`)."""
+    """The board, flat in the pan, turned over, plus a keep-out for what hangs under it (the right-angle headers are the
+    tallest) and for the tails above it. The connectors on the -y edge hang past the board's trimmed edge into the port
+    wall (their housings are `connectors()`)."""
     p = P.pcb
     b = box(G.g.board_x0, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z0, G.PCB_Z1)
-    xs = G.g.board_x0 + p.usb_end  # the last usb_end, at the USB-C, holds nothing taller than it
-    top = box(xs, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.top_h)
-    top += box(G.g.board_x0, xs, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.usb_h + 1.0)
+    top = box(G.g.board_x0, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.over_h)
+    ye, he = p.edge_band
+    xf = G.g.board_x1 - 1.5  # the pan's belly rises under the board's front edge: parts there are low
+    under = box(G.g.board_x0, xf, -ye, ye, G.PCB_Z0 - p.under_h, G.PCB_Z0)
+    under += box(G.g.board_x0, G.g.board_x1, G.PCB_EDGE_Y, -ye, G.PCB_Z0 - he, G.PCB_Z0)
+    under += box(G.g.board_x0, G.g.board_x1, ye, p.y_len / 2, G.PCB_Z0 - he, G.PCB_Z0)
+    under += box(xf, G.g.board_x1, -ye, ye, G.PCB_Z0 - he, G.PCB_Z0)
+    xc = (G.g.board_x0 + G.g.board_x1) / 2
+    for hx, hy in p.holes:  # the standoffs stand there
+        under -= teardrop_z(xc + hx, hy, p.standoff_d / 2 + 0.3, G.PCB_Z0 - p.under_h - 1.0, G.PCB_Z0 + 0.1, toward=-1)
+    top += under
     return b, top
 
 
@@ -132,23 +141,27 @@ def connectors():
     y0 = G.PCB_Y0
     out = None
     for jx in p.jack_xs:
-        j = box(xc + jx - p.jack_w / 2, xc + jx + p.jack_w / 2, y0 + p.jack_face, G.PCB_EDGE_Y, G.PCB_Z1, G.PCB_Z1 + p.jack_h)
+        j = box(xc + jx - p.jack_w / 2, xc + jx + p.jack_w / 2, y0 + p.jack_face, G.PCB_EDGE_Y, G.PCB_Z0 - p.jack_h, G.PCB_Z0)
         out = j if out is None else out + j
-    out += box(xc + p.usb_x - p.usb_w / 2, xc + p.usb_x + p.usb_w / 2, y0 + p.usb_face, G.PCB_EDGE_Y, G.PCB_Z1 + 0.3, G.PCB_Z1 + p.usb_h)
+    out += box(xc + p.usb_x - p.usb_w / 2, xc + p.usb_x + p.usb_w / 2, y0 + p.usb_face, G.PCB_EDGE_Y, G.PCB_Z0 - p.usb_h, G.PCB_Z0 - 0.3)
     return out
 
 
 def plugs():
     """The probe plugs and the USB-C plug in their ports: overmolds outside the port wall, barrels through it to the
-    connectors' faces (not into them)."""
+    connectors' faces (not into them); and the fan and servo plugs on the rear headers."""
     p = P.pcb
     xc = (G.g.board_x0 + G.g.board_x1) / 2
     out = None
     y_face = G.PORT_WALL_Y - P.shell.bay_wall_t
     for jx in p.jack_xs:
-        barrel = ycyl(1.25, y_face - 0.5, G.PCB_Y0 + p.jack_face, xc + jx, G.PCB_Z1 + p.jack_h / 2)
-        mold = ycyl(p.plug_d / 2, y_face - 18.0, y_face, xc + jx, G.PCB_Z1 + p.jack_h / 2)
+        barrel = ycyl(1.25, y_face - 0.5, G.PCB_Y0 + p.jack_face, xc + jx, G.PCB_Z0 - p.jack_h / 2)
+        mold = ycyl(p.plug_d / 2, y_face - 18.0, y_face, xc + jx, G.PCB_Z0 - p.jack_h / 2)
         out = barrel + mold if out is None else out + barrel + mold
-    usb = box(xc + p.usb_x - 4.2, xc + p.usb_x + 4.2, y_face - 0.1, G.PCB_Y0 + p.usb_face, G.PCB_Z1 + 0.3, G.PCB_Z1 + p.usb_h)
-    usb += box(xc + p.usb_x - 6.0, xc + p.usb_x + 6.0, y_face - 18.0, y_face, G.PCB_Z1 - 1.5, G.PCB_Z1 + p.usb_h + 1.5)
-    return out + usb
+    usb = box(xc + p.usb_x - 4.2, xc + p.usb_x + 4.2, y_face - 0.1, G.PCB_Y0 + p.usb_face, G.PCB_Z0 - p.usb_h, G.PCB_Z0 - 0.3)
+    usb += box(xc + p.usb_x - 6.0, xc + p.usb_x + 6.0, y_face - 18.0, y_face, G.PCB_Z0 - p.usb_h - 1.5, G.PCB_Z0 + 1.5)
+    out += usb
+    xf = G.g.board_x0 - 0.19  # the header housings' front faces, a little past the board's rear edge
+    for yc, w in p.kk:  # the fan and servo plugs lie under the board, entering toward the rear
+        out += box(xf - p.kk_plug_len, xf, yc - w / 2, yc + w / 2, G.PCB_Z0 - p.under_h, G.PCB_Z0 - 0.1)
+    return out

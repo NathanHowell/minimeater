@@ -46,7 +46,7 @@ def test_linkage_is_a_parallelogram():
     assert abs(A.coupler_shift(90).position.Y + L.arm_r) < 1e-9 and abs(A.coupler_shift(90).position.X - L.arm_r) < 1e-9
     assert G.CRANK_Z0 > G.g.duct_r  # the linkage plane is over the duct's crown
     assert G.COUPLER_Z1 + L.pin_head_h < P.shell.roof_in
-    assert G.SERVO_Z0 > G.PCB_Z1 + P.pcb.top_h + 2.0  # the servo clears the board's keep-out
+    assert G.SERVO_Z0 > G.PCB_Z1 + P.pcb.over_h + 2.0  # the servo clears the board's keep-out
 
 
 def test_rod_stands_above_the_crank_and_under_the_bar():
@@ -75,15 +75,15 @@ def test_shelf_pilots_are_under_the_servos_screw_holes():
 
 
 def test_board_lies_under_the_straight_duct():
-    """The board sits beside the r = 18.2 straight section (the parts one mm into the cone and the flare), with its
-    keep-out one mm under the duct and the cone no steeper than 26 degrees. The USB-C's end, past the last part,
-    goes further in: only the USB-C stands there, and it clears the cone."""
+    """The board (turned over: its back and the tails' keep-out up, the parts under it) sits beside the r = 18.2
+    straight section, its rear edge a little into the cone, the keep-out one mm under the duct everywhere
+    including at that edge, and the cone no steeper than 26 degrees."""
     assert G.g.straight_x0 <= G.g.board_x0 + P.layout.straight_over + 1e-9
     assert P.layout.straight_over == P.pcb.usb_end + 1.0
     cone_r = G.g.duct_r + 0.5 * (G.g.straight_x0 - G.g.board_x0)  # the cone's outer radius at the board's rear edge
-    assert G.PCB_Z1 + P.pcb.usb_h + 1.0 <= -cone_r + 1e-9
+    assert G.PCB_Z1 + P.pcb.over_h + 1.0 <= -cone_r + 1e-9
     assert G.g.board_x1 <= G.g.socket_x0 - 4.0
-    assert G.PCB_Z1 + P.pcb.top_h <= -G.g.duct_r - 1.0 + 1e-9
+    assert G.PCB_Z1 + P.pcb.over_h <= -G.g.duct_r - 1.0 + 1e-9
     assert analysis.cone_half_angle() <= 26.1
 
 
