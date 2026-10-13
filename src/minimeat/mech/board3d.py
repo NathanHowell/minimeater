@@ -12,8 +12,8 @@ from . import geom as G
 from .params import P
 
 KICAD_PY = "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3"
-# the board's centre in KiCad's sheet coordinates (the board is 46 x 54 from the sheet's origin)
-CENTRE = (P.pcb.x_len / 2, P.pcb.y_len / 2)
+# the board's centre in KiCad's sheet coordinates (the board is 46 x 54 from the sheet's origin, plus usb_end to its -x side)
+CENTRE = (P.pcb.x_len / 2 - P.pcb.usb_end, P.pcb.y_len / 2)
 
 
 def available() -> bool:

@@ -118,7 +118,9 @@ def pcb():
     hang past the board's trimmed edge into the port wall (their housings are `connectors()`)."""
     p = P.pcb
     b = box(G.g.board_x0, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z0, G.PCB_Z1)
-    top = box(G.g.board_x0, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.top_h)
+    xs = G.g.board_x0 + p.usb_end  # the last usb_end, at the USB-C, holds nothing taller than it
+    top = box(xs, G.g.board_x1, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.top_h)
+    top += box(G.g.board_x0, xs, G.PCB_EDGE_Y, p.y_len / 2, G.PCB_Z1, G.PCB_Z1 + p.usb_h + 1.0)
     return b, top
 
 

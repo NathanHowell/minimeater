@@ -86,16 +86,18 @@ def test_connectors_reach_into_the_wall():
 
 def test_no_web_thinner_than_the_printers_minimum(shells):
     """JLC3DP flags walls under 1.2 mm (ASA's minimum): the louvre blades, the seam's tongue and rib, and the
-    wall between the USB-C opening and the first jack's (they are joined, not 0.2 mm apart)."""
+    wall between the USB-C opening and the first jack's."""
     import math
     sh = P.shell
     assert sh.grille_pitch * math.cos(math.radians(44)) - sh.grille_slot >= 1.2  # a blade, across its faces
     assert min(sh.lip_t, sh.rib_t) >= 1.2
     p = P.pcb
-    zj = G.PCB_Z1 + p.jack_h / 2
     xu = K.PCB_XC + p.usb_x + p.usb_open_w / 2
-    web = box(xu + 0.05, K.PCB_XC + p.jack_xs[0] - p.jack_hole_d / 2 - 0.05, K.PORT_FACE_Y, G.PORT_WALL_Y, zj - 1.0, zj + 1.0)
-    assert A.overlap(web, shells["pan"]) < 0.5  # where the sliver was, the pan is open
+    xj = K.PCB_XC + p.jack_xs[0] - p.jack_open_w / 2
+    assert xj - xu >= 1.2  # the web is a printable wall
+    z0, z1 = p.jack_open_z
+    web = box(xu + 0.05, xj - 0.05, K.PORT_FACE_Y, G.PORT_WALL_Y, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
+    assert A.overlap(web, shells["pan"]) > 0.99 * web.volume  # the pan is solid there: no shared slot
 
 
 def test_bay_is_under_the_eave_and_drains(shells):

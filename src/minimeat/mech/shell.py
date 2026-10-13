@@ -215,9 +215,6 @@ def port_openings():
         cut += ycyl(r, y0, y1, x, zj) + prism_xz([(x + k, zj - k), (x + k * (1 + KS), zj), (x + k, zj + k)], y0, y1)
         z0, z1 = p.jack_open_z
         cut += box(x - p.jack_open_w / 2, x + p.jack_open_w / 2, y0, y1, G.PCB_Z1 + z0, G.PCB_Z1 + z1)
-        if jx == p.jack_xs[0]:  # the USB-C opening reaches to within 0.2 mm of this one: join them, a 0.2 mm web cannot print
-            xu = PCB_XC + p.usb_x + p.usb_open_w / 2
-            cut += box(xu - 0.3, x - r + 0.3, y0, y1, zj - r, zj + r)
     return cut
 
 

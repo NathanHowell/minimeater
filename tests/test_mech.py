@@ -75,9 +75,13 @@ def test_shelf_pilots_are_under_the_servos_screw_holes():
 
 
 def test_board_lies_under_the_straight_duct():
-    """The 44 mm board sits beside the r = 18.2 straight section (one mm into the cone and the flare), with its
-    keep-out one mm under the duct and the cone no steeper than 26 degrees."""
+    """The board sits beside the r = 18.2 straight section (the parts one mm into the cone and the flare), with its
+    keep-out one mm under the duct and the cone no steeper than 26 degrees. The USB-C's end, past the last part,
+    goes further in: only the USB-C stands there, and it clears the cone."""
     assert G.g.straight_x0 <= G.g.board_x0 + P.layout.straight_over + 1e-9
+    assert P.layout.straight_over == P.pcb.usb_end + 1.0
+    cone_r = G.g.duct_r + 0.5 * (G.g.straight_x0 - G.g.board_x0)  # the cone's outer radius at the board's rear edge
+    assert G.PCB_Z1 + P.pcb.usb_h + 1.0 <= -cone_r + 1e-9
     assert G.g.board_x1 <= G.g.socket_x0 - 4.0
     assert G.PCB_Z1 + P.pcb.top_h <= -G.g.duct_r - 1.0 + 1e-9
     assert analysis.cone_half_angle() <= 26.1
