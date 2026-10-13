@@ -6,7 +6,7 @@ from minimeat.mech import analysis, assembly as A, mock
 from minimeat.mech import geom as G
 from minimeat.mech.export import export
 from minimeat.mech.params import P
-from minimeat.mech.parts import PARTS
+from minimeat.mech.parts import MACHINED, PARTS
 from minimeat.mech.printing import overhangs, print_pose
 
 
@@ -29,6 +29,14 @@ def test_no_interference_at_any_flap_angle(deg):
     allp = {**A.printed(deg), **A.bought(deg)}
     hits = [h for h in A.interferences(allp) if set(h[:2]) != {"duct", "oring"}]  # the ring is squeezed by design
     assert hits == []
+
+
+def test_the_crank_lug_stops_on_the_posts_at_open_and_closed_and_only_there():
+    duct, crank = A.printed()["duct"], MACHINED["crank"]()
+    for deg in (0, 20, 45, 70, 90):  # free over the whole travel, touching at the ends
+        assert A.overlap(duct, A.about_shaft(crank, deg)) < 0.5
+    for deg in (-2, 92):  # a little past either end it is on the post
+        assert A.overlap(duct, A.about_shaft(crank, deg)) > 1.0
 
 
 def test_linkage_is_a_parallelogram():
@@ -129,7 +137,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 465}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep)
+OVERHANG_AREA_MM2 = {"duct": 475}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))

@@ -136,6 +136,19 @@ def thumbscrew_boss():
     return b
 
 
+def stop_posts():
+    """Two posts on the duct's crown that the crank's lug stops against: open (0 deg) the lug lies along -x and its +y face
+    meets the first post; closed (90 deg) the lug lies along -y and its +x face meets the second. Both stand beside the
+    lug's sweep, under the arm. The face the lug hits is vertical or faces away from the print bed; the end of each
+    post toward the rod faces the bed: a 3 mm bridge."""
+    L = P.linkage
+    xf, z1 = g.flap_x, G.ARM_Z0 - L.stop_top
+    hw = L.stop_w / 2
+    open_post = box(xf - L.stop_r1, xf - L.stop_r0, hw, hw + L.stop_t, L.stop_foot, z1)
+    closed_post = box(xf + hw, xf + hw + L.stop_t, -L.stop_r1, -L.stop_r0, L.stop_foot, z1)
+    return open_post + closed_post
+
+
 def duct():
     """Fan flange, contraction cone, the straight bore with the flap station, the servo shelf and the socket
     onto the intake tube, with its drip collar and the thumbscrew boss."""
@@ -158,7 +171,7 @@ def duct():
     outer += xcyl(c.collar_r, c.collar_x - 1.5 - 1.6, c.collar_x - 1.5)
     outer += xcone(c.collar_r, c.od / 2, c.collar_x - 1.5, c.collar_x)
     outer += thumbscrew_boss()
-    body = outer + servo_shelf()
+    body = outer + servo_shelf() + stop_posts()
 
     # the airway and the features cut into the walls
     body -= xcone(P.fan.aperture_d / 2, br, g.fan_face_x - 0.1, g.straight_x0)
@@ -212,6 +225,8 @@ def crank():
     xf = g.flap_x
     k = zcyl(L.hub_d / 2, G.CRANK_Z0, G.ARM_Z1, xf, 0.0)
     k += _arm(xf, 0.0, G.ARM_Z0, G.ARM_Z1, L.arm_r, L.arm_w)
+    # the stop lug: a rib under the arm, level with the hub, hits the duct's posts at 0 deg (its +y face) and at 90 deg
+    k += box(xf - L.stop_r1, xf - L.hub_d / 2 + 1.0, -L.stop_w / 2, L.stop_w / 2, G.CRANK_Z0, G.ARM_Z0 + 0.01)
     k -= d_bore(xf, 0.0, G.CRANK_Z0 - 0.5, G.ARM_Z1 + 0.5, clear=L.slip)
     k -= zcyl(L.set_screw_d / 2, G.ARM_Z0 - 0.1, G.ARM_Z1 + 0.1, xf - L.arm_r, 0.0)  # tapped M2 for the coupler's pin
     zs = (G.CRANK_Z0 + G.ARM_Z0) / 2  # the set screw: radial, on the flat's side (+y), in the hub under the arm

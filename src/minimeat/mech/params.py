@@ -157,6 +157,12 @@ class Linkage:
     pin_head_h: float = 2.0
     shoulder_len: float = 3.0  # a little over the bar and its boss (2.9), so the bar turns free
     lift: float = 0.8  # crank hub above the duct's crown
+    stop_w: float = 3.0  # the crank's stop lug: a rib under the arm, from the hub out to stop_r1, this wide
+    stop_r0: float = 5.5  # the duct's stop posts stand from this radius from the rod ...
+    stop_r1: float = 9.5  # ... to this one (the lug reaches it)
+    stop_t: float = 3.0  # a post's thickness, the way the lug pushes on it
+    stop_top: float = 1.0  # posts stop this far under the arm's underside
+    stop_foot: float = 14.5  # a post's base z: inside the duct's wall
     bar_lift: float = 0.9  # the coupler's bosses under its pin holes: the bar rides this far above the arms, so the rod's end can stand above the crank (to grip it) and still clear the bar when the flap is closed
 
 
