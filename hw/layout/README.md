@@ -86,3 +86,18 @@ the J1 side on 6/4 and the MCU side on 1/3 so the lines flow straight through. T
 D1 (SMF5V0A TVS) on VBUS_RAW at the input, then F1 (PTC), then the VBUS_F bulk: C3 100 nF, C2 10 uF, C1 100 uF,
 all on one fill per net with their ground pads on a common ground strip. Vias in the ground pads (D1, C2, two in
 C1's) and one beside C3. In placement D1 goes as close to J1's VBUS pads as it can.
+
+## U9 TPD4E05U06 probe ESD, origin (20, 95)
+
+![U9](u9.png)
+
+Datasheet SLVSBO7O section 7.4, figure 7-11: straight-through routing. Each tip line runs straight across the part
+over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; the schematic ties the NC pins
+to the tips, which the datasheet allows: "used for optional straight-through routing"). The two GND pads (3, 8)
+join down the middle and leave to a via on each side.
+
+- "As close to the connector as possible": goes right behind the jacks in placement; jack side is up.
+- "Route the protected traces as straight as possible", no sharp corners: past the package the lines fan out by
+  0.25 mm at 1:3 (about 18 degrees) to make room for the GND vias. A 45 degree fan does not fit: two parallel 45
+  degree jogs at 0.5 mm pitch come within 0.354 mm centre to centre (0.15 mm of copper gap).
+- The 0.2 mm lines match the 0.2 mm pads; 0.3 mm gaps between lines meet the Analog class 0.25 mm.
