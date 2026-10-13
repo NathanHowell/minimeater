@@ -34,7 +34,11 @@ pub fn parse(resp: &[u8], nonce: u64) -> Option<u64> {
         return None;
     }
     // NTP era 0 ends in 2036; a time that reads as before 1970 is in era 1
-    let secs = if secs >= UNIX_OFFSET { secs - UNIX_OFFSET } else { secs + (1 << 32) - UNIX_OFFSET };
+    let secs = if secs >= UNIX_OFFSET {
+        secs - UNIX_OFFSET
+    } else {
+        secs + (1 << 32) - UNIX_OFFSET
+    };
     Some(secs * 1000 + ((frac * 1000) >> 32))
 }
 

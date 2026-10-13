@@ -103,7 +103,14 @@ mod tests {
 
     #[test]
     fn case_unicast_bit_and_any_are_accepted() {
-        assert!(answer(&query(&["MiniMeat-A1B2C3", "LOCAL"], 255, 0x8001), "minimeat-a1b2c3", IP).is_some());
+        assert!(
+            answer(
+                &query(&["MiniMeat-A1B2C3", "LOCAL"], 255, 0x8001),
+                "minimeat-a1b2c3",
+                IP
+            )
+            .is_some()
+        );
     }
 
     #[test]
@@ -125,7 +132,9 @@ mod tests {
         let h = "minimeat-a1b2c3";
         // question 1: another name; question 2: a pointer to the first question's "local"
         let mut q = vec![0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0];
-        q.extend_from_slice(&[5, b'o', b't', b'h', b'e', b'r', 5, b'l', b'o', b'c', b'a', b'l', 0, 0, 1, 0, 1]);
+        q.extend_from_slice(&[
+            5, b'o', b't', b'h', b'e', b'r', 5, b'l', b'o', b'c', b'a', b'l', 0, 0, 1, 0, 1,
+        ]);
         q.push(h.len() as u8);
         q.extend_from_slice(h.as_bytes());
         q.extend_from_slice(&[0xC0, 18, 0, 1, 0, 1]); // offset 18 is "local" in the first name

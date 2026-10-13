@@ -1,11 +1,11 @@
 //! The serial REPL (`minimeat-s7v`): how credentials and settings that must not cross the network are set, over the
-//! USB-C cable. It shares the port with Improv Wi-Fi frames and the log lines (`improv::run` feeds it every byte), so
-//! the [`Editor`] keeps out of Improv's way: a line that starts `IMPROV` is a frame and is dropped, and the echo of a
-//! line that could still become one is held back until it cannot.
+//! USB-C cable. It shares the port with Improv Wi-Fi frames and the log lines: `serial::Demux` cuts the bytes into
+//! Improv frames and [`Key`]s, and the [`Editor`] takes only keys, so it never sees a frame.
 //!
-//! [`CATALOG`] is the one list of commands: completion and `help` read it, and [`parse`] accepts the same names.
-//! Everything here but [`execute`] is plain code with host tests; [`execute`] talks to the control task over the
-//! [`Bus`] the way Improv does, so a setting goes through the same save-and-publish path as any other.
+//! [`CATALOG`] is the one list of commands: completion and `help` read it, and the `winnow` grammar in [`parse`]
+//! accepts the same names. Everything here but [`execute`] is plain code with host tests; [`execute`] talks to the
+//! control task over the [`Bus`] the way Improv does, so a setting goes through the same save-and-publish path as
+//! any other.
 
 use core::fmt::{self, Write as _};
 
@@ -15,7 +15,6 @@ use embedded_io_async::Write;
 use heapless::{String, Vec};
 
 use crate::config::{Mode, Mqtt, Otlp, Settings, Wifi};
-use crate::improv;
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
 use crate::proto::Request;
@@ -26,7 +25,6 @@ pub const PROMPT: &str = "minimeat> ";
 pub const LINE: usize = 160;
 /// The id this conversation's requests carry on the bus (Improv's is 0xFF10).
 const REQUEST_ID: u16 = 0xFF11;
-const FRAME_START: &str = "IMPROV";
 /// Lines kept for the up arrow.
 const HISTORY: usize = 4;
 const BEL: u8 = 0x07;
@@ -168,13 +166,37 @@ fn common_prefix(words: &[&'static str]) -> usize {
     let Some(first) = words.first() else { return 0 };
     (0..=first.len())
         .rev()
-        .find(|&n| words.iter().all(|w| w.len() >= n && w.as_bytes()[..n] == first.as_bytes()[..n]))
+        .find(|&n| {
+            words
+                .iter()
+                .all(|w| w.len() >= n && w.as_bytes()[..n] == first.as_bytes()[..n])
+        })
         .unwrap_or(0)
 }
 
 // ----------------------------------------------------------------------------- editor
 
-/// What one byte did: bytes to send back to the terminal, and a finished line.
+/// What the terminal sent, one keystroke at a time (`serial::Demux` cuts the byte stream into these).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Key {
+    /// A printable ASCII character.
+    Char(u8),
+    Cr,
+    Lf,
+    Backspace,
+    Tab,
+    CtrlC,
+    CtrlU,
+    CtrlW,
+    Up,
+    Down,
+    /// A byte that cannot be part of a line: refused with a bell.
+    Bad,
+    /// An escape sequence that means nothing here.
+    Ignore,
+}
+
+/// What one key did: bytes to send back to the terminal, and a finished line.
 #[derive(Default)]
 pub struct Step {
     pub echo: Vec<u8, 400>,
@@ -187,51 +209,11 @@ impl Step {
     }
 }
 
-/// Where an Improv frame is, after `IMPROV`: the version, type and length bytes, then the data, checksum and newline.
-#[derive(Clone, Copy)]
-struct Frame {
-    seen: u8,
-    left: u16,
-}
-
-impl Frame {
-    /// Takes one byte; false when the frame is over (or was never one: the wrong version or too long a length,
-    /// which the Improv parser also refuses).
-    fn take(&mut self, b: u8) -> bool {
-        match self.seen {
-            0 => {
-                self.seen = 1;
-                b == improv::VERSION
-            }
-            1 => {
-                self.seen = 2;
-                true
-            }
-            2 => {
-                self.seen = 3;
-                self.left = u16::from(b) + 2;
-                usize::from(b) <= improv::MAX_DATA
-            }
-            _ => {
-                self.left -= 1;
-                self.left > 0
-            }
-        }
-    }
-}
-
-/// Line editing: printable characters, backspace, ^U (clear), ^W (word), ^C (cancel), Tab (complete), the arrow
-/// keys for the last few lines, and CR, LF or CRLF to end a line.
+/// Line editing: characters, backspace, ^U (clear), ^W (word), ^C (cancel), Tab (complete), the arrow keys for the
+/// last few lines, and CR, LF or CRLF to end a line. It knows nothing of bytes or Improv: it takes [`Key`]s.
 pub struct Editor {
     line: String<LINE>,
-    /// The line so far could still be the start of an Improv frame, so nothing of it has been echoed.
-    held: bool,
-    /// Inside an Improv frame, after its marker: ignored for as many bytes as its length byte says (the length, the
-    /// data and the checksum can all be `\n`, so the first newline is not its end).
-    frame: Option<Frame>,
     after_cr: bool,
-    /// 0 nothing, 1 saw ESC, 2 saw ESC [.
-    esc: u8,
     history: Vec<String<LINE>, HISTORY>,
     /// How far back the arrow keys have gone (0 = the line being typed).
     back: usize,
@@ -248,10 +230,7 @@ impl Editor {
     pub fn new() -> Self {
         Self {
             line: String::new(),
-            held: false,
-            frame: None,
             after_cr: false,
-            esc: 0,
             history: Vec::new(),
             back: 0,
             draft: String::new(),
@@ -340,45 +319,16 @@ impl Editor {
         s.text(&self.line);
     }
 
-    /// Feeds one byte from the terminal.
-    pub fn push(&mut self, b: u8) -> Step {
+    /// Applies one key.
+    pub fn apply(&mut self, key: Key) -> Step {
         let mut s = Step::default();
-        if let Some(f) = &mut self.frame {
-            if !f.take(b) {
-                self.frame = None;
-            }
-            return s;
-        }
-        match self.esc {
-            1 => {
-                self.esc = if b == b'[' { 2 } else { 0 };
-                return s;
-            }
-            2 => {
-                self.esc = 0;
-                match b {
-                    b'A' => self.recall(true, &mut s),
-                    b'B' => self.recall(false, &mut s),
-                    _ => {}
-                }
-                return s;
-            }
-            _ => {}
-        }
         let was_cr = core::mem::take(&mut self.after_cr);
-        match b {
-            0x1b => self.esc = 1,
-            b'\r' | b'\n' => {
-                if b == b'\n' && was_cr {
+        match key {
+            Key::Cr | Key::Lf => {
+                if key == Key::Lf && was_cr {
                     return s;
                 }
-                self.after_cr = b == b'\r';
-                if self.held {
-                    // a line that was only a piece of the frame marker: nothing to say about it
-                    self.held = false;
-                    self.line.clear();
-                    return s;
-                }
+                self.after_cr = key == Key::Cr;
                 s.text("\r\n");
                 let line = core::mem::take(&mut self.line);
                 let line: String<LINE> = {
@@ -390,67 +340,41 @@ impl Editor {
                 self.back = 0;
                 s.line = Some(line);
             }
-            0x7f | 0x08 => {
+            Key::Backspace => {
                 if self.line.pop().is_some() {
-                    if self.held {
-                        self.held = FRAME_START.starts_with(self.line.as_str()) && !self.line.is_empty();
-                    } else {
-                        s.text("\x08 \x08");
-                    }
+                    s.text("\x08 \x08");
                 }
             }
-            0x15 => {
+            Key::CtrlU => {
                 self.line.clear();
-                self.held = false;
                 self.redraw(&mut s);
             }
-            0x17 => {
+            Key::CtrlW => {
                 while self.line.ends_with(' ') {
                     self.line.pop();
                 }
                 while self.line.chars().last().is_some_and(|c| c != ' ') {
                     self.line.pop();
                 }
-                self.held = false;
                 self.redraw(&mut s);
             }
-            0x03 => {
+            Key::CtrlC => {
                 self.line.clear();
-                self.held = false;
                 s.text("^C\r\n");
                 s.text(PROMPT);
             }
-            b'\t' => {
-                if !self.held {
-                    self.complete(&mut s);
-                }
-            }
-            0x20..=0x7e => {
-                if self.line.push(b as char).is_err() {
-                    return s;
-                }
-                if FRAME_START.starts_with(self.line.as_str()) {
-                    if self.line == FRAME_START {
-                        // an Improv frame: not ours
-                        self.line.clear();
-                        self.held = false;
-                        self.frame = Some(Frame { seen: 0, left: 0 });
-                    } else {
-                        self.held = true;
-                    }
-                } else if self.held {
-                    // it was not a frame after all: show what has been typed
-                    self.held = false;
-                    let line = self.line.clone();
-                    s.text(&line);
-                } else {
+            Key::Tab => self.complete(&mut s),
+            Key::Up => self.recall(true, &mut s),
+            Key::Down => self.recall(false, &mut s),
+            Key::Char(b) => {
+                if self.line.push(b as char).is_ok() {
                     s.echo.push(b).ok();
                 }
             }
-            // a byte that cannot be part of a line: refused with a bell
-            _ => {
+            Key::Bad => {
                 s.echo.push(BEL).ok();
             }
+            Key::Ignore => {}
         }
         s
     }
@@ -459,41 +383,6 @@ impl Editor {
 // ----------------------------------------------------------------------------- parser
 
 pub type Word = String<64>;
-
-/// Splits a line into words; a word may be quoted with `"` (with `\"` and `\\` inside), so a password may hold
-/// spaces. An unterminated quote or more than 8 words is an error.
-pub fn words(line: &str) -> Result<Vec<Word, 8>, &'static str> {
-    let mut out: Vec<Word, 8> = Vec::new();
-    let mut chars = line.chars().peekable();
-    loop {
-        while chars.peek().is_some_and(|c| c.is_whitespace()) {
-            chars.next();
-        }
-        if chars.peek().is_none() {
-            return Ok(out);
-        }
-        let mut w = Word::new();
-        let mut quoted = false;
-        while let Some(&c) = chars.peek() {
-            if c.is_whitespace() && !quoted {
-                break;
-            }
-            chars.next();
-            match c {
-                '"' => quoted = !quoted,
-                '\\' if quoted => {
-                    let n = chars.next().ok_or("unterminated quote")?;
-                    w.push(n).map_err(|_| "word too long")?;
-                }
-                _ => w.push(c).map_err(|_| "word too long")?,
-            }
-        }
-        if quoted {
-            return Err("unterminated quote");
-        }
-        out.push(w).map_err(|_| "too many words")?;
-    }
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Cmd {
@@ -512,105 +401,222 @@ pub enum Cmd {
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParseError {
     Unknown(String<16>),
-    /// The command is known; this is what is wrong with its arguments.
-    /// The command's usage line (empty when the line did not split into words) and what is wrong.
+    /// The command's usage line (empty when the line did not get as far as a command) and what is wrong.
     Usage(&'static str, &'static str),
 }
 
-fn usage(name: &'static str, why: &'static str) -> ParseError {
-    ParseError::Usage(spec(name).map_or(name, |s| s.usage), why)
-}
+/// The command line as a `winnow` grammar on the text: a name, then words (bare, or in double quotes with `\"` and
+/// `\\` inside, so a password may hold spaces), each command taking its own. [`parse`] runs it.
+mod grammar {
+    use winnow::ascii::{multispace0, multispace1};
+    use winnow::combinator::{alt, cut_err, delimited, eof, opt, preceded, repeat, terminated};
+    use winnow::error::{ErrMode, FromExternalError, ParserError};
+    use winnow::token::{any, none_of, take_till};
+    use winnow::{ModalResult, Parser as _};
 
-fn short<const N: usize>(s: &str, name: &'static str) -> Result<String<N>, ParseError> {
-    String::try_from(s).map_err(|_| usage(name, "too long"))
-}
+    use super::*;
 
-pub fn parse(line: &str) -> Result<Cmd, ParseError> {
-    let w = words(line).map_err(|e| ParseError::Usage("", e))?;
-    let Some(cmd) = w.first() else { return Ok(Cmd::Empty) };
-    let args = &w[1..];
-    match cmd.as_str() {
-        "help" | "?" => match args {
-            [] => Ok(Cmd::Help(None)),
-            [c] => Ok(Cmd::Help(Some(short(c, "help")?))),
-            _ => Err(usage("help", "one command at most")),
-        },
-        "status" if args.is_empty() => Ok(Cmd::Status),
-        "config" if args.is_empty() => Ok(Cmd::Config),
-        "identify" if args.is_empty() => Ok(Cmd::Identify),
-        "reboot" if args.is_empty() => Ok(Cmd::Reboot),
-        "status" | "config" | "identify" | "reboot" => Err(usage(spec(cmd).map_or("help", |s| s.name), "takes no arguments")),
-        "setpoint" => match args {
-            [f] => {
-                let f: f64 = f.parse().map_err(|_| usage("setpoint", "not a number"))?;
+    type In<'a> = &'a str;
+    type R<T> = ModalResult<T, ParseError>;
+
+    impl<'a> ParserError<In<'a>> for ParseError {
+        type Inner = Self;
+        fn from_input(_: &In<'a>) -> Self {
+            ParseError::Usage("", "")
+        }
+        fn append(self, _: &In<'a>, _: &<In<'a> as winnow::stream::Stream>::Checkpoint) -> Self {
+            self
+        }
+        fn or(self, other: Self) -> Self {
+            other
+        }
+        fn into_inner(self) -> Result<Self::Inner, Self> {
+            Ok(self)
+        }
+    }
+
+    impl<'a> FromExternalError<In<'a>, ParseError> for ParseError {
+        fn from_external_error(_: &In<'a>, e: ParseError) -> Self {
+            e
+        }
+    }
+
+    fn why(w: &'static str) -> ParseError {
+        ParseError::Usage("", w)
+    }
+
+    /// A word in double quotes.
+    fn quoted(i: &mut In<'_>) -> R<Word> {
+        delimited(
+            '"',
+            repeat(0.., alt((preceded('\\', any), none_of(['"', '\\'])))).try_fold(Word::new, |mut w, c: char| {
+                w.push(c).map(|()| w).map_err(|_| why("word too long"))
+            }),
+            cut_err('"').map_err(|_: ErrMode<ParseError>| ErrMode::Cut(why("unterminated quote"))),
+        )
+        .parse_next(i)
+    }
+
+    /// A word without spaces or quotes.
+    fn bare(i: &mut In<'_>) -> R<Word> {
+        take_till(1.., [' ', '\t', '"'])
+            .try_map(|s: &str| Word::try_from(s).map_err(|_| why("word too long")))
+            .parse_next(i)
+    }
+
+    fn word(i: &mut In<'_>) -> R<Word> {
+        alt((quoted, bare)).parse_next(i)
+    }
+
+    /// A following word.
+    fn arg(i: &mut In<'_>) -> R<Word> {
+        preceded(multispace1, word).parse_next(i)
+    }
+
+    /// A following word, no longer than `N` bytes.
+    fn arg_s<const N: usize>(i: &mut In<'_>) -> R<String<N>> {
+        arg.try_map(|w| String::<N>::try_from(w.as_str()).map_err(|_| why("too long")))
+            .parse_next(i)
+    }
+
+    /// A following word that has to be this one.
+    fn kw<'a>(name: &'static str) -> impl FnMut(&mut In<'a>) -> R<()> {
+        move |i| arg.verify(move |w: &Word| w.as_str() == name).void().parse_next(i)
+    }
+
+    /// An optional following word, parsed with `f`: absent is `None`, present but wrong is an error.
+    fn opt_arg<'a, O>(mut f: impl FnMut(Word) -> Result<O, ParseError>) -> impl FnMut(&mut In<'a>) -> R<Option<O>> {
+        move |i| opt(preceded(multispace1, cut_err(word.try_map(&mut f)))).parse_next(i)
+    }
+
+    fn port(w: Word) -> Result<u16, ParseError> {
+        w.parse::<u16>()
+            .ok()
+            .filter(|&p| p != 0)
+            .ok_or(why("the port is 1 to 65535"))
+    }
+
+    fn text<const N: usize>(w: Word) -> Result<String<N>, ParseError> {
+        String::<N>::try_from(w.as_str()).map_err(|_| why("too long"))
+    }
+
+    fn interval(w: Word) -> Result<u16, ParseError> {
+        w.parse::<u16>()
+            .ok()
+            .filter(|i| (5..=3600).contains(i))
+            .ok_or(why("the interval is 5 to 3600 s"))
+    }
+
+    fn setpoint(i: &mut In<'_>) -> R<Cmd> {
+        preceded(
+            multispace1,
+            cut_err(word.try_map(|w| {
+                let f: f64 = w.parse().map_err(|_| why("not a number"))?;
                 if (SP_MIN_F..=SP_MAX_F).contains(&f) {
                     Ok(Cmd::Setpoint(f))
                 } else {
-                    Err(usage("setpoint", "out of range"))
+                    Err(why("out of range"))
                 }
-            }
-            _ => Err(usage("setpoint", "one value")),
-        },
-        "wifi" => match args {
-            [c] if c == "clear" => Ok(Cmd::Wifi(None)),
-            [c, ssid] if c == "set" => Ok(Cmd::Wifi(Some(Wifi {
-                ssid: short(ssid, "wifi")?,
-                pass: String::new(),
-            }))),
-            [c, ssid, pass] if c == "set" => Ok(Cmd::Wifi(Some(Wifi {
-                ssid: short(ssid, "wifi")?,
-                pass: short(pass, "wifi")?,
-            }))),
-            _ => Err(usage("wifi", "")),
-        },
-        "mqtt" => match args {
-            [c] if c == "clear" => Ok(Cmd::Mqtt(None)),
-            [c, host, rest @ ..] if c == "set" && rest.len() <= 3 => {
-                let port = match rest.first() {
-                    Some(p) => p
-                        .parse::<u16>()
-                        .ok()
-                        .filter(|&p| p != 0)
-                        .ok_or_else(|| usage("mqtt", "the port is 1 to 65535"))?,
-                    None => 1883,
-                };
-                Ok(Cmd::Mqtt(Some(Mqtt {
-                    host: short(host, "mqtt")?,
-                    port,
-                    user: rest.get(1).map_or(Ok(String::new()), |u| short(u, "mqtt"))?,
-                    pass: rest.get(2).map_or(Ok(String::new()), |p| short(p, "mqtt"))?,
-                })))
-            }
-            _ => Err(usage("mqtt", "")),
-        },
-        "otlp" => match args {
-            [c] if c == "clear" => Ok(Cmd::Otlp(None)),
-            [c, host, rest @ ..] if c == "set" && rest.len() <= 2 => {
-                let port = match rest.first() {
-                    Some(p) => p
-                        .parse::<u16>()
-                        .ok()
-                        .filter(|&p| p != 0)
-                        .ok_or_else(|| usage("otlp", "the port is 1 to 65535"))?,
-                    None => 4318,
-                };
-                let interval_s = match rest.get(1) {
-                    Some(i) => i
-                        .parse::<u16>()
-                        .ok()
-                        .filter(|i| (5..=3600).contains(i))
-                        .ok_or_else(|| usage("otlp", "the interval is 5 to 3600 s"))?,
-                    None => 60,
-                };
-                Ok(Cmd::Otlp(Some(Otlp {
-                    host: short(host, "otlp")?,
-                    port,
-                    interval_s,
-                })))
-            }
-            _ => Err(usage("otlp", "")),
-        },
-        other => Err(ParseError::Unknown(String::try_from(other).unwrap_or_default())),
+            })),
+        )
+        .parse_next(i)
+    }
+
+    fn wifi(i: &mut In<'_>) -> R<Cmd> {
+        alt((
+            kw("clear").value(Cmd::Wifi(None)),
+            preceded(kw("set"), (arg_s::<32>, opt(arg_s::<64>))).map(|(ssid, pass)| {
+                Cmd::Wifi(Some(Wifi {
+                    ssid,
+                    pass: pass.unwrap_or_default(),
+                }))
+            }),
+        ))
+        .parse_next(i)
+    }
+
+    fn mqtt(i: &mut In<'_>) -> R<Cmd> {
+        alt((
+            kw("clear").value(Cmd::Mqtt(None)),
+            preceded(
+                kw("set"),
+                (arg_s::<64>, opt_arg(port), opt_arg(text::<32>), opt_arg(text::<64>)),
+            )
+            .map(|(host, port, user, pass)| {
+                Cmd::Mqtt(Some(Mqtt {
+                    host,
+                    port: port.unwrap_or(1883),
+                    user: user.unwrap_or_default(),
+                    pass: pass.unwrap_or_default(),
+                }))
+            }),
+        ))
+        .parse_next(i)
+    }
+
+    fn otlp(i: &mut In<'_>) -> R<Cmd> {
+        alt((
+            kw("clear").value(Cmd::Otlp(None)),
+            preceded(kw("set"), (arg_s::<64>, opt_arg(port), opt_arg(interval))).map(|(host, port, interval_s)| {
+                Cmd::Otlp(Some(Otlp {
+                    host,
+                    port: port.unwrap_or(4318),
+                    interval_s: interval_s.unwrap_or(60),
+                }))
+            }),
+        ))
+        .parse_next(i)
+    }
+
+    /// Runs `p` for the command `name`, then wants the end of the line; an error with no usage of its own gets
+    /// the command's.
+    fn command_args<'a, O>(
+        name: &'static str,
+        p: impl winnow::Parser<In<'a>, O, ErrMode<ParseError>>,
+    ) -> impl FnMut(&mut In<'a>) -> R<O> {
+        let mut p = terminated(p, (multispace0, eof));
+        move |i| {
+            p.parse_next(i).map_err(|e| {
+                e.map(|e| match e {
+                    ParseError::Usage("", w) => ParseError::Usage(spec(name).map_or(name, |s| s.usage), w),
+                    other => other,
+                })
+            })
+        }
+    }
+
+    /// The whole line.
+    pub fn line(i: &mut In<'_>) -> R<Cmd> {
+        multispace0.parse_next(i)?;
+        if i.is_empty() {
+            return Ok(Cmd::Empty);
+        }
+        let name = take_till(1.., [' ', '\t']).parse_next(i)?;
+        match name {
+            "help" | "?" => command_args("help", opt(arg_s::<16>).map(Cmd::Help)).parse_next(i),
+            "status" => command_args("status", winnow::combinator::empty.value(Cmd::Status)).parse_next(i),
+            "config" => command_args("config", winnow::combinator::empty.value(Cmd::Config)).parse_next(i),
+            "identify" => command_args("identify", winnow::combinator::empty.value(Cmd::Identify)).parse_next(i),
+            "reboot" => command_args("reboot", winnow::combinator::empty.value(Cmd::Reboot)).parse_next(i),
+            "setpoint" => command_args("setpoint", setpoint).parse_next(i),
+            "wifi" => command_args("wifi", wifi).parse_next(i),
+            "mqtt" => command_args("mqtt", mqtt).parse_next(i),
+            "otlp" => command_args("otlp", otlp).parse_next(i),
+            other => Err(ErrMode::Cut(ParseError::Unknown(
+                String::try_from(other).unwrap_or_default(),
+            ))),
+        }
+    }
+}
+
+/// Parses one command line.
+pub fn parse(line: &str) -> Result<Cmd, ParseError> {
+    use winnow::error::ErrMode;
+    let mut input = line;
+    match grammar::line(&mut input) {
+        Ok(c) => Ok(c),
+        Err(ErrMode::Backtrack(e) | ErrMode::Cut(e)) => Err(e),
+        Err(ErrMode::Incomplete(_)) => Err(ParseError::Usage("", "incomplete")),
     }
 }
 
@@ -633,7 +639,12 @@ pub fn config_lines(s: &Settings) -> Vec<String<120>, 6> {
     let mut out: Vec<String<120>, 6> = Vec::new();
     let mut l: String<120> = String::new();
     let _ = match &s.wifi {
-        Some(w) => write!(l, "wifi     ssid \"{}\" password {}", w.ssid, if w.pass.is_empty() { "(none)" } else { "****" }),
+        Some(w) => write!(
+            l,
+            "wifi     ssid \"{}\" password {}",
+            w.ssid,
+            if w.pass.is_empty() { "(none)" } else { "****" }
+        ),
         None => write!(l, "wifi     not set"),
     };
     let _ = out.push(l);
@@ -707,7 +718,11 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
     match cmd {
         Cmd::Empty => {}
         Cmd::Help(None) => {
-            say(io, format_args!("{} {} (hw {}), id {}", who.prefix, who.sw, who.hw, who.id)).await;
+            say(
+                io,
+                format_args!("{} {} (hw {}), id {}", who.prefix, who.sw, who.hw, who.id),
+            )
+            .await;
             for s in CATALOG {
                 say(io, format_args!("  {:<9}{}", s.name, s.help)).await;
             }
@@ -729,8 +744,20 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
         },
         Cmd::Status => match bus.status.try_get() {
             Some(st) => {
-                say(io, format_args!("up {} s, setpoint {:.0} F, flap {:.0} %, fan {}", st.up_s, st.cook.sp_f, st.out.flap_pct,
-                    match st.fan_rpm { Some(r) => r as i64, None => -1 })).await;
+                say(
+                    io,
+                    format_args!(
+                        "up {} s, setpoint {:.0} F, flap {:.0} %, fan {}",
+                        st.up_s,
+                        st.cook.sp_f,
+                        st.out.flap_pct,
+                        match st.fan_rpm {
+                            Some(r) => r as i64,
+                            None => -1,
+                        }
+                    ),
+                )
+                .await;
                 for (n, t) in st.temps.iter().enumerate() {
                     match t {
                         Some(f) => say(io, format_args!("probe {} {:.1} F", n + 1, f)).await,
@@ -753,11 +780,19 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
         },
         Cmd::Setpoint(f) => request(io, bus, replies, Request::Pit(Command::Sp(f)), "ok").await,
         Cmd::Wifi(w) => {
-            let done = if w.is_some() { "saved; the board joins it" } else { "network forgotten" };
+            let done = if w.is_some() {
+                "saved; the board joins it"
+            } else {
+                "network forgotten"
+            };
             request(io, bus, replies, Request::Wifi(w), done).await
         }
         Cmd::Mqtt(m) => {
-            let done = if m.is_some() { "saved; the broker is used from the next connection" } else { "broker forgotten" };
+            let done = if m.is_some() {
+                "saved; the broker is used from the next connection"
+            } else {
+                "broker forgotten"
+            };
             request(io, bus, replies, Request::Mqtt(m), done).await
         }
         Cmd::Otlp(o) => {
@@ -772,23 +807,48 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::serial::{Demux, Item};
 
-    fn type_in(e: &mut Editor, s: &[u8]) -> (std::string::String, std::vec::Vec<std::string::String>) {
-        let mut echo = std::string::String::new();
-        let mut lines = std::vec::Vec::new();
-        for &b in s {
-            let st = e.push(b);
-            echo.push_str(core::str::from_utf8(&st.echo).unwrap());
-            if let Some(l) = st.line {
-                lines.push(l.as_str().into());
+    /// What a terminal's bytes do: through the demultiplexer, as the serial task runs them.
+    struct Term {
+        demux: Demux,
+        editor: Editor,
+    }
+
+    impl Term {
+        fn new() -> Self {
+            Self {
+                demux: Demux::new(),
+                editor: Editor::new(),
             }
         }
-        (echo, lines)
+
+        fn type_in(&mut self, s: &[u8]) -> (std::string::String, std::vec::Vec<std::string::String>) {
+            let mut echo = std::string::String::new();
+            let mut lines = std::vec::Vec::new();
+            for &b in s {
+                self.demux.push(b);
+                while let Some(item) = self.demux.pop() {
+                    if let Item::Key(k) = item {
+                        let st = self.editor.apply(k);
+                        echo.push_str(core::str::from_utf8(&st.echo).unwrap());
+                        if let Some(l) = st.line {
+                            lines.push(l.as_str().into());
+                        }
+                    }
+                }
+            }
+            (echo, lines)
+        }
+    }
+
+    fn type_in(e: &mut Term, s: &[u8]) -> (std::string::String, std::vec::Vec<std::string::String>) {
+        e.type_in(s)
     }
 
     #[test]
     fn a_typed_line_is_echoed_and_returned() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, lines) = type_in(&mut e, b"status\r");
         assert_eq!(echo, "status\r\n");
         assert_eq!(lines, ["status"]);
@@ -796,14 +856,14 @@ mod tests {
 
     #[test]
     fn crlf_is_one_line_end_and_backspace_edits() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (_, lines) = type_in(&mut e, b"statuz\x7fs\r\nconfig\n");
         assert_eq!(lines, ["status", "config"]);
     }
 
     #[test]
     fn improv_frames_are_not_lines_and_are_not_echoed() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let mut frame = std::vec::Vec::from(&b"IMPROV\x01\x03\x02\x02\x00"[..]);
         frame.extend_from_slice(&[0xE0, b'\n']);
         let (echo, lines) = type_in(&mut e, &frame);
@@ -819,7 +879,7 @@ mod tests {
         let mut frame = std::vec::Vec::from(&b"IMPROV\x01\x03\x0a"[..]);
         frame.extend_from_slice(b"\x01\x08 ab cd e"); // ten data bytes with printable ones and spaces
         frame.extend_from_slice(&[0x0a, b'\n']);
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, lines) = type_in(&mut e, &frame);
         assert!(lines.is_empty() && echo.is_empty(), "{echo:?} {lines:?}");
         let (_, lines) = type_in(&mut e, b"status\r");
@@ -828,14 +888,14 @@ mod tests {
 
     #[test]
     fn a_marker_with_the_wrong_version_is_not_a_frame() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (_, lines) = type_in(&mut e, b"IMPROV\x07status\r");
         assert_eq!(lines, ["status"]);
     }
 
     #[test]
     fn a_word_that_starts_like_the_marker_is_echoed_once_it_differs() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, lines) = type_in(&mut e, b"IMPx\r");
         assert_eq!(echo, "IMPx\r\n");
         assert_eq!(lines, ["IMPx"]);
@@ -845,48 +905,49 @@ mod tests {
 
     #[test]
     fn tab_completes_commands_and_their_words() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, _) = type_in(&mut e, b"wi\t");
         assert_eq!(echo, "wifi ");
         let (_, lines) = type_in(&mut e, b"cl\t\r");
         assert_eq!(lines, ["wifi clear"]);
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, _) = type_in(&mut e, b"s\t");
         assert!(echo.contains("status") && echo.contains("setpoint"), "{echo:?}");
     }
 
     #[test]
     fn tab_offers_typical_values_in_argument_positions() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, _) = type_in(&mut e, b"mqtt set broker \t");
         assert!(echo.contains("1883\r\n") && echo.contains("8883\r\n"), "{echo:?}");
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, _) = type_in(&mut e, b"otlp set c 4\t");
         assert_eq!(echo, "otlp set c 431", "the shared prefix first");
         let (echo, _) = type_in(&mut e, b"\t");
-        assert!(echo.contains("4318\r\n") && echo.contains("4317\r\n"), "a second Tab lists them: {echo:?}");
-        let mut e = Editor::new();
+        assert!(
+            echo.contains("4318\r\n") && echo.contains("4317\r\n"),
+            "a second Tab lists them: {echo:?}"
+        );
+        let mut e = Term::new();
         let (echo, lines) = type_in(&mut e, b"setpoint 22\t\r");
-        assert_eq!(echo, "setpoint 22" .to_string() + "5 " + "\r\n");
+        assert_eq!(echo, "setpoint 22".to_string() + "5 " + "\r\n");
         assert_eq!(lines, ["setpoint 225"]);
     }
 
     #[test]
     fn nothing_to_complete_and_bytes_that_cannot_be_typed_ring_the_bell() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, _) = type_in(&mut e, b"xyz\t");
         assert!(echo.ends_with('\x07'), "{echo:?}");
-        let mut e = Editor::new();
-        let st = e.push(0x01);
-        assert_eq!(&st.echo[..], &[0x07]);
-        let st = e.push(0xE9);
-        assert_eq!(&st.echo[..], &[0x07]);
+        let mut e = Term::new();
+        let (echo, _) = type_in(&mut e, b"\x01\xE9");
+        assert_eq!(echo, "\x07\x07");
         assert!(type_in(&mut e, b"\r").1 == [""], "and the line stays empty");
     }
 
     #[test]
     fn credential_lines_are_not_kept_for_the_up_arrow() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         type_in(&mut e, b"wifi set net secret\rstatus\r");
         let (echo, _) = type_in(&mut e, b"\x1b[A");
         assert!(echo.contains("status") && !echo.contains("secret"), "{echo:?}");
@@ -896,7 +957,7 @@ mod tests {
 
     #[test]
     fn ctrl_c_cancels_and_ctrl_u_clears() {
-        let mut e = Editor::new();
+        let mut e = Term::new();
         let (echo, lines) = type_in(&mut e, b"abc\x03def\x15ghi\r");
         assert_eq!(lines, ["ghi"]);
         assert!(echo.contains("^C"));
@@ -904,21 +965,55 @@ mod tests {
 
     #[test]
     fn words_split_on_spaces_and_honour_quotes() {
-        let w = words(r#"wifi set "my net" "pa ss\"w\\d""#).unwrap();
-        assert_eq!(w.iter().map(|s| s.as_str()).collect::<std::vec::Vec<_>>(), ["wifi", "set", "my net", r#"pa ss"w\d"#]);
-        assert_eq!(words("a \"b").unwrap_err(), "unterminated quote");
-        assert!(words("").unwrap().is_empty());
+        let Cmd::Wifi(Some(w)) = parse(r#"wifi set "my net" "pa ss\"w\\d""#).unwrap() else {
+            panic!()
+        };
+        assert_eq!((w.ssid.as_str(), w.pass.as_str()), ("my net", r#"pa ss"w\d"#));
+        assert!(matches!(
+            parse("wifi set \"x").unwrap_err(),
+            ParseError::Usage(_, "unterminated quote")
+        ));
+        assert_eq!(parse("").unwrap(), Cmd::Empty);
+        assert_eq!(parse("   ").unwrap(), Cmd::Empty);
+        // a quoted word is one word, an empty one too
+        let Cmd::Mqtt(Some(m)) = parse(r#"mqtt set h 1883 "" """#).unwrap() else {
+            panic!()
+        };
+        assert_eq!((m.user.as_str(), m.pass.as_str()), ("", ""));
+    }
+
+    #[test]
+    fn errors_name_the_command_and_say_what_is_wrong() {
+        assert_eq!(
+            parse("mqtt set h 0").unwrap_err(),
+            ParseError::Usage(spec("mqtt").unwrap().usage, "the port is 1 to 65535")
+        );
+        assert_eq!(parse("status now").unwrap_err(), ParseError::Usage("status", ""));
+        assert_eq!(
+            parse("wifi").unwrap_err(),
+            ParseError::Usage(spec("wifi").unwrap().usage, "")
+        );
+        assert_eq!(
+            parse("frobnicate x").unwrap_err(),
+            ParseError::Unknown("frobnicate".try_into().unwrap())
+        );
     }
 
     #[test]
     fn wifi_commands() {
         assert_eq!(
             parse("wifi set home hunter2").unwrap(),
-            Cmd::Wifi(Some(Wifi { ssid: "home".try_into().unwrap(), pass: "hunter2".try_into().unwrap() }))
+            Cmd::Wifi(Some(Wifi {
+                ssid: "home".try_into().unwrap(),
+                pass: "hunter2".try_into().unwrap()
+            }))
         );
         assert_eq!(
             parse("wifi set guest").unwrap(),
-            Cmd::Wifi(Some(Wifi { ssid: "guest".try_into().unwrap(), pass: String::new() }))
+            Cmd::Wifi(Some(Wifi {
+                ssid: "guest".try_into().unwrap(),
+                pass: String::new()
+            }))
         );
         assert_eq!(parse("wifi clear").unwrap(), Cmd::Wifi(None));
         assert!(parse("wifi").is_err() && parse("wifi set").is_err());
@@ -928,10 +1023,20 @@ mod tests {
 
     #[test]
     fn mqtt_commands_take_the_defaults() {
-        let Cmd::Mqtt(Some(m)) = parse("mqtt set broker.lan").unwrap() else { panic!() };
-        assert_eq!((m.host.as_str(), m.port, m.user.as_str(), m.pass.as_str()), ("broker.lan", 1883, "", ""));
-        let Cmd::Mqtt(Some(m)) = parse("mqtt set 10.0.0.2 8883 egg \"a b\"").unwrap() else { panic!() };
-        assert_eq!((m.host.as_str(), m.port, m.user.as_str(), m.pass.as_str()), ("10.0.0.2", 8883, "egg", "a b"));
+        let Cmd::Mqtt(Some(m)) = parse("mqtt set broker.lan").unwrap() else {
+            panic!()
+        };
+        assert_eq!(
+            (m.host.as_str(), m.port, m.user.as_str(), m.pass.as_str()),
+            ("broker.lan", 1883, "", "")
+        );
+        let Cmd::Mqtt(Some(m)) = parse("mqtt set 10.0.0.2 8883 egg \"a b\"").unwrap() else {
+            panic!()
+        };
+        assert_eq!(
+            (m.host.as_str(), m.port, m.user.as_str(), m.pass.as_str()),
+            ("10.0.0.2", 8883, "egg", "a b")
+        );
         assert_eq!(parse("mqtt clear").unwrap(), Cmd::Mqtt(None));
         assert!(parse("mqtt set h 0").is_err() && parse("mqtt set h 70000").is_err() && parse("mqtt set h x").is_err());
         assert!(parse("mqtt set h 1 u p extra").is_err());
@@ -939,9 +1044,13 @@ mod tests {
 
     #[test]
     fn otlp_commands_take_the_defaults_and_check_the_interval() {
-        let Cmd::Otlp(Some(o)) = parse("otlp set collector.lan").unwrap() else { panic!() };
+        let Cmd::Otlp(Some(o)) = parse("otlp set collector.lan").unwrap() else {
+            panic!()
+        };
         assert_eq!((o.port, o.interval_s), (4318, 60));
-        let Cmd::Otlp(Some(o)) = parse("otlp set c 4317 30").unwrap() else { panic!() };
+        let Cmd::Otlp(Some(o)) = parse("otlp set c 4317 30").unwrap() else {
+            panic!()
+        };
         assert_eq!((o.port, o.interval_s), (4317, 30));
         assert!(parse("otlp set c 4318 4").is_err() && parse("otlp set c 4318 3601").is_err());
         assert_eq!(parse("otlp clear").unwrap(), Cmd::Otlp(None));
@@ -961,8 +1070,16 @@ mod tests {
     #[test]
     fn config_never_shows_a_password() {
         let mut s = Settings::default();
-        s.wifi = Some(Wifi { ssid: "home".try_into().unwrap(), pass: "hunter2".try_into().unwrap() });
-        s.mqtt = Some(Mqtt { host: "b".try_into().unwrap(), port: 1883, user: "u".try_into().unwrap(), pass: "s3cret".try_into().unwrap() });
+        s.wifi = Some(Wifi {
+            ssid: "home".try_into().unwrap(),
+            pass: "hunter2".try_into().unwrap(),
+        });
+        s.mqtt = Some(Mqtt {
+            host: "b".try_into().unwrap(),
+            port: 1883,
+            user: "u".try_into().unwrap(),
+            pass: "s3cret".try_into().unwrap(),
+        });
         let text: std::vec::Vec<std::string::String> = config_lines(&s).iter().map(|l| l.as_str().into()).collect();
         let all = text.join("\n");
         assert!(!all.contains("hunter2") && !all.contains("s3cret"), "{all}");

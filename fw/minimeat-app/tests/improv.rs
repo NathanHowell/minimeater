@@ -14,6 +14,20 @@ use minimeat_app::net::Identity;
 use minimeat_app::proto::Request;
 use minimeat_app::tasks::{Bus, Reply};
 
+/// A clock that never advances: the conversation's hold timeout (half an item waiting) is created but these tests
+/// never wait for it.
+struct StillClock;
+
+impl embassy_time_driver::Driver for StillClock {
+    fn now(&self) -> u64 {
+        0
+    }
+
+    fn schedule_wake(&self, _at: u64, _waker: &core::task::Waker) {}
+}
+
+embassy_time_driver::time_driver_impl!(static CLOCK: StillClock = StillClock);
+
 struct Port {
     input: VecDeque<Vec<u8, 160>>,
     out: std::vec::Vec<u8>,
@@ -229,7 +243,10 @@ fn repl_lines_set_the_broker_through_the_control_task_and_improv_still_works_bes
     let text = std::string::String::from_utf8_lossy(&out).into_owned();
     // the echo hid nothing it should show, the answer came, the password was not printed back
     assert!(text.contains("mqtt set broker.lan 8883 egg \"a b\"\r\n"), "{text:?}");
-    assert!(text.contains("saved; the broker is used from the next connection\r\nminimeat> "), "{text:?}");
+    assert!(
+        text.contains("saved; the broker is used from the next connection\r\nminimeat> "),
+        "{text:?}"
+    );
     // and the Improv information request after it was answered as a frame
     let info = improv::result_packet(0x03, &["minimeat", "0.1.0", "ESP32-C6", "mm-a1b2c3"]).unwrap();
     assert!(out.windows(info.len()).any(|w| w == &info[..]));
@@ -248,5 +265,8 @@ fn help_and_a_bad_line_answer_in_text() {
     let text = std::string::String::from_utf8_lossy(&out).into_owned();
     assert!(text.contains("mqtt"), "{text:?}");
     assert!(text.contains("unknown command \"frobnicate\""), "{text:?}");
-    assert!(text.contains("usage: wifi set <ssid> [password] | wifi clear"), "{text:?}");
+    assert!(
+        text.contains("usage: wifi set <ssid> [password] | wifi clear"),
+        "{text:?}"
+    );
 }
