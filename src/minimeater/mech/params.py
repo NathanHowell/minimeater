@@ -65,7 +65,7 @@ class Pcb:
     long edge carries the connectors (see envelope.py)."""
 
     x_len: float = 47.5  # along the flow axis: 46 for the USB-C and four jacks side by side (45), plus usb_end
-    usb_end: float = 1.5  # the board's extra length past the USB-C (x_len includes it): moves the USB-C out of the first jack's 0.2 mm web (hw/tools/usb_shift.py)
+    usb_end: float = 1.5  # the board's extra length past the USB-C (x_len includes it): moves the USB-C out of the first jack's 0.2 mm web (commit fd4c019)
     y_len: float = 54.0  # across
     t: float = 1.6
     hole_d: float = 2.7  # [est] M2.5

@@ -24,3 +24,4 @@ hw/minimeater_models.*
 # KiCad auto-backups
 hw/minimeater-backups/
 hw/_autosave-*
+hw/datasheets/
