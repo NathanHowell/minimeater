@@ -123,6 +123,7 @@ class Print:
 class Damper:
     shaft_d: float = 3.0  # steel or brass rod; filament would also do
     shaft_flat: float = 2.5  # D flat across the rod
+    rod_len: float = 42.7  # [spec] +-0.1: from the blind pocket in the duct's bottom wall to 0.3 mm over the crank (`mock.rod`)
     flap_t: float = 2.0  # machined (CNC, 304 or 6061), not printed
     rib_t: float = 4.0  # the rib that carries the rod bore: the open flap's main blockage
     rib_w: float = 5.0

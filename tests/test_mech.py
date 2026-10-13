@@ -182,3 +182,11 @@ def test_made_parts_are_valid_and_the_bar_spans_the_pins():
         assert s.is_valid and len(s.solids()) == 1
     bar = MACHINED["coupler"]()
     assert abs(bar.bounding_box().size.Y - (G.SERVO_Y + P.linkage.coupler_w)) < 1e-6  # centres SERVO_Y apart, round ends
+
+
+def test_the_made_rod_matches_the_assemblys_rod():
+    """The CNC rod is Ø3 with a 2.5 mm flat and as long as the one in the assembly (blind pocket to 0.3 mm over the crank)."""
+    from minimeat.mech import mock
+    made, mocked = MACHINED["rod"]().bounding_box(), mock.rod().bounding_box()
+    assert abs(made.size.X - P.damper.rod_len) < 1e-6 and abs(mocked.size.Z - P.damper.rod_len) < 1e-6
+    assert abs(max(made.size.Y, made.size.Z) - P.damper.shaft_d) < 1e-6 and abs(min(made.size.Y, made.size.Z) - P.damper.shaft_flat) < 1e-6

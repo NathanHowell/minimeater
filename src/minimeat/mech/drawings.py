@@ -20,6 +20,9 @@ from .parts import MACHINED
 
 MATERIAL = "304 stainless steel (6061-T6 aluminium if much cheaper)"
 GENERAL = "General tolerance ISO 2768-m (+-0.1 on the sizes shown). Break sharp edges 0.1-0.3, no burrs. Threads ISO metric 6H. Quantity 5 of each."
+QUANTITY = {"rod": 6}  # five boards and a spare
+EXTRA = {"rod": ("The Ø3 and the flat carry the tolerances shown, not the general one: the flap and crank bores are cut to them. "
+                 "Turn from 3 mm bar or use ground 3 mm rod if possible (the flat is milled); no taper along the length.",)}
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,11 @@ def features():
     zc = (G.CRANK_Z0 + G.ARM_Z1) / 2
     xc = g.flap_x - L.arm_r
     return {
+        "rod": [
+            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"Ø{dm.shaft_d:.1f} h7 (0/-0.010) over the full length; Ra 0.8, no taper"),
+            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"D flat, full length: {dm.shaft_flat:.1f} +-0.05 measured from the opposite side of the round, parallel to the axis within 0.02"),
+            Feature((P.damper.rod_len, 0.0, 0.0), "x", f"Length {P.damper.rod_len:.1f} +-0.1; both ends square, break the edges 0.2 x 45 deg"),
+        ],
         "flap": [
             Feature((xf, 0.0, g.bore_r - dm.flap_gap - 0.05), "z", f"Disc edge: Ø{2 * ((g.bore_r - dm.flap_gap) ** 2 - dm.disc_off ** 2) ** 0.5:.1f} +-0.05 (sets the closed-flap leak), 2.0 thick, flat to 0.05"),
             Feature((xf, 0.0, 0.0), "z", f"D-bore through the rib: Ø{dm.shaft_d:.1f} +{dm.bore_clear:.2f}/0 with a flat {dm.shaft_flat:.1f} across (the rod's D); retaining compound, no thread"),
@@ -116,7 +124,8 @@ def _page(pdf, name, shape, feats):
         ax.text(156, y, "\n".join(_wrap(f.call, 80)), fontsize=8, va="top")
         y -= 4.2 * (len(_wrap(f.call, 80)) - 1)
     y -= 14
-    for line in (f"Material: {MATERIAL}", "Finish: as machined; deburr; passivate if stainless.", GENERAL):
+    general = GENERAL.replace("Quantity 5 of each.", f"Quantity {QUANTITY.get(name, 5)}.")
+    for line in (f"Material: {MATERIAL}", "Finish: as machined; deburr; passivate if stainless.", general, *EXTRA.get(name, ())):
         for w_ in _wrap(line, 90):
             ax.text(150, y, w_, fontsize=8)
             y -= 5

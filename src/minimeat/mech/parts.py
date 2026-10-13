@@ -250,4 +250,11 @@ def coupler():
 
 
 PARTS = {"duct": duct}  # printed (the shells are in shell.py)
-MACHINED = {"flap": flap, "crank": crank, "coupler": coupler}  # CNC, 5 off
+def rod():
+    """The flap's shaft as a made part: Ø3 with a 2.5 mm D flat the full length, `rod_len` long, lying along +X from the
+    origin (the assembly's own copy, `mock.rod`, stands along Z). JLCCNC, 6 off (5 + 1)."""
+    L = P.damper.rod_len
+    return Rot(0, 90, 0) * d_bore(0.0, 0.0, 0.0, L)
+
+
+MACHINED = {"flap": flap, "crank": crank, "coupler": coupler, "rod": rod}  # CNC, 5 off (the rod 6)

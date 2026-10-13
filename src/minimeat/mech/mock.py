@@ -97,7 +97,7 @@ def pins():
 
 def rod():
     """Flap shaft: 3 mm rod with a flat, from the blind pocket in the bottom wall to 0.3 mm above the crank's top, to grip."""
-    return d_bore(g.flap_x, 0.0, -g.duct_r + 1.3, G.ARM_Z1 + 0.3)
+    return d_bore(g.flap_x, 0.0, -g.duct_r + 1.3, G.ARM_Z1 + 0.3)  # P.damper.rod_len long (a test checks it)
 
 
 def tube():
