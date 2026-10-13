@@ -71,6 +71,10 @@ U2/U3 go behind J1 (geometry in bead minimeat-bk4).
 - 45 degree runs into adjacent 0.65 mm-pitch pins are 0.46 mm apart square to the lines: 0.2 mm lines keep 0.26.
 - Through vias are on every layer: an inner-layer trace must clear every via in the block, not just same-layer copper.
 - Escape a pin boxed in by its neighbours (SOT-23 EN/VBUS between two lines) under the package body.
+- A line that must cross a rail can pass under a 0603 resistor body (0.85 mm between pads) instead of hopping to
+  In2: the U8 outer bias resistors bridge the inner TIP lines this way.
+- Size matters as well as datasheet rules: after a block is DRC clean, look for parts sitting outboard and fold them in.
+- Konnect cannot delete vias; ask the user to delete them in pcbnew (give coordinates).
 - Render with --layers F.Cu,In2.Cu when a block uses In2; check courtyards with DRC before routing.
 
 ## Netclasses (hw/minimeater.kicad_pro)

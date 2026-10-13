@@ -125,12 +125,13 @@ VREF_PROBE filter (FB2, R18, C27, C28), the four 0.1% bias resistors (R23-R26) a
   beside the AIN node with its own ground via, then a 45 degree run into the pin. The two runs per side are
   0.65 mm apart (0.46 mm square to the lines), which keeps the Analog 0.25 mm clearance.
 - Reference: C28 sits right across REFP and REFN (the figure's cap between them), both reached under the package
-  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk above feeds C28, C27 (10 uF, via in its
-  ground pad) and the R18/FB2 filter from 3V3A.
-- Bias resistors: R24/R25 (inner channels) hang straight off the trunk. R23/R26 (outer channels) are boxed in by
-  the inner channels' TIP lines, so VREF_PROBE reaches them over In2 (3 vias on a decoupled DC rail) and every
-  protected TIP line stays straight on F.Cu. The In2 hop runs at y 95.9, clear of the C30/C31 ground vias
-  (through vias exist on every layer).
+  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk above feeds C28 and C27 (10 uF, lying
+  across the top with its VREF pad on the trunk and a via in its ground pad). The R18/FB2 filter from 3V3A sits in a
+  row above C27; 3V3A arrives at FB2 through one via (the middle of the block is enclosed by the TIP2/TIP3 lines).
+- Bias resistors: R24/R25 (inner channels) hang straight off the trunk. R23/R26 (outer channels) lie across the
+  inner channels' TIP lines, which run under their bodies between the pads (0603 gap 0.85 mm: 0.325 mm each side of a
+  0.2 mm line). The resistor body is the crossing, so VREF_PROBE reaches the outer channels without leaving F.Cu,
+  and every TIP line runs straight up toward the jacks at 1.65 mm pitch, in jack order.
 - "Do not place vias between bypass capacitors and the device": C25 (100 nF) and C26 (1 uF) on AVDD, C24 on DVDD,
   each joined to its pin by a trace on F.Cu, ground vias on the far side.
 - AVSS/DGND (5, 4) and A1/A0 (2, 1, address 0x40) pair up to a ground via each; RESET to R17 (pull-up).
