@@ -1296,7 +1296,7 @@
 		(uuid "0d018679-a024-4334-b423-4bd7fe30458e")
 		(at 23.9 6.85)
 		(property "Reference" "J3"
-			(at 0 -7.7 0)
+			(at 0 6 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "2820f1fa-ffb2-4b8c-8077-cefa46b78512")
@@ -1387,7 +1387,7 @@
 		(sheetfile "minimeat.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -3.05 -5.4)
+			(start -3.05 -4.9)
 			(end -3.05 -4.58)
 			(stroke
 				(width 0.25)
@@ -1427,48 +1427,8 @@
 			(uuid "706eaaed-0ab3-4316-abeb-1b1bc3b824bf")
 		)
 		(fp_line
-			(start -2.54 -6.9)
-			(end -2.54 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "e368576a-9616-40a2-a422-d9bd1942a41c")
-		)
-		(fp_line
-			(start 2.5 -6.9)
-			(end -2.54 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "608bd669-551b-449e-8ebf-e39a557f0ad0")
-		)
-		(fp_line
-			(start 2.5 -5.4)
-			(end 2.5 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "92a48d35-af30-4909-8547-a516ca1ded21")
-		)
-		(fp_line
-			(start 3 -5.4)
-			(end -2.92 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "468d7bfa-13a6-423e-8515-d98a56a2deb2")
-		)
-		(fp_line
 			(start 3 -4.68)
-			(end 3 -5.4)
+			(end 3 -4.9)
 			(stroke
 				(width 0.25)
 				(type solid)
@@ -2895,7 +2855,7 @@
 		(property "Reference" "FID1"
 			(at 0 -1.95 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "bd3892cc-0e36-4ebb-ae6a-284426a0b8df")
 			(effects
 				(font
@@ -4265,7 +4225,7 @@
 		(descr "Molex KK-254 Interconnect System, old/engineering part number: AE-6410-04A example for new part number: 22-27-2041, 4 Pins (http://www.molex.com/pdm_docs/sd/022272021_sd.pdf)")
 		(tags "connector Molex KK-254 vertical")
 		(property "Reference" "J6"
-			(at 3.81 -4.12 90)
+			(at 10.31 3.979999 90)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "27ab69bc-cea4-4cd7-8e08-baff3ff4a027")
@@ -4841,9 +4801,9 @@
 		(descr "SOT, 6 Pin (JEDEC MO-178 Var AB https://www.jedec.org/document_search?search_api_views_fulltext=MO-178)")
 		(tags "SOT TO_SOT_SMD")
 		(property "Reference" "U2"
-			(at 0 -2.4 0)
+			(at 0 -0.0875 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "980217d0-92b5-4193-aa00-05ae77e97dc8")
 			(effects
 				(font
@@ -5953,7 +5913,7 @@
 		(uuid "4d5e2ca7-a5d5-4bde-aa6d-0a8af79e0d7f")
 		(at 32.6 6.85)
 		(property "Reference" "J4"
-			(at 0 -7.7 0)
+			(at 0 6 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "41d30863-1e3c-4c8c-9b74-b4689d02b7f4")
@@ -6044,7 +6004,7 @@
 		(sheetfile "minimeat.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -3.05 -5.4)
+			(start -3.05 -4.9)
 			(end -3.05 -4.58)
 			(stroke
 				(width 0.25)
@@ -6084,48 +6044,8 @@
 			(uuid "55b73baa-7119-4170-9b29-cea66260a95e")
 		)
 		(fp_line
-			(start -2.54 -6.9)
-			(end -2.54 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "bca63f32-0232-4b79-b407-6a145876134d")
-		)
-		(fp_line
-			(start 2.5 -6.9)
-			(end -2.54 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "2b2dbd0d-3bf5-472b-bda5-6f5535a1b137")
-		)
-		(fp_line
-			(start 2.5 -5.4)
-			(end 2.5 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "66177e47-c352-4f60-aeac-2601dea59adb")
-		)
-		(fp_line
-			(start 3 -5.4)
-			(end -2.92 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "ca6f5182-12b1-44ca-a61f-e4c0a4e1de98")
-		)
-		(fp_line
 			(start 3 -4.68)
-			(end 3 -5.4)
+			(end 3 -4.9)
 			(stroke
 				(width 0.25)
 				(type solid)
@@ -9276,7 +9196,7 @@
 		(property "Reference" "FID3"
 			(at 0 -1.950001 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "5a1136a4-d356-4f02-ac1a-40e0188290bf")
 			(effects
 				(font
@@ -10372,7 +10292,7 @@
 		(uuid "8550612a-8e46-4ba2-94d5-e0475359786b")
 		(at 2.3 26.5)
 		(property "Reference" "L1"
-			(at 0 -4 0)
+			(at 2.6 0.3 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "73ffc1f5-0886-4620-bff5-7cfe00d6b3bf")
@@ -10471,8 +10391,8 @@
 			(uuid "32125985-0e70-4fb4-8666-c783397515a7")
 		)
 		(fp_circle
-			(center -1.55 1.5)
-			(end -1.52 1.5)
+			(center -1.9 0)
+			(end -1.84 0)
 			(stroke
 				(width 0.06)
 				(type solid)
@@ -11062,7 +10982,7 @@
 		(uuid "8a6ab1d3-3053-43c5-b62b-f8b8aeb9b01b")
 		(at 38 52.9)
 		(property "Reference" "D2"
-			(at 0 -4 0)
+			(at 2.6 -0.8475 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "797d87e1-35eb-41d2-94c6-795364f305a6")
@@ -11822,9 +11742,9 @@
 		(uuid "8cdc47a5-9cb8-49c3-8de5-67bbfbb9edc9")
 		(at 3.4 51.8)
 		(property "Reference" "U10"
-			(at 0 -4.65 0)
+			(at -0.22075 0 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "f4c9408c-0fe5-48e6-b46e-342d6da33ad7")
 			(effects
 				(font
@@ -12253,7 +12173,7 @@
 		(property "Reference" "FID2"
 			(at 0 -1.95 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "7127f876-eb4a-49a0-8f3c-52cc0d5bc3ed")
 			(effects
 				(font
@@ -13451,9 +13371,9 @@
 		(descr "Molex KK-254 Interconnect System, old/engineering part number: AE-6410-03A example for new part number: 22-27-2031, 3 Pins (http://www.molex.com/pdm_docs/sd/022272021_sd.pdf)")
 		(tags "connector Molex KK-254 vertical")
 		(property "Reference" "J7"
-			(at 2.54 -4.12 90)
+			(at 2.54 -0.02 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "080dbcef-82cf-4be3-9b97-b63704e8f683")
 			(effects
 				(font
@@ -14310,7 +14230,7 @@
 		(uuid "a4d00f60-1e74-4bb5-af7c-0fbe55f72d0e")
 		(at 27.25 13.5)
 		(property "Reference" "U9"
-			(at 0 -4.4 0)
+			(at 1.1 1.96875 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "89d2064e-ec0e-4d50-b52e-e2783784fac5")
@@ -15024,7 +14944,7 @@
 		(uuid "ac3bba7c-188c-4286-9cba-d7914ad8cf20")
 		(at 37.3 31.8)
 		(property "Reference" "SW1"
-			(at 0 -5.075 0)
+			(at 1.5 -2.3925 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "c640c47c-d327-44c9-8777-7993c05a4b62")
@@ -17019,9 +16939,9 @@
 		(descr "USB 2.0 Type C Receptacle, GCT, 16P, top mounted, horizontal, 5A: https://gct.co/files/drawings/usb4105.pdf")
 		(tags "USB C Type-C Receptacle SMD USB 2.0 16P 16C USB4105-15-A USB4105-15-A-060 USB4105-15-A-120 USB4105-GF-A USB4105-GF-A-060 USB4105-GF-A-120")
 		(property "Reference" "J1"
-			(at 0 -5.500001 180)
+			(at 0 -0.289999 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "3ef5e2dd-48b4-4d92-bce6-c1da67b7a422")
 			(effects
 				(font
@@ -17524,7 +17444,7 @@
 		(uuid "d3490b96-2760-4063-8678-1fa7531ce713")
 		(at 15.2 6.85)
 		(property "Reference" "J2"
-			(at 0 -7.7 0)
+			(at 0 6 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "1e620c6a-8adb-476a-b0f9-1f0211f393d1")
@@ -17615,7 +17535,7 @@
 		(sheetfile "minimeat.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -3.05 -5.4)
+			(start -3.05 -4.9)
 			(end -3.05 -4.58)
 			(stroke
 				(width 0.25)
@@ -17655,48 +17575,8 @@
 			(uuid "1f140e89-4548-4504-9db9-85fdfbc79565")
 		)
 		(fp_line
-			(start -2.54 -6.9)
-			(end -2.54 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "d5d85e0a-62f4-4dee-b679-167d0974dca9")
-		)
-		(fp_line
-			(start 2.5 -6.9)
-			(end -2.54 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "c997bb32-a93e-463d-9314-410c48689bb9")
-		)
-		(fp_line
-			(start 2.5 -5.4)
-			(end 2.5 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "92f4f810-b7dc-4b1b-8a7e-8a4de740e976")
-		)
-		(fp_line
-			(start 3 -5.4)
-			(end -2.92 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "b612fac6-b633-4f21-8ba9-5c197c3d420e")
-		)
-		(fp_line
 			(start 3 -4.68)
-			(end 3 -5.4)
+			(end 3 -4.9)
 			(stroke
 				(width 0.25)
 				(type solid)
@@ -17870,7 +17750,7 @@
 		(descr "SOIC, 8 Pin (JEDEC MS-012AA, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_narrow-r/r_8.pdf)")
 		(tags "SOIC SO")
 		(property "Reference" "U11"
-			(at 0 -3.4 0)
+			(at 5.1 -0.7675 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "f765b2e7-579f-40af-b565-73b1a8d859a3")
@@ -18277,9 +18157,9 @@
 		(descr "SOT, 6 Pin (JEDEC MO-178 Var AB https://www.jedec.org/document_search?search_api_views_fulltext=MO-178)")
 		(tags "SOT TO_SOT_SMD")
 		(property "Reference" "U6"
-			(at 0 -2.4 0)
+			(at 0 -0.0875 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "f1c4025b-a625-4b15-8377-6c0274263747")
 			(effects
 				(font
@@ -18767,9 +18647,9 @@
 		(descr "ESP32-C6-WROOM-1: https://www.espressif.com/sites/default/files/documentation/esp32-c6-wroom-1_datasheet_en.pdf")
 		(tags "esp32-c6")
 		(property "Reference" "U1"
-			(at 0 -1 180)
+			(at 0 -2.75 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "751276da-8a56-490b-9444-d0214a420b76")
 			(effects
 				(font
@@ -18876,7 +18756,7 @@
 			(uuid "0a03b8ad-15e4-4151-9df8-cc3692d03a51")
 		)
 		(fp_line
-			(start 9 -15.75)
+			(start 9 -12.85)
 			(end 9 -9)
 			(stroke
 				(width 0.12)
@@ -18906,17 +18786,7 @@
 			(uuid "a1254fa0-51ef-4972-863c-a736513f3907")
 		)
 		(fp_line
-			(start -9 -15.75)
-			(end 9 -15.75)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "deccad1f-12b1-4630-b650-739eb5b3be7d")
-		)
-		(fp_line
-			(start -9 -15.75)
+			(start -9 -12.85)
 			(end -9 -9)
 			(stroke
 				(width 0.12)
@@ -19016,7 +18886,7 @@
 			(uuid "2fbbba07-0257-4c8b-b330-7edd59cb5900")
 		)
 		(fp_text user "Antenna Area"
-			(at 0 -12.75 180)
+			(at 0 -11.85 180)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "c3a0dc90-abbb-4e7e-8a1d-3ad222b5b6b9")
@@ -19028,7 +18898,7 @@
 			)
 		)
 		(fp_text user "Antenna Area"
-			(at 0 -12.75 180)
+			(at 0 -11.85 180)
 			(unlocked yes)
 			(layer "Eco2.User")
 			(uuid "9509e112-df3a-4ca3-805d-c9476c92aa4f")
@@ -19604,9 +19474,9 @@
 		(descr "SOT, 6 Pin (JEDEC MO-178 Var AB https://www.jedec.org/document_search?search_api_views_fulltext=MO-178)")
 		(tags "SOT TO_SOT_SMD")
 		(property "Reference" "U3"
-			(at 0 -2.4 0)
+			(at 0 -0.0875 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "ace4859f-bfab-4110-8f38-782f1ea829ef")
 			(effects
 				(font
@@ -19976,7 +19846,7 @@
 		(uuid "f6220938-521d-4e83-9a06-4fe625abb20b")
 		(at 41.3 6.85)
 		(property "Reference" "J5"
-			(at 0 -7.7 0)
+			(at 0 6 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "b625dc98-23d0-4c5e-a233-504667539012")
@@ -20067,7 +19937,7 @@
 		(sheetfile "minimeat.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -3.05 -5.4)
+			(start -3.05 -4.9)
 			(end -3.05 -4.58)
 			(stroke
 				(width 0.25)
@@ -20107,48 +19977,8 @@
 			(uuid "b3bb82ad-a7b3-432c-8ee3-c8ccacfefdb1")
 		)
 		(fp_line
-			(start -2.54 -6.9)
-			(end -2.54 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "64019f04-23f9-4dfa-a3a6-7487fa006be2")
-		)
-		(fp_line
-			(start 2.5 -6.9)
-			(end -2.54 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "b62aa3f3-da55-4391-be29-889a111d54ba")
-		)
-		(fp_line
-			(start 2.5 -5.4)
-			(end 2.5 -6.9)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "5175e776-3e72-4d2f-aece-d27e916c99ee")
-		)
-		(fp_line
-			(start 3 -5.4)
-			(end -2.92 -5.4)
-			(stroke
-				(width 0.25)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "18ef0962-f3ba-4e84-96ec-961215a1f6f3")
-		)
-		(fp_line
 			(start 3 -4.68)
-			(end 3 -5.4)
+			(end 3 -4.9)
 			(stroke
 				(width 0.25)
 				(type solid)
@@ -20647,9 +20477,9 @@
 		(descr "Diode SMF (DO-219AB), http://www.vishay.com/docs/95572/smf_do-219ab.pdf")
 		(tags "Diode SMF (DO-214AB)")
 		(property "Reference" "D1"
-			(at 0 -2 180)
+			(at -0.0225 0.000001 0)
 			(unlocked yes)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "4296d39f-b630-4004-8559-14c95422c2af")
 			(effects
 				(font
