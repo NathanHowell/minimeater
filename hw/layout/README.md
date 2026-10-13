@@ -1,0 +1,31 @@
+# PCB layout blocks
+
+Each IC is laid out with its own parts first, off the board, to its datasheet's layout guidance: placement, local
+tracks and copper fills, ground vias to the In1 plane. Blocks are then placed on the board as units and joined by hand.
+Edits go through Konnect (live KiCad over IPC). Renders: `hw/tools/pcbdump.py` (KiCad's python) then
+`hw/tools/render.py`; F.Cu only, colour by net.
+
+Staging: a temporary second board outline (x 0-130, y 64-124) and an In1 GND zone (`STAGING_In1_GND`) under it, so
+the block fills fill and its vias land on a plane as they will on the board. Both are removed once every block is on
+the board.
+
+Netclasses (`hw/minimeater.kicad_pro`): Default 0.2/0.15; PowerHigh 0.8/0.2 (VBUS_RAW, VBUS_F, VFAN, VSERVO,
+BUCK_SW); Power 0.5/0.2 (3V3, 3V3A, 3V3A_FILT, VBUS_LDO); GND 0.4/0.15; USB 0.27 with a 0.15 gap (90 ohm
+edge-coupled on F.Cu over In1, 7628 prepreg ~0.21 mm); Analog 0.2/0.25 (TIPx, AINx, VREF_PROBE). Vias 0.6/0.3.
+
+## U4 TLV62569 buck (3V3), origin (20, 75)
+
+![U4](u4.png)
+
+Datasheet SLVSDG1C section 10, figure 20 (DBV):
+
+- Cin and the inductor as close to the IC as possible; power paths short and wide: VIN, SW and VOUT are fills, not
+  traces. U4 is turned 180 degrees so the pins fall as in figure 20: VIN top left, SW top right, GND right middle,
+  FB bottom left, EN bottom right.
+- L1 straight above SW; the SW fill is only the overlap between pin 3 and L1 pad 1 (smallest switching area).
+- C14 (100 nF) then C4 (10 uF) beside VIN on the VIN fill; their grounds drop to In1 (C4 via in pad, C14 via beside).
+- C5, C6 (10 uF) under L1's output pad on the VOUT fill; ground pads with vias in the pad, a via beside pin 2, a
+  ground fill from pin 2 to both, so the output loop is closed on top.
+- EN is tied to VIN under the package body (0.25 mm, 0.35 mm from both pin rows): no via.
+- FB is a signal: R3/C7/R4 sit below, away from SW; FB drops straight from pin 5. The 3V3 sense runs from C6's pad
+  round the outside of the block (as figure 20's sense trace), so it reads the output capacitor and never passes SW.
