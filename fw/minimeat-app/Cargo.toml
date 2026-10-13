@@ -18,6 +18,7 @@ heapless               = "0.9.1"
 sequential-storage     = "8.0.2"
 log                    = "0.4.27"
 libm                   = "0.2.16"
+winnow                 = { version = "0.7.13", default-features = false }
 
 [dev-dependencies]
 minimeat-core = { path = "../minimeat-core", features = ["std"] }

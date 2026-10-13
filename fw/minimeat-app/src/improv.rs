@@ -9,6 +9,13 @@
 //! data carries no checksum of its own on serial. Hostname and device name commands answer `UnknownRpc`.
 
 use embedded_io_async::{Read, Write};
+use winnow::binary::length_take;
+use winnow::combinator::preceded;
+use winnow::error::{ContextError, ErrMode};
+use winnow::Parser as _;
+use winnow::ModalResult;
+use winnow::stream::Partial;
+use winnow::token::literal;
 use heapless::{String, Vec};
 
 use crate::config::Wifi;
@@ -72,6 +79,30 @@ fn sum(bytes: &[u8]) -> u8 {
     bytes.iter().fold(0u8, |a, b| a.wrapping_add(*b))
 }
 
+/// A frame, as a `winnow` parser over a partial byte stream: the marker, the version, the type, a length (checked
+/// early, so what cannot be ours is refused before its data arrives), that many data bytes and the checksum over
+/// everything before it. `Incomplete` means more bytes are needed.
+fn frame(input: &mut Input<'_>) -> ModalResult<Rpc> {
+    let ((ty, data), body) = (
+        preceded(literal(&HEADER[..]), preceded(byte.verify(|&v| v == VERSION), byte)),
+        length_take(byte.verify(|&l| usize::from(l) <= MAX_DATA)),
+    )
+        .with_taken()
+        .parse_next(input)?;
+    let check = byte.parse_next(input)?;
+    if sum(body) != check || ty != PACKET_RPC {
+        return Err(ErrMode::Backtrack(ContextError::new()));
+    }
+    Ok(decode(data))
+}
+
+type Input<'a> = Partial<&'a [u8]>;
+
+/// One byte (`winnow::binary::u8`, with its types fixed, and named so it does not shadow the type `u8`).
+fn byte(input: &mut Input<'_>) -> ModalResult<u8> {
+    winnow::binary::u8.parse_next(input)
+}
+
 /// Finds frames in a byte stream: anything that is not a frame (log lines, a stray newline) is skipped, a bad
 /// checksum drops the frame.
 #[derive(Default)]
@@ -86,37 +117,28 @@ impl Parser {
 
     /// Feeds one byte; `Some` when it completes a command from the client.
     pub fn push(&mut self, b: u8) -> Option<Rpc> {
-        let n = self.buf.len();
-        if n < HEADER.len() {
-            if b == HEADER[n] {
-                let _ = self.buf.push(b);
-            } else {
-                self.buf.clear();
-                if b == HEADER[0] {
-                    let _ = self.buf.push(b);
+        if self.buf.push(b).is_err() {
+            self.buf.clear();
+            return None;
+        }
+        loop {
+            let mut input = Partial::new(&self.buf[..]);
+            match frame(&mut input) {
+                Ok(rpc) => {
+                    self.buf.clear();
+                    return Some(rpc);
+                }
+                // a prefix of a frame: wait for the rest
+                Err(ErrMode::Incomplete(_)) => return None,
+                // not a frame here: drop a byte and look again, so a marker inside the junk is still found
+                Err(_) => {
+                    self.buf.remove(0);
+                    if self.buf.is_empty() {
+                        return None;
+                    }
                 }
             }
-            return None;
         }
-        let _ = self.buf.push(b);
-        let n = self.buf.len();
-        if n == 9 {
-            // header, version, type, length: reject what cannot be ours before waiting for the rest
-            let (version, len) = (self.buf[6], usize::from(self.buf[8]));
-            if version != VERSION || len > MAX_DATA {
-                self.buf.clear();
-            }
-            return None;
-        }
-        if n < 9 || n < 9 + usize::from(self.buf[8]) + 1 {
-            return None;
-        }
-        let frame = core::mem::take(&mut self.buf);
-        let (body, check) = frame.split_at(frame.len() - 1);
-        if sum(body) != check[0] || body[7] != PACKET_RPC {
-            return None;
-        }
-        Some(decode(&body[9..]))
     }
 }
 
@@ -374,6 +396,33 @@ mod tests {
         junk.extend_from_slice(b"IMPROV\x01\x03\xF0").unwrap();
         junk.extend_from_slice(&rpc(CMD_SCAN, &[])).unwrap();
         assert_eq!(&feed(&mut p, &junk)[..], &[Rpc::Scan]);
+    }
+
+    #[test]
+    fn a_marker_inside_junk_and_back_to_back_frames_are_found() {
+        let mut p = Parser::new();
+        let mut stream: Vec<u8, 200> = Vec::new();
+        // a half marker, then a real frame, then another straight after it
+        stream.extend_from_slice(b"IMPIMPRO").unwrap();
+        stream.extend_from_slice(&rpc(CMD_INFO, &[])).unwrap();
+        stream.extend_from_slice(&rpc(CMD_SCAN, &[])).unwrap();
+        assert_eq!(&feed(&mut p, &stream)[..], &[Rpc::Info, Rpc::Scan]);
+    }
+
+    #[test]
+    fn a_frame_fed_one_byte_at_a_time_and_the_parser_ready_for_the_next() {
+        let mut p = Parser::new();
+        let f = rpc(CMD_STATE, &[]);
+        let got: std::vec::Vec<Rpc> = f.iter().chain(f.iter()).filter_map(|&b| p.push(b)).collect();
+        assert_eq!(got, [Rpc::State, Rpc::State]);
+    }
+
+    #[test]
+    fn a_frame_that_is_not_an_rpc_is_dropped() {
+        let mut p = Parser::new();
+        let mut state = std::vec::Vec::from(&state_packet(State::Ready)[..]);
+        state.extend_from_slice(&rpc(CMD_INFO, &[]));
+        assert_eq!(&feed(&mut p, &state)[..], &[Rpc::Info]);
     }
 
     #[test]
