@@ -2,7 +2,7 @@
 
 Chosen over the MG90S class: digital, metal gears (one resin and four metal), ball-bearing output, 3.5-6.8 V.
 
-Sources: Hitec's product page (hitecrcd.com/hs-5065mg-high-torque-metal-gear-feather-servo) and its dimensions drawing (`HS-5065MG-Servo-Specs`, linked from that page; the numbers are in `src/minimeat/mech/params.py`, class `Servo`).
+Sources: Hitec's product page (hitecrcd.com/hs-5065mg-high-torque-metal-gear-feather-servo) and its dimensions drawing (`HS-5065MG-Servo-Specs`, linked from that page; the numbers are in `src/minimeater/mech/params.py`, class `Servo`).
 
 | | |
 |---|---|
@@ -17,4 +17,4 @@ Not published by Hitec, so taken from retailers and the servo database and still
 
 ## 3D model
 
-`src/minimeat/mech/data/HS-5065MG.stp` is Hitec's own STEP model (from the manufacturer's CAD download for the HS-5065MG, www.hiteccs.com, file `HS-5065MG-1642816206.stp`), used as the servo in the assembly and the interference checks (`mech/mock.py`, `servo()`; `servo_box()` is the old box stand-in). It gave the spline outer diameter (5.0 mm, 24T) and the spline height (top 29.0 above the back face), and it agrees with the drawing on the 27.0 mm hole pitch. The frame in the file: X along the long axis with the output axis at x = 5.7, Y up with the back face at y = -14.0. Keep the vendor's terms in mind if the repository is ever published: the file is the manufacturer's, not ours.
+`src/minimeater/mech/data/HS-5065MG.stp` is Hitec's own STEP model (from the manufacturer's CAD download for the HS-5065MG, www.hiteccs.com, file `HS-5065MG-1642816206.stp`), used as the servo in the assembly and the interference checks (`mech/mock.py`, `servo()`; `servo_box()` is the old box stand-in). It gave the spline outer diameter (5.0 mm, 24T) and the spline height (top 29.0 above the back face), and it agrees with the drawing on the 27.0 mm hole pitch. The frame in the file: X along the long axis with the output axis at x = 5.7, Y up with the back face at y = -14.0. Keep the vendor's terms in mind if the repository is ever published: the file is the manufacturer's, not ours.

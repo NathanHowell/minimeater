@@ -1,5 +1,5 @@
 [project]
-name = "minimeat"
+name = "minimeater"
 version = "0.1.0"
 description = "BGE Large BBQ controller: models, mechanical CAD and tooling"
 readme = "README.md"
@@ -15,15 +15,15 @@ dependencies = [
 ]
 
 [project.scripts]
-minimeat = "minimeat:main"
-minimeat-model = "minimeat.model.report:main"
-minimeat-control = "minimeat.model.control_report:main"
-minimeat-probes = "minimeat.model.probes_report:main"
-minimeat-sim = "minimeat.sim.report:main"
-minimeat-fixtures = "minimeat.model.fixtures:main"
-mech-export = "minimeat.mech.export:main"
-mech-render = "minimeat.mech.views:main"
-mech-envelope = "minimeat.mech.envelope:main"
+minimeater = "minimeater:main"
+minimeater-model = "minimeater.model.report:main"
+minimeater-control = "minimeater.model.control_report:main"
+minimeater-probes = "minimeater.model.probes_report:main"
+minimeater-sim = "minimeater.sim.report:main"
+minimeater-fixtures = "minimeater.model.fixtures:main"
+mech-export = "minimeater.mech.export:main"
+mech-render = "minimeater.mech.views:main"
+mech-envelope = "minimeater.mech.envelope:main"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]

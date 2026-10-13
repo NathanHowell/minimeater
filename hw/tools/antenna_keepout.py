@@ -20,7 +20,7 @@ sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.fra
 import pcbnew
 
 mm, F = pcbnew.ToMM, pcbnew.FromMM
-LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib", "minimeat.pretty")
+LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib", "minimeater.pretty")
 X, Y_OLD, Y_NEW = 14.3953, 50.5021, 50.2
 b = pcbnew.LoadBoard(sys.argv[1])
 

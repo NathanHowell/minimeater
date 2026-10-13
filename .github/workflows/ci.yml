@@ -29,6 +29,6 @@ jobs:
         with:
           workspaces: fw
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --exclude minimeat-fw --all-targets -- -D warnings
-      - run: cargo test --workspace --exclude minimeat-fw --release
+      - run: cargo clippy --workspace --exclude minimeater-fw --all-targets -- -D warnings
+      - run: cargo test --workspace --exclude minimeater-fw --release
       - run: cargo fw-build

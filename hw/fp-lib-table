@@ -2,4 +2,4 @@
   (version 7)
 
   (lib (name "espressif") (type "KiCad") (uri "${KIPRJMOD}/lib/espressif.pretty") (options "") (descr ""))
-  (lib (name "minimeat") (type "KiCad") (uri "${KIPRJMOD}/lib/minimeat.pretty") (options "") (descr "")))
+  (lib (name "minimeater") (type "KiCad") (uri "${KIPRJMOD}/lib/minimeater.pretty") (options "") (descr "")))

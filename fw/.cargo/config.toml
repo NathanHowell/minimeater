@@ -1,7 +1,7 @@
 [alias]
 # Build / flash + monitor the firmware from anywhere in the workspace.
-fw-build = "build -p minimeat-fw --release --target riscv32imac-unknown-none-elf"
-fw       = "run -p minimeat-fw --release --target riscv32imac-unknown-none-elf"
+fw-build = "build -p minimeater-fw --release --target riscv32imac-unknown-none-elf"
+fw       = "run -p minimeater-fw --release --target riscv32imac-unknown-none-elf"
 
 [target.riscv32imac-unknown-none-elf]
 # Flashes over the box's USB-C (ESP32-C6 USB-Serial-JTAG); `cargo install espflash --locked`.

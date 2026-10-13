@@ -1,3 +1,0 @@
-# Inside minimeat-fw/, plain `cargo build` / `cargo run --release` target the chip.
-[build]
-target = "riscv32imac-unknown-none-elf"

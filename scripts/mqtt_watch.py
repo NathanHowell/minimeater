@@ -26,7 +26,7 @@ c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "mm-watch", protocol=mqtt.MQTT
 c.on_message = on_message
 c.max_inflight_messages_set(20)
 c.connect(host, 1883)
-c.subscribe([("minimeat/#", 0), ("homeassistant/#", 0)])
+c.subscribe([("minimeater/#", 0), ("homeassistant/#", 0)])
 c.loop_start()
 time.sleep(seconds)
 c.loop_stop()

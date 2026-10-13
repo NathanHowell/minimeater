@@ -1401,7 +1401,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
-name = "minimeat-app"
+name = "minimeater-app"
 version = "0.1.0"
 dependencies = [
  "critical-section",
@@ -1416,14 +1416,14 @@ dependencies = [
  "heapless 0.9.3",
  "libm",
  "log",
- "minimeat-core",
+ "minimeater-core",
  "sequential-storage",
  "serde_json",
  "winnow 0.7.15",
 ]
 
 [[package]]
-name = "minimeat-core"
+name = "minimeater-core"
 version = "0.1.0"
 dependencies = [
  "libm",
@@ -1431,7 +1431,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "minimeat-fw"
+name = "minimeater-fw"
 version = "0.1.0"
 dependencies = [
  "embassy-embedded-hal",
@@ -1452,14 +1452,14 @@ dependencies = [
  "heapless 0.9.3",
  "libm",
  "log",
- "minimeat-app",
- "minimeat-core",
+ "minimeater-app",
+ "minimeater-core",
  "nb 1.1.0",
  "static_cell",
 ]
 
 [[package]]
-name = "minimeat-sim"
+name = "minimeater-sim"
 version = "0.1.0"
 dependencies = [
  "embassy-futures",
@@ -1467,13 +1467,13 @@ dependencies = [
  "embedded-hal-async",
  "embedded-storage-async",
  "libm",
- "minimeat-app",
- "minimeat-core",
+ "minimeater-app",
+ "minimeater-core",
  "serde_json",
 ]
 
 [[package]]
-name = "minimeat-twin"
+name = "minimeater-twin"
 version = "0.1.0"
 dependencies = [
  "critical-section",
@@ -1484,9 +1484,9 @@ dependencies = [
  "embassy-time-queue-utils",
  "embedded-io-async 0.6.1",
  "log",
- "minimeat-app",
- "minimeat-core",
- "minimeat-sim",
+ "minimeater-app",
+ "minimeater-core",
+ "minimeater-sim",
  "serde_json",
 ]
 

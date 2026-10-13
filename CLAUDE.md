@@ -62,9 +62,9 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 ```bash
 uv run pytest                          # Python models + doc example checks
-uv run minimeat-model                  # regenerate docs/modeling (also minimeat-control, minimeat-probes)
+uv run minimeater-model                  # regenerate docs/modeling (also minimeater-control, minimeater-probes)
 cd fw && cargo test                    # firmware core, app and sim on host
-cd fw && cargo run -p minimeat-fw --release   # build + flash ESP32-C6 over USB-C
+cd fw && cargo run -p minimeater-fw --release   # build + flash ESP32-C6 over USB-C
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
 just scenarios                         # the 20-scenario suite on the twin: bounds + baselines, PNG per run
 just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
@@ -76,13 +76,13 @@ just ha-live-check                     # real Home Assistant (container) onboard
 
 ## Architecture Overview
 
-- **Python:** `src/minimeat/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeat/mech/` holds the build123d enclosure (`docs/mech.md`; `uv run mech-export`, `uv run mech-render docs/mech`). There is one uv project.
+- **Python:** `src/minimeater/model/` holds the plant, airflow and controller models. It is the reference implementation the firmware ports. `src/minimeater/mech/` holds the build123d enclosure (`docs/mech.md`; `uv run mech-export`, `uv run mech-render docs/mech`). There is one uv project.
 - **Firmware:** the `fw/` cargo workspace.
-  - `minimeat-core` is `no_std` and has a `std` feature for host tests. It holds control, the food estimator and probe conversion.
-  - `minimeat-app` is the application, generic over the peripheral traits in `minimeat-app::hal`; it must not use esp-hal or target `cfg`s. It holds the tasks, the probe and actuator drivers, alarms and the MQTT payload codec (`proto`).
-  - `minimeat-sim` is the plant model; `minimeat-sim::hal` implements the traits on it for host runs.
-  - `minimeat-twin` runs `minimeat-app::tasks` on a virtual-time embassy executor against `minimeat-sim::hal` (`just twin`).
-  - `minimeat-fw` is the ESP32-C6 embassy binary; `board.rs` is the only place that knows pins and esp-hal peripherals.
+  - `minimeater-core` is `no_std` and has a `std` feature for host tests. It holds control, the food estimator and probe conversion.
+  - `minimeater-app` is the application, generic over the peripheral traits in `minimeater-app::hal`; it must not use esp-hal or target `cfg`s. It holds the tasks, the probe and actuator drivers, alarms and the MQTT payload codec (`proto`).
+  - `minimeater-sim` is the plant model; `minimeater-sim::hal` implements the traits on it for host runs.
+  - `minimeater-twin` runs `minimeater-app::tasks` on a virtual-time embassy executor against `minimeater-sim::hal` (`just twin`).
+  - `minimeater-fw` is the ESP32-C6 embassy binary; `board.rs` is the only place that knows pins and esp-hal peripherals.
 - **Hardware:** `hw/` (KiCad).
 - **Decisions and specs:** decisions are in `docs/adr/`. The MQTT schema in `docs/protocol.md` is normative.
 
@@ -91,5 +91,5 @@ just ha-live-check                     # real Home Assistant (container) onboard
 - Always use uv for Python (`uv run ...`), never bare `python3`.
 - Temperatures are °F throughout: docs, models and the MQTT wire. Airflow is CFM.
 - PCB parts must be in JLCPCB stock (5-board build). Prefer the higher-quality part unless the price gap is huge.
-- Generated docs (`docs/modeling/*.md` except README) are rewritten by their `uv run minimeat-*` script; don't edit them by hand.
+- Generated docs (`docs/modeling/*.md` except README) are rewritten by their `uv run minimeater-*` script; don't edit them by hand.
 - Commit and push directly to master after each bead, and run `bd dolt push`. No co-authored-by lines.

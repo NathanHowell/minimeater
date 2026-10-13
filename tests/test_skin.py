@@ -3,11 +3,11 @@ connectors and print without support."""
 
 import pytest
 
-from minimeat.mech import assembly as A, shell as K
-from minimeat.mech import geom as G
-from minimeat.mech.params import P
-from minimeat.mech.parts import box, ycyl, zcyl
-from minimeat.mech.printing import overhangs, print_pose
+from minimeater.mech import assembly as A, shell as K
+from minimeater.mech import geom as G
+from minimeater.mech.params import P
+from minimeater.mech.parts import box, ycyl, zcyl
+from minimeater.mech.printing import overhangs, print_pose
 
 
 @pytest.fixture(scope="module")

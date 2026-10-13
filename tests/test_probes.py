@@ -1,7 +1,7 @@
 import pytest
 
-from minimeat.model.probes import ADCS, PROBES, FrontEnd, detect_thresholds, worst_f
-from minimeat.model.units import f_to_k
+from minimeater.model.probes import ADCS, PROBES, FrontEnd, detect_thresholds, worst_f
+from minimeater.model.units import f_to_k
 
 
 @pytest.mark.parametrize("probe", PROBES, ids=lambda p: p.name)

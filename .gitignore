@@ -18,9 +18,9 @@ build/
 # KiCad lock files
 *.lck
 hw/fab/gerber/
-hw/minimeat_models.kicad_pcb
-hw/minimeat_models.*
+hw/minimeater_models.kicad_pcb
+hw/minimeater_models.*
 
 # KiCad auto-backups
-hw/minimeat-backups/
+hw/minimeater-backups/
 hw/_autosave-*

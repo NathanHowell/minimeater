@@ -1,12 +1,12 @@
 # MQTT protocol, schema v1
 
-Normative. The implementation lives in `minimeat-app::proto`; its tests (`fw/minimeat-app/tests/proto.rs`) check every JSON example here, and `tests/test_protocol_doc.py` checks they parse. Rationale is in [ADR 0003](adr/0003-control-protocol.md).
+Normative. The implementation lives in `minimeater-app::proto`; its tests (`fw/minimeater-app/tests/proto.rs`) check every JSON example here, and `tests/test_protocol_doc.py` checks they parse. Rationale is in [ADR 0003](adr/0003-control-protocol.md).
 
 ## Conventions
 
 - **Transport:** MQTT 5 to a LAN broker. Clean start, session expiry 0, keepalive 30 s.
 - **Device id:** `mm-` plus the low 3 bytes of the WiFi MAC in lowercase hex, e.g. `mm-a1b2c3`.
-- **Base topic:** `<prefix>/<id>`. The prefix defaults to `minimeat` and can be set over the USB console. Below, `~` stands for the base topic.
+- **Base topic:** `<prefix>/<id>`. The prefix defaults to `minimeater` and can be set over the USB console. Below, `~` stands for the base topic.
 - **Units:**
 
 | Quantity | Unit | Precision |
@@ -295,25 +295,25 @@ Excerpt, using HA's abbreviated keys:
 
 ```json
 {
-  "dev": {"ids": "mm-a1b2c3", "name": "minimeat", "mf": "minimeat", "mdl": "minimeat v1", "sw": "0.1.0", "hw": "A"},
-  "o": {"name": "minimeat", "sw": "0.1.0", "url": "https://github.com/NathanHowell/minimeat"},
-  "avty_t": "minimeat/mm-a1b2c3/status",
-  "stat_t": "minimeat/mm-a1b2c3/state",
+  "dev": {"ids": "mm-a1b2c3", "name": "minimeater", "mf": "minimeater", "mdl": "minimeater v1", "sw": "0.1.0", "hw": "A"},
+  "o": {"name": "minimeater", "sw": "0.1.0", "url": "https://github.com/NathanHowell/minimeater"},
+  "avty_t": "minimeater/mm-a1b2c3/status",
+  "stat_t": "minimeater/mm-a1b2c3/state",
   "qos": 1,
   "cmps": {
     "pit": {
       "p": "climate", "uniq_id": "mm-a1b2c3_pit", "name": "Pit",
       "modes": ["off", "heat"],
-      "mode_cmd_t": "minimeat/mm-a1b2c3/set/mode",
+      "mode_cmd_t": "minimeater/mm-a1b2c3/set/mode",
       "mode_cmd_tpl": "{{ 'run' if value == 'heat' else 'off' }}",
-      "mode_stat_t": "minimeat/mm-a1b2c3/state",
+      "mode_stat_t": "minimeater/mm-a1b2c3/state",
       "mode_stat_tpl": "{{ 'off' if value_json.mode == 'off' else 'heat' }}",
-      "temp_cmd_t": "minimeat/mm-a1b2c3/set/sp",
-      "temp_stat_t": "minimeat/mm-a1b2c3/state",
+      "temp_cmd_t": "minimeater/mm-a1b2c3/set/sp",
+      "temp_stat_t": "minimeater/mm-a1b2c3/state",
       "temp_stat_tpl": "{{ value_json.sp }}",
-      "curr_temp_t": "minimeat/mm-a1b2c3/state",
+      "curr_temp_t": "minimeater/mm-a1b2c3/state",
       "curr_temp_tpl": "{{ value_json.pit }}",
-      "act_t": "minimeat/mm-a1b2c3/state",
+      "act_t": "minimeater/mm-a1b2c3/state",
       "act_tpl": "{{ 'off' if value_json.mode == 'off' else ('heating' if value_json.out.q > 0 else 'idle') }}",
       "min_temp": 150, "max_temp": 325, "temp_step": 5, "temp_unit": "F", "precision": 0.1
     },
@@ -324,7 +324,7 @@ Excerpt, using HA's abbreviated keys:
     },
     "events": {
       "p": "event", "uniq_id": "mm-a1b2c3_events", "name": "Events",
-      "stat_t": "minimeat/mm-a1b2c3/event",
+      "stat_t": "minimeater/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
                   "setpoint_reached", "stall_start", "stall_end", "wrap_reminder", "stall_bump",
                   "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear"]

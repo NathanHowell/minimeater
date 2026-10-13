@@ -2,12 +2,12 @@
 
 import pytest
 
-from minimeat.mech import analysis, assembly as A, mock
-from minimeat.mech import geom as G
-from minimeat.mech.export import export
-from minimeat.mech.params import P
-from minimeat.mech.parts import MACHINED, PARTS
-from minimeat.mech.printing import overhangs, print_pose
+from minimeater.mech import analysis, assembly as A, mock
+from minimeater.mech import geom as G
+from minimeater.mech.export import export
+from minimeater.mech.params import P
+from minimeater.mech.parts import MACHINED, PARTS
+from minimeater.mech.printing import overhangs, print_pose
 
 
 @pytest.fixture(scope="module")
@@ -120,7 +120,7 @@ def test_open_flap_does_not_choke_the_bore():
 
 
 def test_the_flaps_rib_is_round_ended_not_square():
-    from minimeat.mech.parts import flap
+    from minimeater.mech.parts import flap
 
     f = flap()
     xf, dm = G.g.flap_x, P.damper
@@ -130,7 +130,7 @@ def test_the_flaps_rib_is_round_ended_not_square():
 
 
 def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
-    from minimeat.mech.parts import flap
+    from minimeater.mech.parts import flap
 
     monkeypatch.setattr(type(P.damper), "rib_both_sides", False)  # the dataclass is frozen: patch the class default
     f = flap()
@@ -162,7 +162,7 @@ def test_export_writes_step_and_stl(tmp_path):
     for n in ("flap", "crank", "coupler"):
         assert (tmp_path / "cnc" / f"{n}.pdf").stat().st_size > 1000  # a drawing named like its STEP file
     assert not (tmp_path / "cnc" / "drawings.pdf").exists()
-    for folder, z in (("3dprint", "minimeat-3dprint.zip"), ("cnc", "minimeat-cnc.zip")):
+    for folder, z in (("3dprint", "minimeater-3dprint.zip"), ("cnc", "minimeater-cnc.zip")):
         import zipfile
         names = set(zipfile.ZipFile(tmp_path / folder / z).namelist())
         assert names == {f.name for f in (tmp_path / folder).iterdir() if f.name != z}  # the zip is the folder
@@ -176,7 +176,7 @@ def test_export_writes_step_and_stl(tmp_path):
 def test_made_parts_are_valid_and_the_bar_spans_the_pins():
     """The crank (a clamp hub with a radial set screw hole and a tapped pin hole) and the coupler are one valid
     solid each; the bar's holes are as far apart as the shaft and the servo's output axis."""
-    from minimeat.mech.parts import MACHINED
+    from minimeater.mech.parts import MACHINED
     for build in MACHINED.values():
         s = build()
         assert s.is_valid and len(s.solids()) == 1
@@ -186,7 +186,7 @@ def test_made_parts_are_valid_and_the_bar_spans_the_pins():
 
 def test_the_made_rod_matches_the_assemblys_rod():
     """The CNC rod is Ø3 with a 2.5 mm flat and as long as the one in the assembly (blind pocket to 0.3 mm over the crank)."""
-    from minimeat.mech import mock
+    from minimeater.mech import mock
     made, mocked = MACHINED["rod"]().bounding_box(), mock.rod().bounding_box()
     assert abs(made.size.X - P.damper.rod_len) < 1e-6 and abs(mocked.size.Z - P.damper.rod_len) < 1e-6
     assert abs(max(made.size.Y, made.size.Z) - P.damper.shaft_d) < 1e-6 and abs(min(made.size.Y, made.size.Z) - P.damper.shaft_flat) < 1e-6

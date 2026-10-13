@@ -1,7 +1,7 @@
 import pytest
 
-from minimeat.model.probes import PROBES
-from minimeat.sim import frontend as F, ngspice
+from minimeater.model.probes import PROBES
+from minimeater.sim import frontend as F, ngspice
 
 pytestmark = pytest.mark.skipif(not ngspice.available(), reason="ngspice not installed")
 
@@ -23,13 +23,13 @@ def test_plug_in_settles_within_a_conversion():
 
 
 def test_hot_plug_stays_inside_the_6v_limit_with_a_normal_cable():
-    from minimeat.sim import power as W
+    from minimeater.sim import power as W
 
     assert W.hotplug(W.HotPlug(1e-6, 0.2, "derated"))["vbus_f_peak"] < 5.5
     assert W.hotplug(W.HotPlug(1e-6, 0.1, "derated"))["vbus_f_peak"] < 6.0  # 1 m cable, 0.1 ohm round trip; at 0.05 ohm and 2 uH it rings to 7 V (docs/sim/power.md)
 
 
 def test_servo_inrush_keeps_the_rail_up():
-    from minimeat.sim import power as W
+    from minimeater.sim import power as W
 
     assert W.inrush(110e-6, 0.6, 0.5, 0.3)["vin_min"] > 4.0

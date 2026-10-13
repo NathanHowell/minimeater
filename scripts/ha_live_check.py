@@ -1,5 +1,5 @@
 """Drives a real Home Assistant (container) through onboarding, adds its MQTT integration, then
-checks the minimeat device that the twin publishes appears with working entities (`just ha-live-check`).
+checks the minimeater device that the twin publishes appears with working entities (`just ha-live-check`).
 
 Usage: uv run --no-project python -I scripts/ha_live_check.py HA_HOST BROKER_HOST
 """
@@ -36,7 +36,7 @@ def call(method, path, body=None, form=None, auth=True):
         raise SystemExit(f"{method} {path}: {e.code} {e.read().decode()[:300]}")
 
 
-USER, PASSWORD = "m", "minimeat-test-1"
+USER, PASSWORD = "m", "minimeater-test-1"
 
 
 def onboard():
@@ -89,12 +89,12 @@ def main():
     onboard()
     add_mqtt()
     # the twin publishes the retained discovery message on connect; HA reads it when it subscribes
-    ents = wait_for("72 entities", lambda: (lambda s: s if len([k for k in s if "minimeat" in k]) >= 68 else None)(states()))
-    ours = {k: v for k, v in ents.items() if "minimeat" in k}
+    ents = wait_for("72 entities", lambda: (lambda s: s if len([k for k in s if "minimeater" in k]) >= 68 else None)(states()))
+    ours = {k: v for k, v in ents.items() if "minimeater" in k}
     by_domain = {}
     for k in ours:
         by_domain.setdefault(k.split(".")[0], []).append(k)
-    print(f"{len(ours)} minimeat entities:", {d: len(v) for d, v in sorted(by_domain.items())})
+    print(f"{len(ours)} minimeater entities:", {d: len(v) for d, v in sorted(by_domain.items())})
     assert len(ours) >= 60
 
     def get(entity):

@@ -9,14 +9,14 @@ import sys
 sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.9/site-packages")
 import pcbnew
 
-LIB = os.path.abspath("hw/lib/minimeat.pretty")
+LIB = os.path.abspath("hw/lib/minimeater.pretty")
 NEW = {"J6": ("KK254-RA-04", "22-05-3041"), "J7": ("KK254-RA-03", "22-05-3031")}
 b = pcbnew.LoadBoard(sys.argv[1])
 for ref, (name, value) in NEW.items():
     old = b.FindFootprintByReference(ref)
     pin1 = old.FindPadByNumber("1").GetPosition()
     new = pcbnew.FootprintLoad(LIB, name)
-    new.SetFPID(pcbnew.LIB_ID("minimeat", name))
+    new.SetFPID(pcbnew.LIB_ID("minimeater", name))
     new.SetPosition(pin1)
     new.SetOrientationDegrees(0)
     new.SetReference(ref)

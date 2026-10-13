@@ -3,12 +3,12 @@ import math
 
 import pytest
 
-from minimeat.model import flow, thermal
-from minimeat.model.fans import FANS, max_flow, required_speed
-from minimeat.model.params import DEFAULT_EGG, DEFAULT_INTAKE, TOP_VENT, Ambient
-from minimeat.model.control import PercentPid
-from minimeat.model.sim import Event, air_flow, output_map, simulate
-from minimeat.model.units import CFM, MMH2O, c_to_k, f_to_k, k_to_f
+from minimeater.model import flow, thermal
+from minimeater.model.fans import FANS, max_flow, required_speed
+from minimeater.model.params import DEFAULT_EGG, DEFAULT_INTAKE, TOP_VENT, Ambient
+from minimeater.model.control import PercentPid
+from minimeater.model.sim import Event, air_flow, output_map, simulate
+from minimeater.model.units import CFM, MMH2O, c_to_k, f_to_k, k_to_f
 
 
 def test_unit_roundtrip():

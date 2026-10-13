@@ -4,10 +4,10 @@
 
 use std::time::Duration;
 
-use minimeat_app::config::{Otlp, Settings};
-use minimeat_app::net::Identity;
-use minimeat_app::otlp::{self, Buffers, Sample};
-use minimeat_app::tasks::Bus;
+use minimeater_app::config::{Otlp, Settings};
+use minimeater_app::net::Identity;
+use minimeater_app::otlp::{self, Buffers, Sample};
+use minimeater_app::tasks::Bus;
 use opentelemetry_proto::tonic::collector::metrics::v1::ExportMetricsServiceRequest;
 use opentelemetry_proto::tonic::common::v1::any_value::Value;
 use opentelemetry_proto::tonic::metrics::v1::metric::Data;
@@ -21,7 +21,7 @@ mod common;
 use common::{Tcp, status};
 
 const WHO: Identity<'static> = Identity {
-    prefix: "minimeat",
+    prefix: "minimeater",
     id: "mm-it",
     sw: "0.1.0",
     hw: "A",
@@ -64,11 +64,11 @@ fn the_request_decodes_with_an_independent_protobuf_implementation() {
                 _ => None,
             })
     };
-    assert_eq!(attr("service.name").as_deref(), Some("minimeat"));
+    assert_eq!(attr("service.name").as_deref(), Some("minimeater"));
     assert_eq!(attr("service.instance.id").as_deref(), Some("mm-it"));
     assert_eq!(attr("service.version").as_deref(), Some("0.1.0"));
     let sm = &rm.scope_metrics[0];
-    assert_eq!(sm.scope.as_ref().unwrap().name, "minimeat-fw");
+    assert_eq!(sm.scope.as_ref().unwrap().name, "minimeater-fw");
 
     // name -> data points as (attributes, value)
     let metric = |name: &str| -> Vec<(Vec<(String, String)>, f64)> {
@@ -104,27 +104,27 @@ fn the_request_decodes_with_an_independent_protobuf_implementation() {
             })
             .collect()
     };
-    let probes = metric("minimeat.probe.temperature");
+    let probes = metric("minimeater.probe.temperature");
     assert_eq!(probes.len(), 2, "only the probes with a reading");
     assert_eq!(
         probes[1].0,
         [("probe".into(), "1".into()), ("name".into(), "Brisket".into())]
     );
     assert_eq!(probes[1].1, 150.0);
-    assert_eq!(metric("minimeat.pit.setpoint")[0].1, 250.0);
-    assert!((metric("minimeat.pit.temperature")[0].1 - 249.6).abs() < 1e-9);
-    assert!((metric("minimeat.ambient.temperature")[0].1 - 68.0).abs() < 1e-6);
-    assert_eq!(metric("minimeat.fan.duty")[0].1, 25.0);
-    assert_eq!(metric("minimeat.fan.speed")[0].1, 900.0);
-    assert_eq!(metric("minimeat.wifi.rssi")[0].1, -61.0);
-    assert_eq!(metric("minimeat.uptime")[0].1, 5321.0);
-    assert_eq!(metric("minimeat.heap.free")[0].1, 123_456.0);
-    assert_eq!(metric("minimeat.food.eta")[0].1, 21600.0);
+    assert_eq!(metric("minimeater.pit.setpoint")[0].1, 250.0);
+    assert!((metric("minimeater.pit.temperature")[0].1 - 249.6).abs() < 1e-9);
+    assert!((metric("minimeater.ambient.temperature")[0].1 - 68.0).abs() < 1e-6);
+    assert_eq!(metric("minimeater.fan.duty")[0].1, 25.0);
+    assert_eq!(metric("minimeater.fan.speed")[0].1, 900.0);
+    assert_eq!(metric("minimeater.wifi.rssi")[0].1, -61.0);
+    assert_eq!(metric("minimeater.uptime")[0].1, 5321.0);
+    assert_eq!(metric("minimeater.heap.free")[0].1, 123_456.0);
+    assert_eq!(metric("minimeater.food.eta")[0].1, 21600.0);
     assert_eq!(
-        metric("minimeat.phase")[0].0,
+        metric("minimeater.phase")[0].0,
         [("phase".to_string(), "hold".to_string())]
     );
-    let faults = metric("minimeat.fault.active");
+    let faults = metric("minimeater.fault.active");
     assert_eq!(faults.len(), 5);
     assert!(faults.iter().all(|(_, v)| *v == 0.0));
     for m in &sm.metrics {
@@ -183,15 +183,15 @@ async fn a_real_collector_accepts_the_export_and_exposes_it() {
             task.abort();
             assert!(text.starts_with("HTTP/1.1 200"), "{}", &text[..text.len().min(200)]);
             for want in [
-                "minimeat_pit_setpoint",
-                "minimeat_probe_temperature",
-                "minimeat_fan_speed",
-                "minimeat_wifi_rssi",
-                "minimeat_fault_active",
+                "minimeater_pit_setpoint",
+                "minimeater_probe_temperature",
+                "minimeater_fan_speed",
+                "minimeater_wifi_rssi",
+                "minimeater_fault_active",
             ] {
                 assert!(text.contains(want), "no {want} in:\n{text}");
             }
-            let sp = text.lines().find(|l| l.starts_with("minimeat_pit_setpoint")).unwrap();
+            let sp = text.lines().find(|l| l.starts_with("minimeater_pit_setpoint")).unwrap();
             assert!(
                 sp.contains("service_instance_id=\"mm-it\"") || sp.contains("instance=\"mm-it\""),
                 "{sp}"

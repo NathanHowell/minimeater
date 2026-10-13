@@ -356,7 +356,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
-name = "minimeat-app"
+name = "minimeater-app"
 version = "0.1.0"
 dependencies = [
  "embassy-futures",
@@ -369,12 +369,13 @@ dependencies = [
  "heapless 0.9.3",
  "libm",
  "log",
- "minimeat-core",
+ "minimeater-core",
  "sequential-storage",
+ "winnow",
 ]
 
 [[package]]
-name = "minimeat-core"
+name = "minimeater-core"
 version = "0.1.0"
 dependencies = [
  "libm",
@@ -402,8 +403,8 @@ dependencies = [
  "embedded-io-adapters",
  "embedded-io-async",
  "heapless 0.9.3",
- "minimeat-app",
- "minimeat-core",
+ "minimeater-app",
+ "minimeater-core",
  "opentelemetry-proto",
  "prost",
  "rumqttc",
@@ -800,6 +801,12 @@ checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
 dependencies = [
  "windows-link",
 ]
+
+[[package]]
+name = "winnow"
+version = "0.7.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
 
 [[package]]
 name = "zmij"

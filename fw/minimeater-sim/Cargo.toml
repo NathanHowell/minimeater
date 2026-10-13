@@ -1,0 +1,18 @@
+[package]
+name         = "minimeater-sim"
+description  = "BGE Large plant model for the host digital twin and scenario suite (no_std, deterministic)"
+edition.workspace      = true
+rust-version.workspace = true
+version.workspace      = true
+
+[dependencies]
+minimeater-app           = { path = "../minimeater-app" }
+minimeater-core          = { path = "../minimeater-core" }
+embedded-hal           = "1.0.0"
+embedded-hal-async     = "1.0.0"
+embedded-storage-async = "0.4.1"
+libm                   = "0.2.16"
+
+[dev-dependencies]
+embassy-futures = "0.1.2"
+serde_json      = "1"

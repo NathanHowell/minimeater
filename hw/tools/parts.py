@@ -1,8 +1,8 @@
 """Reference -> footprint -> courtyard bbox (mm, footprint frame) from the schematic and the libraries."""
 import re, json, glob, os, sys
 STOCK = "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"
-HW = "/Users/nhowell/source/NathanHowell/minimeat/hw"
-LIBS = {"minimeat": f"{HW}/lib/minimeat.pretty", "espressif": f"{HW}/lib/espressif.pretty"}
+HW = "/Users/nhowell/source/NathanHowell/minimeater/hw"
+LIBS = {"minimeater": f"{HW}/lib/minimeater.pretty", "espressif": f"{HW}/lib/espressif.pretty"}
 
 def fp_path(fid):
     lib, name = fid.split(":")
@@ -10,7 +10,7 @@ def fp_path(fid):
     return f"{d}/{name}.kicad_mod"
 
 def schematic_parts():
-    t = open(f"{HW}/minimeat.kicad_sch").read()
+    t = open(f"{HW}/minimeater.kicad_sch").read()
     out = {}
     # instance blocks: each (symbol (lib_id ...) ... ) at depth 1 under the file; find by property pairs
     for m in re.finditer(r'\(property "Reference" "([^"]+)"', t):

@@ -1,5 +1,5 @@
 """Right-angle Molex KK 254 footprints for the fan (22-05-3041, 4 pins) and servo (22-05-3031, 3 pins) headers:
-`kk_ra.py` (KiCad's python, from the repo root) writes `hw/lib/minimeat.pretty/KK254-RA-04.kicad_mod` and `-03`.
+`kk_ra.py` (KiCad's python, from the repo root) writes `hw/lib/minimeater.pretty/KK254-RA-04.kicad_mod` and `-03`.
 
 Origin at pin 1, pins down the sheet (-y) at 2.54 mm, the plug entering toward -x (the board's rear edge): the
 housing is 6.35 mm tall on F.Cu (the board is inverted in the enclosure: it hangs under the board), the tails
@@ -13,7 +13,7 @@ import pcbnew
 
 F = pcbnew.FromMM
 P = lambda x, y: pcbnew.VECTOR2I(F(x), F(y))
-LIB = os.path.abspath("hw/lib/minimeat.pretty")
+LIB = os.path.abspath("hw/lib/minimeater.pretty")
 PITCH = 2.54
 
 
@@ -35,7 +35,7 @@ def rect(fp, layer, x0, y0, x1, y1, w):
 def make(n, part):
     fp = pcbnew.FOOTPRINT(None)
     name = f"KK254-RA-{n:02d}"
-    fp.SetFPID(pcbnew.LIB_ID("minimeat", name))
+    fp.SetFPID(pcbnew.LIB_ID("minimeater", name))
     fp.SetReference("REF**")
     fp.SetValue(part)
     fp.SetLibDescription(f"Molex KK 254 {part} right-angle header, {n} circuits, plug toward -x; pin 1 at the origin, pins toward -y")

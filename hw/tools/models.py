@@ -7,7 +7,7 @@ sys.path.insert(0, '/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.fra
 import pcbnew
 
 STOCK = '/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints'
-PROJECT = {'minimeat': os.path.abspath('hw/lib/minimeat.pretty'), 'espressif': os.path.abspath('hw/lib/espressif.pretty')}
+PROJECT = {'minimeater': os.path.abspath('hw/lib/minimeater.pretty'), 'espressif': os.path.abspath('hw/lib/espressif.pretty')}
 b = pcbnew.LoadBoard(sys.argv[1])
 missing = []
 for f in b.GetFootprints():

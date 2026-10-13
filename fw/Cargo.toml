@@ -1,8 +1,8 @@
 [workspace]
 resolver        = "3"
-members         = ["minimeat-app", "minimeat-core", "minimeat-fw", "minimeat-sim", "minimeat-twin"]
+members         = ["minimeater-app", "minimeater-core", "minimeater-fw", "minimeater-sim", "minimeater-twin"]
 # A bare `cargo build/test` from fw/ builds for the host; the firmware needs the RISC-V target (see .cargo/config.toml).
-default-members = ["minimeat-app", "minimeat-core", "minimeat-sim", "minimeat-twin"]
+default-members = ["minimeater-app", "minimeater-core", "minimeater-sim", "minimeater-twin"]
 
 [workspace.package]
 edition      = "2024"

@@ -1,0 +1,22 @@
+[package]
+name         = "minimeater-twin"
+description  = "Host digital twin: the firmware's application tasks on a virtual clock against the plant model"
+edition.workspace      = true
+rust-version.workspace = true
+version.workspace      = true
+
+[dependencies]
+minimeater-app             = { path = "../minimeater-app" }
+minimeater-core            = { path = "../minimeater-core", features = ["std"] }
+minimeater-sim             = { path = "../minimeater-sim" }
+critical-section         = { version = "1.1", features = ["std"] }
+embassy-executor         = "0.10.0"
+embassy-futures          = "0.1.2"
+embassy-sync             = "0.7.2"
+embassy-time-driver      = "0.2.2"
+embedded-io-async        = "0.6.1"
+embassy-time-queue-utils = { version = "0.3.2", features = ["generic-queue-64"] }
+log                      = "0.4.27"
+
+[dev-dependencies]
+serde_json = "1"

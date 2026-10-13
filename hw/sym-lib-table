@@ -1,5 +1,5 @@
 (sym_lib_table
   (version 7)
 
-  (lib (name "minimeat") (type "KiCad") (uri "${KIPRJMOD}/minimeat.kicad_sym") (options "") (descr ""))
-  (lib (name "espressif") (type "KiCad") (uri "${KIPRJMOD}/lib/espressif.kicad_sym") (options "") (descr "")))
+  (lib (name "espressif") (type "KiCad") (uri "${KIPRJMOD}/lib/espressif.kicad_sym") (options "") (descr ""))
+  (lib (name "minimeater") (type "KiCad") (uri "${KIPRJMOD}/minimeater.kicad_sym") (options "") (descr "")))

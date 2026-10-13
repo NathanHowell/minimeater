@@ -29,7 +29,7 @@ The candidates were:
   - A session expiry of 0, so every connect starts clean and stale subscriptions don't pile up.
 - **Wire unit is °F.** The project specifies everything in °F, and HA converts `device_class: temperature` entities for metric users. With °C on the wire, a 225F setpoint becomes 107.22C and HA's number step rounding makes it drift.
 - **HA integration uses device discovery** (one retained `homeassistant/device/<id>/config` message listing every entity, HA 2024.11+), not one config message per entity. It is atomic and smaller. The pit is a `climate` entity with modes `off`/`heat`, so the stock thermostat card works. Everything else is a sensor, number, select, text, button, binary sensor or event entity.
-- **Schema owner:** `docs/protocol.md` is normative. The firmware implementation lives in one module, `minimeat-core::proto` (topics, payload types, HA discovery tables). Host tests serialise every payload type against examples in the doc, so the doc and code can't drift silently. Any change to topics or payloads updates both in the same commit, and a breaking change bumps the schema version (`v`).
+- **Schema owner:** `docs/protocol.md` is normative. The firmware implementation lives in one module, `minimeater-core::proto` (topics, payload types, HA discovery tables). Host tests serialise every payload type against examples in the doc, so the doc and code can't drift silently. Any change to topics or payloads updates both in the same commit, and a breaking change bumps the schema version (`v`).
 
 ### Safety does not depend on the network
 
@@ -66,6 +66,6 @@ WiFi credentials, broker address and broker credentials are set over the USB-C p
 
 ## Consequences
 
-- `.5.1` writes `docs/protocol.md` against these rules. `.5.2` (client) and `.5.3` (discovery) implement it in `minimeat-core::proto` plus a firmware `mqtt` task.
+- `.5.1` writes `docs/protocol.md` against these rules. `.5.2` (client) and `.5.3` (discovery) implement it in `minimeater-core::proto` plus a firmware `mqtt` task.
 - A device without a broker is still fully usable: button, LED, and the USB console for status and settings.
 - There is no phone UI outside Home Assistant until Matter lands. That is accepted for a DIY build whose user already runs HA.

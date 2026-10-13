@@ -6,11 +6,11 @@
 use std::time::Duration;
 
 use embassy_futures::select::{Either, select};
-use minimeat_app::config::{Mqtt, Settings};
-use minimeat_app::mqtt::{Buffers, Identity, run};
-use minimeat_app::pit::Command;
-use minimeat_app::proto::Request;
-use minimeat_app::tasks::{Bus, Reply};
+use minimeater_app::config::{Mqtt, Settings};
+use minimeater_app::mqtt::{Buffers, Identity, run};
+use minimeater_app::pit::Command;
+use minimeater_app::proto::Request;
+use minimeater_app::tasks::{Bus, Reply};
 use rumqttc::v5::mqttbytes::QoS;
 use rumqttc::v5::mqttbytes::v5::PublishProperties;
 use rumqttc::v5::{AsyncClient, Event, Incoming, MqttOptions};
@@ -21,7 +21,7 @@ use tokio::task::{LocalSet, spawn_local};
 mod common;
 use common::{Tcp, status};
 
-const BASE: &str = "minimeat/mm-it";
+const BASE: &str = "minimeater/mm-it";
 
 fn broker() -> (String, u16) {
     let addr = std::env::var("MQTT_BROKER").unwrap_or_else(|_| "127.0.0.1:1883".into());
@@ -164,7 +164,7 @@ fn start_device(bus: &'static Bus) -> tokio::task::JoinHandle<()> {
     let bufs = Box::leak(Box::new(Buffers::new()));
     spawn_local(async move {
         let who = Identity {
-            prefix: "minimeat",
+            prefix: "minimeater",
             id: "mm-it",
             sw: "0.1.0",
             hw: "A",

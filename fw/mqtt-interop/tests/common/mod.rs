@@ -1,7 +1,7 @@
 //! Shared by the interop tests.
 
 use embedded_io_adapters::tokio_1::FromTokio;
-use minimeat_app::net::Connector;
+use minimeater_app::net::Connector;
 use tokio::net::TcpStream;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
@@ -20,14 +20,14 @@ impl Connector for Tcp {
 }
 
 /// A status like a cook in progress.
-pub fn status(up_s: u64, sp: f64) -> minimeat_app::tasks::Status {
-    use minimeat_app::config::{Cook, Mode};
-    use minimeat_app::pit::{Output, Phase};
-    use minimeat_app::probes::ProbeSt;
-    use minimeat_app::tasks::{AutotuneInfo, Faults, Status};
-    use minimeat_core::control::Fire;
-    use minimeat_core::food::{Food, Stall};
-    use minimeat_core::model::airflow::Actuation;
+pub fn status(up_s: u64, sp: f64) -> minimeater_app::tasks::Status {
+    use minimeater_app::config::{Cook, Mode};
+    use minimeater_app::pit::{Output, Phase};
+    use minimeater_app::probes::ProbeSt;
+    use minimeater_app::tasks::{AutotuneInfo, Faults, Status};
+    use minimeater_core::control::Fire;
+    use minimeater_core::food::{Food, Stall};
+    use minimeater_core::model::airflow::Actuation;
     let cook = Cook {
         sp_f: sp,
         mode: Mode::Run,

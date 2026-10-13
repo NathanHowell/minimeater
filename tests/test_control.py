@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from minimeat.model.control import (
+from minimeater.model.control import (
     AirflowMap,
     FeedForward,
     Fopdt,
@@ -11,10 +11,10 @@ from minimeat.model.control import (
     Schedule,
     identify,
 )
-from minimeat.model.fans import FANS
-from minimeat.model.params import DEFAULT_EGG, DEFAULT_INTAKE, TOP_VENT, Ambient
-from minimeat.model.sim import Obs, air_flow, simulate
-from minimeat.model.units import CFM, f_to_k
+from minimeater.model.fans import FANS
+from minimeater.model.params import DEFAULT_EGG, DEFAULT_INTAKE, TOP_VENT, Ambient
+from minimeater.model.sim import Obs, air_flow, simulate
+from minimeater.model.units import CFM, f_to_k
 
 FAN = FANS[1]
 

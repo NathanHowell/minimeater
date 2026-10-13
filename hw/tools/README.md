@@ -1,13 +1,13 @@
 # PCB flow scripts
 
-How the board was placed and routed (first pass). Run from a scratch directory; paths inside are under `/tmp/minimeat-place/`.
+How the board was placed and routed (first pass). Run from a scratch directory; paths inside are under `/tmp/minimeater-place/`.
 
-1. `parts.py <out.json>`: reads `hw/minimeat.kicad_sch` and the footprint libraries, writes each reference's footprint and courtyard box.
+1. `parts.py <out.json>`: reads `hw/minimeater.kicad_sch` and the footprint libraries, writes each reference's footprint and courtyard box.
 2. `layout.py`: the hand-chosen zones, packed and overlap-checked against the courtyards; writes `pos.json` and a picture. The positions go into KiCad with the Konnect `set_component_placements` tool.
 3. Routing is done outside the live editor on a copy of the saved board, with KiCad's bundled Python (`pcbnew`) and Freerouting 2.4.1 (the jar from the KiCad plugin): `ExportSpecctraDSN`, `java -jar freerouting.jar -de x.dsn -do x.ses -mp 60`, `ImportSpecctraSES`.
 4. `gndvias.py <in> <out>` adds a via and stub for ground pads the router left off the plane; `finish.py <in> <out>` adds the top-side ground pour, full connection for small ground pads, island removal and silkscreen text tidy.
 
-The routed board replaces `hw/minimeat.kicad_pcb`; reload it in KiCad. Never edit the `.kicad_*` files by hand.
+The routed board replaces `hw/minimeater.kicad_pcb`; reload it in KiCad. Never edit the `.kicad_*` files by hand.
 
 Closing the last open items (v8): `islandvias.py <in> <out>` puts a ground via in every top-pour fragment that has none (checked against copper on all layers). TIP2/TIP3 at U9 were joined by hand: a 0.6 mm via and an In2 stub for TIP2, an F.Cu run for TIP3; TIP1's tail from R19 was rerouted to make room.
 
@@ -15,7 +15,7 @@ Probe bias rework (after the ngspice check, `docs/sim/probe-frontend.md`): `prob
 
 TMP117 isolation: `tmp117_keepout.py <in> <out> <dir>` drops the ground vias under the sensor, routes its two ground pins with traces to the ground via at C33 (F.Cu, with `maze3.py`) and adds a no-pour rule area (F.Cu, In1, B.Cu; tracks and vias allowed) over x 0.5-7.0 mm, y 50.9-53.6 mm, so the sensor follows the air at the louvre, not the board's ground planes. No board slot: J7 sits right above, and a slot would cost routing for little.
 
-Fab outputs: `uv run python hw/tools/fab.py` writes `hw/fab/minimeat-gerber.zip`, `minimeat-bom.csv` (JLC columns, only parts with an LCSC number; the KK headers and test points are listed as not assembled) and `minimeat-cpl.csv` (top side, KiCad's rotation and Y; check rotations of polarised parts, the USB-C, the module and the ADC in JLC's viewer when ordering).
+Fab outputs: `uv run python hw/tools/fab.py` writes `hw/fab/minimeater-gerber.zip`, `minimeater-bom.csv` (JLC columns, only parts with an LCSC number; the KK headers and test points are listed as not assembled) and `minimeater-cpl.csv` (top side, KiCad's rotation and Y; check rotations of polarised parts, the USB-C, the module and the ADC in JLC's viewer when ordering).
 
 Pre-fab review fixes (`power_rework.py <in> <out>`): D1 turned 180 degrees with its pads' nets swapped (the TVS was backwards: pin 1 is the cathode), and the power copper widened segment by segment to the widest that keeps 0.2 mm to everything else (VBUS_RAW, VBUS_F, VSERVO, VFAN, the switch node up to 0.8 mm; 3V3 to 0.4 mm). Short pad necks and the crowded In2 stretches stay at 0.2 mm; order 1 oz inner copper.
 
@@ -23,7 +23,7 @@ Rerouting the narrow power stretches (`reroute_power.py <in> <out>`, run from `h
 
 Net names: the seven auto-named nets got schematic labels (`LED_A`, `3V3A_FILT`, `BUCK_SW`, `VBUS_LDO`, `SERVO_ILIM`, `FAN_ILIM`, `ADC_RESET`); `rename_nets.py <in> <out>` gives the board the same names. The pins left as `unconnected-(...)` are the deliberate no-connects.
 
-DRC: `hw/minimeat.kicad_dru` relaxes `hole_clearance` to 0.19 mm for J1 only. The GCT USB4105-GF-A land pattern puts its four GND pads 0.1944 mm from the connector's two locating pegs; the board default stays 0.25 mm. DRC is now error-free (warnings only: library drift, silk). JLCPCB's DFM check at order time may still note the 0.19 mm copper-to-NPTH gap; it is the vendor's pattern.
+DRC: `hw/minimeater.kicad_dru` relaxes `hole_clearance` to 0.19 mm for J1 only. The GCT USB4105-GF-A land pattern puts its four GND pads 0.1944 mm from the connector's two locating pegs; the board default stays 0.25 mm. DRC is now error-free (warnings only: library drift, silk). JLCPCB's DFM check at order time may still note the 0.19 mm copper-to-NPTH gap; it is the vendor's pattern.
 
 After "Update PCB from Schematic" (U1's antenna keepout arrived, 3D models were missing): `antenna_keepout.py <in> <out>`, then `islandvias.py`. It moves the I2C_SDA via 0.3 mm out of the keepout (y 50.2, between U1's pad 28 and the keepout), adds U1's 3D model, gives the four PJ-242 their lifted model, restores the full zone connection on the GND pads that the update reset to the zone default (without it 5 pads read as unconnected and 7 thermals starve) and refills the pours. DRC afterwards: errors none; the parity warnings are the 49 missing LCSC/Assembly fields and the six mounting/fiducial parts the schematic doesn't carry (as before).
 

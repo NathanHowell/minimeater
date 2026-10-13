@@ -8,7 +8,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 
 | What | Qty | Files | Notes |
 |---|---|---|---|
-| Board, 4 layers, with SMT assembly | 5 | `hw/fab/minimeat-gerber.zip`, `hw/fab/minimeat-bom.csv`, `hw/fab/minimeat-cpl.csv` | Every part in the BOM is a JLC part in stock (checked when each was chosen, `docs/parts/electronics-shortlist.md`); check stock again at order time. All SMT is on the top side. The fan and servo headers, and the test points, are not assembled (section 3). |
+| Board, 4 layers, with SMT assembly | 5 | `hw/fab/minimeater-gerber.zip`, `hw/fab/minimeater-bom.csv`, `hw/fab/minimeater-cpl.csv` | Every part in the BOM is a JLC part in stock (checked when each was chosen, `docs/parts/electronics-shortlist.md`); check stock again at order time. All SMT is on the top side. The fan and servo headers, and the test points, are not assembled (section 3). |
 
 ## 2. Mechanical hardware
 

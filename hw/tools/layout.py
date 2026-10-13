@@ -1,5 +1,5 @@
 import json, sys, itertools
-D = json.load(open('/tmp/minimeat-place/parts.json'))
+D = json.load(open('/tmp/minimeater-place/parts.json'))
 W, H = 46.0, 54.0
 GAP = 0.25
 pos = {}   # ref -> (x, y, rot)
@@ -116,7 +116,7 @@ for (a, ba), (b, bb) in itertools.combinations(boxes.items(), 2):
 outside = [r for r, b in boxes.items() if b[0] < -2 or b[1] < -0.01 or b[2] > W + 3 or b[3] > H + 3.1 and r != 'U1' or (r != 'U1' and b[3] > H - 0.3)]
 print('overlaps', bad)
 print('outside', [(r, [round(v, 2) for v in boxes[r]]) for r in outside if r not in ('J1',)])
-json.dump({r: pos[r] for r in pos}, open('/tmp/minimeat-place/pos.json', 'w'))
+json.dump({r: pos[r] for r in pos}, open('/tmp/minimeater-place/pos.json', 'w'))
 # picture
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -127,4 +127,4 @@ for r, b in boxes.items():
     ax.add_patch(Rectangle((b[0], b[1]), b[2] - b[0], b[3] - b[1], fill=True, alpha=.35, ec='k', lw=.5, fc='tab:red' if any(r in p for p in bad) else 'tab:blue'))
     ax.text((b[0] + b[2]) / 2, (b[1] + b[3]) / 2, r, ha='center', va='center', fontsize=4.5)
 ax.set_xlim(-2, W + 2); ax.set_ylim(H + 5, -3); ax.set_aspect('equal')
-fig.savefig('/tmp/minimeat-place/layout.png', dpi=140, bbox_inches='tight')
+fig.savefig('/tmp/minimeater-place/layout.png', dpi=140, bbox_inches='tight')
