@@ -29,3 +29,17 @@ Datasheet SLVSDG1C section 10, figure 20 (DBV):
 - EN is tied to VIN under the package body (0.25 mm, 0.35 mm from both pin rows): no via.
 - FB is a signal: R3/C7/R4 sit below, away from SW; FB drops straight from pin 5. The 3V3 sense runs from C6's pad
   round the outside of the block (as figure 20's sense trace), so it reads the output capacitor and never passes SW.
+
+## U5 TLV75533P analog LDO (3V3A), origin (40, 75)
+
+![U5](u5.png)
+
+Datasheet SBVS320D section 7.4, figure 7-7 (DBV), at the footprint's own orientation: IN top left, OUT top right,
+GND left middle, EN bottom left, NC bottom right.
+
+- Cin (C8, 1 uF) and Cout (C9 1 uF, then C15 100 nF) right at their pins, as close as the courtyards allow.
+- C8's ground pad sits beside pin 2, joined on top: the input loop closes on F.Cu without going through a via.
+- The ground fill wraps under the package from C8 to C9/C15 (figure 7-7's ground plane), with a via at each end.
+- FB1 (from VBUS_F) feeds the VBUS_LDO fill at the far left, so VBUS_F arrives from outside the block.
+- EN is tied to IN under the package body, as on U4. NC (pin 4) is left unconnected.
+- FB2, R18 and C27/C28 (the VREF_PROBE filter) belong to the ADC end of 3V3A and go in the U8 block.
