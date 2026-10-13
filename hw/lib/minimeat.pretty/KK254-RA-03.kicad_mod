@@ -1,0 +1,179 @@
+(footprint "KK254-RA-03"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Molex KK 254 22-05-3031 right-angle header, 3 circuits, plug toward -x; pin 1 at the origin, pins toward -y")
+	(property "Reference" "REF**"
+		(at -4.3 -2.54 0)
+		(layer "F.Fab")
+		(uuid "95b81a3e-6a3a-4286-b4d3-f5f9b127740c")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Value" "22-05-3031"
+		(at -4.3 -0.94 0)
+		(layer "F.Fab")
+		(uuid "e4387c40-f630-4477-a4db-58993a07968a")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "dddda46f-34d5-491f-aba8-abec5953c497")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "11f96d92-f530-4373-8f94-13b6190e1b6c")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -6.16 -6.6)
+		(end 1 -6.6)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "2767f599-c6d6-43ce-8bac-8ac16c05a037")
+	)
+	(fp_line
+		(start -6.16 1.52)
+		(end -6.16 -6.6)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "82f18534-3ae0-46f4-9eb9-7de3db2c8ded")
+	)
+	(fp_line
+		(start 1 -6.6)
+		(end 1 1.52)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "1716cdc1-63eb-4506-9e25-4a96ac7069ca")
+	)
+	(fp_line
+		(start 1 1.52)
+		(end -6.16 1.52)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "79132d39-a9e4-47ff-80df-ffa8424a3ef3")
+	)
+	(fp_line
+		(start -5.91 -6.35)
+		(end -2.73 -6.35)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "1c03bffe-1dd4-4685-90d8-2152dc23b1eb")
+	)
+	(fp_line
+		(start -5.91 1.27)
+		(end -5.91 -6.35)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "3ed62efc-6440-4caf-b37e-236565c6771d")
+	)
+	(fp_line
+		(start -2.73 -6.35)
+		(end -2.73 1.27)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "dcb6fc69-f7af-45a4-84df-e696ea473c23")
+	)
+	(fp_line
+		(start -2.73 1.27)
+		(end -5.91 1.27)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "53384125-0bfc-4fc1-ba1b-c1740af5d456")
+	)
+	(fp_text user "1"
+		(at -4.3 1.9 0)
+		(layer "F.Fab")
+		(uuid "13972cc4-1e11-4d34-aa75-3e6f7fe3d893")
+		(effects
+			(font
+				(size 1 1)
+			)
+		)
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 2.19 1.74)
+		(drill 1.19)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(thermal_bridge_angle 45)
+		(uuid "b6c225f1-b276-484e-9d8b-bad2bae081fc")
+	)
+	(pad "2" thru_hole oval
+		(at 0 -2.54)
+		(size 2.19 1.74)
+		(drill 1.19)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(thermal_bridge_angle 45)
+		(uuid "53f4b909-0433-4328-8cfb-bf6f79aef8fc")
+	)
+	(pad "3" thru_hole oval
+		(at 0 -5.08)
+		(size 2.19 1.74)
+		(drill 1.19)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(thermal_bridge_angle 45)
+		(uuid "bec4f262-75d3-43e3-9d57-2fccdfec478a")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/lib/3d/KK254-RA-03.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

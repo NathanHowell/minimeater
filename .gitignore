@@ -23,3 +23,4 @@ hw/minimeat_models.*
 
 # KiCad auto-backups
 hw/minimeat-backups/
+hw/_autosave-*

@@ -15539,7 +15539,7 @@
 				)
 			)
 		)
-		(property "Value" "22-23-2031"
+		(property "Value" "22-05-3031"
 			(at 368.3 236.22 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15549,7 +15549,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical"
+		(property "Footprint" "minimeat:KK254-RA-03"
 			(at 368.3 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -15593,7 +15593,7 @@
 				)
 			)
 		)
-		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-23-2031)"
+		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-05-3031)"
 			(at 368.3 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -23199,7 +23199,7 @@
 				)
 			)
 		)
-		(property "Value" "22-23-2041"
+		(property "Value" "22-05-3041"
 			(at 254 233.68 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23209,7 +23209,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_KK-254_AE-6410-04A_1x04_P2.54mm_Vertical"
+		(property "Footprint" "minimeat:KK254-RA-04"
 			(at 254 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -23253,7 +23253,7 @@
 				)
 			)
 		)
-		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-23-2041)"
+		(property "LCSC" "N/A hand-solder (Mouser/Digi-Key 22-05-3041)"
 			(at 254 241.3 0)
 			(hide yes)
 			(show_name no)

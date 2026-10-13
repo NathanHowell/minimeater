@@ -41,8 +41,8 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 
 | Part | Per unit | For 5 | Notes |
 |---|---|---|---|
-| Molex KK 254 header, 4 positions, 22-23-2041 | 1 | 5 + 2 | Fan. JLC's copy is out of stock, so this is Mouser or Digi-Key; left unpopulated in the JLC assembly. |
-| Molex KK 254 header, 3 positions, 22-23-2031 | 1 | 5 + 2 | Servo. Same. |
+| Molex KK 254 header, right angle, 4 positions, 22-05-3041 | 1 | 5 + 2 | Fan. Hand-soldered from the board's back, not in the JLC assembly; the plug enters toward the rear edge. |
+| Molex KK 254 header, right angle, 3 positions, 22-05-3031 | 1 | 5 + 2 | Servo. Same. |
 
 ## 4. To use the box
 

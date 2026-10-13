@@ -13,7 +13,7 @@ Companion to `docs/ordering.md` (what and how many). Researched 2026-10-12 from 
 | Hitec HS-5065MG servo | Horizon Hobby HRC35065S ($37.99); Aloft Hobbies ($31.50); MotionRC | | Several US hobby shops list it. |
 | Secraft 15 mm aluminium arm, Hitec 24T | Gator RC, SE-SA-100 ($3.50) | | **Only 2 were listed in stock** and no other retailer was found: buy 5 + 1 now, or choose a second source. |
 | Noctua NF-A6x25 5V PWM | (US retailers not confirmed) PCCaseGear, QuietPC and others abroad | NF-A6x25-5V-PWM | Search Amazon, Newegg, B&H, Noctua's own store. |
-| Molex KK header 22-23-2041 (4P) and 22-23-2031 (3P) | Mouser, Digi-Key, Heilind, Farnell, RS | | Both listed as in production; Octopart shows about $0.13 each. |
+| Molex KK header, right angle, 22-05-3041 (4P) and 22-05-3031 (3P) | Mouser, Digi-Key, Heilind, Farnell, RS | | Right angle so the plugs lie flat under the board (the vertical 22-23 parts are 11.8 mm tall). Molex's STEP files are in `hw/lib/3d` (turned into the footprint frame by `hw/tools/kk_ra_step.py`). Stock not checked. |
 | Loctite 641 | Grainger, HISCO (50 ml), TestEquity, Amazon; Silmid (EU, 10 ml €10.73) | 641 | 10 ml is plenty. HISCO has a 10-bottle minimum: buy the 10 ml elsewhere. |
 
 ## Found, but not settled
