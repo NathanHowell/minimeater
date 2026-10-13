@@ -109,3 +109,28 @@ join down the middle and leave to a via on each side.
 The summary datasheet (DS40002239B) gives no layout guidance; standard practice: C34 (100 nF) beside VCC (pin 8)
 with its own ground via, GND (pin 4) to a via at its outer end. NC pins 1-3, 7 left open. SDA/SCL (5, 6) leave to
 the right toward the bus; the pull-ups (R14/R15) sit with the MCU.
+
+## U8 ADS122C04 probe ADC, origin (80, 102)
+
+![U8](u8.png)
+
+Datasheet SBAS751B section 11, figure 83 (TSSOP turned 180 degrees as in the figure: REFP/AIN1/AIN0/AVDD/DVDD/
+DRDY/SDA/SCL down the left, REFN/AIN2/AIN3/AVSS/DGND/RESET/A1/A0 down the right). Block: U8, C24-C26, R17, the
+VREF_PROBE filter (FB2, R18, C27, C28), the four 0.1% bias resistors (R23-R26) and the input RC filters
+(R19-R22, C29-C32).
+
+- Analog and digital apart: inputs and reference at the top (toward the jacks), DRDY/SDA/SCL leave at the bottom
+  (toward the MCU), SDA and DRDY under the package body.
+- Input filters as in the figure: each channel's 1k (R19-R22) vertical from its TIP node, the 100 nF (C29-C32)
+  beside the AIN node with its own ground via, then a 45 degree run into the pin. The two runs per side are
+  0.65 mm apart (0.46 mm square to the lines), which keeps the Analog 0.25 mm clearance.
+- Reference: C28 sits right across REFP and REFN (the figure's cap between them), both reached under the package
+  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk above feeds C28, C27 (10 uF, via in its
+  ground pad) and the R18/FB2 filter from 3V3A.
+- Bias resistors: R24/R25 (inner channels) hang straight off the trunk. R23/R26 (outer channels) are boxed in by
+  the inner channels' TIP lines, so VREF_PROBE reaches them over In2 (3 vias on a decoupled DC rail) and every
+  protected TIP line stays straight on F.Cu. The In2 hop runs at y 95.9, clear of the C30/C31 ground vias
+  (through vias exist on every layer).
+- "Do not place vias between bypass capacitors and the device": C25 (100 nF) and C26 (1 uF) on AVDD, C24 on DVDD,
+  each joined to its pin by a trace on F.Cu, ground vias on the far side.
+- AVSS/DGND (5, 4) and A1/A0 (2, 1, address 0x40) pair up to a ground via each; RESET to R17 (pull-up).
