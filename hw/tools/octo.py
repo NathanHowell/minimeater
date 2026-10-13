@@ -34,6 +34,7 @@ LAYERS = (pcbnew.F_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)  # In1 is the ground plane: n
 HOLE_KEEP = {pcbnew.F_Cu: 2.9, pcbnew.In2_Cu: 1.6, pcbnew.B_Cu: 2.5}  # mounting holes: standoff (F), hole, screw head (B)
 POUR_LAYERS = (pcbnew.F_Cu, pcbnew.B_Cu)
 SPOKE_ROOM = 0.8
+BREATHE, BREATHE_COST = 0.5, 4.0  # around SMD GND pads on the poured layers: a step there costs 1 + 4 times as much
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 
 
@@ -69,6 +70,7 @@ class Router:
         s.code = {L: np.zeros((s.nx, s.ny), np.int32) for L in LAYERS}  # pads and holes (fixed)
         s.tcode = {L: np.zeros((s.nx, s.ny), np.int32) for L in LAYERS}  # tracks and vias
         s.keep = {L: np.zeros((s.nx, s.ny), bool) for L in LAYERS}  # rule areas without tracks
+        s.ring = {L: np.zeros((s.nx, s.ny), bool) for L in LAYERS}  # mounting-hole keep-outs beyond the pad
         for fp in b.GetFootprints():
             for z in fp.Zones():
                 if z.GetIsRuleArea() and z.GetDoNotAllowTracks():
@@ -87,10 +89,24 @@ class Router:
                 s.draw_pad(p)
             if fp.GetReference().startswith("H"):
                 c = fp.GetPosition()
+                inner = max([max(M(p.GetSize(L).x), M(p.GetSize(L).y)) / 2 for p in fp.Pads() for L in LAYERS] + [0.0]) + 0.05
                 for L in LAYERS:
                     s.disc(s.code[L], M(c.x), M(c.y), HOLE_KEEP[L], -1)
+                    s.disc(s.ring[L], M(c.x), M(c.y), HOLE_KEEP[L], True)  # the keep-out past the hole's pad
+                    s.disc(s.ring[L], M(c.x), M(c.y), inner, False)
         for t in b.GetTracks():
             s.draw_track(t, t.GetNetCode())
+        s.breathe = {L: np.zeros((s.nx, s.ny), bool) for L in LAYERS}  # round SMD GND pads that take the pour
+        for fp in b.GetFootprints():
+            for p in fp.Pads():
+                if p.GetNetname() == "GND" and not p.HasHole():
+                    for L in POUR_LAYERS:
+                        if p.IsOnLayer(L):
+                            ps = p.GetEffectivePolygon(L, pcbnew.ERROR_OUTSIDE)
+                            ps = ps.CloneDropTriangulation() if hasattr(ps, "CloneDropTriangulation") else pcbnew.SHAPE_POLY_SET(ps)
+                            ps.Inflate(F(BREATHE), pcbnew.CORNER_STRATEGY_ROUND_ALL_CORNERS, F(0.005))
+                            for poly in polyset_pts(ps):
+                                s.fill(s.breathe[L], poly, True)
 
     # --- raster ---
     def grid(s, i0, j0, i1, j1):
@@ -162,9 +178,10 @@ class Router:
             if t.GetNetCode() == net:
                 s.draw_track(t, net)
 
-    def free(s, net, L, width, box, vias=False, ignore=()):
+    def free(s, net, L, width, box, vias=False, ignore=(), rings=True):
         """Boolean free-centreline mask over the window `box` (i0, j0, i1, j1) for a track (or via) of `width`;
-        tracks and vias of the nets in `ignore` do not count."""
+        tracks and vias of the nets in `ignore` do not count; with `rings` False, neither do the mounting-hole
+        keep-outs beyond the hole's pad (standoff and screw head room, wider than the rules)."""
         i0, j0, i1, j1 = box
         need = CLR + width / 2 + MARGIN
         k = int(need / G) + 3
@@ -172,7 +189,10 @@ class Router:
         foreign = np.zeros((a1 - a0, b1 - b0), bool)
         for LL in (LAYERS if vias else (L,)):
             c = s.code[LL][a0:a1, b0:b1]
-            foreign |= (c != 0) & (c != net)
+            f1 = (c != 0) & (c != net)
+            if not rings:
+                f1 &= ~s.ring[LL][a0:a1, b0:b1]
+            foreign |= f1
             c = s.tcode[LL][a0:a1, b0:b1]
             f2 = (c != 0) & (c != net)
             if len(ignore):

@@ -70,6 +70,7 @@ class Lattice:
         s.na, s.nb = (hard[0].shape[0] - 1) // S, (hard[0].shape[1] - 1) // S
         na, nb = s.na, s.nb
         s.node = [h[: na * S : S, : nb * S : S].copy() for h in hard]
+        s.breathe = [r.breathe[L][i0: i0 + na * S: S, j0: j0 + nb * S: S] for L in LAYERS]
         s.cost = cost(s) if cost else None  # ([per-layer node factor], via node factor), arrays (na, nb)
         # moves: source node (a, b) to (a + da, b + db) needs the target node and the raster cell between free
         s.move = []
@@ -110,6 +111,7 @@ class Lattice:
                 cost = np.full(src.shape, S * G * (SQ2 if da and db else 1.0) * LCOST[li])
                 if s.cost is not None:
                     cost *= s.cost[0][li].ravel()[dst]
+                cost *= 1 + octo.BREATHE_COST * s.breathe[li].ravel()[dst]  # leave the pour a way to SMD GND pads
                 rows.append(src + li * plane); cols.append(dst + li * plane); w.append(cost)
         v = np.array(s.via, bool) & np.array(s.node_l[0], bool)
         for l1 in range(3):
@@ -456,3 +458,50 @@ def pull_tight(r, nets, widths, log=print):
                     r.replace(c, pts)
                     k += 1
     log(f"pulled tight: {k} chains ({time.time() - t0:.1f} s)")
+
+
+def repair_fixed(r, nets, flagged, log=print):
+    """After a placement move: each chain of the fixed (not rerouted) nets in `nets` holding a track in `flagged`
+    (uuids DRC reports, with the signal nets already ripped up) is routed again on its layer between its ends, at its
+    width or narrower down to 0.2 mm; a flagged GND via is dropped (the pours and `islandvias.py`/`gndfan.py` stitch
+    again). Returns the chains it could not repair."""
+    b = r.b
+    gnd = b.FindNet("GND").GetNetCode()
+    dropped = []
+    for v in [t for t in b.GetTracks() if t.Type() == pcbnew.PCB_VIA_T and t.GetNetCode() == gnd]:
+        if v.m_Uuid.AsString() in flagged:
+            dropped.append((M(v.GetPosition().x), M(v.GetPosition().y)))
+            log(f"  GND via at ({dropped[-1][0]:.2f}, {dropped[-1][1]:.2f}) dropped")
+            b.RemoveNative(v)
+    for L in LAYERS:  # the stub that ran to a dropped via goes too (its pad has the pour)
+        for c in r.chains(gnd, L):
+            if any(math.hypot(e[0] - d[0], e[1] - d[1]) < 1e-3 for e in (c["pts"][0], c["pts"][-1]) for d in dropped):
+                for t in c["tracks"]:
+                    b.RemoveNative(t)
+                log(f"  GND stub to a dropped via removed")
+    r.redraw_net(gnd)
+    bad = []
+    for n in nets:
+        for L in LAYERS:
+            for c in r.chains(n, L):
+                if not any(t.m_Uuid.AsString() in flagged for t in c["tracks"]):
+                    continue
+                name = c["tracks"][0].GetNetname()
+                for w in [c["width"]] + [w for w in (0.5, 0.4, 0.3, 0.2) if w < c["width"]]:
+                    p0, p1 = c["pts"][0], c["pts"][-1]
+                    pts = r.route(n, L, w, p0, p1, margin=4.0)
+                    if pts is None:  # an end in a mounting hole's standoff ring (plastic, over mask): as the rules allow
+                        box = r.win(min(p0[0], p1[0]) - 4.0, min(p0[1], p1[1]) - 4.0, max(p0[0], p1[0]) + 4.0, max(p0[1], p1[1]) + 4.0)
+                        mask = r.free(n, L, w, box, rings=False)
+                        X, Y = r.grid(*box)
+                        for p in (p0, p1):  # and the chain's own ends (copper already there; DRC judges)
+                            mask |= np.hypot(X - p[0], Y - p[1]) < 0.3
+                        pts = r.route(n, L, w, p0, p1, margin=4.0, mask=mask)
+                    if pts is not None:
+                        r.replace(c, pts, width=w)
+                        log(f"  {name} on {b.GetLayerName(L)}: rerouted at {w} mm (was {c['width']})")
+                        break
+                else:
+                    bad.append((name, b.GetLayerName(L), c["pts"][0], c["pts"][-1]))
+                    log(f"  {name} on {b.GetLayerName(L)}: no repair from {c['pts'][0]} to {c['pts'][-1]}")
+    return bad
