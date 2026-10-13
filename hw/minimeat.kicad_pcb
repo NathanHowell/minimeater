@@ -21316,6 +21316,94 @@
 		(layer "Edge.Cuts")
 		(uuid "35a01d95-2095-4fc4-9310-a2a041f68c19")
 	)
+	(gr_text "VBUS_F"
+		(at 27 23.9 0)
+		(layer "F.SilkS")
+		(uuid "a39f4b62-7a74-479d-94ea-f01063908bec")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "3V3"
+		(at 30 27.7 0)
+		(layer "F.SilkS")
+		(uuid "9dbd3b27-86fb-4c08-9e5b-1e9b6046c9d7")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "3V3A"
+		(at 33 23.9 0)
+		(layer "F.SilkS")
+		(uuid "9d29b8a2-1c4e-47a6-9713-a5067021891b")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "EN"
+		(at 34.6 39.9 0)
+		(layer "F.SilkS")
+		(uuid "64551a0f-2c3a-4d6c-98a0-dba7f5e9d3d8")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "GND"
+		(at 36 23.9 0)
+		(layer "F.SilkS")
+		(uuid "76d7fa49-27d8-4f42-90fa-9fa6ad260bc2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "GND"
+		(at 39.4 39.3 0)
+		(layer "F.SilkS")
+		(uuid "685b1f8d-6641-4f99-8695-99e94bffb7be")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "UART_TX"
+		(at 41.2 44.9 0)
+		(layer "F.SilkS")
+		(uuid "f1049939-1df1-4a1a-ae58-1495aeaedcb9")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(gr_text "UART_RX"
+		(at 44.45 39.5 90)
+		(layer "F.SilkS")
+		(uuid "66d5d03d-1af1-41d3-a0e1-53953ed3ac9a")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
 	(segment
 		(start 13.7125 9.0136)
 		(end 13.7125 13.9)
