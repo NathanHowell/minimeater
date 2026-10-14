@@ -80,13 +80,33 @@ the J1 side on 6/4 and the MCU side on 1/3 so the lines flow straight through. T
 - The J1 fan-out (merging D+ B6/A6 and D- A7/B7 with the In2 hop for the crossing, the CC lines, VBUS) is drawn when
   the block goes behind J1; see bead minimeat-bk4 for the planned geometry.
 
-## VBUS entry: D1, F1, C1-C3, origin (110-121, 75)
+## VBUS entry: D1, F1, C1-C3, origin (110-121, 75) (F1 since replaced by U12, below)
 
 ![VBUS entry](vbus_entry.png)
 
 D1 (SMF5V0A TVS) on VBUS_RAW at the input, then F1 (PTC), then the VBUS_F bulk: C3 100 nF, C2 10 uF, C1 100 uF,
 all on one fill per net with their ground pads on a common ground strip. Vias in the ground pads (D1, C2, two in
 C1's) and one beside C3. In placement D1 goes as close to J1's VBUS pads as it can.
+
+## U12 TPS259531 eFuse, on the board where F1 was (minimeat-8s2)
+
+![U12](u12-efuse.png)
+
+Replaces the F1 PTC between VBUS_RAW and VBUS_F (docs/sim/power.md: soft start, 5.7 V output clamp, 2.04 A limit).
+Laid out on the board directly (one IC, five passives). Datasheet SLVSE57C section 11, figure 68, reproduced in its
+own orientation (rotation 0): pin 1 top left, IN 3/4 lower left, OUT 5 lower right, GND 8 top right.
+
+- IN on the VIN fill: VIN_RAW now steps right under pins 3/4. OUT on its own fill (U12_OUT, priority 3), widened
+  right under R35 and dropping into U7_IN, so the current path is copper, not pins and traces ("short, sized for twice
+  the load").
+- GND at the device: the exposed pad has two 0.6/0.3 vias to the In1 plane (clear of the In2 VBUS_F run at x 3.85-4.85);
+  pin 8 and the exposed pad share a solid GND fill (U12_GND_TOP, priority 4) that also takes the support parts' ground
+  ends, the figure's "power ground".
+- Support parts at their pins, ends to the device's ground: C42 dVdt (10 nF) straight up from pin 1; the EN divider
+  left of the part as in the figure, R33 100k to VIN (sitting in the VIN_RAW fill) and R34 43.2k up to ground; R35
+  ILM 1k to the right of pin 7. EN (pin 2) is boxed in by pin 1, pin 3 and the pad, so it leaves left along its row.
+- C41 100 nF from IN to ground right under pins 3/4 (the "high frequency bypass" of the figure); FLT (6) open.
+- Zones were reshaped and the redundant ones removed with KiCad closed through its python API; DRC: no errors.
 
 ## U9 TPD4E05U06 probe ESD, origin (20, 95)
 

@@ -22,13 +22,6 @@ def test_plug_in_settles_within_a_conversion():
         assert F.settle_f("bias_at_tip", p, 225)[0] < 0.05
 
 
-def test_hot_plug_stays_inside_the_6v_limit_with_a_normal_cable():
-    from minimeater.sim import power as W
-
-    assert W.hotplug(W.HotPlug(1e-6, 0.2, "derated"))["vbus_f_peak"] < 5.5
-    assert W.hotplug(W.HotPlug(1e-6, 0.1, "derated"))["vbus_f_peak"] < 6.0  # 1 m cable, 0.1 ohm round trip; at 0.05 ohm and 2 uH it rings to 7 V (docs/sim/power.md)
-
-
 def test_servo_inrush_keeps_the_rail_up():
     from minimeater.sim import power as W
 
@@ -79,11 +72,15 @@ def test_fan_load_switch_runs_cool():
     assert FN.load_switch()["rise_run"] < 2.0
 
 
-def test_snubber_footprint_damps_the_hot_plug():
+def test_efuse_holds_vbus_f_under_the_6v_parts_and_limits_attach_charge():
+    """U12 instead of the PTC: no cable ringing reaches VBUS_F, and a plug-in draws a few uC at attach (USB's guideline
+    is 50 uC) instead of the 100 uF's 0.3-0.6 mC."""
     from minimeater.sim import power as W
 
-    for l, r in ((2e-6, 0.05), (2e-6, 0.1), (1e-6, 0.05)):
-        bare = W.hotplug(W.HotPlug(l, r, "derated"))["vbus_f_peak"]
-        damped = W.hotplug(W.HotPlug(l, r, "derated", snubber=W.SNUBBER))["vbus_f_peak"]
-        assert damped < bare - 0.5
-    assert W.hotplug(W.HotPlug(1e-6, 0.05, "derated", snubber=W.SNUBBER))["vbus_f_peak"] < 6.0
+    for l, r in ((0.25e-6, 0.05), (1e-6, 0.05), (2e-6, 0.05), (2e-6, 0.1)):
+        for caps in ("nominal", "derated"):
+            h = W.hotplug(W.HotPlug(l, r, caps))
+            assert h["vbus_f_peak"] < 5.5
+            assert h["vbus_raw_peak"] < 10.0  # the eFuse's input is rated 20 V; D1 clamps it near 7
+            assert h["charge_100us"] < 10e-6
+            assert h["i_peak_after_100us"] < 1.0  # the soft start's charging current
