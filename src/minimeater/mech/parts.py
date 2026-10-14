@@ -14,6 +14,7 @@ from build123d import (
     Cylinder,
     Plane,
     Sphere,
+    Torus,
     Polyline,
     Pos,
     Rot,
@@ -194,14 +195,17 @@ def duct():
 
 
 def flap():
-    """Butterfly flap, machined (stainless or aluminium): a disc with a square rib along the shaft axis (Z), open =
+    """Butterfly flap, machined (stainless or aluminium): a disc with a full-round edge and a round-ended rib along the shaft axis (Z), open =
     parallel to the flow, a D-bore for the rod's flat (retaining compound), no thread. The disc is centred on the
     rib (`Damper.rib_both_sides`; False puts it flush with the rib's bottom face, cut from plate with the rib standing on it)."""
     dm = P.damper
     off = dm.disc_off  # the disc centre is this far from the shaft axis
     r = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - off**2)  # its edge stays within the gap at every angle
     xf = g.flap_x
-    disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * Cylinder(r, dm.flap_t, align=(C, C, C))
+    if dm.edge_round:  # a full round: a cylinder to the round's centre circle and a torus around it
+        disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * (Cylinder(r - dm.flap_t / 2, dm.flap_t, align=(C, C, C)) + Torus(r - dm.flap_t / 2, dm.flap_t / 2))
+    else:
+        disc = Pos(xf, -off, 0) * Rot(90, 0, 0) * Cylinder(r, dm.flap_t, align=(C, C, C))
     rr = min(dm.rib_round, dm.rib_t / 2, dm.rib_w / 2)  # the rib's section is a stadium: round ends facing and leaving the flow
     xe = dm.rib_w / 2 - rr
     rib = box(xf - xe, xf + xe, -dm.rib_t / 2, dm.rib_t / 2, -r, r)

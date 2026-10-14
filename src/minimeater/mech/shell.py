@@ -250,8 +250,9 @@ def bay_walls():
 
 
 def drip_lip():
-    """A ridge under the eave's outer edge, so water running down the flank drips clear of the ports."""
-    return box(BAY_X0 - 1.0, BAY_X1 + 1.0, -G.FULL_W / 2 - 0.3, -G.FULL_W / 2 + 1.0, BAY_Z1 - 1.5, BAY_Z1 + 0.5)
+    """A ridge under the eave's outer edge, so water running down the flank drips clear of the ports. It stops at
+    the bay's front end: running on to where the flank curves in, its end left the pan's mesh open (minimeat-4lg)."""
+    return box(BAY_X0 - 1.0, BAY_X1, -G.FULL_W / 2 - 0.3, -G.FULL_W / 2 + 1.0, BAY_Z1 - 1.5, BAY_Z1 + 0.5)
 
 
 # --- fixings and locators ---------------------------------------------------------------------------------------
@@ -264,6 +265,17 @@ LAP = 1.2  # the rear wall's lip at the parting plane
 
 def boss_points():
     return [(x, s * y, d) for (x, y), d in ((FRONT_BOSS, S.boss_d), (REAR_BOSS, REAR_BOSS_D)) for s in (-1, 1)]
+
+
+PIN_RELIEF = 1.2  # the horn pin's head to the hood's roof, open, where the roof's corner round comes down to it (0.5 without)
+
+
+def pin_relief():
+    """A pocket in the roof's underside over the horn pin's head at the open position, under the roof's corner round
+    (the crank pin's, under the crown, has 2.7 mm). A teardrop pointed +x: it prints nose up; its ceiling is vertical."""
+    L = P.linkage
+    top = G.COUPLER_Z1 + L.pin_head_h + PIN_RELIEF
+    return teardrop_z(g.flap_x - L.arm_r, G.SERVO_Y, L.pin_head_d / 2 + PIN_RELIEF, G.COUPLER_Z1, top, toward=1)
 
 
 def rear_lip(clear=0.0):
@@ -371,6 +383,7 @@ def hood():
         h -= teardrop_z(x, y, pilot, S.z_part + 0.1, S.z_part + S.screw_engage + 0.5, toward=1)
     h -= rear_lip(0.2)
     h -= rebate()
+    h -= pin_relief()
     h += rib()
     return h
 

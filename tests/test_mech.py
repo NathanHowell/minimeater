@@ -52,12 +52,37 @@ def test_linkage_is_a_parallelogram():
 def test_rod_stands_above_the_crank_and_under_the_bar():
     """The rod's end is gripable (0.2 to 0.4 mm over the crank's top with a +-0.1 cut) and clears the coupler, which
     lies over it when the flap is closed, by at least 0.5 mm; the pin heads stay 1.5 mm under the roof's nominal underside
-    (measured on the hood: 1.0 mm over the crank pin's sweep and 0.4 mm over the horn pin's, where the roof curves down; see docs/mech.md)."""
+    (on the hood itself see test_the_hood_clears_the_pin_heads)."""
     top = mock.rod().bounding_box().max.Z
     assert 0.2 <= top - G.ARM_Z1 <= 0.4
     assert G.COUPLER_Z0 - (top + 0.1) >= 0.5 - 1e-9
     assert P.shell.roof_in - (G.COUPLER_Z1 + P.linkage.pin_head_h) >= 1.5
     assert abs(G.COUPLER_Z1 - G.BOSS_Z0 + 0.1 - P.linkage.shoulder_len) < 1e-9  # the shoulder is 0.1 longer than the bar and its boss
+
+
+@pytest.mark.parametrize("deg", [0, 5, 10, 45, 90])
+def test_the_hood_clears_the_pin_heads(deg):
+    """1.2 mm or more from the roof to both shoulder screws' heads over the travel: open, the horn pin is under the roof's
+    corner round (0.5 mm without the hood's relief over it), closed, both are under the curve down to the nose."""
+    from minimeater.mech import shell
+
+    hood = _hood()
+    pin_c, pin_h = mock.pins()
+    assert hood.distance_to(A.about_shaft(pin_c, deg)) >= 1.15
+    assert hood.distance_to(A.about_servo(pin_h, deg)) >= 1.15
+    relief = shell.pin_relief()
+    assert min(f.distance_to(relief) for f in shell.outer().faces()) >= 1.2  # the roof left over it
+
+
+_HOOD = []
+
+
+def _hood():
+    from minimeater.mech import shell
+
+    if not _HOOD:
+        _HOOD.append(shell.hood())
+    return _HOOD[0]
 
 
 def test_shelf_pilots_are_under_the_servos_screw_holes():
@@ -129,6 +154,23 @@ def test_the_flaps_rib_is_round_ended_not_square():
     assert f.is_inside((xf + dm.rib_w / 2 - 0.1, 0.0, 5.0))
 
 
+def test_the_flaps_edge_is_round_and_stays_inside_its_sweep():
+    """The disc's edge is a full round: its square corners are gone (the edge's middle is kept), and the whole flap lies in the
+    sphere its closed edge circle spans, so the radial gap is never under the nominal at any angle (a square edge's corners
+    reached 0.03 mm further at about 86 deg)."""
+    from build123d import Pos, Sphere
+
+    from minimeater.mech.parts import flap
+
+    f = flap()
+    xf, dm = G.g.flap_x, P.damper
+    r = G.g.bore_r - dm.flap_gap
+    assert not f.is_inside((xf + r - 0.1, dm.flap_t / 2 - 0.05, 0.0))  # open, the disc lies in x-z: the edge's corner
+    assert f.is_inside((xf + r - 0.1, 0.0, 0.0))
+    out = f - Pos(xf, 0, 0) * Sphere(r + 1e-3)
+    assert out is None or out.volume < 1e-6
+
+
 def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
     from minimeater.mech.parts import flap
 
@@ -152,11 +194,27 @@ def test_prints_without_support(name):
     assert all(p["area"] <= 230 for p in patches), patches  # the largest is the O-ring groove's 2 mm ceiling
 
 
+def _open_edges(stl):
+    """Edges of a binary STL used by only one triangle (0: a closed mesh)."""
+    import numpy as np
+
+    raw = stl.read_bytes()
+    n = int.from_bytes(raw[80:84], "little")
+    rec = np.frombuffer(raw[84 : 84 + 50 * n], dtype=np.dtype([("n", "<f4", 3), ("v", "<f4", (3, 3)), ("a", "<u2")]))
+    _, idx = np.unique(rec["v"].reshape(-1, 3), axis=0, return_inverse=True)
+    tri = idx.reshape(-1, 3)
+    edges = np.sort(np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]]), axis=1)
+    _, counts = np.unique(edges, axis=0, return_counts=True)
+    return int((counts == 1).sum())
+
+
 def test_export_writes_step_and_stl(tmp_path):
     export(tmp_path)
     for n in list(PARTS) + ["hood", "pan"]:
         assert (tmp_path / "3dprint" / f"{n}.step").stat().st_size > 1000
         assert (tmp_path / "3dprint" / f"{n}.stl").stat().st_size > 1000
+    for n in list(PARTS) + ["hood", "pan"]:
+        assert _open_edges(tmp_path / "3dprint" / f"{n}.stl") == 0, n  # watertight: the slicer and JLC3DP take it as is
     for n in ("flap", "crank", "coupler"):
         assert (tmp_path / "cnc" / f"{n}.step").stat().st_size > 1000
     for n in ("flap", "crank", "coupler"):

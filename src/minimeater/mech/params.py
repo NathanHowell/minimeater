@@ -128,6 +128,7 @@ class Damper:
     rib_t: float = 4.0  # the rib that carries the rod bore: the open flap's main blockage
     rib_w: float = 5.0
     rib_both_sides: bool = True  # the disc is centred on the rib (a 1 mm bump each side; JLCCNC quoted it $21.90 against $21.34 for one side); False: the disc is flush with the rib's bottom (one side machined from plate)
+    edge_round: bool = True  # the disc's edge is a full round (R = flap_t / 2), not square: the edge's profile then stays inside the sphere its closed edge circle spans, so the 0.15 gap holds at every angle (a square edge's corners reach 0.03 further at ~86 deg)
     rib_round: float = 2.0  # the rib's ends along the flow are rounded to this radius (half the rib's thickness: a stadium section), not square
     bore_clear: float = 0.03  # diametral, the D-bore on the rod's flat: a retaining-compound fit (a machined part; the printed one was 0.05)
     flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
@@ -166,7 +167,7 @@ class Linkage:
     pin_d: float = 3.0  # M2 shoulder screw: Ø3 shoulder (ISO 7379 pairs a Ø3 shoulder with an M2 thread; a Ø2 shoulder is M1.6)
     thread_d: float = 2.0  # its thread: into the crank's tapped hole, through the horn's M2 hole to the nyloc nut
     pin_hole_clear: float = 0.05  # radial: the bar's holes are Ø3.1
-    pin_head_d: float = 5.5  # [est] the shoulder screw's head, Ø5.5 x 2.0: check the supplier's drawing
+    pin_head_d: float = 5.0  # [spec] the shoulder screw's head, Ø5 x 2.0 (McMaster/Zoro STR601M3X4: Ø3 x 4 shoulder, M2; take the 3 mm shoulder length)
     pin_head_h: float = 2.0
     shoulder_len: float = 3.0  # a little over the bar and its boss (2.9), so the bar turns free
     lift: float = 0.8  # crank hub above the duct's crown
@@ -250,7 +251,7 @@ class Shell:
     grille_n: int = 5
     grille_bar: float = 1.6  # the slots stop this far from the parting plane
     bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)
-    bay_x: tuple[float, float] = (-74.5, -19.0)
+    bay_x: tuple[float, float] = (-74.5, -24.0)  # the front end stops short of the front screw column (x -18, |y| 28: its teardrop reaches x -22.8), so the column stands in solid pan; the front jack's plug (to x -25.2) still clears it
     bay_wall_t: float = 2.4  # the port wall
     vent_slots: tuple[tuple[float, float], ...] = ((-71.0, -63.0),)  # x ranges of the ambient louvres through the pan floor, under the TMP117
     vent_dy: float = 1.5  # two slots, this far either side of the sensor
