@@ -139,3 +139,24 @@ VREF_PROBE filter (FB2, R18, C27, C28), the four 0.1% bias resistors (R23-R26) a
 - "Do not place vias between bypass capacitors and the device": C25 (100 nF) and C26 (1 uF) on AVDD, C24 on DVDD,
   each joined to its pin by a trace on F.Cu, ground vias on the far side.
 - AVSS/DGND (5, 4) and A1/A0 (2, 1, address 0x40) pair up to a ground via each; RESET to R17 (pull-up).
+
+## U1 ESP32-C6-WROOM-1 module, origin (108, 100)
+
+![U1](u1.png)
+
+Datasheet (WROOM-1 v1.4, section 9 peripheral schematic) and Espressif's ESP32-C6 hardware design guidelines
+(section 1.4). Turned 180 degrees as on the board: antenna down (below pins 1/28), to overhang the board edge.
+Block: U1, C21/C22, R10/C18, C19/C20.
+
+- 3V3 (pin 2): 10 uF + 100 nF "close to the pin". C22 (100 nF) sits right at the pin, its ground pad on the pin 1
+  ground trace (loop closed on F.Cu, via at its end); C21 (10 uF) further out on the same 3V3 trace, via in its
+  ground pad. Everything stays above the pin 1 row, clear of the antenna end.
+- EN (pin 3): the recommended RC delay, R10 10k to 3V3 and C18 1 uF to ground, both on the EN trace at the pin;
+  C18's ground via sits in the space beside the unused pins 4-7.
+- CC1/CC2 (pins 8/9): the 1 nF filter caps C19/C20 on the lines at the pin, ground pads turned toward the unused
+  pins 7 and 10 with a via each, so both lines run straight on out toward U3.
+- Ground: the 3x3 centre ground pads (EPAD, optional per the datasheet but better thermally) joined by a solid F.Cu
+  fill with four vias between the pads; pins 1 and 28 to a via each.
+- Not in the block (placed with what they serve): the left-column pull-ups (R7 LOAD_FAULT, R11 DRDY, R14/R15 I2C;
+  the left column has no 3V3 of its own), the BTN parts R13/C23 with SW1, R12 with D2, the connector-side resistors
+  R16/R27-R30 at J6/J7, test points TP5-TP7.

@@ -61,7 +61,7 @@ removed once every block is on the board. Blocks in staging (all done, 2026-10-1
 U5 LDO (40), U7 fan switch (60), U6 servo switch (75), U2/U3 ESD + C38 + R1/R2 (100, J1 side up), VBUS entry
 D1/F1/C1-C3 (110-121); row y 95-102: U9 probe ESD (20, 95; jack side up), U11 (40, 95), U8 ADC (80, 102; jacks
 above, MCU below). Not in blocks (placed around fixed parts in placement): U1 decoupling C21/C22, EN RC R10/C18,
-SW1/R13/C23, R12 + D2, U10's C33, CC filters C19/C20 at the MCU, R7 LOAD_FAULT pull-up, C35-C37 at J6/J7,
+SW1/R13/C23, R12 + D2, U10's C33, R7 LOAD_FAULT pull-up, C35-C37 at J6/J7,
 pull-ups R11/R14-R16, R27-R30, test points. The J1 fan-out (D+/D- merge with the In2 hop, CC, VBUS) is drawn when
 U2/U3 go behind J1 (geometry in bead minimeat-bk4).
 
