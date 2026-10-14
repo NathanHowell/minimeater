@@ -101,16 +101,17 @@ def test_no_web_thinner_than_the_printers_minimum(shells):
 
 
 def test_bay_is_under_the_eave_and_drains(shells):
-    """The port wall is recessed behind the flank, the ceiling of the bay is the eave with its drip lip, and
-    the rear end wall has its drain notch at the foot."""
+    """The port wall is recessed behind the flank, the ceiling of the bay is the eave with its drip lip, and the
+    rear end wall is plain down to its foot: no drain scallop (7d69a11), the bay's floor is the belly's round, open
+    all along, so water runs off it."""
     pan = shells["pan"]
     assert K.PORT_FACE_Y > -G.FULL_W / 2 + 4.0  # recessed at least 4 mm
     lip = box(K.BAY_X0 + 5, K.BAY_X1 - 5, -G.FULL_W / 2 - 0.1, -G.FULL_W / 2 + 0.5, K.BAY_Z1 - 1.2, K.BAY_Z1 - 0.2)
     assert A.overlap(lip, pan) > 0.5 * lip.volume
-    notch = box(K.BAY_X0 - P.shell.wall + 0.3, K.BAY_X0 - 0.3, -30.9, K.PORT_FACE_Y - 0.1, G.BELLY_Z + 2.7, K.BAY_Z0 + 1.5)
-    assert A.overlap(notch, pan) < 0.01
-    wall_above = box(K.BAY_X0 - P.shell.wall + 0.3, K.BAY_X0 - 0.3, -30.9, K.PORT_FACE_Y - 0.1, K.BAY_Z0 + 3.0, K.BAY_Z0 + 5.0)
-    assert A.overlap(wall_above, pan) > 0.9 * wall_above.volume  # the end wall is there, the notch is at its foot
+    hull = K.outer()
+    for z0, z1 in ((G.BELLY_Z + 2.7, K.BAY_Z0 + 1.5), (K.BAY_Z0 + 3.0, K.BAY_Z0 + 5.0)):  # the foot, where the scallop was, and above it
+        wall = box(K.BAY_X0 - P.shell.wall + 0.3, K.BAY_X0 - 0.3, -30.9, K.PORT_FACE_Y - 0.1, z0, z1)
+        assert A.overlap(wall, pan) > 0.99 * A.overlap(wall, hull)  # solid wherever it is inside the hull (the belly's round cuts the foot's corner)
 
 
 def test_rain_features(shells):
