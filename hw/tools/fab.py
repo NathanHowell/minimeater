@@ -50,6 +50,20 @@ def gerbers(board: Path, name: str) -> None:
     shutil.rmtree(g)
 
 
+# JLC's parts library orients some packages differently from KiCad's footprints, so the CPL rotation needs an offset
+# (checked against JLC's assembly preview, 2026-10-14: its pin-1 dots sat 180 deg from ours on every SOT-23-5/6 and
+# 90 deg on the TSSOP and SOIC; these are the offsets JLC's community rotation tables list for those packages).
+# Matched on the footprint name; first match wins. Re-check every polarised part in the preview after a change.
+JLC_ROTATION = [("SOT-23", 180), ("TSSOP", 270), ("SOIC", 270)]
+
+
+def jlc_rotation(package: str, rot: float) -> float:
+    for key, offset in JLC_ROTATION:
+        if key in package:
+            return (rot + offset + 180) % 360 - 180
+    return rot
+
+
 def cpl(board: Path, name: str, placed: set[str]) -> None:
     pos = build / f"{name}-pos.csv"
     subprocess.run(["kicad-cli", "pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "front", "--exclude-dnp", "-o", str(pos), str(board)], check=True)
@@ -59,7 +73,8 @@ def cpl(board: Path, name: str, placed: set[str]) -> None:
         for r in csv.DictReader(f):
             if r["Ref"] not in placed:
                 continue
-            w.writerow([r["Ref"], f"{float(r['PosX']):.4f}mm", f"{float(r['PosY']):.4f}mm", "Top", r["Rot"]])
+            w.writerow([r["Ref"], f"{float(r['PosX']):.4f}mm", f"{float(r['PosY']):.4f}mm", "Top",
+                        f"{jlc_rotation(r['Package'], float(r['Rot'])):.6f}"])
 
 
 raw = build / "bom-raw.csv"
