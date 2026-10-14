@@ -9,9 +9,10 @@ Staging: a temporary second board outline (x 0-130, y 64-124) and an In1 GND zon
 the block fills fill and its vias land on a plane as they will on the board. Both are removed once every block is on
 the board.
 
-Netclasses (`hw/minimeater.kicad_pro`): Default 0.2/0.15; PowerHigh 0.8/0.2 (VBUS_RAW, VBUS_F, VFAN, VSERVO,
-BUCK_SW); Power 0.5/0.2 (3V3, 3V3A, 3V3A_FILT, VBUS_LDO); GND 0.4/0.15; USB 0.27 with a 0.15 gap (90 ohm
-edge-coupled on F.Cu over In1, 7628 prepreg ~0.21 mm); Analog 0.2/0.25 (TIPx, AINx, VREF_PROBE). Vias 0.6/0.3.
+Netclasses and limits (`hw/minimeater.kicad_pro`, `hw/minimeater.kicad_dru`): JLCPCB 4-layer capabilities, 0.1 mm
+clearance in every class. Widths: Default/Analog 0.2 (TIPx, AINx, VREF_PROBE), Power 0.5 (3V3, 3V3A, 3V3A_FILT,
+VBUS_LDO), PowerHigh 0.8 (VBUS_RAW, VBUS_F, VFAN, VSERVO, BUCK_SW), GND 0.4, USB 0.27 (90 ohm edge-coupled on F.Cu
+over In1, 7628 prepreg ~0.21 mm). Vias 0.6/0.3.
 
 ## U4 TLV62569 buck (3V3), origin (20, 75)
 
@@ -121,17 +122,18 @@ VREF_PROBE filter (FB2, R18, C27, C28), the four 0.1% bias resistors (R23-R26) a
 
 - Analog and digital apart: inputs and reference at the top (toward the jacks), DRDY/SDA/SCL leave at the bottom
   (toward the MCU), SDA and DRDY under the package body.
-- Input filters as in the figure: each channel's 1k (R19-R22) vertical from its TIP node, the 100 nF (C29-C32)
-  beside the AIN node with its own ground via, then a 45 degree run into the pin. The two runs per side are
-  0.65 mm apart (0.46 mm square to the lines), which keeps the Analog 0.25 mm clearance.
+- The two halves mirror each other. Each TIP line runs dead straight from the top of the block to its 1k (R19-R22,
+  1 mm apart, level). The outer channels' bias resistors (R23/R26) lie across the inner TIP lines, which pass under
+  their bodies between the pads (0603: 0.325 mm each side of a 0.2 mm line), so VREF_PROBE reaches all four from one
+  trunk on F.Cu; the inner bias resistors (R24/R25) hang under them, sitting on their own TIP line.
+- Input filters as in the figure: from each 1k, AIN goes straight on to its pin (a 45 degree run into AIN1/AIN2, a
+  short jog and the 100 nF on the AIN0/AIN3 pin row). The inner channels' 100 nF caps (C30/C31) sit on either side
+  of C28 above the package, their ground pads on a via each (C31 shares C28's); the 45 degree feed to them clears the
+  REFP/REFN pin corners by 0.17 mm. The outer caps (C29/C32) sit level with pins 11/6, ground vias outboard.
 - Reference: C28 sits right across REFP and REFN (the figure's cap between them), both reached under the package
-  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk above feeds C28 and C27 (10 uF, lying
-  across the top with its VREF pad on the trunk and a via in its ground pad). The R18/FB2 filter from 3V3A sits in a
-  row above C27; 3V3A arrives at FB2 through one via (the middle of the block is enclosed by the TIP2/TIP3 lines).
-- Bias resistors: R24/R25 (inner channels) hang straight off the trunk. R23/R26 (outer channels) lie across the
-  inner channels' TIP lines, which run under their bodies between the pads (0603 gap 0.85 mm: 0.325 mm each side of a
-  0.2 mm line). The resistor body is the crossing, so VREF_PROBE reaches the outer channels without leaving F.Cu,
-  and every TIP line runs straight up toward the jacks at 1.65 mm pitch, in jack order.
+  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk feeds C28 and C27 (10 uF, lying across the
+  top with its VREF pad on the trunk and a via in its ground pad). The R18/FB2 filter from 3V3A sits in a row above
+  C27; 3V3A arrives at FB2 through one via (the middle of the block is enclosed by the TIP2/TIP3 lines).
 - "Do not place vias between bypass capacitors and the device": C25 (100 nF) and C26 (1 uF) on AVDD, C24 on DVDD,
   each joined to its pin by a trace on F.Cu, ground vias on the far side.
 - AVSS/DGND (5, 4) and A1/A0 (2, 1, address 0x40) pair up to a ground via each; RESET to R17 (pull-up).
