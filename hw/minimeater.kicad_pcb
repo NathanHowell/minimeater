@@ -12182,7 +12182,7 @@
 		(uuid "8a6ab1d3-3053-43c5-b62b-f8b8aeb9b01b")
 		(at 38 52.9 180)
 		(property "Reference" "D2"
-			(at -0.24 -2.2 180)
+			(at 0.24 2.2 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "797d87e1-35eb-41d2-94c6-795364f305a6")
