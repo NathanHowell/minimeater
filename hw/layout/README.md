@@ -160,3 +160,24 @@ Block: U1, C21/C22, R10/C18, C19/C20.
 - Not in the block (placed with what they serve): the left-column pull-ups (R7 LOAD_FAULT, R11 DRDY, R14/R15 I2C;
   the left column has no 3V3 of its own), the BTN parts R13/C23 with SW1, R12 with D2, the connector-side resistors
   R16/R27-R30 at J6/J7, test points TP5-TP7.
+
+## Small groups: connector parts, boot button, pull-ups, test points
+
+![All blocks and the board at one scale](montage.png)
+
+`hw/tools/montage.py` renders every block and the board (outline, fixed parts, pours hidden) at one scale, coloured
+by netclass, for the placement review. The parts that belong to a fixed part or have no datasheet layout are laid out
+as small groups in staging:
+
+- J6 fan parts (40, 110), on J6's 2.54 mm pin pitch in its pin order (PWM, TACH, VFAN, GND top to bottom; the
+  connector's pads would sit at x 40): R28 PWM and R27 TACH series resistors inline, R16 tach pull-up on the MCU side
+  with a 3V3 via, C35 on VFAN with its ground via.
+- J7 servo parts (55, 110), same idea (SIG, VSERVO, GND): R29 series, R30 pull-down on the connector side, C37
+  100 nF then C36 100 uF on VSERVO, ground vias (in C36's pad).
+- Boot button (20, 115): SW1 (reached through a paper-clip hole in the enclosure; free to move, the hole follows),
+  C23 debounce and R13 pull-up on the BTN line, ground and 3V3 vias.
+- Pull-ups (70, 115): R14 SDA, R15 SCL, R7 LOAD_FAULT, R11 DRDY in U1's left-column order on one 3V3 via.
+- Test points (50-58, 92-96, B.Cu): TP1-TP4 VBUS_F, 3V3, 3V3A, GND; TP5-TP8 EN, UART TX, RX, GND; vias in the GND
+  pads.
+- C33 (TMP117 bypass) goes right at U10's pins 5/4 (the no-copper area around U10 bans pours only, not tracks);
+  R12 goes beside D2.

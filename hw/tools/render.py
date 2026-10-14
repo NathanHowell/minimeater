@@ -10,6 +10,7 @@ thin minimum spanning tree (GND left out unless --rats-gnd), so placement can be
   --layers F.Cu,In1.Cu,In2.Cu,B.Cu  which copper to draw (default all; F on top)
   --ppmm N           pixels per mm (default 60)
   --title text
+  --by-class PRO     colour by netclass (patterns from this .kicad_pro) instead of by net, with a legend
 """
 
 import argparse
@@ -30,7 +31,14 @@ STYLE = {"F.Cu": ("-", 1.0), "In1.Cu": ("--", 0.45), "In2.Cu": ("--", 0.55), "B.
 POWER = ("VBUS", "3V3", "VFAN", "VSERVO", "BUCK_SW")
 
 
+CLASS_COLOURS = {"GND": (0.33, 0.33, 0.36), "PowerHigh": (0.85, 0.15, 0.12), "Power": (0.95, 0.55, 0.1),
+                 "USB": (0.15, 0.4, 0.9), "Analog": (0.2, 0.7, 0.3), "Default": (0.55, 0.35, 0.75)}
+NETCLASS = None  # net -> class, set by --by-class
+
+
 def colour(net):
+    if NETCLASS is not None:
+        return CLASS_COLOURS.get(NETCLASS.get(net, "Default"), CLASS_COLOURS["Default"]) if net else (0.75, 0.75, 0.75)
     if not net:
         return (0.75, 0.75, 0.75)
     if net == "GND":
@@ -79,7 +87,17 @@ def main():
     ap.add_argument("--rats", action="store_true")
     ap.add_argument("--rats-gnd", action="store_true")
     ap.add_argument("--title", default="")
+    ap.add_argument("--by-class")
+    ap.add_argument("--skip-zones", default="", help="comma-separated zone names not to draw (e.g. the board pours)")
+    ap.add_argument("--labels", choices=["net", "refs", "none"], default="net")
+    ap.add_argument("--no-legend", action="store_true")
     a = ap.parse_args()
+    if a.by_class:
+        global NETCLASS
+        pro = json.load(open(a.by_class))
+        NETCLASS = {}
+        for pat in pro["net_settings"].get("netclass_patterns") or []:
+            NETCLASS[pat["pattern"]] = pat["netclass"]
     d = json.load(open(a.dump))
     layers = [l for l in ORDER if l in a.layers.split(",")]
 
@@ -111,8 +129,9 @@ def main():
 
     for e in d["edges"]:
         ax.plot([p[0] for p in e], [p[1] for p in e], color="#c9a227", lw=1.2, zorder=1)
+    skip = set(filter(None, a.skip_zones.split(",")))
     for z in d["zones"]:
-        if z["layer"] not in layers:
+        if z["layer"] not in layers or z.get("name") in skip:
             continue
         if z["keepout"]:
             p = path(z["outline"])
@@ -159,7 +178,7 @@ def main():
                     ax.plot([pa[0], pb[0]], [pa[1], pb[1]], color=colour(net), lw=0.7, ls=(0, (3, 2)), zorder=10)
 
     seen = set()
-    for p in d["pads"]:
+    for p in d["pads"] if a.labels == "net" else []:
         if p["layer"] not in ("F.Cu", "B.Cu") or not inbox(p["pos"]) or not p["net"] or (p["ref"], p["num"]) in seen:
             continue
         seen.add((p["ref"], p["num"]))
@@ -173,11 +192,15 @@ def main():
         name = short(p["net"]) if not p["net"].startswith("unconnected") else "nc"
         ax.text(p["pos"][0], p["pos"][1], f"{p['num']}\n{name}", ha="center", va="center", fontsize=fs,
                 color="white", fontweight="bold", zorder=12, linespacing=0.9)
-    for f in d["footprints"]:
+    for f in d["footprints"] if a.labels != "none" else []:
         if inbox(f["pos"]) and f["courtyard"]:
             ys = [q[1] for c in f["courtyard"] for q in c["outline"]]
             ax.text(f["pos"][0], min(ys) - 0.08, f["ref"] + ("" if f["value"] == f["ref"] else f"  {f['value']}"),
                     ha="center", va="bottom", fontsize=7, color="#3a3a3a", zorder=13)
+    if NETCLASS is not None and not a.no_legend:
+        from matplotlib.patches import Patch
+        ax.legend(handles=[Patch(color=c, label=k) for k, c in CLASS_COLOURS.items()], loc="lower right", fontsize=8,
+                  framealpha=0.9)
     fig.suptitle(a.title or f"{a.dump}  layers: {','.join(layers)}", fontsize=9, y=0.995)
     fig.savefig(a.out, dpi=dpi)
 
