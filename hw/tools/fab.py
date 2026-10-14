@@ -10,6 +10,7 @@ on KiCad's own python; install it once into hw/.kikit (gitignored):
       -m venv --system-site-packages hw/.kikit && hw/.kikit/bin/pip install kikit
 or point KIKIT at a kikit executable. Without it the panel is skipped."""
 import csv
+import math
 import os
 import shutil
 import subprocess
@@ -51,20 +52,38 @@ def gerbers(board: Path, name: str) -> None:
 
 
 # JLC's parts library orients some packages differently from KiCad's footprints, so the CPL rotation needs an offset
-# (checked against JLC's assembly preview, 2026-10-14: its pin-1 dots sat 180 deg from ours on every SOT-23-5/6 and
-# 90 deg on the TSSOP and SOIC; these are the offsets JLC's community rotation tables list for those packages).
+# (checked against JLC's assembly preview, 2026-10-14: its pin-1 dots sat 180 deg from ours on the SOT-23-5/6 parts
+# and 90 deg on the TSSOP and SOIC; these are the offsets JLC's community rotation tables list for those packages).
 # Matched on the footprint name; first match wins. Re-check every polarised part in the preview after a change.
 JLC_ROTATION = [("SOT-23", 180), ("TSSOP", 270), ("SOIC", 270)]
 
+# Parts whose JLC footprint differs from the package rule or has its origin elsewhere, by LCSC number: the rotation
+# offset, and where JLC's origin sits in KiCad's footprint frame (mm, y down, before rotation). Read from JLC's own
+# footprints (EasyEDA) and checked in the preview.
+JLC_PART = {
+    "C7519": (270, (0.0, 0.0)),  # USBLC6-2SC6: JLC's SOT-23-6 has pin 1 bottom left, pins in rows
+    "C5184243": (0, (0.0, -1.3025)),  # USB4105: JLC's origin is midway between the SMD row and the front shell legs
+}
 
-def jlc_rotation(package: str, rot: float) -> float:
+
+def jlc_rotation(package: str, rot: float, lcsc: str = "") -> float:
+    if lcsc in JLC_PART:
+        return (rot + JLC_PART[lcsc][0] + 180) % 360 - 180
     for key, offset in JLC_ROTATION:
         if key in package:
             return (rot + offset + 180) % 360 - 180
     return rot
 
 
-def cpl(board: Path, name: str, placed: set[str]) -> None:
+def jlc_origin(lcsc: str, rot: float) -> tuple[float, float]:
+    """The shift (CPL x, CPL y; y up) from KiCad's footprint origin to JLC's."""
+    dx, dy = JLC_PART.get(lcsc, (0, (0.0, 0.0)))[1]
+    t = math.radians(rot)
+    bx, by = dx * math.cos(t) + dy * math.sin(t), -dx * math.sin(t) + dy * math.cos(t)  # board frame, y down
+    return bx, -by
+
+
+def cpl(board: Path, name: str, placed: dict[str, str]) -> None:
     pos = build / f"{name}-pos.csv"
     subprocess.run(["kicad-cli", "pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "front", "--exclude-dnp", "-o", str(pos), str(board)], check=True)
     with pos.open() as f, (out / f"{name}-cpl.csv").open("w", newline="") as o:
@@ -73,21 +92,23 @@ def cpl(board: Path, name: str, placed: set[str]) -> None:
         for r in csv.DictReader(f):
             if r["Ref"] not in placed:
                 continue
-            w.writerow([r["Ref"], f"{float(r['PosX']):.4f}mm", f"{float(r['PosY']):.4f}mm", "Top",
-                        f"{jlc_rotation(r['Package'], float(r['Rot'])):.6f}"])
+            lcsc, rot = placed[r["Ref"]], float(r["Rot"])
+            dx, dy = jlc_origin(lcsc, rot)
+            w.writerow([r["Ref"], f"{float(r['PosX']) + dx:.4f}mm", f"{float(r['PosY']) + dy:.4f}mm", "Top",
+                        f"{jlc_rotation(r['Package'], rot, lcsc):.6f}"])
 
 
 raw = build / "bom-raw.csv"
 subprocess.run(["kicad-cli", "sch", "export", "bom", "--fields", "Reference,Value,Footprint,LCSC,DNP", "--labels", "Refs,Value,Footprint,LCSC,DNP",
                 "--group-by", "Value,Footprint,LCSC", "--exclude-dnp", "--ref-range-delimiter", "", "-o", str(raw), str(sch)], check=True)
 rows = list(csv.DictReader(raw.open()))
-placed = set()
+placed = {}
 with (out / "minimeater-bom.csv").open("w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
     for r in rows:
         if r["LCSC"].strip().startswith("C"):
-            placed.update(r["Refs"].replace('"', "").split(","))
+            placed.update(dict.fromkeys(r["Refs"].replace('"', "").split(","), r["LCSC"].strip()))
             w.writerow([r["Value"], r["Refs"].replace(",", " ").replace('"', ""), r["Footprint"].split(":")[-1], r["LCSC"]])
         else:
             print("not assembled by JLC:", r["Refs"], r["Value"])
