@@ -110,7 +110,7 @@ class Pcb:
 
 @dataclass(frozen=True)
 class Print:
-    """FDM process: ASA or PETG, 0.4 mm nozzle."""
+    """FDM rules (0.4 mm nozzle), so the parts print on any FDM printer; ordered in MJF PA12S-HP (docs/jlc3dp.md), where they hold too."""
 
     wall: float = 2.4  # six perimeters at 0.4
     floor: float = 2.4

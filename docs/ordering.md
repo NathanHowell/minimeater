@@ -2,7 +2,7 @@
 
 Quantities are for **5 units** (the build size), with spares where a part is small or easy to lose. "Per unit" is what one box uses. Status says whether the part is pinned down in the repository (a named part or a size the model depends on) or still has to be chosen. Nothing here has been ordered.
 
-The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, pan) and `build/mech/cnc` (JLCCNC: flap, crank, coupler), each with a README and a zip; see `docs/jlc3dp.md`.
+The printed and machined parts are in `build/mech/3dprint` (JLC3DP, all three in MJF PA12S-HP black: duct, hood, pan) and `build/mech/cnc` (JLCCNC: flap, crank, coupler), each with a README and a zip; see `docs/jlc3dp.md`.
 
 ## 1. JLCPCB: board and assembly
 
@@ -18,7 +18,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 | Hitec HS-5065MG servo | 1 | 5 | named | 3-pin lead, 160 mm (`docs/parts/servo-hs-5065mg.md`). |
 | Secraft 15 mm aluminium servo arm, Hitec 24T | 1 | 5 | named | The linkage uses its M2 hole at 12 mm radius. Comes with its centre screw. |
 | Ø3 rod, 2.5 mm D flat, **42.7 mm ±0.1** | 1 | 5 + 1 | JLCCNC, `rod-d-shaft.step`, SUS304: **$30.80 at quantity 1** (instant quote, 2026-10-13; get the price at 6) | Made with the flap, crank and coupler. The quote's general tolerance is ISO 2768 medium (±0.1 on Ø3), too loose for the flap's D-bore (+0.03 over, with retaining compound): the rod needs Ø3 h7 and the flat held to ±0.05, which `uv run mech-export` now puts on a drawing (`cnc/rod.step` and `cnc/rod.pdf`, quantity 6). Ask JLCCNC to turn it from 3 mm bar instead of milling it from larger stock. The length matters: the end stands 0.3 mm above the crank and 0.6 mm under the coupler (`docs/mech.md`). |
-| M2 shoulder screw, Ø3 shoulder × 3 mm long, M2 thread | 2 | 10 + 2 | named (head size to check) | ISO 7379 style, stainless. One into the crank's tapped M2 hole, one through the servo arm's M2 hole with a nyloc nut. Head about Ø5.5 × 2.0: confirm against the supplier's drawing, since the pin heads stop about 1 mm under the hood's roof. The shoulder must be 3 mm (the bar and its boss are 2.9) and the thread long enough for the crank (3 mm arm) or the horn plus the nut: M2 × 4 or longer. |
+| M2 shoulder screw, Ø3 shoulder × 3 mm long, M2 thread | 2 | 10 + 2 | named (head size to check) | ISO 7379 style, stainless. One into the crank's tapped M2 hole, one through the servo arm's M2 hole with a nyloc nut. Head Ø5 × 2.0 (McMaster's/Zoro's STR601M3X4, which lists a 4 mm shoulder: get the 3 mm length); the hood clears the heads by 1.2 mm, so a head taller than 2.0 needs a check. The shoulder must be 3 mm (the bar and its boss are 2.9) and the thread long enough for the crank (3 mm arm) or the horn plus the nut: M2 × 4 or longer. |
 | M2 nyloc nut | 1 | 5 + 5 | named | Under the servo arm. |
 | M2 washer | 2 | 10 + 5 | named | |
 | M2 × 3 hex-socket set screw, cup point | 1 | 5 + 5 | size is my pick | Radial on the rod's flat, in the crank's hub (tap drill Ø1.6). |
@@ -27,7 +27,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 | M2.5 × 20 screw | 2 | 10 + 4 | named | Shell, front pair, from the belly. Pan-head or cheese-head: the head sits in a Ø4.6 channel, so a head up to 4.5 mm. |
 | M2 × 16 screw | 2 | 10 + 4 | named | Shell, rear pair. |
 | 34 × 2.5 O-ring | 1 | 5 + 5 | size named, **material is my pick** | Seals the duct's socket on the egg's tube, which can reach 65-90 °C (the `.2.5` thermal check is still open): FKM or silicone, not NBR. |
-| M4 brass heat-set insert | 1 | 5 + 5 | named | Into the thumbscrew boss on the duct; check the bore size against the insert's data sheet, or use JLC3DP's insert service (`docs/jlc3dp.md`, bead `minimeat-dx8`). |
+| M4 × 4 brass heat-set insert (short) | 1 | 5 + 5 | named | Pressed into the thumbscrew boss on the duct with a soldering iron: the pocket is Ø5.6 and 4 mm deep, so a short insert (about 4 mm long, for a Ø5.6 hole); check the hole size against its data sheet. JLC3DP's insert service is not used (`docs/jlc3dp.md`). |
 | M4 thumbscrew, stainless | 1 | 5 + 5 | length not chosen | Reaches the 34.93 mm tube through a short boss: measure on the first print. |
 | Silicone port caps | 5 | 25 | **unsourced** | One for the USB-C port and four for the jacks; the bay has nowhere to tie them. Any USB-C cap and 2.5 mm jack cap that fit the openings (USB-C 13.2 × 7.4, jack Ø5): measure the first print. |
 | Clear Ø1.75 mm filament | ~15 mm | 1 piece | named | The LED's light pipe, glued flush in a Ø1.9 hole. |

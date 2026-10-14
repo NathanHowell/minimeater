@@ -183,7 +183,7 @@ def duct():
     body -= xcone(sock_r(), sock_r() + c.lead_in, -c.lead_in, 0.0)  # lead-in chamfer at the mouth
     body -= xcyl(groove_r(), c.oring_x - 1.6, c.oring_x + 1.6)
     body -= zcyl(1.7, -dr + 1.2, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom: a 1.2 mm skin
-    body -= ycyl(2.8, BOSS_Y0 + 2.0, BOSS_Y1 + 0.1, c.boss_x, 0.0)  # M4 heat-set insert for the thumbscrew
+    body -= ycyl(2.8, BOSS_Y0 + 2.0, BOSS_Y1 + 0.1, c.boss_x, 0.0)  # M4 heat-set insert for the thumbscrew: Ø5.6 x 4 deep, a short M4 x 4
     body -= ycyl(2.1, br - 0.5, BOSS_Y0 + 2.1, c.boss_x, 0.0)  # the screw reaches the tube
     for sy in (-1, 1):
         for sz in (-1, 1):

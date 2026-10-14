@@ -57,7 +57,8 @@ def write_packages(out: Path):
                     z.write(f, f.name)
 
     package(out / "3dprint", "minimeater-3dprint.zip", readme("minimeater printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
-        "Material: see docs/jlc3dp.md. Threaded inserts: one M4 per duct (the thumbscrew boss); all other screws go",
+        "Material: MJF PA12S-HP (black nylon), all three parts; see docs/jlc3dp.md. No threaded-insert service: we fit the",
+        "duct's one M4 insert (the thumbscrew boss) ourselves, and all other screws go",
         "straight into the plastic. Shell walls are 2.8 mm, the duct's 2.2-2.4. Ream the duct's bore at the flap station (x = -37.5, Ø32 H7 +0.025/0,",
         "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
     ]))

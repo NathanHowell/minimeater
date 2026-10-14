@@ -28,10 +28,11 @@ Researched 2026-10-12 from JLC3DP's own help pages (links below); nothing here h
 
 Their pages give the load for each figure inconsistently: 0.45 MPa numbers (PA12-HP 175, 1172 Pro 179) are not comparable with 1.8 MPa ones (PEEK 144, PA12-CF 105). The duct carries almost no load, so the 0.45 MPa figures are the relevant ones for it, but two of the pages show how far a nylon falls at 1.8 MPa (3301PA: 147 to 55 °C).
 
-My recommendation, to be settled after the thermal check:
+Decided 2026-10-14 (`minimeat-dx8`): **all three printed parts in MJF PA12S-HP, black.**
 
-- **`duct`: MJF PA12-HP** (or PA12S-HP, the black one). The hot part gets a 175 °C material and the insert service's best-supported process. Step up to FDM PEEK only if the socket measures hotter than about 140 °C; it is three times the price and brown, and the insert service is not stated for it.
-- **`hood` and `pan`: ASA (FDM),** for weather and UV, with a walls margin over the 1.6 mm recommendation and under the 250 mm limit. (That UV is a weakness of grey nylon is general knowledge, not from JLC's pages, which are silent on it.) PA12-HP for everything is the single-material alternative.
+- **`duct`:** the hot part gets a 175 °C material. Step up to FDM PEEK only if the tube temperature check (`.2.5`) finds the socket hotter than about 140 °C; PEEK costs about three times as much and is brown only.
+- **`hood` and `pan`:** the same material instead of ASA. One material and one process; the few 1.0-1.2 mm edges JLC's check flagged (the eave, the seam skirt by the vents, the grille's rim) pass MJF's 1.0 mm minimum and would not pass ASA's 1.2; black for UV, grey nylon's weak point (general knowledge, not from JLC's pages). Nylon takes up some water; the fits and screw bosses allow for it.
+- The parts keep their FDM rules (44° overhangs, teardrops, 2.4-2.8 mm walls): harmless on MJF, and they can still be printed on FDM.
 - Tolerance is ±0.3 mm either way. The O-ring groove (1.9 mm deep, squeeze 18 % on paper, the test wants 10-30 %) would swing about ±12 % at that tolerance; widen the margin or order the duct with the groove machined if the first seals leak.
 
 ## The threaded-insert service
@@ -45,7 +46,10 @@ Sources: [service page](https://jlc3dp.com/help/article/threaded-insert-service)
 
 ### What it does to our design
 
-The only insert is the M4 for the thumbscrew in the duct's boss, and it does not fit the service's rules: the boss is a 9.4 mm block with a Ø5.6 hole (a typical heat-set size), so the wall is 1.9 mm, not 3.0, the hole is 1.0 mm wider than their Ø4.6, and the flat is not 14 × 14. Using the service means a bigger block (at least 10.6 mm across the hole, and 14 × 14 flat) and the Ø4.6 hole in the CAD. Tracked in bead `minimeat-dx8`.
+Decided 2026-10-14: **the service is not used.** We fit the one M4 insert ourselves (below).
+
+
+The only insert is the M4 for the thumbscrew in the duct's boss, and it does not fit the service's rules: the boss is a 9.4 mm block with a Ø5.6 hole (a typical heat-set size), so the wall is 1.9 mm, not 3.0, the hole is 1.0 mm wider than their Ø4.6, and the flat is not 14 × 14. Using the service would mean a bigger block (at least 10.6 mm across the hole, and 14 × 14 flat) and the Ø4.6 hole in the CAD, and the flat does not fit: the boss stands between the hood's front face (x -11) and the socket's mouth (x 0), so it can be at most about 10.5 mm along x unless the socket or the nose moves. So the boss stays as it is (Ø5.6 × 4 mm pocket) and takes a short M4 × 4 brass heat-set insert, pressed in with a soldering iron with the small ones (heat-set holds well in PA12).
 
 ### Should the M2 and M2.5 screws become M4 to use the service?
 
