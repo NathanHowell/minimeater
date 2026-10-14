@@ -137,6 +137,22 @@ impl Default for Identifier {
 }
 
 impl Identifier {
+    /// Copies `o` into this one, field by field: no window-sized temporary on the stack.
+    pub fn copy_from(&mut self, o: &Self) {
+        // destructured so a new field cannot be missed
+        let Self {
+            u,
+            y,
+            n,
+            since_fit,
+            sp_f,
+            dt,
+        } = o;
+        self.u.copy_from_slice(u);
+        self.y.copy_from_slice(y);
+        (self.n, self.since_fit, self.sp_f, self.dt) = (*n, *since_fit, *sp_f, *dt);
+    }
+
     pub const DEFAULT: Self = Self {
         u: [0.0; WINDOW + MAX_DELAY],
         y: [0.0; WINDOW],
@@ -365,7 +381,7 @@ fn invert4(mut a: [[f64; 4]; 4]) -> Option<[[f64; 4]; 4]> {
 }
 
 /// The learner: identifier, acceptance and bounded schedule update, and the optional excitation.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Autotune {
     pub config: AutotuneConfig,
     id: Identifier,
@@ -380,7 +396,30 @@ pub struct Autotune {
     settled_sp_f: f64,
 }
 
+impl Default for Autotune {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 impl Autotune {
+    pub const DEFAULT: Self = Self {
+        config: AutotuneConfig::DEFAULT,
+        id: Identifier::DEFAULT,
+        status: Status {
+            exciting: false,
+            fits: 0,
+            accepted: 0,
+            last: None,
+        },
+        excite_left_s: 0.0,
+        excite_t_s: 0.0,
+        excite_sp_f: 0.0,
+        accepted_here: 0,
+        settled_s: 0.0,
+        settled_sp_f: 0.0,
+    };
+
     pub fn new(config: AutotuneConfig) -> Self {
         Self {
             config,

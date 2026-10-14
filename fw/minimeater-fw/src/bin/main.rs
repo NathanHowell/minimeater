@@ -71,8 +71,10 @@ async fn main(spawner: Spawner) -> ! {
     // built at compile time: no copy through main's stack at boot
     static BUS: Bus = Bus::new();
     let bus: &'static Bus = &BUS;
-    static PIT: StaticCell<Pit> = StaticCell::new();
-    let pit = PIT.init_with(|| Pit::new(&settings, model, minimeater_core::model::Ambient::DEFAULT));
+    static PIT: ConstStaticCell<Pit> = ConstStaticCell::new(Pit::BLANK);
+    let pit = PIT.take();
+    pit.load(&settings, model, minimeater_core::model::Ambient::DEFAULT);
+    pit.boot(&settings);
     static FOODS: StaticCell<Foods> = StaticCell::new();
     let foods = FOODS.init_with(|| Foods::new(&settings.probes));
 

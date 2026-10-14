@@ -22,11 +22,11 @@ impl Default for FfPi {
 }
 
 impl FfPi {
-    pub fn new(schedule: Schedule) -> Self {
+    pub const fn new(schedule: Schedule) -> Self {
         Self {
             schedule,
-            shaper: RefShaper::default(),
-            lid: LidRecovery::default(),
+            shaper: RefShaper::DEFAULT,
+            lid: LidRecovery::DEFAULT,
             tc_over_theta: 2.0,
             integ: 0.0,
             q_last: 0.0,

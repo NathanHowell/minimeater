@@ -8,7 +8,7 @@
 //! status and [`Event`]s, and saves [`Pit::persist`] through the config store. Two jobs are too slow
 //! for the control period and go to a low-priority task: the autotune fit ([`Pit::take_fit`] ->
 //! [`Identifier::fit`] -> [`Pit::fitted`], ~1-3 s on the C6) and the airflow-map rebuild when the
-//! ambient moves ([`Pit::map_wanted`] -> [`AirflowMap::build`] -> [`Pit::set_map`]).
+//! ambient moves ([`Pit::map_wanted`] -> [`AirflowMap::rebuild`] -> [`Pit::swap_map`]).
 //!
 //! **Never lose the cook.** Everything that defines the cook (mode, setpoint, controller, autotune
 //! dither, the learned schedule, the lid settings) is in [`Settings`], saved as it changes, and a
@@ -20,7 +20,9 @@
 
 use heapless::Vec;
 use minimeater_core::control::autotune::{Autotune, Due, Fit, Identifier, scheduling_point};
-use minimeater_core::control::{Feedforward, FfPi, Fire, FireObs, FireWatch, Fopdt, Mpc, Obs, PitController, Schedule};
+use minimeater_core::control::{
+    Feedforward, FfPi, Fire, FireObs, FireWatch, Fopdt, LidDetector, Mpc, Obs, PitController, Schedule,
+};
 use minimeater_core::model::Ambient;
 use minimeater_core::model::actuator::{flap_angle_deg, open_frac};
 use minimeater_core::model::airflow::{Actuation, AirPath, AirflowMap, ModelFeedforward};
@@ -267,45 +269,66 @@ pub struct Pit {
 
 impl Pit {
     /// Boot, from what the store loaded. Builds the airflow map (~1700 root solves): call it before
-    /// the control loop starts.
+    /// the control loop starts. On the board the pit is [`Self::BLANK`] in a static, [`Self::load`]ed and
+    /// [`Self::boot`]ed there, so its 16 KB never pass through the stack.
     pub fn new(s: &Settings, path: AirPath, ambient: Ambient) -> Self {
-        let mut learn = Autotune::default();
-        if s.cook.autotune && s.cook.mode == Mode::Run {
-            learn.start();
-        }
-        let mut p = Self {
-            cook: s.cook,
-            lid: s.lid,
-            ctrl: controller(s.cook.controller, s.schedule.clone(), s.lid),
-            learn,
-            watch: FireWatch::default(),
-            path,
-            map: AirflowMap::build(&path, ambient),
-            ambient,
-            fresh: true,
-            out: Output {
-                phase: Phase::Idle,
-                q: 0.0,
-                act: CLOSED,
-                flap_pct: 0.0,
-                ref_f: s.cook.sp_f,
-                lid: false,
-                fire: Fire::Unknown,
-            },
-            lost_s: 0.0,
-            faulted: false,
-            was_open: false,
-            was_starting: false,
-            was_exciting: false,
-            accepted_at_start: 0,
-            hold_s: 0.0,
-            hold_q: 0.0,
-            due: None,
-            fitting: false,
-            events: Vec::new(),
-        };
-        p.was_exciting = p.learn.status().exciting;
+        let mut p = Self::BLANK;
+        p.load(s, path, ambient);
+        p.boot(s);
         p
+    }
+
+    /// A pit before [`Self::load`] and [`Self::boot`], built at compile time.
+    pub const BLANK: Self = Self {
+        cook: Cook::DEFAULT,
+        lid: Lid::DEFAULT,
+        ctrl: controller(Cook::DEFAULT.controller, Schedule::PLACEHOLDER, Lid::DEFAULT),
+        learn: Autotune::DEFAULT,
+        watch: FireWatch::DEFAULT,
+        path: AirPath::DEFAULT,
+        map: AirflowMap::EMPTY,
+        ambient: Ambient::DEFAULT,
+        fresh: true,
+        out: Output {
+            phase: Phase::Idle,
+            q: 0.0,
+            act: CLOSED,
+            flap_pct: 0.0,
+            ref_f: 0.0,
+            lid: false,
+            fire: Fire::Unknown,
+        },
+        lost_s: 0.0,
+        faulted: false,
+        was_open: false,
+        was_starting: false,
+        was_exciting: false,
+        accepted_at_start: 0,
+        hold_s: 0.0,
+        hold_q: 0.0,
+        due: None,
+        fitting: false,
+        events: Vec::new(),
+    };
+
+    /// Takes on what the store loaded: the cook, the lid settings and the controller with its schedule.
+    pub fn load(&mut self, s: &Settings, path: AirPath, ambient: Ambient) {
+        self.cook = s.cook;
+        self.lid = s.lid;
+        self.ctrl = controller(s.cook.controller, s.schedule.clone(), s.lid);
+        self.path = path;
+        self.ambient = ambient;
+        self.out.ref_f = s.cook.sp_f;
+    }
+
+    /// Finishes [`Self::load`] in place: starts the learner if the cook asks for it and builds the airflow map.
+    pub fn boot(&mut self, s: &Settings) {
+        if s.cook.autotune && s.cook.mode == Mode::Run {
+            self.learn.start();
+        }
+        self.was_exciting = self.learn.status().exciting;
+        let (path, ambient) = (self.path, self.ambient);
+        minimeater_core::numeric::finish(self.map.rebuild(&path, ambient));
     }
 
     pub fn cook(&self) -> &Cook {
@@ -429,8 +452,10 @@ impl Pit {
         self.map.stale(&self.ambient).then_some((self.path, self.ambient))
     }
 
-    pub fn set_map(&mut self, map: AirflowMap) {
-        self.map = map;
+    /// Takes the freshly built `map` and leaves the old one in its place, for the next rebuild: the slow task's
+    /// spare and this one trade places without a copy.
+    pub fn swap_map(&mut self, map: &mut AirflowMap) {
+        core::mem::swap(&mut self.map, map);
     }
 
     /// A window due for an autotune fit: copy the [`Identifier`] now (it moves on next period), fit
@@ -704,7 +729,7 @@ impl Pit {
     }
 }
 
-fn controller(kind: ControllerKind, schedule: Schedule, lid: Lid) -> PitController {
+const fn controller(kind: ControllerKind, schedule: Schedule, lid: Lid) -> PitController {
     let mut c = match kind {
         ControllerKind::Mpc => PitController::Mpc(Mpc::new(schedule)),
         ControllerKind::FfPi => PitController::FfPi(FfPi::new(schedule)),
@@ -713,11 +738,11 @@ fn controller(kind: ControllerKind, schedule: Schedule, lid: Lid) -> PitControll
     c
 }
 
-fn apply_lid(c: &mut PitController, lid: Lid) {
+const fn apply_lid(c: &mut PitController, lid: Lid) {
     let r = c.lid_mut();
     r.boost = lid.boost;
     match (lid.detect, r.detector.is_some()) {
-        (true, false) => r.detector = Some(Default::default()),
+        (true, false) => r.detector = Some(LidDetector::DEFAULT),
         (false, true) => r.detector = None,
         _ => {}
     }

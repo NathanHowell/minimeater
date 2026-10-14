@@ -149,7 +149,7 @@ impl<'w> Rig<'w> {
             }
         }
         if let Some((path, amb)) = self.pit.map_wanted() {
-            self.pit.set_map(AirflowMap::build(&path, amb));
+            self.pit.swap_map(&mut AirflowMap::build(&path, amb));
         }
         self.save();
         for _ in 0..5 {

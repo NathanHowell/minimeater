@@ -64,6 +64,19 @@ pub struct Schedule {
 }
 
 impl Schedule {
+    /// No models: a placeholder for a controller in a compile-time value, replaced before it steps (a
+    /// controller needs at least one model; [`Self::new`] insists).
+    pub const PLACEHOLDER: Self = Self {
+        models: [Fopdt {
+            sp_f: 0.0,
+            k: 0.0,
+            tau_s: 0.0,
+            theta_s: 0.0,
+        }; Self::CAPACITY],
+        len: 0,
+        revision: 0,
+    };
+
     pub const CAPACITY: usize = 8;
 
     /// Nominal BGE Large, firmware-side model (`control_report.autotune(DEFAULT_EGG)`); used until the
@@ -225,7 +238,7 @@ impl PitController {
         }
     }
 
-    pub fn lid_mut(&mut self) -> &mut LidRecovery {
+    pub const fn lid_mut(&mut self) -> &mut LidRecovery {
         match self {
             PitController::Mpc(c) => &mut c.lid,
             PitController::FfPi(c) => &mut c.lid,

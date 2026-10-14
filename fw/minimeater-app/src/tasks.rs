@@ -20,6 +20,7 @@ use embassy_futures::select::{Either, select};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::Channel;
+use embassy_sync::mutex::Mutex as AsyncMutex;
 use embassy_sync::pubsub::PubSubChannel;
 use embassy_sync::signal::Signal;
 use embassy_sync::watch::Watch;
@@ -133,15 +134,25 @@ pub struct Status {
 }
 
 #[allow(clippy::large_enum_variant, reason = "one static slot on the bus, no alloc")]
+/// The slow task's work: the window to fit and the map to rebuild sit on the [`Bench`], so a job and its
+/// result are tags, not 3-7 KB values copied through both tasks' stacks.
 enum Job {
-    Fit(Due, Identifier),
+    Fit(Due),
     Map(AirPath, Ambient),
 }
 
-#[allow(clippy::large_enum_variant, reason = "one static slot on the bus, no alloc")]
 enum Done {
     Fit(Due, Option<Fit>),
-    Map(AirflowMap),
+    Map,
+}
+
+/// What the slow task works on. The control task fills or swaps it only while no job is out, so its lock
+/// is always free when control takes it.
+struct Bench {
+    /// A copy of the autotune window being fitted.
+    id: Identifier,
+    /// The next airflow map, swapped with the pit's when built.
+    map: AirflowMap,
 }
 
 /// Everything the tasks exchange. One static instance per board.
@@ -172,6 +183,7 @@ pub struct Bus {
     act: Signal<M, Actuation>,
     job: Signal<M, Job>,
     done: Signal<M, Done>,
+    bench: AsyncMutex<M, Bench>,
 }
 
 impl Default for Bus {
@@ -202,6 +214,10 @@ impl Bus {
             act: Signal::new(),
             job: Signal::new(),
             done: Signal::new(),
+            bench: AsyncMutex::new(Bench {
+                id: Identifier::DEFAULT,
+                map: AirflowMap::EMPTY,
+            }),
         }
     }
 
@@ -401,13 +417,14 @@ pub async fn control<B: Board>(
                 Done::Fit(due, fit) => {
                     pit.fitted(due, fit);
                 }
-                Done::Map(map) => pit.set_map(map),
+                Done::Map => pit.swap_map(&mut bus.bench.lock().await.map),
             }
             busy = false;
         }
         if !busy {
             if let Some((due, id)) = pit.take_fit() {
-                bus.job.signal(Job::Fit(due, id.clone()));
+                bus.bench.lock().await.id.copy_from(id);
+                bus.job.signal(Job::Fit(due));
                 busy = true;
             } else if let Some((path, amb)) = pit.map_wanted() {
                 bus.job.signal(Job::Map(path, amb));
@@ -566,13 +583,17 @@ pub async fn actuators<B: Board>(
     }
 }
 
-/// Runs the slow jobs the control task hands over. They are stepwise (`fit_async`, `build_async` yield after every
+/// Runs the slow jobs the control task hands over. They are stepwise (`fit_async`, `rebuild` yield after every
 /// solve), so on the one cooperative executor they delay the other tasks by one solve at most.
 pub async fn slow(bus: &Bus) -> ! {
     loop {
+        // the bench's lock is let go before the result is signalled
         let done = match bus.job.wait().await {
-            Job::Fit(due, id) => Done::Fit(due, id.fit_async().await),
-            Job::Map(path, amb) => Done::Map(AirflowMap::build_async(&path, amb).await),
+            Job::Fit(due) => Done::Fit(due, bus.bench.lock().await.id.fit_async().await),
+            Job::Map(path, amb) => {
+                bus.bench.lock().await.map.rebuild(&path, amb).await;
+                Done::Map
+            }
         };
         bus.done.signal(done);
     }

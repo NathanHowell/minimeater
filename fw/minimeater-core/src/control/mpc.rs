@@ -53,11 +53,11 @@ impl Default for Mpc {
 }
 
 impl Mpc {
-    pub fn new(schedule: Schedule) -> Self {
+    pub const fn new(schedule: Schedule) -> Self {
         Self {
             schedule,
-            shaper: RefShaper::default(),
-            lid: LidRecovery::default(),
+            shaper: RefShaper::DEFAULT,
+            lid: LidRecovery::DEFAULT,
             horizon_s: 1800.0,
             overshoot_weight: 8.0,
             move_weight: 30.0,
@@ -66,7 +66,7 @@ impl Mpc {
             r_meas: 0.3 * 0.3,
             x: None,
             p: [[1.0, 0.0], [0.0, 25.0]],
-            past: Past::default(),
+            past: Past::DEFAULT,
             q_prev: 0.0,
             model_prev: (0, f64::NAN, f64::NAN),
             last_iters: 0,

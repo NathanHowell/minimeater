@@ -147,6 +147,12 @@ pub struct AirflowMap {
 }
 
 impl AirflowMap {
+    /// All zeros, to be [`Self::rebuild`] in place: a static or a field fills without a 6.7 KB copy on the stack.
+    pub const EMPTY: Self = Self {
+        table: [[0.0; N_U]; N_T],
+        ambient: Ambient::DEFAULT,
+    };
+
     /// About 1700 root solves: run at boot and on ambient changes, off the control path. Runs to the end without
     /// yielding; see [`Self::build_async`].
     pub fn build(path: &AirPath, ambient: Ambient) -> Self {
@@ -156,8 +162,15 @@ impl AirflowMap {
     /// [`Self::build`] giving the executor a turn after every root solve, so a task sharing the executor waits
     /// for one solve at most.
     pub async fn build_async(path: &AirPath, ambient: Ambient) -> Self {
-        let mut table = [[0.0f32; N_U]; N_T];
-        for (i, row) in table.iter_mut().enumerate() {
+        let mut map = Self::EMPTY;
+        map.rebuild(path, ambient).await;
+        map
+    }
+
+    /// [`Self::build_async`] into this map, in place.
+    pub async fn rebuild(&mut self, path: &AirPath, ambient: Ambient) {
+        self.ambient = ambient;
+        for (i, row) in self.table.iter_mut().enumerate() {
             let t_k = f_to_k(T0_F + i as f64 * DT_F);
             let mut running = 0.0f64;
             for (j, cell) in row.iter_mut().enumerate() {
@@ -169,7 +182,6 @@ impl AirflowMap {
                 crate::numeric::yield_now().await;
             }
         }
-        Self { table, ambient }
     }
 
     /// The ambient moved enough (2 K or 1 m/s) that the table should be rebuilt.
