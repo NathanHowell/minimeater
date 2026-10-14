@@ -1,7 +1,7 @@
 """Back-silk artwork (KiCad closed; KiCad's python), run after silk.py: the face seen with the case open. Usage:
 silk_back.py hw/minimeater.kicad_pcb [--dry]
 Probe numbers P0-P3 between each jack's pegs (the protocol's probes[0..3], jack order), the flame, wordmark and open-source-hardware mark, rev and date,
-JLC's order-number marker, a QR code to the repository, the KK headers' pin names and USB between J1's shell legs.
+a QR code to the repository, the KK headers' pin names and USB between J1's shell legs.
 Everything it adds sits in the group "silk_back", which a rerun replaces. Each item is checked against pads, holes,
 vias and other back silk; a clash is printed and the board is not saved."""
 import sys
@@ -159,7 +159,7 @@ def fit(s, h, near, region):
 for i, jx in enumerate((15.2, 23.9, 32.6, 41.3)):
     text(f"P{i}", jx, 6.75, 1.5, 0.22)
 
-# wordmark under the jacks, centred on them; rev/date and JLC's marker below it
+# wordmark under the jacks, centred on them; rev/date below it
 text("minimeater", 28.25, 11.5, 2.0, 0.3)
 poly(FLAME, 40.3, 14.9, 4.6, False, 0.25)
 poly(CORE, 40.3, 14.9, 4.6, True, what="core", inside="flame")
@@ -179,7 +179,6 @@ for g in pcbnew.FootprintLoad(OSHW, "OSHW-Symbol_6.7x6mm_SilkScreen").GraphicalI
     sh.Move(pcbnew.VECTOR2I(mm(15.4), mm(12.6)))
     place(sh, "OSHW")
 text("rev A  2026-10", 28.25, 14.75, 1.0)
-fit("JLCJLCJLCJLC", 1.0, (24.0, 19.0), (6.0, 16.0, 40.0, 50.0))  # JLC prints its order number here
 
 # QR to the repository, knocked out of a silk square (dark modules = bare mask, like ink on paper)
 q = pcbnew.PCB_BARCODE(b)
