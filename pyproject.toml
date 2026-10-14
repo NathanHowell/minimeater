@@ -28,6 +28,7 @@ mech-render = "minimeater.mech.views:main"
 mech-envelope = "minimeater.mech.envelope:main"
 minimeater-cfd = "minimeater.mech.cfd.run:main"
 minimeater-acoustics = "minimeater.mech.cfd.acoustics:main"
+minimeater-operating = "minimeater.mech.cfd.operating:main"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]

@@ -32,7 +32,7 @@ NU = 1.5e-5
 GAMMA = 1.4
 PR = 0.71
 TUBE_LEN = 0.10  # m, the tube past the shoulder into the firebox (model.params.Intake.tube_len_m)
-CC = 0.92  # the gap jets' contraction coefficient: fitted to the CFD's 45 deg loss (flap_k)
+CC = 0.92  # the gap jets' contraction coefficient: the law's fit at 45 deg (flap_k corrects it at the other CFD angles)
 OPEN_BLOCKAGE = 0.16  # the open flap's share of the bore (mech/analysis.flap_blockage_open)
 
 
@@ -102,10 +102,16 @@ def open_area_fraction(theta_deg: float) -> float:
     return max(1 - blocked, 0.002)
 
 
+CFD_K = {30.0: 2.56, 45.0: 11.16, 60.0: 56.36}  # k_total at 6 CFM, build/cfd/flap-<deg> (docs/cfd.md)
+
+
 def flap_k(theta_deg: float) -> float:
     """Loss coefficient on the bore's velocity: a sudden expansion from the gap jets' vena contracta (Borda-Carnot),
-    with CC fitted to the steady CFD (45 deg: k_total 11.2 at 6 CFM, build/cfd/flap-45)."""
-    return (1 / (CC * open_area_fraction(theta_deg)) - 1) ** 2
+    times a correction interpolated (log-linear in angle, held flat outside) through the steady CFD's angles."""
+    law = (1 / (CC * open_area_fraction(theta_deg)) - 1) ** 2
+    angles = sorted(CFD_K)
+    ratios = [math.log(CFD_K[a] / ((1 / (CC * open_area_fraction(a)) - 1) ** 2)) for a in angles]
+    return law * math.exp(float(np.interp(theta_deg, angles, ratios)))
 
 
 def flap_z(w, theta_deg: float, q_m3s: float):

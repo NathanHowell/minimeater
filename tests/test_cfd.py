@@ -48,4 +48,6 @@ def test_flap_loss_law_matches_the_cfd():
 
     assert abs(A.flap_k(45) - 11.2) < 0.5  # build/cfd/flap-45, k_total
     assert A.flap_k(0) < 0.2
+    for a, k in A.CFD_K.items():
+        assert abs(A.flap_k(a) - k) < 0.01 * k
     assert all(A.flap_k(a) < A.flap_k(a + 5) for a in range(0, 80, 5))
