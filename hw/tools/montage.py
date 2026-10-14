@@ -34,7 +34,6 @@ BLOCKS = [
     ("J7 servo parts", "R29,R30,C36,C37"),
     ("Boot button", "SW1,R13,C23"),
     ("Pull-ups", "R14,R15,R7,R11"),
-    ("Test points (B.Cu)", "TP1,TP2,TP3,TP4,TP5,TP6,TP7,TP8"),
     ("C33 (at U10)", "C33"),
     ("R12 (at D2)", "R12"),
 ]

@@ -62,7 +62,7 @@ U5 LDO (40), U7 fan switch (60), U6 servo switch (75), U2/U3 ESD + C38 + R1/R2 (
 D1/F1/C1-C3 (110-121); row y 95-102: U9 probe ESD (20, 95; jack side up), U11 (40, 95), U8 ADC (80, 102; jacks
 above, MCU below), U1 module (108, 100; antenna down, with C21/C22, R10/C18, C19/C20; unlocked). Small groups
 (hw/layout/README.md): J6 parts (40, 110), J7 parts (55, 110), boot button SW1/R13/C23 (20, 115; enclosure hole
-follows SW1), pull-ups R14/R15/R7/R11 (70, 115), test points TP1-TP8 on B.Cu (50-58, 92-96), C33 (82, 115; goes at
+follows SW1), pull-ups R14/R15/R7/R11 (70, 115), test points TP1-TP8 on B.Cu (50-58, 92-96; placed and routed LAST, bead axk.5, not in the review), C33 (82, 115; goes at
 U10 pins 5/4), R12 (86, 115; goes by D2). Still off-sheet: H1-H3, FID1-FID3 (last phase). Placement review input:
 `hw/tools/montage.py` -> hw/layout/montage.png (every block and the board at one scale, by netclass). The J1 fan-out (D+/D- merge with the In2 hop, CC, VBUS) is drawn when
 U2/U3 go behind J1 (geometry in bead minimeat-bk4).
@@ -105,5 +105,8 @@ if it was rewritten, and reopen. Check with Konnect get_netclasses.
   below the pad row (not a trace under the connector).
 - U9 TPD4E05U06: NC pins tied to the tips (1/10, 2/9, 4/7, 5/6) for the datasheet's straight-through routing.
 - The router scripts are retired; layout is by hand from renders.
+- The board is mounted upside down in the enclosure: F.Cu faces the pan floor (SW1 on F.Cu faces its paper-clip
+  hole), B.Cu faces up.
+- Test points go last, after routing, on B.Cu wherever room is left.
 - Hardware rules from memory still hold: JLCPCB assembly, every part in JLC stock, all SMT on F.Cu, prefer the
   better part.

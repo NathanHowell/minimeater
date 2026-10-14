@@ -174,10 +174,12 @@ as small groups in staging:
   with a 3V3 via, C35 on VFAN with its ground via.
 - J7 servo parts (55, 110), same idea (SIG, VSERVO, GND): R29 series, R30 pull-down on the connector side, C37
   100 nF then C36 100 uF on VSERVO, ground vias (in C36's pad).
-- Boot button (20, 115): SW1 (reached through a paper-clip hole in the enclosure; free to move, the hole follows),
+- Boot button (20, 115): SW1 (the board is mounted upside down, so SW1 on F.Cu faces the paper-clip hole in the pan
+  floor; free to move, the hole follows),
   C23 debounce and R13 pull-up on the BTN line, ground and 3V3 vias.
 - Pull-ups (70, 115): R14 SDA, R15 SCL, R7 LOAD_FAULT, R11 DRDY in U1's left-column order on one 3V3 via.
 - Test points (50-58, 92-96, B.Cu): TP1-TP4 VBUS_F, 3V3, 3V3A, GND; TP5-TP8 EN, UART TX, RX, GND; vias in the GND
-  pads.
+  pads. They are placed and routed LAST (bead minimeat-axk.5), on B.Cu wherever room is left, so they are not in the
+  montage or the placement review.
 - C33 (TMP117 bypass) goes right at U10's pins 5/4 (the no-copper area around U10 bans pours only, not tracks);
   R12 goes beside D2.
