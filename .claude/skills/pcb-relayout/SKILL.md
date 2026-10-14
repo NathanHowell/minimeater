@@ -112,5 +112,7 @@ if it was rewritten, and reopen. Check with Konnect get_netclasses.
 - The board is mounted upside down in the enclosure: F.Cu faces the pan floor (SW1 on F.Cu faces its paper-clip
   hole), B.Cu faces up.
 - Test points go last, after routing, on B.Cu wherever room is left.
+- Routing: block exit stubs and breakouts drawn in staging are disposable. Delete and redraw any that don't line up
+  with the final placement (U9's breakouts were the example) so routes look deliberate: aligned, symmetric, few bends.
 - Hardware rules from memory still hold: JLCPCB assembly, every part in JLC stock, all SMT on F.Cu, prefer the
   better part.
