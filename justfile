@@ -104,3 +104,13 @@ ci-hw:
 # `just cfd flap-45 --cfm 3`; the case and its results.json go to build/cfd/<case>.
 cfd *args:
     uv run minimeater-cfd {{args}}
+
+# One flap LES case (pimpleFoam + WALE; hours: a Linux box, docs/cfd.md): `just les --flap 33 --cfm 0.7 --res coarse`, `--sweep` for the
+# list of operating points, `--dry` to write the case and print its time step, `--mesh-only` for the cell count, `--resume` after a stop.
+# The case goes to build/les/<variant>-<deg>deg-<cfm>cfm-<res>.
+les *args:
+    uv run minimeater-les {{args}}
+
+# The spectra, peaks and plot of finished LES cases (build/les/*); `just les-post --compare A B` checks that two resolutions agree.
+les-post *args:
+    uv run minimeater-les-post {{args}}

@@ -39,14 +39,14 @@ def stations(tube_d: float) -> Stations:
                     r_bore=g.bore_r, r_tube=P.tube.id / 2)
 
 
-def fluid(flap_deg: float, tube_d: float):
-    """The air volume with the flap at `flap_deg` (0 open, 90 closed)."""
+def fluid(flap_deg: float, tube_d: float, dm=None):
+    """The air volume with the flap at `flap_deg` (0 open, 90 closed); `dm` a variant of the damper's parameters (variants.py)."""
     s = stations(tube_d)
     air = xcyl(s.r_fan, s.x_in, s.x_fan + 0.01) - xcyl(s.r_hub, s.x_in - 1, s.x_fan)
     air += xcone(s.r_fan, s.r_bore, s.x_fan, s.x_bore)
     air += xcyl(s.r_bore, s.x_bore - 0.01, s.x_tube)
     air += xcyl(s.r_tube, s.x_tube - 0.01, s.x_out)
-    air -= about_shaft(flap(), flap_deg)
+    air -= about_shaft(flap(dm), flap_deg)
     air -= about_shaft(mock.rod(), flap_deg)
     return air
 
@@ -80,9 +80,9 @@ def _on_flap(f, s: Stations) -> bool:
     return near and inside
 
 
-def write_stl(out: Path, flap_deg: float, tube_d: float) -> dict[str, int]:
+def write_stl(out: Path, flap_deg: float, tube_d: float, dm=None) -> dict[str, int]:
     """One STL per patch in `out` (mm). Returns the face count of each."""
-    air = fluid(flap_deg, tube_d)
+    air = fluid(flap_deg, tube_d, dm)
     if len(air.solids()) != 1:
         raise ValueError(f"the air volume is {len(air.solids())} solids at {flap_deg} deg")
     out.mkdir(parents=True, exist_ok=True)

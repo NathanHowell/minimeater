@@ -1,5 +1,5 @@
 """`uv run minimeater-cfd <case>` (`just cfd <case>`): meshes and solves one duct case in the OpenFOAM container
-(Apple's `container` CLI) and reports the flow and the duct's loss.
+(Apple's `container` on the Mac, podman or docker elsewhere: runtime.py) and reports the flow and the duct's loss.
 
 The loss is read off the developed pressure line: a straight line fitted through the static pressure on the last
 planes of the tube, extrapolated back to the shoulder, is where the pressure would be if the tube's flow were
@@ -18,7 +18,6 @@ import argparse
 import json
 import math
 import shutil
-import subprocess
 import sys
 import time
 from dataclasses import asdict, replace
@@ -26,11 +25,9 @@ from pathlib import Path
 
 import numpy as np
 
-from . import geometry
+from . import geometry, runtime
 from .case import Case, tube_planes, write
 
-IMAGE = "docker.io/opencfd/openfoam-run:2606"
-FOAM = "/usr/lib/openfoam/openfoam2606/etc/bashrc"
 RHO = 1.204  # kg/m^3, air at 20 C
 TAIL = 500  # iterations averaged for the result (a partly closed flap's wake never settles in a steady solve)
 CASES = {
@@ -103,10 +100,7 @@ def run(name: str, c: Case, out: Path, cpus: int, mem: str) -> dict:
     counts = geometry.write_stl(case_dir / "constant" / "triSurface", c.flap_deg, c.tube_d)
     write(case_dir, c)
     print(f"{name}: geometry {counts}, {time.time() - t0:.0f} s", flush=True)
-    cmd = ["container", "run", "--rm", "-c", str(cpus), "-m", mem, "-v", f"{case_dir}:/case", IMAGE,
-           "bash", "-c", f"source {FOAM} && /case/Allrun"]
-    r = subprocess.run(cmd)
-    if r.returncode:
+    if runtime.run(case_dir, "/case/Allrun", cpus, mem):
         sys.exit(f"{name}: OpenFOAM failed (logs in {case_dir})")
     res = results(case_dir, c)
     res["wall_s"] = round(time.time() - t0)

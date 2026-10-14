@@ -229,11 +229,12 @@ def duct():
 # --- flap and its linkage ----------------------------------------------------------------------------------
 
 
-def flap():
+def flap(dm=None):
     """Butterfly flap, machined (stainless or aluminium): a disc with a full-round edge and a round-ended rib along the shaft axis (Z), open =
     parallel to the flow, a D-bore for the rod's flat (retaining compound), no thread. The disc is centred on the
-    rib (`Damper.rib_both_sides`; False puts it flush with the rib's bottom face, cut from plate with the rib standing on it)."""
-    dm = P.damper
+    rib (`Damper.rib_both_sides`; False puts it flush with the rib's bottom face, cut from plate with the rib standing on it).
+    `dm` is a variant of the damper's parameters (the LES compares edges, cfd/variants.py); the default is the design."""
+    dm = dm or P.damper
     off = dm.disc_off  # the disc centre is this far from the shaft axis
     r = math.sqrt((g.bore_r - dm.flap_gap) ** 2 - off**2)  # its edge stays within the gap at every angle
     xf = g.flap_x
@@ -244,9 +245,15 @@ def flap():
     rr = min(dm.rib_round, dm.rib_t / 2, dm.rib_w / 2)  # the rib's section is a stadium: round ends facing and leaving the flow
     xe = dm.rib_w / 2 - rr
     rib = box(xf - xe, xf + xe, -dm.rib_t / 2, dm.rib_t / 2, -r, r)
-    rib += zcyl(rr, -r, r, xf - xe, 0.0) + zcyl(rr, -r, r, xf + xe, 0.0)
+    if rr > 0:
+        rib += zcyl(rr, -r, r, xf - xe, 0.0) + zcyl(rr, -r, r, xf + xe, 0.0)
     rib = rib & (Pos(xf, 0, 0) * Sphere(r - (0.02 if dm.rib_both_sides else 0.0)))  # centred, the disc's edge circle is the sphere's equator: stay just inside it
     f = disc + rib
+    for k in range(dm.serr_n):  # a serrated edge: V notches (90 deg, serr_h deep) round the disc, clear of the rib
+        a = 2 * math.pi * (k + 0.5) / dm.serr_n
+        if abs(r * math.cos(a)) < dm.rib_w / 2 + dm.serr_h:
+            continue
+        f -= Pos(xf + r * math.cos(a), -off, r * math.sin(a)) * Rot(0, -math.degrees(a) + 45, 0) * Box(dm.serr_h * math.sqrt(2), dm.flap_t + 2, dm.serr_h * math.sqrt(2))
     f -= d_bore(xf, 0.0, -r - 1, r + 1, clear=dm.bore_clear)
     return f
 

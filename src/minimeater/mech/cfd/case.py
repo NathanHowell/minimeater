@@ -28,6 +28,9 @@ class Case:
     tube_d: float = 12.0  # tube length after the shoulder, in tube diameters
     iterations: int = 2000
     np: int = 8
+    base: float = BASE  # mm, the background cells; the refinement levels halve it
+    flap_level: int = 3  # the flap's surface cells: base / 2^level
+    zone: tuple = ()  # (x0, x1, level) mm: a cylinder round the bore refined to this level (the LES's flap region); () = the one wake cylinder
 
     @property
     def q_m3s(self) -> float:
@@ -51,7 +54,7 @@ def files(c: Case) -> dict[str, str]:
     pad = 2.7  # the background box's faces stay off the inlet and outlet planes
     r = s.r_fan + 2.0
     x0, x1 = s.x_in - pad, s.x_out + pad
-    nx, ny = round((x1 - x0) / BASE), round(2 * r / BASE)
+    nx, ny = round((x1 - x0) / c.base), round(2 * r / c.base)
     out = {}
     out["system/blockMeshDict"] = _f("dictionary", "blockMeshDict", f"""
 vertices ( ({x0} {-r} {-r}) ({x1} {-r} {-r}) ({x1} {r} {-r}) ({x0} {r} {-r})
@@ -62,9 +65,14 @@ boundary ( background {{ type wall; faces ( (0 3 2 1) (4 5 6 7) (0 4 7 3) (1 2 6
     out["system/surfaceFeatureExtractDict"] = _f("dictionary", "surfaceFeatureExtractDict", "".join(
         f"{p}.stl {{ extractionMethod extractFromSurface; includedAngle 150; subsetFeatures {{ nonManifoldEdges no; openEdges yes; }} writeObj no; }}\n"
         for p in PATCHES))
-    levels = {"inlet": 2, "outlet": 1, "duct": 2, "tube": 1, "flap": 3}
+    levels = {"inlet": 2, "outlet": 1, "duct": 2, "tube": 1, "flap": c.flap_level}
     geo = "".join(f"    {p} {{ type triSurfaceMesh; file \"{p}.stl\"; }}\n" for p in PATCHES)
     wake = f"    wake {{ type searchableCylinder; point1 ({s.x_bore} 0 0); point2 ({s.x_tube + 2 * s.r_tube} 0 0); radius {s.r_bore + 0.5}; }}\n"
+    regions = "wake { mode inside; levels ((1E15 1)); }"
+    if c.zone:
+        z0, z1, zl = c.zone
+        wake += f"    zone {{ type searchableCylinder; point1 ({z0} 0 0); point2 ({z1} 0 0); radius {s.r_bore + 0.5}; }}\n"
+        regions += f" zone {{ mode inside; levels ((1E15 {zl})); }}"
     feats = "".join(f"        {{ file \"{p}.eMesh\"; level {levels[p]}; }}\n" for p in PATCHES)
     surfs = "".join(f"        {p} {{ level ({levels[p]} {levels[p]}); patchInfo {{ type {'patch' if p in ('inlet', 'outlet') else 'wall'}; }} }}\n"
                     for p in PATCHES)
@@ -83,7 +91,7 @@ castellatedMeshControls
     refinementSurfaces
     {{
 {surfs}    }}
-    refinementRegions {{ wake {{ mode inside; levels ((1E15 1)); }} }}
+    refinementRegions {{ {regions} }}
     locationInMesh ({loc.X} {loc.Y} {loc.Z});
 }}
 snapControls {{ nSmoothPatch 3; tolerance 2.0; nSolveIter 50; nRelaxIter 5; nFeatureSnapIter 10;
