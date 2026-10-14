@@ -22,3 +22,5 @@ its one-off rework scripts were retired (in git history before the re-layout).
 
 DRC: `hw/minimeater.kicad_dru` relaxes `hole_clearance` to 0.19 mm for J1 only (the GCT USB4105-GF-A land pattern
 puts its GND pads 0.1944 mm from the locating pegs).
+- `silk.py` (KiCad's python, KiCad closed): the silk pass. References at JLC minimum size placed beside their part
+  where they fit, else hidden; back-silk labels for the test points (net names) and J6/J7 (FAN/SERVO).
