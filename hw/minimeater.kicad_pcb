@@ -275,7 +275,7 @@
 				)
 			)
 		)
-		(property "Value" "1nF DNP"
+		(property "Value" "1nF"
 			(at 0 1.16 270)
 			(unlocked yes)
 			(layer "F.SilkS")
@@ -299,7 +299,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -310,7 +310,29 @@
 				)
 			)
 		)
+		(property "LCSC" "C1523"
+			(at 0 0 270)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "a86e63f2-76f3-42cc-86cb-7e38772fa805")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "C_*")
 		(path "/5a6f8a76-2324-4d19-8825-847d988281c6")
+		(sheetname "/")
+		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -372,6 +394,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "FAN_TACH")
+			(pintype "passive")
 			(uuid "851de6d6-e85e-471a-8aa2-872ca7d1d6cc")
 		)
 		(pad "2" smd roundrect
@@ -380,6 +403,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "GND")
+			(pintype "passive")
 			(uuid "eee2897f-da81-4cc1-b11f-43375cbac8a0")
 		)
 		(embedded_fonts no)
@@ -782,7 +806,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -793,7 +817,29 @@
 				)
 			)
 		)
+		(property "LCSC" "DNP: rework only (FAN_TACH divider if the fan pulls tach to 5 V, docs/sim/fan.md)"
+			(at 0 0 270)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "86e95693-b8c4-4230-87d4-4458c4a511e3")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "R_*")
 		(path "/e7fa98f6-8e33-4c5f-aa6b-34e6c4e51712")
+		(sheetname "/")
+		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153642 0.38)
@@ -855,6 +901,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "FAN_TACH")
+			(pintype "passive")
 			(uuid "110b41c2-374d-4407-95ea-3cb738923149")
 		)
 		(pad "2" smd roundrect
@@ -863,6 +910,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "GND")
+			(pintype "passive")
 			(uuid "f23573ca-ecd4-471c-9a11-e69e96c2ac83")
 		)
 		(embedded_fonts no)
@@ -2649,7 +2697,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -2660,7 +2708,29 @@
 				)
 			)
 		)
+		(property "LCSC" "DNP: rework only (VBUS_F hot-plug snubber with R32; same part as C1)"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "138f1c1e-5221-4b68-8dfc-2d710500bb02")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "C_*")
 		(path "/dec1c6c8-9bc4-493a-b745-8795fa3f24a1")
+		(sheetname "/")
+		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.711252 -1.36)
@@ -2722,6 +2792,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.217391)
 			(net "/VBUS_SNUB")
+			(pintype "passive")
 			(uuid "f29b2149-6215-4e44-8238-b23a16cdcf6a")
 		)
 		(pad "2" smd roundrect
@@ -2730,6 +2801,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.217391)
 			(net "GND")
+			(pintype "passive")
 			(uuid "92c91f6b-f7e3-4217-b934-a5c8806ac120")
 		)
 		(embedded_fonts no)
@@ -9485,6 +9557,12 @@
 		(path "/b5a0a355-9295-4977-914c-96af97754460")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -15920,6 +15998,12 @@
 		(path "/2d61307b-029e-4925-9153-2549a202199a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -16047,7 +16131,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -16058,7 +16142,29 @@
 				)
 			)
 		)
+		(property "LCSC" "DNP: rework only (VBUS_F hot-plug snubber, docs/sim/power.md)"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "817ac3df-af3d-4a68-970c-629865d2c119")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "R_*")
 		(path "/d369a7b9-b0fe-4c95-a49d-747cb3a1d749")
+		(sheetname "/")
+		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.227065 -0.734999)
@@ -16120,6 +16226,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.243902)
 			(net "/VBUS_F")
+			(pintype "passive")
 			(uuid "e289999e-1d35-4733-84f5-d779be889ef1")
 		)
 		(pad "2" smd roundrect
@@ -16128,6 +16235,7 @@
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.243902)
 			(net "/VBUS_SNUB")
+			(pintype "passive")
 			(uuid "08f05e03-219f-4b9f-b580-482938dac49f")
 		)
 		(embedded_fonts no)
@@ -21843,6 +21951,12 @@
 		(path "/da410d6b-be6b-4573-8a83-1a13d3d28d87")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21967,6 +22081,12 @@
 		(path "/17e83f04-e342-4953-9535-d78941dbf45c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22091,6 +22211,12 @@
 		(path "/144fb4e0-2d87-455b-b4ff-979ec90b0f1f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22215,6 +22341,12 @@
 		(path "/c41eda81-5f4c-4ba3-bfd2-c4e50a37978e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22339,6 +22471,12 @@
 		(path "/f9a93dca-613a-4259-80af-459badaec111")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22464,6 +22602,12 @@
 		(path "/3723044f-d66c-421b-b704-1d2ebfd5247c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22588,6 +22732,12 @@
 		(path "/4735636d-a96e-4166-bc7f-8df92dba9c7d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22712,6 +22862,12 @@
 		(path "/c3630762-763a-48f9-934c-633e0e1f43c3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
