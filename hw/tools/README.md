@@ -16,11 +16,11 @@ its one-off rework scripts were retired (in git history before the re-layout).
 - `fab.py` (`uv run python hw/tools/fab.py`): gerber zip, JLC BOM and CPL into `hw/fab/`, from a zone-refilled copy;
   plus a one-up assembly panel (`minimeater-panel-*`: 5 mm rails left and right, mouse bites, three 1.152 mm NPTH
   tooling holes and three fiducials on the rails) when KiKit is installed in `hw/.kikit` (see the script's docstring).
+- `silk.py` (KiCad's python, KiCad closed): the silk pass. References at JLC minimum size placed beside their part
+  where they fit, else hidden; back-silk labels for the test points (net names) and J6/J7 (FAN/SERVO).
 - `models.py`: 3D models for the mech assembly (`src/minimeater/mech/board3d.py`).
 - `kk_ra_step.py`, `kk_ra.py`: the right-angle KK header STEP model and footprint.
 - `connector_edge.py`: trims the connector edge so the jacks reach into the port wall (applied).
 
 DRC: `hw/minimeater.kicad_dru` relaxes `hole_clearance` to 0.19 mm for J1 only (the GCT USB4105-GF-A land pattern
 puts its GND pads 0.1944 mm from the locating pegs).
-- `silk.py` (KiCad's python, KiCad closed): the silk pass. References at JLC minimum size placed beside their part
-  where they fit, else hidden; back-silk labels for the test points (net names) and J6/J7 (FAN/SERVO).
