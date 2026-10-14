@@ -46,7 +46,7 @@ Sources: [service page](https://jlc3dp.com/help/article/threaded-insert-service)
 
 ### What it does to our design
 
-Decided 2026-10-14: **the service is not used.** We fit the one M4 insert ourselves (below).
+Decided 2026-10-14: **the service is not used.** The one M4 insert went with the thumbscrew: the socket's lobed extension grips the tube instead (`minimeat-e5g`). What follows is the reasoning as it stood.
 
 
 The only insert is the M4 for the thumbscrew in the duct's boss, and it does not fit the service's rules: the boss is a 9.4 mm block with a Ø5.6 hole (a typical heat-set size), so the wall is 1.9 mm, not 3.0, the hole is 1.0 mm wider than their Ø4.6, and the flat is not 14 × 14. Using the service would mean a bigger block (at least 10.6 mm across the hole, and 14 × 14 flat) and the Ø4.6 hole in the CAD, and the flat does not fit: the boss stands between the hood's front face (x -11) and the socket's mouth (x 0), so it can be at most about 10.5 mm along x unless the socket or the nose moves. So the boss stays as it is (Ø5.6 × 4 mm pocket) and takes a short M4 × 4 brass heat-set insert, pressed in with a soldering iron with the small ones (heat-set holds well in PA12).

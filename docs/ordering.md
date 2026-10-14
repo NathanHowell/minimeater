@@ -27,8 +27,6 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP, all three in
 | M2.5 × 20 screw | 2 | 10 + 4 | named | Shell, front pair, from the belly. Pan-head or cheese-head: the head sits in a Ø4.6 channel, so a head up to 4.5 mm. |
 | M2 × 16 screw | 2 | 10 + 4 | named | Shell, rear pair. |
 | 34 × 2.5 O-ring | 1 | 5 + 5 | size named, **material is my pick** | Seals the duct's socket on the egg's tube, which can reach 65-90 °C (the `.2.5` thermal check is still open): FKM or silicone, not NBR. |
-| M4 × 4 brass heat-set insert (short) | 1 | 5 + 5 | named | Pressed into the thumbscrew boss on the duct with a soldering iron: the pocket is Ø5.6 and 4 mm deep, so a short insert (about 4 mm long, for a Ø5.6 hole); check the hole size against its data sheet. JLC3DP's insert service is not used (`docs/jlc3dp.md`). |
-| M4 thumbscrew, stainless | 1 | 5 + 5 | length not chosen | Reaches the 34.93 mm tube through a short boss: measure on the first print. |
 | Silicone port caps | 5 | 25 | **unsourced** | One for the USB-C port and four for the jacks; the bay has nowhere to tie them. Any USB-C cap and 2.5 mm jack cap that fit the openings (USB-C 13.2 × 7.4, jack Ø5): measure the first print. |
 | Clear Ø1.75 mm filament | ~15 mm | 1 piece | named | The LED's light pipe, glued flush in a Ø1.9 hole. |
 | Retaining compound, removable grade (Loctite 641 or similar) | | 1 bottle | my pick | The flap on the rod. A permanent grade (638) would make the rod impossible to pull for sanding the duct. |
@@ -56,6 +54,6 @@ Not on this list because you already have them: the egg and its Ø34.93 intake t
 
 ## 5. Open items
 
-- The port caps and the thumbscrew length are not sourced. The rod is quoted (above), not yet ordered.
+- The port caps are not sourced. The rod is quoted (above), not yet ordered.
 - The shoulder screw's head size and thread length are to confirm with the supplier.
 - The O-ring material waits for the tube temperature measurement (`.2.5`).

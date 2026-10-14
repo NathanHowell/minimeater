@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 class Tube:
     od: float = 34.93  # [stl] 1.375 in, BBQ Guru style; calipers still needed (.2.8)
     id: float = 31.6  # [forum] BBQ Guru-compatible adapters list ~31 mm ID (.2.8)
-    free_len: float = 40.0  # [est] straight length available to the socket (.2.8)
+    free_len: float = 40.0  # [est] straight length available to the socket, which needs Coupling.depth + ext_len = 40 to seat the tube on its shoulder (.2.8)
 
 
 @dataclass(frozen=True)
@@ -188,9 +188,14 @@ class Coupling:
     groove_depth: float = 1.9  # from the bore wall outward: sets the squeeze on the tube
     oring_x: float = -10.0  # groove centre
     od: float = 46.0
-    lead_in: float = 1.5
-    boss_x: float = -4.7  # thumbscrew boss centre, on the socket's +y side, outside the hood
-    boss_w: float = 9.4  # the boss: a block flush with the mouth, round on top
+    # the socket runs on past the old mouth (x = 0) toward the egg; over that length the bore goes from round to a sinusoidal
+    # section along a smootherstep, the wall following it, so its crests grip the tube (no thumbscrew)
+    ext_len: float = 20.0  # [est] placeholder: how far the socket reaches past x = 0
+    ext_grow_d: float = 1.0  # the mean bore's growth over the extension, on the diameter
+    lobes: int = 8  # crests around the bore
+    grip: float = 0.15  # radial: the crests' deepest reach into the tube, at the egg end of the transition
+    lead_len: float = 3.0  # the last stretch at the mouth opens up so the tube starts freely ...
+    lead_clear: float = 0.15  # ... to this radial clearance at the crests
     collar_x: float = -12.5  # drip collar behind the hood's front ring: a 44 deg cone r23 -> r24.5 toward -x, 0.3 off the shells' cone
     collar_r: float = 24.5
 
@@ -202,7 +207,7 @@ class Layout:
 
     board_x1: float = -24.5  # board's front edge: under the socket flare's first mm, clear of the shells' front cone
     straight_over: float = 2.5  # the board's rear edge may sit this far into the cone (its outer r grows 0.5/mm): 1.0 for the parts, plus Pcb.usb_end, where only the USB-C stands
-    x_front: float = -11.0  # the front face: the socket's last 11 mm and the thumbscrew are outside
+    x_front: float = -11.0  # the front face: the socket's last 11 mm and its extension are outside
     rear_gap: float = 4.5  # fan's rear face to the rear wall's inner face: the fan screw heads and the inlet
     front_screw_x: float = -18.0  # the front shell screws, in the shells' thick front zone
     slope: float = 1.0355  # run per rise of every designed overhang: 44 degrees, inside the 45 the printer allows

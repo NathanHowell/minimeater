@@ -19,7 +19,7 @@ from .printing import ALL, print_pose
 BUILDS = 5  # the first run: five units
 
 PRINT_NOTES = {
-    "duct": "airway, fan flange, servo shelf, O-ring socket, M4 thumbscrew boss: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
+    "duct": "airway, fan flange, servo shelf, O-ring socket with a 20 mm extension whose 8-lobe bore grips the tube: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
     "hood": "upper shell; print nose up on the rear face, as exported",
     "pan": "lower shell with the port bay and the board standoffs; print nose up on the rear face, as exported",
 }
@@ -57,8 +57,7 @@ def write_packages(out: Path):
                     z.write(f, f.name)
 
     package(out / "3dprint", "minimeater-3dprint.zip", readme("minimeater printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
-        "Material: MJF PA12S-HP (black nylon), all three parts; see docs/jlc3dp.md. No threaded-insert service: we fit the",
-        "duct's one M4 insert (the thumbscrew boss) ourselves, and all other screws go",
+        "Material: MJF PA12S-HP (black nylon), all three parts; see docs/jlc3dp.md. No threaded inserts: all screws go",
         "straight into the plastic. Shell walls are 2.8 mm, the duct's 2.2-2.4. Ream the duct's bore at the flap station (x = -37.5, Ø32 H7 +0.025/0,",
         "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
     ]))

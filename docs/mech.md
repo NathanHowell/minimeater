@@ -16,17 +16,17 @@ This is the second design (v1): the v0 box with the board over the fan and the s
 
 ## Layout
 
-Frame: +X is the flow, the tube axis is the X axis, +Z is up, +Y is to the left looking along the flow (toward the egg). The socket mouth is the plane x = 0, the body extends to -X. Overall 126 × 74 × 73 mm (x × y × z) including the 11 mm of socket and the thumbscrew that show at the front; the shells alone are 115 long. v0 with its skin was 112 × 76 × 97.
+Frame: +X is the flow, the tube axis is the X axis, +Z is up, +Y is to the left looking along the flow (toward the egg). The socket mouth is the plane x = 0, the body extends to -X. Overall 149 × 75 × 74 mm (x × y × z) including the 31 mm of socket that shows at the front (11 mm of the original socket and its 20 mm extension); the shells alone are 115 long. v0 with its skin was 112 × 76 × 97.
 
 Everything sits in one tunnel at the fan's height. From the back: the louvred rear wall, a 5 mm gap for the fan's screw heads, the fan (60 × 60 × 25, x = -121.5 to -96.5), the 27 mm cone from its Ø58 bore to the Ø32 bore (half-angle 26°), 42 mm of straight bore with the flap at x = -37.5, a 44° flare up to the Ø46 socket, and the socket's 20 mm on the tube. The board lies flat under the straight section, parts up: its 11 mm keep-out ends 1 mm under the duct, and it is the belly's depth (the belly is 5.7 mm under the fan). The servo stands beside the duct on the +y side, output up, and drives the flap through a parallelogram over the duct's crown. The ports are in the -y flank, low, under the body's overhang.
 
 | Part | Print pose | What |
 |---|---|---|
-| `duct` | flange on the bed, flow axis up | fan flange (62 square, r8), cone, bore with the flap station, servo shelf, flare, socket with O-ring groove, drip collar and thumbscrew boss |
+| `duct` | flange on the bed, flow axis up | fan flange (62 square, r8), cone, bore with the flap station, servo shelf, flare, socket with O-ring groove, drip collar and the 20 mm lobed extension |
 | `hood` | standing on its rear face, nose up | the upper shell: half the nose notch, half the grille, the screw bosses, the seam rib, the label recess |
 | `pan` | the same | the lower shell: the board on three standoffs, the port bay, the ambient louvres, the flange pads, the screw columns, the seam tongue |
 
-The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a Secraft 15 mm aluminium arm (Hitec 24T) and 2 M2 × 6, a Ø3 rod 42.7 mm long (+-0.1: its end stands 0.3 mm above the crank and 0.6 mm under the coupler when the flap is closed) with a 2.5 mm D flat, not yet sourced, the made `crank` and `coupler` (below), two M2 shoulder screws (Ø3 shoulder, 3 mm long) with nyloc nuts and washers for the pivots, a 34 × 2.5 O-ring, an M4 heat-set insert and thumbscrew, 3 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five silicone caps.
+The chassis is the duct with the fan screwed to its flange, the servo on its shelf, the linkage and the rod: a working damper on its own, before any shell goes on. Bought: fan (with 4 of its screws, from the rear), servo with a Secraft 15 mm aluminium arm (Hitec 24T) and 2 M2 × 6, a Ø3 rod 42.7 mm long (+-0.1: its end stands 0.3 mm above the crank and 0.6 mm under the coupler when the flap is closed) with a 2.5 mm D flat, not yet sourced, the made `crank` and `coupler` (below), two M2 shoulder screws (Ø3 shoulder, 3 mm long) with nyloc nuts and washers for the pivots, a 34 × 2.5 O-ring, 3 M2.5 × 6 for the board, 2 M2.5 × 20 and 2 M2 × 16 for the shells, five silicone caps.
 
 The full list of what to buy, with quantities for five units, is `docs/ordering.md`.
 
@@ -34,7 +34,7 @@ The full list of what to buy, with quantities for five units, is `docs/ordering.
 
 - The socket is a Ø35.23 bore (tube Ø34.93 plus 0.3), 20 mm deep. A 44° chamfer at its bottom is the shoulder the tube stops on; it leaves 1.8 mm for a 1.67 mm tube wall, so the airway is flush.
 - The joint is downstream of the flap, so a leak there bypasses it (`docs/parts/heatermeter-adapter.md`). An O-ring in a groove seals it: a 34 × 2.5 ring stretches 2.7 % over the tube and is pinched 0.45 mm (18 %) between the tube and the groove bottom; the test holds that to 10-30 % squeeze and under 5 % stretch.
-- Retention is friction plus an M4 thumbscrew, now on the socket's +y side, 4.7 mm from the mouth: a 9.4 mm block flush with the mouth (so it prints), outside the hood, reachable with the shells closed.
+- Retention is the socket's own grip; there is no thumbscrew. The socket runs on 20 mm past the old mouth (x = 0 to 20, `Coupling.ext_len`, a placeholder; the tube then needs 40 mm of straight length to seat on the shoulder). Over that length the bore goes from round to eight sinusoidal lobes (±0.81 mm on the radius) along a smootherstep (6t⁵ − 15t⁴ + 10t³: no slope or curvature step at either end), its mean growing 1 mm on the diameter on the same curve; the wall (2.4 mm) follows the wave, so the lobes can flex. The crests reach the tube about 10 mm in and 0.15 mm into it at x ≈ 17 (`Coupling.grip`); the last 3 mm opens so the crests clear the tube by 0.15 at the mouth and it starts freely. Tests check the grip profile and that the loft stays on its formula (`test_the_socket_grips_the_tube_over_its_extension_only`, `test_the_socket_loft_follows_its_formula`).
 - A collar behind the hood's front ring (Ø49, a 44° cone on its front, a chamfer behind) seats on the shells' front cone 0.3 mm away: it stops the chassis moving forward and catches water that gets past the nose.
 
 ## Flap and linkage
@@ -78,7 +78,7 @@ The box lives outdoors; the target is IPX4 (splashed from any direction, no imme
 - Ports: in the bay, 9.05 mm under the eave with its drip lip, in a vertical wall; the floor is the belly's round, open all along. Silicone caps for USB-C and unused jacks (untethered: the end walls have no holes). A probe plug in a jack is a 2.5 mm barrel in a Ø5 hole beside the housing: not sealed; the jack's own body is the next barrier.
 - Inlet: 44° louvres, blades 4.5 mm long. No straight path to the fan at any angle up to 44° from the horizontal; spray from steeper below gets to the fan's rear face, which the fan tolerates.
 - Ambient louvre: two slots straight through the pan floor under the sensor; what gets in meets the sensor's face, and the board shields it from the duct.
-- Seam: along the flanks the pan's inner half-wall rises 3 mm inside the hood's wall and a 1.4 mm rib from the hood hangs 3 mm inside that: the path turns twice. At the rear wall the pan's inner half rises 1.2 mm behind a 44° face. At the nose the two half-round notches close on the socket with 0.5 mm of play; the collar inside the front ring stops what runs along the socket. The thumbscrew's insert hole is blind on the outside and opens into the bore between the mouth and the O-ring, which drains out of the mouth.
+- Seam: along the flanks the pan's inner half-wall rises 3 mm inside the hood's wall and a 1.4 mm rib from the hood hangs 3 mm inside that: the path turns twice. At the rear wall the pan's inner half rises 1.2 mm behind a 44° face. At the nose the two half-round notches close on the socket with 0.5 mm of play; the collar inside the front ring stops what runs along the socket. No hole goes through the socket's wall.
 - Top: the roof crowns and rolls; no flat pocket. The label is on a vertical flank.
 
 Nothing is proven. The spray test (IEC 60529 IPX4: oscillating tube, 10 L/min, 10 min, then open and look) is a bead to file; the first thing it will say is whether the nose notch and the port holes need gaskets.
@@ -87,7 +87,7 @@ Nothing is proven. The spray test (IEC 60529 IPX4: oscillating tube, 10 L/min, 1
 
 Printed at 0.4 mm: seven perimeters on the shells (2.8 mm walls), six on the duct (2.4 mm). Every designed overhang is 44°, inside the 45 the test allows, so the inventory (`overhangs()` in `printing.py`: downward faces steeper than 45° in the print pose) lists only what is meant to be there:
 
-- `duct`, flange down: the O-ring groove's 2 mm ceiling (221 mm², a bridge as in v0), the underside of the thumbscrew boss (13 mm², 9 × 3) and the rims of its hole and the insert's. The flare, the collar's chamfer, the shoulder, the shelf's ends and the shelf's bosses are the 44° features for this pose.
+- `duct`, flange down: the O-ring groove's 2 mm ceiling (221 mm², a bridge as in v0). The flare, the collar's chamfer, the shoulder, the shelf's ends and the shelf's bosses are the 44° features for this pose.
 - `hood` and `pan`, nose up on the rear face: about 60 and 50 mm² of slivers at the ends of the rear pads and around the port openings (the test caps each shell at 150, no patch over 60). The cavity's front is a 44° cone down to the nose hole (plus a 44° wedge under it in the pan, so the board's corners fit), the screw bosses and standoffs are teardrop columns pointed down, every hole along z is a teardrop pointed up, and the bay's end walls and the ambient well's cross fins lean 44°. The USB-C opening's top is a 13 mm bridge.
 
 Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between port holes 1.3.
@@ -101,7 +101,7 @@ Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between
 - Length: the front cone that makes the shells printable eats the cavity's corners for the last 25 mm, so the board had to move 1.5 mm back; with the 5 mm rear gap for the fan's screw heads the body is 126 long against the 124 aimed at. The horizontal board costs 7 mm of height over a vertical one (73 against 66).
 - Airflow: the inlet turns 44° through the louvres; the open area is still 22 % more than v0's grille. The rear gap is 5 mm, so the inlet sees the pads and the screw heads.
 - Heat: the socket is outside the shells; the board is under the straight section, not under the socket. The servo is beside the cone, in the fan's air.
-- Service: the hood comes off upward on four screws from below; the pan brings the board with it; the chassis stays on the tube. The fan comes off the flange from the rear once the chassis is out. The thumbscrew is on the side, not the top.
+- Service: the hood comes off upward on four screws from below; the pan brings the board with it; the chassis stays on the tube. The fan comes off the flange from the rear once the chassis is out. The duct pulls off the tube against the lobes' grip.
 - Plugs: the bay is under the body: plugging in is by feel from the side, the overmolds are 0.7 mm apart, and the recess is 7 mm, so a plug with an overmold longer than 18 mm stands proud of the flank.
 - Board: 47.5 × 54, turned over, 6.4 mm under it (3.7 along the +y edge, where the floor curves up) and 2.5 above; the two front corners have under 1 mm to the cone.
 

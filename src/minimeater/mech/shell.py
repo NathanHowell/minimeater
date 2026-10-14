@@ -426,7 +426,7 @@ def internals(flap_deg=0.0):
 
 
 def envelope():
-    """Bounding box sizes (dx, dy, dz): the shells alone, and with the exposed socket and thumbscrew boss."""
+    """Bounding box sizes (dx, dy, dz): the shells alone, and with the exposed socket and its extension."""
     sh = hood() + pan()
     b = sh.bounding_box()
     s = (sh + internals()["duct"]).bounding_box()

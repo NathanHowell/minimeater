@@ -12,12 +12,15 @@ from build123d import (
     Box,
     Cone,
     Cylinder,
+    Edge,
     Plane,
+    Solid,
     Sphere,
     Torus,
     Polyline,
     Pos,
     Rot,
+    Wire,
     extrude,
     make_face,
 )
@@ -75,6 +78,53 @@ def sock_r():
     return (P.tube.od + 0.3) / 2
 
 
+def smootherstep(t):
+    """0 -> 1 with zero slope and curvature at both ends."""
+    t = min(max(t, 0.0), 1.0)
+    return t * t * t * (t * (6 * t - 15) + 10)
+
+
+def lobe_amp():
+    """The wave's amplitude on the radius: with the mean bore grown by `ext_grow_d`, the crests reach `grip` into the tube
+    where the lead starts (the transition is not quite complete there)."""
+    c = P.coupling
+    s = smootherstep((c.ext_len - c.lead_len) / c.ext_len)
+    return c.ext_grow_d / 2 + (sock_r() + c.grip - P.tube.od / 2) / s
+
+
+def socket_r(x, th):
+    """The socket's bore radius at x and angle th: round up to the old mouth (x = 0), then over `ext_len` the mean grows and
+    the wave comes in along a smootherstep (crests at th = 0, 45, ...), and the last `lead_len` opens so the crests clear the tube."""
+    c = P.coupling
+    s = smootherstep(x / c.ext_len)
+    r = sock_r() + s * (c.ext_grow_d / 2 - lobe_amp() * math.cos(c.lobes * th))
+    open_ = P.tube.od / 2 + c.lead_clear - (sock_r() + c.ext_grow_d / 2 - lobe_amp())  # the crests' rise to clear the tube at the mouth
+    return r + smootherstep((x - (c.ext_len - c.lead_len)) / c.lead_len) * open_
+
+
+def _socket_stations():
+    c = P.coupling
+    step = c.ext_len / 20  # the same spacing all the way, so the loft's spline does not ring between sparse and dense sections
+    n0 = math.ceil((0.5 - g.socket_x0) / step)
+    xs = [-step * i for i in range(n0 + 1)]  # round, from the mouth back past the shoulder
+    xs += [step * i for i in range(1, 20)]  # the transition
+    xs += [c.ext_len - c.lead_len + c.lead_len * i / 4 for i in range(1, 5)]  # the lead
+    return sorted(set(round(x, 6) for x in xs))
+
+
+def socket_loft(extra=0.0, x0=None):
+    """The socket's bore offset outward by `extra` (0: the bore; the wall's thickness: the extension's outside), lofted through
+    sections from `x0` (default: behind the shoulder) to the mouth."""
+    n = 16 * P.coupling.lobes
+    wires = []
+    xs = _socket_stations() if x0 is None else [x0] + [x for x in _socket_stations() if x > x0]
+    for x in xs:
+        pts = [(x, (socket_r(x, th) + extra) * math.cos(th), (socket_r(x, th) + extra) * math.sin(th))
+               for th in (2 * math.pi * i / n for i in range(n))]
+        wires.append(Wire([Edge.make_spline(pts, periodic=True)]))
+    return Solid.make_loft(wires)
+
+
 def groove_r():
     return sock_r() + P.coupling.groove_depth
 
@@ -95,8 +145,6 @@ SHELF_Y1 = G.SERVO_Y0 + P.servo.body_w + 0.2
 SHELF_X0 = G.TAB_HOLE_XS[0] - 6.5  # the rear end leans 44 deg: room for the pilots to reach full depth
 SHELF_X1 = G.TAB_HOLE_XS[1] + 2.3  # short of the shells' front cone
 BLOCK_D = 7.0  # the blocks under the tabs, from the tab's underside: a 6 mm pilot and a 1 mm floor
-BOSS_Y0 = G.g.duct_r + 1.8  # the thumbscrew boss: from inside the socket wall out past it
-BOSS_Y1 = P.coupling.od / 2 + 3.0
 
 
 def servo_shelf():
@@ -128,16 +176,6 @@ def servo_shelf():
     return s
 
 
-def thumbscrew_boss():
-    """A block on the socket's +y side, flush with the mouth (the print bed), rounded on its -x edges; it takes
-    an M4 heat-set insert for the thumbscrew."""
-    c = P.coupling
-    hw = c.boss_w / 2
-    b = box(c.boss_x - hw, 0.0, BOSS_Y0, BOSS_Y1, -hw, hw)
-    b = b.fillet(hw - 0.8, b.edges().filter_by(Axis.Y).filter_by(lambda e: e.center().X < c.boss_x))
-    return b
-
-
 def stop_posts():
     """Two posts on the duct's crown that the crank's lug stops against: open (0 deg) the lug lies along -x and its +y face
     meets the first post; closed (90 deg) the lug lies along -y and its +x face meets the second. Both stand beside the
@@ -153,7 +191,7 @@ def stop_posts():
 
 def duct():
     """Fan flange, contraction cone, the straight bore with the flap station, the servo shelf and the socket
-    onto the intake tube, with its drip collar and the thumbscrew boss."""
+    onto the intake tube, with its drip collar and its extension toward the egg, whose lobed bore grips the tube."""
     c = P.coupling
     br, dr, w = g.bore_r, g.duct_r, g.flange_w
     xf = g.flap_x
@@ -172,19 +210,16 @@ def duct():
     outer += xcone(c.od / 2, c.collar_r, c.collar_x - 1.5 - 1.6 - dc * k, c.collar_x - 1.5 - 1.6)
     outer += xcyl(c.collar_r, c.collar_x - 1.5 - 1.6, c.collar_x - 1.5)
     outer += xcone(c.collar_r, c.od / 2, c.collar_x - 1.5, c.collar_x)
-    outer += thumbscrew_boss()
+    outer += socket_loft(P.print.wall, x0=-1.0)  # the extension, its wall following the wave; it starts inside the Ø46
     body = outer + servo_shelf() + stop_posts()
 
     # the airway and the features cut into the walls
     body -= xcone(P.fan.aperture_d / 2, br, g.fan_face_x - 0.1, g.straight_x0)
     body -= xcyl(br, g.straight_x0 - 0.01, g.socket_x0 + 0.01)
-    body -= xcyl(sock_r(), g.socket_x0, 0.5)
+    body -= socket_loft()
     body -= xcone(br, sock_r() + 0.01, g.socket_x0 - (sock_r() - br) * k, g.socket_x0 + 0.01)  # the shoulder, 44 deg
-    body -= xcone(sock_r(), sock_r() + c.lead_in, -c.lead_in, 0.0)  # lead-in chamfer at the mouth
     body -= xcyl(groove_r(), c.oring_x - 1.6, c.oring_x + 1.6)
     body -= zcyl(1.7, -dr + 1.2, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom: a 1.2 mm skin
-    body -= ycyl(2.8, BOSS_Y0 + 2.0, BOSS_Y1 + 0.1, c.boss_x, 0.0)  # M4 heat-set insert for the thumbscrew: Ø5.6 x 4 deep, a short M4 x 4
-    body -= ycyl(2.1, br - 0.5, BOSS_Y0 + 2.1, c.boss_x, 0.0)  # the screw reaches the tube
     for sy in (-1, 1):
         for sz in (-1, 1):
             body -= xcyl(1.3, g.fan_face_x - 0.1, g.fan_face_x + 9.0, sy * P.fan.hole_pitch / 2, sz * P.fan.hole_pitch / 2)

@@ -20,7 +20,6 @@ Companion to `docs/ordering.md` (what and how many). Researched 2026-10-12 from 
 
 | Part | What was found | Options |
 |---|---|---|
-| M4 thumbscrew, stainless | No M4 knurled thumb screw turned up at McMaster; its M4 spade-head items are thumb **nuts**. AFT Fasteners lists Kipp K0140.042X10 (DIN 464 knurled, M4 × 10, stainless; $63.82 per 10). Aspen Fasteners has stainless DIN 465 (slotted, high) in 5 and 6 mm only. | DIN 464 M4 × 10 or × 12 in 304/316 is the part to ask for: any fastener house. First measure the length (the order list already says so). |
 | M2 thread-forming screws (6 and 16 mm) | McMaster has the family (Phillips and Torx, 18-8, flat, pan and others) but I could not read its M2 rows. The M3 flat head T8 is 95893A191, so M2 exists in the same group. | Open McMaster's "Thread-Forming Screws for Plastic", filter M2, pan head, 316 or 18-8 stainless, lengths 6 and 16. Or buy the plain M2 machine-screw assortment (Albany County 1060-096 has M2 × 6 and × 12 but no × 16) and run the printed pilots as machine thread. |
 | M2 nyloc nuts, M2 washers | Not searched; stocked by McMaster, Grainger, any fastener house in A2 and A4. | A stainless M2 assortment kit with nuts and washers would cover both. |
 
@@ -40,4 +39,4 @@ Companion to `docs/ordering.md` (what and how many). Researched 2026-10-12 from 
 - **JLCCNC:** the rod, with the flap, crank and coupler.
 - **Mouser or Digi-Key:** the KK headers.
 - **Hobby shops:** servo, arm, fan.
-- **Amazon or a fastener house:** the thumbscrew, retaining compound, filament, USB-C caps.
+- **Amazon or a fastener house:** retaining compound, filament, USB-C caps.

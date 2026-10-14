@@ -27,7 +27,7 @@ def test_part_is_one_valid_solid(printed, name):
 def test_no_interference_at_any_flap_angle(deg):
     """Every chassis part and bought part, with the flap, crank, horn, pins and coupler at `deg`."""
     allp = {**A.printed(deg), **A.bought(deg)}
-    hits = [h for h in A.interferences(allp) if set(h[:2]) != {"duct", "oring"}]  # the ring is squeezed by design
+    hits = [h for h in A.interferences(allp) if set(h[:2]) not in ({"duct", "oring"}, {"duct", "tube"})]  # the ring is squeezed and the tube gripped by design
     assert hits == []
 
 
@@ -122,8 +122,39 @@ def test_oring_seals_the_joint():
     assert A.overlap(ring, A.bought()["tube"]) < 0.5
 
 
-def test_tube_seats_on_the_shoulder_without_touching_the_duct():
-    assert A.overlap(A.bought()["tube"], A.printed()["duct"]) < 0.5
+def test_the_socket_grips_the_tube_over_its_extension_only():
+    """The tube seats on the shoulder and slides free through the round socket and the first half of the extension; the
+    lobes' crests then reach in to `grip` and the last `lead_len` lets them out again, so the tube starts freely."""
+    import math
+
+    from minimeater.mech.parts import box, lobe_amp, socket_r
+
+    c, tr = P.coupling, P.tube.od / 2
+    crest = lambda x: min(socket_r(x, math.pi * i / 64) for i in range(128))
+    assert abs(min(crest(c.ext_len * i / 100) for i in range(101)) - (tr - c.grip)) < 2e-3  # the deepest grip
+    assert abs(crest(c.ext_len) - (tr + c.lead_clear)) < 1e-9  # free at the mouth
+    assert crest(0.0) > tr and crest(c.ext_len * 0.45) > tr  # free up to the middle
+    assert abs(lobe_amp() - 0.8) < 0.02  # about +-0.8 on a mean bore 1 mm larger
+    tube, duct = A.bought()["tube"], A.printed()["duct"]
+    assert A.overlap(tube & box(-30, c.ext_len * 0.45, -30, 30, -30, 30), duct) < 0.01
+    assert A.overlap(tube, duct) > 3  # eight crest lines
+    assert duct.bounding_box().max.X == pytest.approx(c.ext_len, abs=1e-3)
+
+
+def test_the_socket_loft_follows_its_formula():
+    """Between the loft's sections the bore stays on `socket_r` (a smootherstep through the stations, no ringing)."""
+    import math
+
+    from build123d import Vector
+
+    from minimeater.mech.parts import socket_loft, socket_r
+
+    faces = socket_loft().faces()
+    for x in [-5.0] + [P.coupling.ext_len * f for f in (0.05, 0.27, 0.52, 0.77, 0.96, 0.99)]:
+        for th in (0.0, math.pi / 8, math.pi / 5):
+            r = socket_r(x, th)
+            p = Vector(x, r * math.cos(th), r * math.sin(th))
+            assert min(f.distance_to(p) for f in faces) < 0.01, (x, th)
 
 
 def test_closed_flap_leak_is_inside_the_budget():
@@ -183,7 +214,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 475}  # 340 + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
+OVERHANG_AREA_MM2 = {"duct": 420}  # 415 measured with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))
@@ -213,6 +244,7 @@ def test_export_writes_step_and_stl(tmp_path):
     for n in list(PARTS) + ["hood", "pan"]:
         assert (tmp_path / "3dprint" / f"{n}.step").stat().st_size > 1000
         assert (tmp_path / "3dprint" / f"{n}.stl").stat().st_size > 1000
+    assert print_pose("duct").bounding_box().size.Z <= 360  # MJF PA12S-HP's build height
     for n in list(PARTS) + ["hood", "pan"]:
         assert _open_edges(tmp_path / "3dprint" / f"{n}.stl") == 0, n  # watertight: the slicer and JLC3DP take it as is
     for n in ("flap", "crank", "coupler"):
