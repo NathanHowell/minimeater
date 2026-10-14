@@ -19,3 +19,9 @@
 (rule j1_land_pattern
 	(constraint hole_clearance (min 0.19mm))
 	(condition "A.Parent == 'J1' || B.Parent == 'J1'"))
+
+# U1's exposed pad (nine pad-29 squares) sits in its own solid GND pour, U1_EPAD, stitched by vias. The board-wide
+# GND pour can only reach each square with one thermal spoke past it, so the squares connect solid instead.
+(rule u1_epad_solid
+	(constraint zone_connection solid)
+	(condition "A.Parent == 'U1' && A.Pad_Number == '29'"))
