@@ -77,6 +77,10 @@ U2/U3 go behind J1 (geometry in bead minimeat-bk4).
   In2: the U8 outer bias resistors bridge the inner TIP lines this way.
 - Size matters as well as datasheet rules: after a block is DRC clean, look for parts sitting outboard and fold them in.
 - Konnect cannot delete vias; ask the user to delete them in pcbnew (give coordinates).
+- Moving a block = set_component_placements + recreate its zones/vias/tracks at the new place + delete_trace the old
+  tracks; old vias and zones then remain. With KiCad closed (user-approved), remove them with KiCad's own pcbnew
+  python API (LoadBoard, Remove, SaveBoard; collect Zones()/vias before removing anything), never as text. While old
+  and new copper overlap, live KiCad re-nets tracks/vias by connectivity: check every net against the plan after.
 - Render with --layers F.Cu,In2.Cu when a block uses In2; check courtyards with DRC before routing.
 
 ## Netclasses and DRC limits (hw/minimeater.kicad_pro, hw/minimeater.kicad_dru)
