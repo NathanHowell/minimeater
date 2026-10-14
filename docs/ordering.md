@@ -8,7 +8,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP: duct, hood, 
 
 | What | Qty | Files | Notes |
 |---|---|---|---|
-| Board, 4 layers, with SMT assembly | 5 | `hw/fab/minimeater-gerber.zip`, `hw/fab/minimeater-bom.csv`, `hw/fab/minimeater-cpl.csv` | Every part in the BOM is a JLC part in stock (checked when each was chosen, `docs/parts/electronics-shortlist.md`); check stock again at order time. All SMT is on the top side. The fan and servo headers, and the test points, are not assembled (section 3). |
+| Board, 4 layers, with SMT assembly | 5 | `hw/fab/minimeater-panel-gerber.zip`, `hw/fab/minimeater-bom.csv`, `hw/fab/minimeater-panel-cpl.csv` | Order the one-up panel: it carries JLC's tooling holes (three 1.152 mm NPTH) and fiducials on 5 mm rails left and right, so choose "edge rails: added by customer" (the single-board files, `minimeater-gerber.zip` and `minimeater-cpl.csv`, are there if JLC prefers to add its own rails). Snap the rails off after delivery. Every part in the BOM is a JLC part in stock (checked when each was chosen, `docs/parts/electronics-shortlist.md`); check stock again at order time. All SMT is on the top side. The fan and servo headers, and the test points, are not assembled (section 3). |
 
 ## 2. Mechanical hardware
 
