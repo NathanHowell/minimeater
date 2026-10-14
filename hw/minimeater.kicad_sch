@@ -11879,28 +11879,6 @@
 			)
 		)
 	)
-	(global_label "ADC_DRDY"
-		(shape bidirectional)
-		(at 223.52 326.39 270)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "85702696-f01c-4502-b4c2-a0e31fd8b754")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 223.52 326.39 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
 	(global_label "3V3A"
 		(shape input)
 		(at 463.55 114.3 180)
@@ -12309,28 +12287,6 @@
 		(uuid "dc7d7d8c-bf01-4137-b97f-6b69a2cd6632")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 193.04 177.8 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
-	(global_label "3V3"
-		(shape input)
-		(at 223.52 318.77 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e0788e36-f152-4e95-9c8e-585bbf3c1342")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 223.52 318.77 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17821,96 +17777,6 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "C3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 223.52 322.58 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "623c6cea-f17c-409f-9773-36f7e7aa2e66")
-		(property "Reference" "R11"
-			(at 225.552 322.58 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10k 1%"
-			(at 223.52 322.58 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 223.52 322.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 223.52 322.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 223.52 322.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C60490"
-			(at 223.52 322.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(body_style 1)
-		(in_pos_files yes)
-		(pin "1"
-			(uuid "e65340b7-9745-440f-b939-5f840d8e93f3")
-		)
-		(pin "2"
-			(uuid "b474e50c-95ca-4ecf-b70c-c07ab2187817")
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R11")
 					(unit 1)
 				)
 			)

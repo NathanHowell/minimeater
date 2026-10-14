@@ -95,6 +95,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     .into_async();
     static I2C_BUS: StaticCell<Mutex<CriticalSectionRawMutex, I2c<'static, Async>>> = StaticCell::new();
     let i2c = I2C_BUS.init(Mutex::new(i2c));
+    // DRDY is open-drain; the internal pull-up is the only one (no resistor on the board)
     let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
     let probes = Ads122c04::new(I2cDevice::new(i2c), ads122c04::ADDRESS, drdy, Delay);
     let ambient = Tmp117::new(I2cDevice::new(i2c), tmp117::ADDRESS);
