@@ -2,7 +2,7 @@
 ESP32-C6, through the fan's cable, and the fan load switch's dissipation.
 
 Board, as on the schematic: GPIO (FAN_PWM) --- R28 100R --- J6.4 and J6.3 --- R27 1k --- GPIO (FAN_TACH) with R16 10k
-to 3V3; the firmware also enables the pin's own pull-up (45k, `board.rs`) and a 1023-cycle PCNT glitch filter
+to 3V3 and C39 1 nF to GND (R31, a divider leg to GND, is not fitted); the firmware also enables the pin's own pull-up (45k, `board.rs`) and a 1023-cycle PCNT glitch filter
 (12.8 us at 80 MHz). VFAN (J6.2) is 5 V through U7 TPS2553 (85 mohm typ, 135 max over temperature, 182.6 C/W in
 SOT-23). The fan is a 5 V 4-wire PWM fan (Noctua NF-A6x25 5V PWM, placeholder): its PWM input is pulled up inside
 the fan (to 5 V at most, Intel 4-wire spec; the value is not published, so it is swept here) and its tach is an
@@ -37,6 +37,7 @@ class Fan:
     c_cable: float = 15e-12  # each conductor to the others and ground, 20 cm lead [est]
     c_mutual: float = 8e-12  # PWM to tach conductor, adjacent in the lead [est]
     l_cable: float = 0.15e-6  # each conductor [est]
+    c_pin: float = 1e-9  # C39 at the pin, fitted
 
 
 DIODES = ".model DCLAMP D(IS=1e-14 N=1.05 RS=10)"  # the GPIO pad's ESD diodes [est]
@@ -66,7 +67,7 @@ Ctj jt 0 {f.c_cable / 2}
 R27 jt tach 1k
 R16 tach vdd 10k
 Rint tach vdd 45k
-Cin tach 0 5p
+Cin tach 0 {5e-12 + f.c_pin}
 Dhi tach vddc DCLAMP
 Vclamp vddc vdd 0
 Dlo 0 tach DCLAMP

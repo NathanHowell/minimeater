@@ -77,3 +77,13 @@ def test_fan_load_switch_runs_cool():
     from minimeater.sim import fan as FN
 
     assert FN.load_switch()["rise_run"] < 2.0
+
+
+def test_snubber_footprint_damps_the_hot_plug():
+    from minimeater.sim import power as W
+
+    for l, r in ((2e-6, 0.05), (2e-6, 0.1), (1e-6, 0.05)):
+        bare = W.hotplug(W.HotPlug(l, r, "derated"))["vbus_f_peak"]
+        damped = W.hotplug(W.HotPlug(l, r, "derated", snubber=W.SNUBBER))["vbus_f_peak"]
+        assert damped < bare - 0.5
+    assert W.hotplug(W.HotPlug(1e-6, 0.05, "derated", snubber=W.SNUBBER))["vbus_f_peak"] < 6.0

@@ -8,13 +8,15 @@ The bead asked for a low-side MOSFET on a 12 V blower; ADR 0004 replaced that wi
 
 | Case | Low at the pin | High at the pin (min) | Peak at the pin | Clamp current peak | Rise 10-90 % | Longest glitch past a threshold |
 |---|---|---|---|---|---|---|
-| as drawn, no pull-up in the fan | 0.53 V | 2.48 V | 3.97 V | 0.42 mA | 0.54 us | 0.00 us |
-| fan with a 10k tach pull-up to 5 V | 0.55 V | 3.15 V | 4.00 V | 1.14 mA | 0.25 us | 0.00 us |
-| PWM and tach coupled 30 pF (long lead) | 0.71 V | 1.59 V | 4.02 V | 1.54 mA | 0.97 us | 0.35 us |
+| as drawn (C39 1 nF), no pull-up in the fan | 0.38 V | 3.04 V | 3.32 V | 0.00 mA | 17.43 us | 0.00 us |
+| fan with a 10k tach pull-up to 5 V | 0.40 V | 3.87 V | 3.91 V | 0.06 mA | 9.20 us | 0.00 us |
+| PWM and tach coupled 30 pF (long lead) | 0.38 V | 3.05 V | 3.39 V | 0.00 mA | 16.90 us | 0.00 us |
+| without C39 | 0.53 V | 2.48 V | 3.97 V | 0.42 mA | 0.54 us | 0.00 us |
+| without C39, coupled 30 pF | 0.71 V | 1.59 V | 4.02 V | 1.54 mA | 0.97 us | 0.35 us |
 
-The levels include the PWM's crosstalk: each 25 kHz edge kicks the tach line through the lead (the high level's minimum and the peak above 3.3 V are those kicks; the pad's clamp takes the upward ones). The low stays under VIL (0.825 V) by 0.3 V. The downward kick on the high level reaches VIH with 8 pF of coupling and goes through it with 30 pF, for well under a microsecond: the PCNT filter (12.8 us) drops it, so the count is safe, but the filter is what makes it safe. The tach is at most 100 Hz (3000 rpm, two pulses a revolution), so a 1 nF capacitor at the pin (R27 and the pull-ups then filter at about 1-8 us) would remove the kicks in hardware without slowing the edges that matter. It is not needed with the filter, so it is a footprint only: C39 (0402, FAN_TACH to GND, not fitted), for rework if the count misbehaves.
+The levels include the PWM's crosstalk: each 25 kHz edge kicks the tach line through the lead. Without C39 the kicks take the high level down to VIH with 8 pF of coupling and through it with 30 pF, for under a microsecond (the PCNT filter, 12.8 us, would drop them), and up past 3.3 V into the pad's clamp. C39 (1 nF, the board's C19/C20 part) at the pin absorbs them: the high level stays above 3 V and nothing reaches the clamp, and the low level drops to 0.4 V. Its cost is the tach's rising edge, about 17 us through R16 and the pin's pull-up, against a tach of at most 100 Hz (3000 rpm, two pulses a revolution). It costs nothing at JLC beyond the part, so it is fitted; the PCNT filter stays as a second line.
 
-If the fan has its own tach pull-up to 5 V (Noctua does not publish it), the pin sits at about 4 V through the pad's clamp, a fraction of a milliamp steady and about 1 mA on the kicks. That is outside the pin's 3.6 V rating: measure J6.3 with the fan powered and nothing connected at bring-up. If the fan does pull up, the fix is a divider at the pin sized from the measured value: R31 (0402, FAN_TACH to GND, not fitted) is its footprint, against R27 1k and R16 10k (raising R27 alone would lift the low level past VIL).
+If the fan has its own tach pull-up to 5 V (Noctua does not publish it), the pin sits at about 4 V through the pad's clamp (3.9 V with C39), a fraction of a milliamp. That is outside the pin's 3.6 V rating: measure J6.3 with the fan powered and nothing connected at bring-up. If the fan does pull up, the fix is a divider at the pin sized from the measured value: R31 (0402, FAN_TACH to GND, not fitted) is its footprint, against R27 1k and R16 10k (raising R27 alone would lift the low level past VIL).
 
 ## PWM at the fan's input
 
@@ -25,7 +27,7 @@ The fan pulls its PWM input up inside (Intel's spec: to at most 5.25 V, sinking 
 | 1k | 0.52 V | 3.48 V | 0.17 V | 1.52 mA |
 | 4.7k | 0.12 V | 3.34 V | 0.17 V | 0.35 mA |
 | 10k | 0.06 V | 3.32 V | 0.17 V | 0.17 mA |
-| 47k | 0.01 V | 3.30 V | 0.17 V | 0.04 mA |
+| 47k | 0.01 V | 3.30 V | 0.16 V | 0.04 mA |
 
 The push-pull GPIO with R28 meets the fan's 0.8 V low even at the strongest pull-up the spec allows. When the GPIO drives high the fan's pull-up pushes up to 1.5 mA back into it, which the driven pad sinks at 3.3 V. With the fan off (VFAN down) a high PWM pin would feed the fan through its input; the firmware writes 0 % duty whenever the fan is off (`tasks.rs`), so the pin is low then.
 

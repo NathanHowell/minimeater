@@ -18,6 +18,7 @@ TVS = ".model DTVS D(IS=1e-12 N=1 BV=6.8 IBV=1m RS=0.11 CJO=80p)"  # SMF5V0A: ~6
 # MLCC DC-bias derating at 5 V [est]: 100 uF 1210 X5R ~45%, 10 uF 0805 ~55%, 100 nF ~90%.
 CAPS = {"nominal": (100e-6, 10e-6, 10e-6, 100e-9), "derated": (45e-6, 5.5e-6, 5.5e-6, 90e-9)}
 ESR = 3e-3
+SNUBBER = (0.47, 100e-6 * 0.45)  # R32 0.47 ohm + C40 100 uF 1210 at its 5 V DC-bias derating [est], not fitted
 
 
 @dataclass(frozen=True)
@@ -26,10 +27,12 @@ class HotPlug:
     r_cable: float
     caps: str = "derated"
     r_ptc: float = R_PTC
+    snubber: tuple[float, float] | None = None  # (R, C) in series from VBUS_F to GND: the not-fitted R32/C40
 
 
 def hotplug(h: HotPlug) -> dict[str, float]:
     c1, c2, c4, cs = CAPS[h.caps]
+    snub = f"Rsn c sn {h.snubber[0]}\nCsn sn 0 {h.snubber[1]}\n" if h.snubber else ""
     net = f"""* hot plug
 Vusb src 0 PWL(0 0 1u {V_SRC})
 Lcab src a {h.l_cable}
@@ -46,7 +49,7 @@ C4 c n4 {c4}
 R4 n4 0 {ESR}
 C3 c n3 {cs}
 R3 n3 0 {ESR}
-.control
+{snub}.control
 tran 20n 400u
 let ic = -i(vusb)
 let itvs = i(vtv)

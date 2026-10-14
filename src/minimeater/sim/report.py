@@ -31,6 +31,19 @@ def power_report(out: Path) -> None:
            "100 uF behind a 0.2 ohm path: about 0.9 mC drawn in tens of microseconds, against USB's 50 uC inrush "
            "guideline. A host with a fast over-current trip can see that as a fault; check on a scope at bring-up, and if "
            "ports trip, drop C1 to 22 uF.", "",
+           "## Snubber footprint (R32 + C40, not fitted)", "",
+           "If the scope shows VBUS_F over 6 V, fit R32 0.47 ohm (0805) and C40 100 uF 10 V (1210, C1's part) in series "
+           "from VBUS_F to GND. Swept over 0.1-1 ohm and 10-100 uF, this pair damps best; derated caps. It is not fitted "
+           "by default because it is not free: C40 is a second 100 uF on VBUS_F, so a plug-in draws nearly twice the "
+           "charge (0.63 to 1.15 mC with nominal caps, the same 17 A peak), which is what a host's over-current trip "
+           "sees (above). A normal 1 m cable does not need it.", "",
+           "| Cable L | Cable R | Peak without | Peak with R32/C40 |", "|---|---|---|---|"]
+    for l, r in ((2e-6, 0.05), (2e-6, 0.1), (1e-6, 0.05), (1e-6, 0.1)):
+        a = W.hotplug(W.HotPlug(l, r, "derated"))["vbus_f_peak"]
+        b = W.hotplug(W.HotPlug(l, r, "derated", snubber=W.SNUBBER))["vbus_f_peak"]
+        md.append(f"| {l * 1e6:g} uH | {r} ohm | {a:.2f} V | {b:.2f} V |")
+    md += ["", "The worst cable (2 uH, 0.05 ohm) still peaks just over 6 V with it fitted; a small polymer capacitor (its own "
+           "ESR does the damping) on C40's pads, with a 0 ohm part in R32, is the other option.", "",
            "## Load-switch turn-on (worst case: no slew limit)", "",
            "Switch into the output capacitance at its current limit; 5 V rail behind 0.5 ohm with 130 uF and 0.3 A of other load.", "",
            "| Output | C out | Limit | Rail minimum | Time in limit | Source peak |", "|---|---|---|---|---|---|"]
@@ -130,22 +143,23 @@ def fan_report(out: Path) -> None:
           "## Tach", "",
           "| Case | Low at the pin | High at the pin (min) | Peak at the pin | Clamp current peak | Rise 10-90 % | Longest glitch past a threshold |",
           "|---|---|---|---|---|---|---|"]
-    for name, f in (("as drawn, no pull-up in the fan", FN.Fan()),
+    for name, f in (("as drawn (C39 1 nF), no pull-up in the fan", FN.Fan()),
                     ("fan with a 10k tach pull-up to 5 V", FN.Fan(tach_pullup=10e3)),
-                    ("PWM and tach coupled 30 pF (long lead)", FN.Fan(c_mutual=30e-12))):
+                    ("PWM and tach coupled 30 pF (long lead)", FN.Fan(c_mutual=30e-12)),
+                    ("without C39", FN.Fan(c_pin=0.0)),
+                    ("without C39, coupled 30 pF", FN.Fan(c_pin=0.0, c_mutual=30e-12))):
         r = FN.tach_report(f)
         md.append(f"| {name} | {r['v_low']:.2f} V | {r['v_high']:.2f} V | {r['v_high_max']:.2f} V | {r['i_clamp_max'] * 1e3:.2f} mA | "
                   f"{r['rise'] * 1e6:.2f} us | {r['glitch_width'] * 1e6:.2f} us |")
-    md += ["", "The levels include the PWM's crosstalk: each 25 kHz edge kicks the tach line through the lead (the high "
-           "level's minimum and the peak above 3.3 V are those kicks; the pad's clamp takes the upward ones). The low "
-           f"stays under VIL ({FN.VIL:.3f} V) by 0.3 V. The downward kick on the high level reaches VIH with 8 pF of "
-           "coupling and goes through it with 30 pF, for well under a microsecond: the PCNT filter (12.8 us) drops it, so "
-           "the count is safe, but the filter is what makes it safe. The tach is at most 100 Hz (3000 rpm, two pulses "
-           "a revolution), so a 1 nF capacitor at the pin (R27 and the pull-ups then filter at about 1-8 us) would "
-           "remove the kicks in hardware without slowing the edges that matter. It is not needed with the filter, so "
-           "it is a footprint only: C39 (0402, FAN_TACH to GND, not fitted), for rework if the count misbehaves.", "",
+    md += ["", "The levels include the PWM's crosstalk: each 25 kHz edge kicks the tach line through the lead. Without C39 "
+           "the kicks take the high level down to VIH with 8 pF of coupling and through it with 30 pF, for under a "
+           "microsecond (the PCNT filter, 12.8 us, would drop them), and up past 3.3 V into the pad's clamp. C39 (1 nF, "
+           "the board's C19/C20 part) at the pin absorbs them: the high level stays above 3 V and nothing reaches the "
+           "clamp, and the low level drops to 0.4 V. Its cost is the tach's rising edge, about 17 us through R16 and the "
+           "pin's pull-up, against a tach of at most 100 Hz (3000 rpm, two pulses a revolution). It costs nothing at "
+           "JLC beyond the part, so it is fitted; the PCNT filter stays as a second line.", "",
            "If the fan has its own tach pull-up to 5 V (Noctua does not publish it), the pin sits at about 4 V through the "
-           "pad's clamp, a fraction of a milliamp steady and about 1 mA on the kicks. That is outside the pin's 3.6 V "
+           "pad's clamp (3.9 V with C39), a fraction of a milliamp. That is outside the pin's 3.6 V "
            "rating: measure J6.3 with the fan powered and nothing connected at bring-up. If the fan does pull up, the "
            "fix is a divider at the pin sized from the measured value: R31 (0402, FAN_TACH to GND, not fitted) is its "
            "footprint, against R27 1k and R16 10k (raising R27 alone would lift the low level past VIL).", "",

@@ -10302,6 +10302,27 @@
 		)
 		(uuid "01d3e85a-f584-45bd-8717-7a1ce399805a")
 	)
+	(wire
+		(pts
+			(xy 241.3 55.88)
+			(xy 241.3 53.34)
+		)
+		(uuid "811705ae-0775-43bf-a3a7-02d34b6c97b4")
+	)
+	(wire
+		(pts
+			(xy 241.3 63.5)
+			(xy 241.3 66.04)
+		)
+		(uuid "4aff5aec-71ea-422e-b469-f83a6fcc3ba0")
+	)
+	(wire
+		(pts
+			(xy 241.3 73.66)
+			(xy 241.3 76.2)
+		)
+		(uuid "208cc6d5-ca3c-4f57-99d7-dfff641c70e8")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -11276,6 +11297,26 @@
 			(justify left bottom)
 		)
 		(uuid "5a676e03-0918-45dd-a3c7-1e4693233370")
+	)
+	(label "VBUS_F"
+		(at 241.3 53.34 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "80857e6d-1d37-408f-b98e-129fbd48820f")
+	)
+	(label "VBUS_SNUB"
+		(at 241.3 64.77 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "998c2568-e0d2-4c6b-bab2-c16b2df4691d")
 	)
 	(global_label "3V3"
 		(shape input)
@@ -27711,7 +27752,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1nF DNP"
+		(property "Value" "1nF"
 			(at 398.145 347.98 0)
 			(effects
 				(font
@@ -27747,6 +27788,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C1523"
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(instances
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
@@ -27755,16 +27805,7 @@
 				)
 			)
 		)
-	
-		(property "LCSC" "DNP: rework only (FAN_TACH glitch filter, docs/sim/fan.md)"
-			(at 397.51 345.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 407.67 345.44 0)
@@ -27816,15 +27857,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R31")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "LCSC" "DNP: rework only (FAN_TACH divider if the fan pulls tach to 5 V, docs/sim/fan.md)"
 			(at 407.67 345.44 0)
 			(hide yes)
@@ -27833,7 +27865,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R31")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 397.51 351.79 0)
@@ -27951,6 +27992,207 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "#PWR071")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 241.3 59.69 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d369a7b9-b0fe-4c95-a49d-747cb3a1d749")
+		(property "Reference" "R32"
+			(at 243.332 59.69 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0.47R DNP"
+			(at 241.3 59.69 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 241.3 59.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 241.3 59.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 241.3 59.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "DNP: rework only (VBUS_F hot-plug snubber, docs/sim/power.md)"
+			(at 241.3 59.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R32")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 241.3 69.85 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "dec1c6c8-9bc4-493a-b745-8795fa3f24a1")
+		(property "Reference" "C40"
+			(at 241.935 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100uF 10V DNP"
+			(at 241.935 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
+			(at 241.3 69.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 241.3 69.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 241.3 69.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "DNP: rework only (VBUS_F hot-plug snubber with R32; same part as C1)"
+			(at 241.3 69.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C40")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 241.3 76.2 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6f234723-384e-4300-8bf3-c9bb81a99893")
+		(property "Reference" "#PWR072"
+			(at 241.3 82.55 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 241.3 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 241.3 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 241.3 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 241.3 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)
