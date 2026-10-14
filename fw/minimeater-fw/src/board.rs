@@ -6,7 +6,7 @@
 //!
 //! | Signal | GPIO | | Signal | GPIO |
 //! |---|---|---|---|---|
-//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117, ATECC608B) | 22 / 23 |
+//! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117, ATECC608B) | 23 / 22 |
 //! | ADS122C04 DRDY | 2 | | fan PWM / tach | 18 / 19 |
 //! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
 //! | status LED | 10 | | fan power enable (TPS2553) | 11 |
@@ -90,8 +90,8 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(100)),
     )
     .expect("i2c config")
-    .with_sda(p.GPIO22)
-    .with_scl(p.GPIO23)
+    .with_sda(p.GPIO23)
+    .with_scl(p.GPIO22)
     .into_async();
     static I2C_BUS: StaticCell<Mutex<CriticalSectionRawMutex, I2c<'static, Async>>> = StaticCell::new();
     let i2c = I2C_BUS.init(Mutex::new(i2c));

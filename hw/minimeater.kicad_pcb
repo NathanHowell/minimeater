@@ -165,6 +165,12 @@
 		(path "/36492163-2068-44ec-8092-db87d69aed04")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -334,6 +340,12 @@
 		(path "/9ef9f18c-8c80-4e82-94f8-e50a43baaf54")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -504,6 +516,12 @@
 		(path "/f6556a21-13fb-434f-8590-49c0f4280e54")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -673,6 +691,12 @@
 		(path "/f842611a-d423-4d39-9b6d-e42a94be4c98")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 -0.735)
@@ -843,6 +867,12 @@
 		(path "/7013803b-2a5d-4d37-b763-c0545dcca4e1")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -1336,6 +1366,12 @@
 		(path "/17fc9671-6042-49fb-a49e-79d775e31146")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -1506,6 +1542,12 @@
 		(path "/3d7f5fbb-d6a0-42e4-81ee-b0099c46ae4e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -1676,6 +1718,12 @@
 		(path "/476c3064-5f47-49db-b077-1d3e42e2ab0d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -1845,6 +1893,12 @@
 		(path "/c79e93b0-25fe-4f65-8923-2c719743fb8b")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 -0.735)
@@ -2014,6 +2068,12 @@
 		(path "/bbf0fa99-6694-4b2b-845f-2b54a98377f0")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -2184,6 +2244,12 @@
 		(path "/38e42d05-73f9-4a77-bc0b-8c7906e030af")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.711252 1.36)
@@ -2354,6 +2420,12 @@
 		(path "/517855da-c7d0-470d-8bfa-668e08f23bd1")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -2635,6 +2707,12 @@
 		(path "/d0221e04-78d5-4608-8628-da2cdae1149f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -2804,6 +2882,12 @@
 		(path "/1da43f4a-aaf7-4887-8a26-4b156b31213d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 -0.735)
@@ -2974,6 +3058,12 @@
 		(path "/cdc8cdfb-a2b1-4d14-90d9-59ec1a7b33ae")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -3144,6 +3234,12 @@
 		(path "/6baad600-dd24-4d33-a2d3-453e90377cf4")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -3313,6 +3409,12 @@
 		(path "/370005ab-2c65-4856-b1c0-3191c0deb0f7")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -3482,6 +3584,12 @@
 		(path "/28603d99-7ae4-4f9d-9cb3-54b324a8b370")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.602064 0.91)
@@ -3650,6 +3758,12 @@
 		(path "/5633f857-d1c4-41a6-a5e8-54863778bdf2")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -3819,6 +3933,12 @@
 		(path "/4f2b102b-8251-427f-9751-da83a5a8f750")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -4002,6 +4122,12 @@
 		(path "/fe6a955e-dc98-4857-8f34-72da9b03601b")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "3" "5" "2" "6" "4")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 0.91 -1.56)
@@ -4375,6 +4501,12 @@
 		(path "/ad0cf679-dc4a-49fd-8327-285127673a92")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -4545,6 +4677,12 @@
 		(path "/ff8a2462-11ab-474a-adb1-fe72d0c86884")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -4728,6 +4866,12 @@
 		(path "/b21f7399-2ba2-463e-8727-8ce1704a4b39")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "3" "2" "4" "5")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.91 1.56)
@@ -5475,6 +5619,12 @@
 		(path "/80be507d-1893-4c70-938a-290e7081dbfc")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -5643,6 +5793,12 @@
 		(path "/9d2a8646-6eaf-4af7-9a8c-e0c39be62bed")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -6059,6 +6215,12 @@
 		(path "/3f48e5d4-09e6-4ffc-893a-5060b315415a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -6227,6 +6389,12 @@
 		(path "/fe0417a4-5c71-49a1-8162-afa0292b2461")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -6409,6 +6577,12 @@
 		(path "/9791ed89-9aef-40c6-a35c-503ac7db9f7f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "3" "2" "6" "4" "5")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.91 -1.56)
@@ -6783,6 +6957,12 @@
 		(path "/edecdf87-8bb0-47da-9e88-b4fe0304691a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -6964,6 +7144,12 @@
 		(path "/5f3c5602-83d3-487c-8c56-619d9759fa1e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.162779 -0.51)
@@ -7132,6 +7318,12 @@
 		(path "/b7a9300f-2ad5-40b2-91ba-9581655b5b1e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -7302,6 +7494,12 @@
 		(path "/f125acaa-3113-4dc2-94ae-0c23fbaa8a33")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -7578,6 +7776,12 @@
 		(path "/c73d257d-d857-4968-b139-37a49abf51a4")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -7746,6 +7950,12 @@
 		(path "/970db56c-4e66-471b-9d5f-9f26029a5ee1")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -7915,6 +8125,12 @@
 		(path "/df375fe0-bcd2-4836-987e-6cf705bfdf37")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -8084,6 +8300,12 @@
 		(path "/d9fde585-dcf7-4a2d-9ca5-17c8010e704e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -8253,6 +8475,12 @@
 		(path "/5bb9cb7a-cae4-4dfc-9ac9-34aa791a5e39")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -8529,6 +8757,12 @@
 		(path "/6a041dbe-eb1e-41f4-a28b-cdf50a080afe")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -8809,6 +9043,12 @@
 		(path "/b5a0a355-9295-4977-914c-96af97754460")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -8977,6 +9217,12 @@
 		(path "/b4f9ca0c-4ea3-4acd-b202-b92a3532c8ce")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -9146,6 +9392,12 @@
 		(path "/97c53f48-1dd4-4576-a8a6-efc886cd6709")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -9316,6 +9568,12 @@
 		(path "/a2313818-4783-474a-a945-d5aecb2187b6")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -9485,6 +9743,12 @@
 		(path "/fbff6ae1-34b5-4d93-b4b1-a5da08030350")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -9668,6 +9932,12 @@
 		(path "/d270cb59-7b5f-4afb-8d99-57b9b6da5ce3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.237258 -0.5225)
@@ -10084,6 +10354,12 @@
 		(path "/8842a0fd-e3db-4423-8572-c022d78ffd1a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -1.5 1.7)
@@ -10282,6 +10558,12 @@
 		(path "/ef4521af-6ecc-443f-ab4c-82ee12fa5a2e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.711252 1.36)
@@ -10451,6 +10733,12 @@
 		(path "/8204ec4e-0798-4c1c-848f-bea802953dd9")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -10619,6 +10907,12 @@
 		(path "/79c5c718-8b55-42d5-90ec-7908d6651240")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -11231,6 +11525,12 @@
 		(path "/e3de1655-c8b1-4138-8bf1-2c49c898790e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -11399,6 +11699,12 @@
 		(path "/92d743cf-fcd3-4297-af94-83cc0f141341")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -11871,6 +12177,12 @@
 		(path "/c3c5be0e-e221-4200-9577-68e50b963863")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -12152,6 +12464,12 @@
 		(path "/e507c412-ff0e-430d-bd89-4eed2975bf8d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -12321,6 +12639,12 @@
 		(path "/434b9dda-3a49-4cda-a368-9d3961b49f3f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -12504,6 +12828,12 @@
 		(path "/2a02b878-cb38-46df-9ca7-983ac97e7afc")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.237258 -0.5225)
@@ -12673,6 +13003,12 @@
 		(path "/61fe5c0f-88d8-4eb1-897a-d7c5123fbdc8")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -12868,6 +13204,14 @@
 		(path "/03fbcfeb-3503-4d65-b733-864038cf97f9")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "16" "15" "14" "3" "1" "2" "12" "5" "13" "4" "11" "10" "7" "6"
+					"9" "8"
+				)
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 2.31 2.735)
@@ -13306,6 +13650,12 @@
 		(path "/0b7063de-bf0b-453c-9039-6f77a12ea087")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -13475,6 +13825,12 @@
 		(path "/644e78af-519d-4899-8460-a6812ed3fd07")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -13645,6 +14001,12 @@
 		(path "/bee43bb4-712b-4d52-a772-097968a900dc")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -13840,6 +14202,12 @@
 		(path "/3826ee40-1656-4b19-ac64-d06dea2077de")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "10" "1" "2" "9" "3" "8" "7" "4" "5" "6")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -1.33 0.58)
@@ -14134,6 +14502,12 @@
 		(path "/071ebca3-e4a9-4ac7-a953-9d19ccd5b4b3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -14304,6 +14678,12 @@
 		(path "/e7f68e8f-fb07-488f-a292-a720a8c60874")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -14605,6 +14985,12 @@
 		(path "/7c9abf21-8127-49c3-9b6f-18733fd9d139")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -1.38 1.55)
@@ -14885,6 +15271,12 @@
 		(path "/52d59cf8-f52b-42e4-8c3f-0a37e8829a35")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -15055,6 +15447,12 @@
 		(path "/2d61307b-029e-4925-9153-2549a202199a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -15223,6 +15621,12 @@
 		(path "/c1d78fe1-dbdd-4f1d-887a-abfb1ee551d9")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -15392,6 +15796,12 @@
 		(path "/9da66eb2-b8f2-4866-b003-45de2dcc589e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -15561,6 +15971,12 @@
 		(path "/c5273b0c-87ef-4b3c-9644-ece8b1e9847a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -15743,6 +16159,12 @@
 		(path "/e34def1a-bae9-49d3-aa86-f73b45d684b5")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.237258 0.5225)
@@ -15925,6 +16347,12 @@
 		(path "/4315ba20-1f93-46da-bad6-8cd7e85e02d3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "4" "1" "2" "3" "5")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 0.91 -1.56)
@@ -16339,6 +16767,12 @@
 		(path "/01861cfe-6856-43ba-a236-0995fa4536ab")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 -0.36)
@@ -16509,6 +16943,12 @@
 		(path "/3a530556-74aa-49e7-951e-03afae1a815c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 -0.38)
@@ -17428,6 +17868,12 @@
 		(path "/ef78ead5-13fa-4d32-b79b-2c3bd163e172")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2" "3" "8" "4" "7" "5" "6")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 2.06 2.56)
@@ -17834,6 +18280,12 @@
 		(path "/ddef92da-ad57-4791-8ecb-29fbe27153cb")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "3" "2" "6" "4" "5")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 0.91 -1.56)
@@ -18222,6 +18674,14 @@
 		(path "/f753022b-2d20-4d6b-bc48-8a3e19de0964")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "3" "8" "9" "27" "26" "4" "5" "6" "7" "22" "2" "29" "1" "28" "25"
+					"24" "14" "13" "10" "15" "11" "12" "23" "16" "17" "18" "19" "20" "21"
+				)
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 9 9.75)
@@ -18594,7 +19054,7 @@
 			(at 8.75 1.9)
 			(size 1.5 0.9)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "I2C_SDA")
+			(net "I2C_SCL")
 			(pinfunction "GPIO22_20")
 			(pintype "bidirectional")
 			(uuid "c07351fb-c277-42a8-8600-c3a31fd90a3c")
@@ -18603,7 +19063,7 @@
 			(at 8.75 0.63)
 			(size 1.5 0.9)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "I2C_SCL")
+			(net "I2C_SDA")
 			(pinfunction "GPIO23_21")
 			(pintype "bidirectional")
 			(uuid "3b67ce1a-af94-46e3-ab06-f2f78842e8fd")
@@ -18878,6 +19338,12 @@
 		(path "/0277d89b-09c6-40a4-9ccc-3445d56be1d1")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.153641 0.38)
@@ -19061,6 +19527,12 @@
 		(path "/5646f594-195c-49e5-bd69-cdb6e2c16d1a")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "3" "5" "2" "6" "4")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 0.91 -1.56)
@@ -19759,6 +20231,12 @@
 		(path "/9defc111-597f-4b90-8222-79044924e908")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -19928,6 +20406,12 @@
 		(path "/4db756d8-7ce8-4939-9f32-4f899d6859ee")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.162779 0.51)
@@ -20085,6 +20569,12 @@
 		(path "/33c5d144-8f37-450a-a931-5f7b5b14eab7")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -2.36 1.01)
@@ -20398,6 +20888,12 @@
 		(path "/beceb8a1-5043-440f-adc1-fcde922703a6")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.237258 0.5225)
@@ -20567,6 +21063,12 @@
 		(path "/a4ab5ef5-5621-4683-bf9d-75bc86ce1cc7")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.107836 0.36)
@@ -20729,6 +21231,12 @@
 		(path "/da410d6b-be6b-4573-8a83-1a13d3d28d87")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -20851,6 +21359,12 @@
 		(path "/17e83f04-e342-4953-9535-d78941dbf45c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -20973,6 +21487,12 @@
 		(path "/144fb4e0-2d87-455b-b4ff-979ec90b0f1f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21095,6 +21615,12 @@
 		(path "/c41eda81-5f4c-4ba3-bfd2-c4e50a37978e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21217,6 +21743,12 @@
 		(path "/f9a93dca-613a-4259-80af-459badaec111")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21340,6 +21872,12 @@
 		(path "/3723044f-d66c-421b-b704-1d2ebfd5247c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21462,6 +22000,12 @@
 		(path "/4735636d-a96e-4166-bc7f-8df92dba9c7d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21584,6 +22128,12 @@
 		(path "/c3630762-763a-48f9-934c-633e0e1f43c3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
+		(units
+			(unit
+				(name "A")
+				(pins "1")
+			)
+		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -24270,13 +24820,15 @@
 		(filled_polygon
 			(layer "F.Cu")
 			(pts
-				(xy 12.967806 23.2505) (xy 14.029273 23.2505) (xy 14.053552 23.2505) (xy 14.054096 23.250222) (xy 14.054048 23.25)
-				(xy 14.5 23.25) (xy 14.5 25.8) (xy 10.5 25.8) (xy 10.5 23.844469) (xy 10.569686 23.914155) (xy 10.571523 23.914963)
-				(xy 10.675606 23.963499) (xy 10.677382 23.964357) (xy 10.678933 23.964631) (xy 10.68325 23.964914)
-				(xy 10.703075 23.967523) (xy 10.725684 23.9705) (xy 10.725685 23.9705) (xy 11.174314 23.9705) (xy 11.174316 23.9705)
-				(xy 11.223173 23.964068) (xy 11.330404 23.914065) (xy 11.414065 23.830404) (xy 11.464068 23.723173)
-				(xy 11.4705 23.674316) (xy 11.4705 23.325684) (xy 11.4705 23.322443) (xy 11.471513 23.322443) (xy 11.485593 23.266975)
-				(xy 11.505859 23.25) (xy 12.964761 23.25)
+				(xy 12.216916 23.250628) (xy 12.216924 23.250628) (xy 12.216925 23.250629) (xy 12.216925 23.25063)
+				(xy 12.261388 23.2555) (xy 12.261397 23.2555) (xy 14.400993 23.2555) (xy 14.401 23.2555) (xy 14.433144 23.25297)
+				(xy 14.451898 23.25) (xy 14.5 23.25) (xy 14.5 25.8) (xy 10.5 25.8) (xy 10.5 23.844469) (xy 10.569686 23.914155)
+				(xy 10.571523 23.914963) (xy 10.675606 23.963499) (xy 10.677382 23.964357) (xy 10.678933 23.964631)
+				(xy 10.68325 23.964914) (xy 10.703075 23.967523) (xy 10.725684 23.9705) (xy 10.725685 23.9705) (xy 11.174314 23.9705)
+				(xy 11.174316 23.9705) (xy 11.223173 23.964068) (xy 11.330404 23.914065) (xy 11.414065 23.830404)
+				(xy 11.464068 23.723173) (xy 11.4705 23.674316) (xy 11.4705 23.3545) (xy 11.489407 23.296309) (xy 11.538907 23.260345)
+				(xy 11.5695 23.2555) (xy 11.638603 23.2555) (xy 11.653428 23.253876) (xy 11.683082 23.250629) (xy 11.685919 23.25)
+				(xy 12.214083 23.25)
 			)
 		)
 	)
@@ -24635,30 +25187,18 @@
 		(filled_polygon
 			(layer "F.Cu")
 			(pts
-				(xy 11.679637 21.918907) (xy 11.715601 21.968407) (xy 11.715601 22.029593) (xy 11.679637 22.079093)
-				(xy 11.663285 22.088724) (xy 11.581686 22.126774) (xy 11.496774 22.211686) (xy 11.446029 22.32051)
-				(xy 11.446028 22.320511) (xy 11.4395 22.3701) (xy 11.4395 22.729895) (xy 11.439501 22.729907) (xy 11.446027 22.779486)
-				(xy 11.446027 22.779488) (xy 11.480898 22.854266) (xy 11.496776 22.888316) (xy 11.496778 22.888318)
-				(xy 11.500908 22.894217) (xy 11.518796 22.952729) (xy 11.498875 23.01058) (xy 11.448755 23.045674)
-				(xy 11.419811 23.05) (xy 11.275291 23.05) (xy 11.233451 23.040724) (xy 11.223177 23.035933) (xy 11.223176 23.035932)
+				(xy 14.459191 21.918907) (xy 14.495155 21.968407) (xy 14.5 21.999) (xy 14.5 22.951) (xy 14.481093 23.009191)
+				(xy 14.431593 23.045155) (xy 14.401 23.05) (xy 12.261397 23.05) (xy 12.219558 23.040724) (xy 12.209487 23.036028)
+				(xy 12.209488 23.036028) (xy 12.192958 23.033852) (xy 12.159901 23.0295) (xy 12.159899 23.0295)
+				(xy 11.740103 23.0295) (xy 11.740092 23.029501) (xy 11.690513 23.036027) (xy 11.680442 23.040724)
+				(xy 11.638602 23.05) (xy 11.275291 23.05) (xy 11.233451 23.040724) (xy 11.223177 23.035933) (xy 11.223176 23.035932)
 				(xy 11.186416 23.031093) (xy 11.174316 23.0295) (xy 10.725684 23.0295) (xy 10.715912 23.030786)
 				(xy 10.676823 23.035932) (xy 10.676822 23.035933) (xy 10.666549 23.040724) (xy 10.624709 23.05)
-				(xy 10.427632 23.05) (xy 10.369441 23.031093) (xy 10.333477 22.981593) (xy 10.333477 22.920407)
-				(xy 10.338691 22.90752) (xy 10.390572 22.801395) (xy 10.390571 22.801395) (xy 10.390573 22.801393)
-				(xy 10.4005 22.73326) (xy 10.4005 22.36674) (xy 10.390573 22.298607) (xy 10.339198 22.193517) (xy 10.256483 22.110802)
-				(xy 10.256481 22.110801) (xy 10.20972 22.087941) (xy 10.165746 22.045397) (xy 10.155176 21.985132)
-				(xy 10.182049 21.930163) (xy 10.236098 21.901488) (xy 10.2532 21.9) (xy 11.621446 21.9)
-			)
-		)
-		(filled_polygon
-			(layer "F.Cu")
-			(pts
-				(xy 12.622389 21.918907) (xy 12.658353 21.968407) (xy 12.658353 22.029593) (xy 12.643853 22.057788)
-				(xy 12.622207 22.087116) (xy 12.583779 22.196938) (xy 12.546714 22.245618) (xy 12.488113 22.263215)
-				(xy 12.430362 22.243007) (xy 12.409885 22.217592) (xy 12.408192 22.218779) (xy 12.403226 22.211687)
-				(xy 12.403224 22.211685) (xy 12.403224 22.211684) (xy 12.318316 22.126776) (xy 12.236712 22.088723)
-				(xy 12.191966 22.046996) (xy 12.180291 21.986935) (xy 12.206149 21.931482) (xy 12.259663 21.901819)
-				(xy 12.278553 21.9) (xy 12.564198 21.9)
+				(xy 10.257291 23.05) (xy 10.213811 23.039941) (xy 10.183248 23.025) (xy 10.151394 23.009427) (xy 10.134359 23.006945)
+				(xy 10.08326 22.9995) (xy 8.99174 22.9995) (xy 8.95086 23.005456) (xy 8.923605 23.009427) (xy 8.882547 23.0295)
+				(xy 8.861188 23.039941) (xy 8.817709 23.05) (xy 8.799 23.05) (xy 8.740809 23.031093) (xy 8.704845 22.981593)
+				(xy 8.7 22.951) (xy 8.7 21.999) (xy 8.718907 21.940809) (xy 8.768407 21.904845) (xy 8.799 21.9)
+				(xy 14.401 21.9)
 			)
 		)
 	)
@@ -24894,6 +25434,16 @@
 		(filled_polygon
 			(layer "F.Cu")
 			(pts
+				(xy 12.152712 23.235826) (xy 12.152838 23.235843) (xy 12.171891 23.240271) (xy 12.175073 23.241351)
+				(xy 12.175076 23.241351) (xy 12.175077 23.241352) (xy 12.196429 23.246086) (xy 12.214083 23.25)
+				(xy 11.685919 23.25) (xy 11.683082 23.250629) (xy 11.653428 23.253876) (xy 11.638603 23.2555) (xy 11.644073 23.2549)
+				(xy 11.683082 23.250629) (xy 11.724922 23.241353) (xy 11.728096 23.240274) (xy 11.747347 23.235819)
+				(xy 11.747464 23.235804) (xy 11.760053 23.235) (xy 12.139943 23.235)
+			)
+		)
+		(filled_polygon
+			(layer "F.Cu")
+			(pts
 				(xy 23.602897 20.880343) (xy 23.613734 20.883865) (xy 23.663234 20.919826) (xy 23.682144 20.978016)
 				(xy 23.682144 20.988345) (xy 23.676588 21.021044) (xy 23.652355 21.090294) (xy 23.652352 21.090306)
 				(xy 23.6495 21.120717) (xy 23.6495 22.179281) (xy 23.652352 22.209692) (xy 23.652356 22.209707)
@@ -24911,20 +25461,20 @@
 				(xy 24.092261 22.803416) (xy 24.092567 22.803785) (xy 24.093446 22.804865) (xy 24.093503 22.804929)
 				(xy 24.121069 22.831436) (xy 24.121772 22.832118) (xy 24.122397 22.832731) (xy 24.123076 22.833404)
 				(xy 24.13885 22.849177) (xy 24.150138 22.860465) (xy 24.150139 22.860465) (xy 24.15098 22.861306)
-				(xy 24.15413 22.863788) (xy 24.157576 22.86675) (xy 24.161653 22.870457) (xy 24.321734 23.024382)
-				(xy 24.340427 23.049078) (xy 24.344569 23.056827) (xy 24.346714 23.060841) (xy 24.357467 23.121068)
-				(xy 24.35681 23.125818) (xy 24.339599 23.16938) (xy 24.339469 23.169564) (xy 24.328773 23.182285)
-				(xy 23.654835 23.859233) (xy 23.629822 23.877493) (xy 23.608132 23.888607) (xy 23.562986 23.8995)
-				(xy 23.381158 23.8995) (xy 23.350566 23.894655) (xy 23.324406 23.886155) (xy 23.299039 23.873667)
-				(xy 23.297766 23.872795) (xy 23.297765 23.872794) (xy 23.297217 23.872552) (xy 23.211919 23.834888)
-				(xy 23.210211 23.833719) (xy 23.194061 23.827029) (xy 23.189299 23.826754) (xy 23.185506 23.826314)
-				(xy 23.169872 23.8245) (xy 23.169869 23.8245) (xy 23.169865 23.8245) (xy 22.155158 23.8245) (xy 22.124564 23.819654)
-				(xy 22.114162 23.816274) (xy 22.064662 23.780309) (xy 22.045756 23.722118) (xy 22.060334 23.67041)
-				(xy 22.06187 23.667903) (xy 22.101342 23.63141) (xy 22.12121 23.621287) (xy 22.166151 23.610499)
-				(xy 22.199897 23.610499) (xy 22.1999 23.610499) (xy 22.243052 23.604818) (xy 22.246763 23.604575)
-				(xy 22.249478 23.603973) (xy 22.249487 23.603972) (xy 22.249488 23.603972) (xy 22.308137 23.576622)
-				(xy 22.358316 23.553224) (xy 22.443224 23.468316) (xy 22.493972 23.359487) (xy 22.5005 23.309901)
-				(xy 22.500499 22.8901) (xy 22.50036 22.889046) (xy 22.496161 22.857147) (xy 22.49616 22.857138)
+				(xy 24.15413 22.863788) (xy 24.157576 22.86675) (xy 24.161653 22.870457) (xy 24.315389 23.018281)
+				(xy 24.321734 23.024382) (xy 24.340427 23.049078) (xy 24.344569 23.056827) (xy 24.346714 23.060841)
+				(xy 24.357467 23.121068) (xy 24.35681 23.125818) (xy 24.339599 23.16938) (xy 24.339469 23.169564)
+				(xy 24.328773 23.182285) (xy 23.654835 23.859233) (xy 23.629822 23.877493) (xy 23.608132 23.888607)
+				(xy 23.562986 23.8995) (xy 23.381158 23.8995) (xy 23.350566 23.894655) (xy 23.324406 23.886155)
+				(xy 23.299039 23.873667) (xy 23.297766 23.872795) (xy 23.297765 23.872794) (xy 23.297217 23.872552)
+				(xy 23.211919 23.834888) (xy 23.210211 23.833719) (xy 23.194061 23.827029) (xy 23.189299 23.826754)
+				(xy 23.185506 23.826314) (xy 23.169872 23.8245) (xy 23.169869 23.8245) (xy 23.169865 23.8245) (xy 22.155158 23.8245)
+				(xy 22.124564 23.819654) (xy 22.114162 23.816274) (xy 22.064662 23.780309) (xy 22.045756 23.722118)
+				(xy 22.060334 23.67041) (xy 22.06187 23.667903) (xy 22.101342 23.63141) (xy 22.12121 23.621287)
+				(xy 22.166151 23.610499) (xy 22.199897 23.610499) (xy 22.1999 23.610499) (xy 22.243052 23.604818)
+				(xy 22.246763 23.604575) (xy 22.249478 23.603973) (xy 22.249487 23.603972) (xy 22.249488 23.603972)
+				(xy 22.308137 23.576622) (xy 22.358316 23.553224) (xy 22.443224 23.468316) (xy 22.493972 23.359487)
+				(xy 22.5005 23.309901) (xy 22.500499 22.8901) (xy 22.496161 22.857147) (xy 22.495764 22.854131)
 				(xy 22.494818 22.846936) (xy 22.494575 22.843235) (xy 22.493973 22.840522) (xy 22.493972 22.840513)
 				(xy 22.493972 22.840511) (xy 22.464724 22.777789) (xy 22.444132 22.733629) (xy 22.443317 22.731778)
 				(xy 22.443224 22.731685) (xy 22.443224 22.731684) (xy 22.358316 22.646776) (xy 22.358314 22.646775)
@@ -25014,21 +25564,6 @@
 				(xy 35.06411 20.553179) (xy 35.064093 20.553305) (xy 35.059732 20.571878) (xy 35.058653 20.575055)
 				(xy 35.058647 20.575079) (xy 35.05 20.614079) (xy 35.05 20.085919) (xy 35.049764 20.084857) (xy 35.04937 20.08308)
 				(xy 35.0445 20.038602)
-			)
-		)
-		(filled_polygon
-			(layer "F.Cu")
-			(pts
-				(xy 12.532865 22.852378) (xy 12.573933 22.887984) (xy 12.577201 22.892989) (xy 12.587751 22.914416)
-				(xy 12.622207 23.012884) (xy 12.70291 23.122233) (xy 12.703011 23.122332) (xy 12.704738 23.123544)
-				(xy 12.806149 23.198388) (xy 12.808967 23.200813) (xy 12.808972 23.200816) (xy 12.81165 23.202642)
-				(xy 12.81291 23.20307) (xy 12.940301 23.247646) (xy 12.963902 23.249859) (xy 12.964761 23.25) (xy 11.505859 23.25)
-				(xy 11.485593 23.266975) (xy 11.53201 23.228094) (xy 11.566624 23.21401) (xy 11.616744 23.178916)
-				(xy 11.644905 23.155167) (xy 11.693178 23.077488) (xy 11.693178 23.077487) (xy 11.693329 23.077245)
-				(xy 11.740102 23.0378) (xy 11.77741 23.030499) (xy 12.1599 23.030499) (xy 12.203052 23.024818) (xy 12.206762 23.024575)
-				(xy 12.209472 23.023973) (xy 12.209487 23.023972) (xy 12.209488 23.023972) (xy 12.26506 22.998058)
-				(xy 12.284061 22.989198) (xy 12.30252 22.980589) (xy 12.318316 22.973224) (xy 12.383461 22.908078)
-				(xy 12.390995 22.904239) (xy 12.410771 22.883027) (xy 12.418625 22.874601) (xy 12.472134 22.844931)
 			)
 		)
 		(filled_polygon
@@ -25508,17 +26043,15 @@
 				(xy 7.918324 23.246128) (xy 7.918331 23.246131) (xy 7.924331 23.247519) (xy 7.947338 23.25148) (xy 7.969648 23.254027)
 				(xy 8.056459 23.245296) (xy 8.102096 23.230468) (xy 8.114648 23.22639) (xy 8.114657 23.226386) (xy 8.171925 23.197206)
 				(xy 8.171923 23.197206) (xy 8.171937 23.1972) (xy 8.175857 23.194352) (xy 8.221321 23.148888) (xy 8.257285 23.099388)
-				(xy 8.286474 23.042102) (xy 8.290596 23.029416) (xy 8.298123 22.998063) (xy 8.302969 22.96747) (xy 8.3055 22.935319)
-				(xy 8.3055 22.366741) (xy 8.6745 22.366741) (xy 8.6745 22.733266) (xy 8.679074 22.764653) (xy 8.679074 22.764656)
-				(xy 8.679075 22.764656) (xy 8.679075 22.764657) (xy 8.684427 22.801395) (xy 8.727252 22.888994)
-				(xy 8.727788 22.890089) (xy 8.727789 22.890092) (xy 8.735801 22.906481) (xy 8.735803 22.906484)
-				(xy 8.77323 22.943912) (xy 8.791434 22.968967) (xy 8.797489 22.98085) (xy 8.807061 23.041281) (xy 8.807061 23.041286)
-				(xy 8.806264 23.046317) (xy 8.778488 23.100829) (xy 8.758031 23.121287) (xy 8.7358 23.143518) (xy 8.684427 23.248604)
-				(xy 8.68367 23.251875) (xy 8.683393 23.255703) (xy 8.675497 23.309901) (xy 8.6745 23.316742) (xy 8.6745 23.683266)
-				(xy 8.680315 23.72317) (xy 8.680315 23.723176) (xy 8.680316 23.723176) (xy 8.684425 23.751388) (xy 8.684426 23.751392)
-				(xy 8.684427 23.751395) (xy 8.720167 23.8245) (xy 8.72261 23.829498) (xy 8.72261 23.8295) (xy 8.722611 23.8295)
-				(xy 8.735801 23.856481) (xy 8.735803 23.856484) (xy 8.77323 23.893912) (xy 8.791434 23.918967) (xy 8.797489 23.93085)
-				(xy 8.807061 23.991281) (xy 8.807061 23.991286) (xy 8.806264 23.996317) (xy 8.778488 24.050829)
+				(xy 8.286474 23.042102) (xy 8.290596 23.029416) (xy 8.298123 22.998063) (xy 8.301004 22.979874)
+				(xy 8.328781 22.925358) (xy 8.383297 22.89758) (xy 8.44373 22.907151) (xy 8.486994 22.950415) (xy 8.496362 22.981284)
+				(xy 8.496727 22.981227) (xy 8.497029 22.983137) (xy 8.49703 22.983144) (xy 8.497781 22.987883) (xy 8.501883 23.013793)
+				(xy 8.502646 23.018281) (xy 8.502647 23.018286) (xy 8.538591 23.102382) (xy 8.54099 23.105684) (xy 8.574556 23.151883)
+				(xy 8.598797 23.179628) (xy 8.630103 23.198333) (xy 8.670357 23.244407) (xy 8.67729 23.297588) (xy 8.6745 23.316738)
+				(xy 8.6745 23.683266) (xy 8.680315 23.72317) (xy 8.680315 23.723176) (xy 8.680316 23.723176) (xy 8.684425 23.751388)
+				(xy 8.684426 23.751392) (xy 8.684427 23.751395) (xy 8.720167 23.8245) (xy 8.72261 23.829498) (xy 8.72261 23.8295)
+				(xy 8.722611 23.8295) (xy 8.735801 23.856481) (xy 8.735803 23.856484) (xy 8.77323 23.893912) (xy 8.791434 23.918967)
+				(xy 8.797489 23.93085) (xy 8.807061 23.991281) (xy 8.807061 23.991286) (xy 8.806264 23.996317) (xy 8.778488 24.050829)
 				(xy 8.752496 24.076822) (xy 8.7358 24.093518) (xy 8.684427 24.198603) (xy 8.684426 24.198607) (xy 8.680316 24.226821)
 				(xy 8.680316 24.226823) (xy 8.6745 24.266742) (xy 8.6745 24.633266) (xy 8.680315 24.67317) (xy 8.680315 24.673176)
 				(xy 8.680316 24.673176) (xy 8.684425 24.70139) (xy 8.684427 24.701397) (xy 8.699723 24.732683) (xy 8.718016 24.770102)
@@ -25533,36 +26066,21 @@
 				(xy 10.296506 23.899173) (xy 10.339198 23.856483) (xy 10.339198 23.856481) (xy 10.344295 23.851385)
 				(xy 10.355439 23.841786) (xy 10.366596 23.833537) (xy 10.424625 23.814147) (xy 10.42506 23.814143)
 				(xy 10.425537 23.81414) (xy 10.477689 23.828503) (xy 10.483631 23.83211) (xy 10.5 23.844956) (xy 10.5 25.8)
-				(xy 14.5 25.8) (xy 14.5 23.25) (xy 14.054048 23.25) (xy 14.054096 23.250222) (xy 14.053814 23.248931)
-				(xy 14.059687 23.247647) (xy 14.059699 23.247646) (xy 14.187882 23.202793) (xy 14.192186 23.199617)
-				(xy 14.236862 23.166644) (xy 14.29715 23.12215) (xy 14.364776 23.03052) (xy 14.377791 23.012885)
-				(xy 14.377791 23.012884) (xy 14.377793 23.012882) (xy 14.422646 22.884699) (xy 14.422647 22.884687)
-				(xy 14.423931 22.878814) (xy 14.4255 22.879156) (xy 14.4255 22.24279) (xy 14.424855 22.238856) (xy 14.424658 22.236746)
-				(xy 14.422646 22.215303) (xy 14.422646 22.215301) (xy 14.377793 22.087118) (xy 14.369608 22.076028)
-				(xy 14.36479 22.0695) (xy 14.298551 21.979748) (xy 14.297332 21.978011) (xy 14.297233 21.97791)
-				(xy 14.187884 21.897207) (xy 14.059707 21.852356) (xy 14.059692 21.852352) (xy 14.029281 21.8495)
-				(xy 14.029274 21.8495) (xy 14.029266 21.8495) (xy 12.970734 21.8495) (xy 12.970725 21.8495) (xy 12.970718 21.8495)
-				(xy 12.940306 21.852352) (xy 12.940295 21.852355) (xy 12.940293 21.852355) (xy 12.920302 21.85935)
-				(xy 12.859132 21.86072) (xy 12.808839 21.825874) (xy 12.807517 21.824096) (xy 12.798811 21.812114)
-				(xy 12.788642 21.798117) (xy 12.764401 21.770372) (xy 12.685891 21.723464) (xy 12.685889 21.723463)
-				(xy 12.685887 21.723462) (xy 12.627697 21.704556) (xy 12.627698 21.704556) (xy 12.564201 21.6945)
-				(xy 12.564198 21.6945) (xy 12.278553 21.6945) (xy 12.278533 21.6945) (xy 12.278531 21.694501) (xy 12.258856 21.695445)
-				(xy 12.239968 21.697264) (xy 12.239964 21.697265) (xy 12.160037 21.722082) (xy 12.106528 21.751742)
-				(xy 12.106508 21.751754) (xy 12.076031 21.772424) (xy 12.076028 21.772427) (xy 12.028264 21.833877)
-				(xy 11.977624 21.868217) (xy 11.916471 21.866233) (xy 11.870008 21.831312) (xy 11.856059 21.812114)
-				(xy 11.84589 21.798117) (xy 11.821649 21.770372) (xy 11.743139 21.723464) (xy 11.743137 21.723463)
-				(xy 11.743135 21.723462) (xy 11.684945 21.704556) (xy 11.684946 21.704556) (xy 11.621449 21.6945)
-				(xy 11.621446 21.6945) (xy 10.2532 21.6945) (xy 10.235378 21.695273) (xy 10.218292 21.696759) (xy 10.218275 21.696763)
-				(xy 10.139794 21.719951) (xy 10.13978 21.719957) (xy 10.085733 21.748632) (xy 10.054877 21.768739)
-				(xy 10.054872 21.768743) (xy 9.997429 21.839907) (xy 9.997428 21.839908) (xy 9.970558 21.894873)
-				(xy 9.970555 21.894879) (xy 9.957407 21.929293) (xy 9.957406 21.929299) (xy 9.956074 21.955523)
-				(xy 9.934239 22.01268) (xy 9.882978 22.046086) (xy 9.857202 22.0495) (xy 8.991736 22.0495) (xy 8.95767 22.054463)
-				(xy 8.957669 22.054462) (xy 8.923606 22.059426) (xy 8.923604 22.059426) (xy 8.81852 22.110799) (xy 8.735799 22.19352)
-				(xy 8.684426 22.298605) (xy 8.684426 22.298607) (xy 8.681234 22.320511) (xy 8.681235 22.320512)
-				(xy 8.681235 22.320513) (xy 8.675174 22.362118) (xy 8.6745 22.366741) (xy 8.3055 22.366741) (xy 8.3055 22.00724)
-				(xy 8.29544 21.943731) (xy 8.287925 21.920604) (xy 8.276532 21.885543) (xy 8.259621 21.852356) (xy 8.24734 21.828255)
+				(xy 14.5 25.8) (xy 14.5 23.25) (xy 14.451898 23.25) (xy 14.433144 23.25297) (xy 14.463737 23.248125)
+				(xy 14.463748 23.248123) (xy 14.463793 23.248116) (xy 14.468281 23.247353) (xy 14.46828 23.247353)
+				(xy 14.468287 23.247352) (xy 14.552383 23.211408) (xy 14.601883 23.175444) (xy 14.629628 23.151203)
+				(xy 14.676536 23.072693) (xy 14.695443 23.014502) (xy 14.702892 22.96747) (xy 14.7055 22.951003)
+				(xy 14.7055 21.999006) (xy 14.7055 21.999) (xy 14.70297 21.966856) (xy 14.698125 21.936263) (xy 14.698116 21.936206)
+				(xy 14.697353 21.931714) (xy 14.697352 21.931713) (xy 14.661408 21.847617) (xy 14.647343 21.828258)
+				(xy 14.625444 21.798117) (xy 14.601203 21.770372) (xy 14.522693 21.723464) (xy 14.522691 21.723463)
+				(xy 14.522689 21.723462) (xy 14.464499 21.704556) (xy 14.4645 21.704556) (xy 14.401003 21.6945)
+				(xy 14.401 21.6945) (xy 8.799 21.6945) (xy 8.766907 21.697026) (xy 8.766856 21.69703) (xy 8.736206 21.701883)
+				(xy 8.731718 21.702646) (xy 8.731713 21.702647) (xy 8.647617 21.738591) (xy 8.598118 21.774555)
+				(xy 8.570372 21.798797) (xy 8.523464 21.877307) (xy 8.523462 21.87731) (xy 8.504556 21.935498) (xy 8.497127 21.982405)
+				(xy 8.469349 22.036921) (xy 8.414832 22.064698) (xy 8.3544 22.055126) (xy 8.311136 22.011861) (xy 8.301566 21.982409)
+				(xy 8.29544 21.943731) (xy 8.285985 21.914636) (xy 8.276532 21.885543) (xy 8.259932 21.852967) (xy 8.24734 21.828255)
 				(xy 8.244345 21.824133) (xy 8.223406 21.799618) (xy 8.223405 21.799617) (xy 8.223398 21.799611)
-				(xy 8.223392 21.799605) (xy 8.198884 21.778673) (xy 8.198869 21.778662) (xy 8.190285 21.772426)
+				(xy 8.223392 21.799605) (xy 8.198884 21.778673) (xy 8.198869 21.778662) (xy 8.188764 21.771321)
 				(xy 8.173593 21.760299) (xy 8.149384 21.742711) (xy 8.149381 21.742709) (xy 8.149379 21.742708)
 				(xy 8.092108 21.713527) (xy 8.079421 21.709404) (xy 8.059233 21.704557) (xy 8.048043 21.70187) (xy 8.048041 21.701869)
 				(xy 8.017465 21.697029) (xy 8.017458 21.697028) (xy 8.017457 21.697028) (xy 8.017454 21.697027)
@@ -26224,8 +26742,8 @@
 				(xy 24.827703 23.621387) (xy 24.872839 23.610499) (xy 25.049897 23.610499) (xy 25.0499 23.610499)
 				(xy 25.093052 23.604818) (xy 25.096763 23.604575) (xy 25.099478 23.603973) (xy 25.099487 23.603972)
 				(xy 25.099488 23.603972) (xy 25.158137 23.576622) (xy 25.208316 23.553224) (xy 25.293224 23.468316)
-				(xy 25.343972 23.359487) (xy 25.3505 23.309901) (xy 25.350499 22.8901) (xy 25.35036 22.889046) (xy 25.346161 22.857147)
-				(xy 25.34616 22.857138) (xy 25.344818 22.846936) (xy 25.344575 22.843235) (xy 25.343973 22.840522)
+				(xy 25.343972 23.359487) (xy 25.3505 23.309901) (xy 25.350499 22.8901) (xy 25.346161 22.857147)
+				(xy 25.345764 22.854131) (xy 25.344818 22.846936) (xy 25.344575 22.843235) (xy 25.343973 22.840522)
 				(xy 25.343972 22.840513) (xy 25.343972 22.840511) (xy 25.314724 22.777789) (xy 25.294132 22.733629)
 				(xy 25.293317 22.731778) (xy 25.293224 22.731685) (xy 25.293224 22.731684) (xy 25.208316 22.646776)
 				(xy 25.208314 22.646775) (xy 25.208313 22.646774) (xy 25.100461 22.596482) (xy 25.099523 22.596032)
@@ -26319,7 +26837,7 @@
 				(xy 31.026747 23.74361) (xy 31.030414 23.739967) (xy 31.057228 23.707435) (xy 31.059374 23.705876)
 				(xy 31.075722 23.696247) (xy 31.080404 23.694065) (xy 31.164065 23.610404) (xy 31.214068 23.503173)
 				(xy 31.2205 23.454316) (xy 31.2205 23.105684) (xy 31.214068 23.056827) (xy 31.206449 23.040489)
-				(xy 31.206449 23.040488) (xy 31.175083 22.973224) (xy 31.164964 22.951524) (xy 31.164156 22.949688)
+				(xy 31.206449 23.040488) (xy 31.181918 22.987883) (xy 31.164964 22.951524) (xy 31.164156 22.949688)
 				(xy 31.164065 22.949597) (xy 31.164065 22.949596) (xy 31.080404 22.865935) (xy 31.080402 22.865934)
 				(xy 31.080401 22.865933) (xy 31.0804 22.865932) (xy 31.071869 22.861954) (xy 31.04619 22.844632)
 				(xy 31.034014 22.833277) (xy 31.005686 22.785656) (xy 31.003652 22.777789) (xy 31.0005 22.753008)
@@ -26338,15 +26856,15 @@
 				(xy 35.36468 27.4055) (xy 36.29277 27.4055) (xy 36.292771 27.4055) (xy 36.356303 27.395433) (xy 36.414491 27.376517)
 				(xy 36.471773 27.347319) (xy 36.475894 27.344324) (xy 36.521341 27.298867) (xy 36.557293 27.249376)
 				(xy 36.586474 27.192102) (xy 36.590596 27.179416) (xy 36.598123 27.148063) (xy 36.602969 27.11747)
-				(xy 36.6055 27.085319) (xy 36.6055 23.40724) (xy 36.59544 23.343731) (xy 36.589576 23.325684) (xy 36.576532 23.285543)
-				(xy 36.56707 23.266975) (xy 36.54734 23.228255) (xy 36.544345 23.224133) (xy 36.523406 23.199618)
+				(xy 36.6055 27.085319) (xy 36.6055 23.40724) (xy 36.59544 23.343731) (xy 36.584445 23.309896) (xy 36.576532 23.285543)
+				(xy 36.561223 23.2555) (xy 36.54734 23.228255) (xy 36.544345 23.224133) (xy 36.523406 23.199618)
 				(xy 36.523405 23.199617) (xy 36.523398 23.199611) (xy 36.523392 23.199605) (xy 36.498884 23.178673)
 				(xy 36.498869 23.178662) (xy 36.497671 23.177792) (xy 36.482327 23.166644) (xy 36.449384 23.142711)
 				(xy 36.449381 23.142709) (xy 36.449379 23.142708) (xy 36.392108 23.113527) (xy 36.379421 23.109404)
 				(xy 36.363733 23.105637) (xy 36.348043 23.10187) (xy 36.348041 23.101869) (xy 36.317465 23.097029)
 				(xy 36.317458 23.097028) (xy 36.317457 23.097028) (xy 36.317454 23.097027) (xy 36.317439 23.097026)
-				(xy 36.291676 23.095) (xy 36.28532 23.0945) (xy 36.285318 23.0945) (xy 36.163886 23.0945) (xy 36.105695 23.075593)
-				(xy 36.069731 23.026093) (xy 36.068259 22.969878) (xy 36.069798 22.964129) (xy 36.0755 22.942853)
+				(xy 36.292134 23.095036) (xy 36.28532 23.0945) (xy 36.285318 23.0945) (xy 36.163886 23.0945) (xy 36.105695 23.075593)
+				(xy 36.069731 23.026093) (xy 36.068259 22.969878) (xy 36.072246 22.954996) (xy 36.0755 22.942853)
 				(xy 36.0755 22.8045) (xy 36.094407 22.746309) (xy 36.143907 22.710345) (xy 36.1745 22.7055) (xy 36.300993 22.7055)
 				(xy 36.301 22.7055) (xy 36.333144 22.70297) (xy 36.363737 22.698125) (xy 36.363748 22.698123) (xy 36.363793 22.698116)
 				(xy 36.368281 22.697353) (xy 36.36828 22.697353) (xy 36.368287 22.697352) (xy 36.452383 22.661408)
@@ -26636,15 +27154,15 @@
 				(xy 19.677623 20.800868) (xy 19.688709 20.822625) (xy 19.6995 20.867571) (xy 19.6995 22.749923)
 				(xy 19.694654 22.780517) (xy 19.689508 22.796354) (xy 19.658324 22.842151) (xy 19.653942 22.845765)
 				(xy 19.652058 22.847318) (xy 19.63093 22.860648) (xy 19.6196 22.865931) (xy 19.535931 22.9496) (xy 19.485933 23.056821)
-				(xy 19.485328 23.05955) (xy 19.485085 23.063258) (xy 19.484205 23.069944) (xy 19.484205 23.069946)
-				(xy 19.480268 23.099854) (xy 19.480266 23.099867) (xy 19.4795 23.105679) (xy 19.4795 23.454316)
-				(xy 19.481343 23.468313) (xy 19.484296 23.49075) (xy 19.485085 23.496739) (xy 19.485328 23.500449)
-				(xy 19.485931 23.50317) (xy 19.485932 23.503174) (xy 19.485932 23.503175) (xy 19.485933 23.503177)
-				(xy 19.535932 23.6104) (xy 19.535933 23.610401) (xy 19.535934 23.610402) (xy 19.535935 23.610404)
-				(xy 19.619596 23.694065) (xy 19.619597 23.694065) (xy 19.622527 23.696995) (xy 19.644667 23.711235)
-				(xy 19.652713 23.718738) (xy 19.682376 23.772252) (xy 19.67492 23.832981) (xy 19.674897 23.83303)
-				(xy 19.674275 23.834362) (xy 19.642784 23.872552) (xy 19.640649 23.874104) (xy 19.624277 23.88375)
-				(xy 19.619603 23.885929) (xy 19.6196 23.885931) (xy 19.535931 23.9696) (xy 19.485933 24.076821)
+				(xy 19.485328 23.05955) (xy 19.485085 23.063258) (xy 19.484205 23.069944) (xy 19.484205 23.069945)
+				(xy 19.483843 23.072693) (xy 19.480268 23.099854) (xy 19.480266 23.099867) (xy 19.4795 23.105679)
+				(xy 19.4795 23.454316) (xy 19.481343 23.468313) (xy 19.484296 23.49075) (xy 19.485085 23.496739)
+				(xy 19.485328 23.500449) (xy 19.485931 23.50317) (xy 19.485932 23.503174) (xy 19.485932 23.503175)
+				(xy 19.485933 23.503177) (xy 19.535932 23.6104) (xy 19.535933 23.610401) (xy 19.535934 23.610402)
+				(xy 19.535935 23.610404) (xy 19.619596 23.694065) (xy 19.619597 23.694065) (xy 19.622527 23.696995)
+				(xy 19.644667 23.711235) (xy 19.652713 23.718738) (xy 19.682376 23.772252) (xy 19.67492 23.832981)
+				(xy 19.674897 23.83303) (xy 19.674275 23.834362) (xy 19.642784 23.872552) (xy 19.640649 23.874104)
+				(xy 19.624277 23.88375) (xy 19.619603 23.885929) (xy 19.6196 23.885931) (xy 19.535931 23.9696) (xy 19.485933 24.076821)
 				(xy 19.485328 24.079549) (xy 19.485085 24.08326) (xy 19.4795 24.125682) (xy 19.4795 24.474316) (xy 19.481605 24.490305)
 				(xy 19.485085 24.516738) (xy 19.485328 24.520449) (xy 19.485931 24.52317) (xy 19.485932 24.523174)
 				(xy 19.485932 24.523175) (xy 19.485933 24.523177) (xy 19.535932 24.6304) (xy 19.535933 24.630401)

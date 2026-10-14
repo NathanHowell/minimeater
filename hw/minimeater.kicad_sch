@@ -10479,6 +10479,16 @@
 		)
 		(uuid "437233fc-2148-4d70-b99f-0cfb8eed2998")
 	)
+	(text "Probe ESD: TPD4E05U06DQAR on the jack side of the series resistors. Straight-through routing (datasheet fig. 7-11): each tip runs across the part over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; NC pins are not connected inside)"
+		(at 95 272 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "493b05aa-7f52-4c69-a76e-7e42d5076a1d")
+	)
 	(label "TIP2"
 		(at 111.76 294.64 180)
 		(effects
@@ -11901,28 +11911,6 @@
 			)
 		)
 	)
-	(global_label "I2C_SCL"
-		(shape bidirectional)
-		(at 327.66 347.98 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "98bf7c77-af06-4a8c-8d9e-e0e4fe6e6669")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 327.66 347.98 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
 	(global_label "3V3"
 		(shape input)
 		(at 386.08 341.63 90)
@@ -11979,28 +11967,6 @@
 		(uuid "a4c14e66-ae2d-484d-b0f0-87ffef73f015")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 200.66 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
-	(global_label "I2C_SDA"
-		(shape bidirectional)
-		(at 327.66 345.44 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ac75e9da-b150-4d0b-9041-d601ff5a8d98")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 327.66 345.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12561,11 +12527,28 @@
 		)
 		(uuid "3676dfa4-d43e-4e8c-b1c0-83afde8b5a1d")
 	)
-  (text "Probe ESD: TPD4E05U06DQAR on the jack side of the series resistors. Straight-through routing (datasheet fig. 7-11): each tip runs across the part over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; NC pins are not connected inside)"
-    (at 95 272 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid "493b05aa-7f52-4c69-a76e-7e42d5076a1d")
-  )
+	(global_label "I2C_SCL"
+		(shape bidirectional)
+		(at 327.66 345.44 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5da2060b-1258-4e4c-8fff-75051afe1851")
+	)
+	(global_label "I2C_SDA"
+		(shape bidirectional)
+		(at 327.66 347.98 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4929e400-af87-4868-b965-52beddb95a6a")
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 243.84 326.39 0)
