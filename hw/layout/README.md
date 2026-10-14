@@ -184,3 +184,31 @@ as small groups in staging:
   montage or the placement review.
 - C33 (TMP117 bypass) goes right at U10's pins 5/4 (the no-copper area around U10 bans pours only, not tracks);
   R12 goes beside D2.
+
+## On the board: placement and routing (axk.2-axk.5)
+
+What changed from the staged blocks, and how the board is routed. The sections above are the blocks as designed.
+
+- **Stack:** F.Cu signals; In1 solid GND (the reference for F.Cu, never cut); In2 a 3V3 plane (`3V3_In2_plane`, over
+  the In2 ground pour; the TMP117 corner is left out to keep the sensor isolated) carrying the power and the few signal
+  tracks below; B.Cu GND pour with the slow crossings and the test points.
+- **USB pair:** F.Cu only, 0.27/0.23 mm, from U2 east under U2, down the x 17.6/18.1 column, under U8, into U1 pins
+  14/13. It splits the board, so every slow signal that has to cross it does so on B.Cu or In2. J1's fan-out: the
+  D+ pads join on F.Cu, the sandwiched D- pad hops 1.4 mm on B.Cu, CC1 hops on In2 under the pad row; the VBUS pads
+  drop into an In2 VBUS_RAW pour feeding the ESD/C38 tie and D1. If those crossings ever get worse, moving J1 to the
+  right side (enclosure change) would remove them.
+- **Fan and servo switches:** U7's block sits in U6's old spot (beside VIN_F, bridged on F.Cu). U6's block is turned
+  90 degrees beside J7 (output column into C37/C36/J7, EN toward U1 pin 19); VBUS_F reaches it along the board edge
+  under the J6/J7 housings. U1's west pins 16-19 run straight out to R28, R27/R16, R29 and U6. VFAN hops on B.Cu into
+  J6 pin 2.
+- **Pull-ups:** R11 (DRDY) is gone: DRDY uses the ESP32's internal pull-up (`board.rs`). R14/R15 sit beside U11 on the
+  U8 -> U11 I2C run; R7 (LOAD_FAULT) beside J6. SDA/SCL are swapped on U1 (SCL pin 20/GPIO22, SDA pin 21/GPIO23) so
+  U8's three lines reach U1 on B.Cu without crossing.
+- **In2:** VBUS_F trunk VIN_F -> FB1/U4 (1 mm), 3V3A spur U5 -> U8/FB2, BTN (SW1 -> U1 pin 15) under the module,
+  U10's I2C branch (kept above U1's antenna keepout).
+- **B.Cu:** U8 SCL/SDA/DRDY to U1's west pins, FAN_EN (U7 -> pin 12), CC1/CC2 (U3 -> pins 8/9), LOAD_FAULT
+  (U7, R7, U6, U1 pin 26), LED (pin 11 -> R12), U10's 3V3 hop. Under-module vias sit 0.8 mm inside U1's pad rows.
+- **Mechanical:** H1-H3 (2.7 mm NPTH) at the enclosure's standoffs; every route keeps out of their 2.75 mm standoff
+  rings on F/B. Fiducials FID1-3 on the board; JLC's tooling holes are on the panel rails (`hw/tools/fab.py`).
+- **Test points (B.Cu):** TP1 VBUS_F, TP2 3V3, TP4 GND at U4; TP3 3V3A at U5; TP6 TX, TP7 RX, TP8 GND just west of
+  U1's pins (UART through under-module vias); TP5 EN beside R10.

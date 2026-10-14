@@ -21147,7 +21147,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "053b12fd-cfb8-42a9-b2b5-7e4fd8ba6ce0")
-		(at 55.08 96)
+		(at 14.2 41.6)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP7"
@@ -21219,12 +21219,6 @@
 		(path "/da410d6b-be6b-4573-8a83-1a13d3d28d87")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21275,7 +21269,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "0a6e3027-7638-4d56-be1e-c541d239fe36")
-		(at 55.08 92)
+		(at 36.1 26.8)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP3"
@@ -21347,12 +21341,6 @@
 		(path "/17e83f04-e342-4953-9535-d78941dbf45c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21403,7 +21391,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "1d1adb8b-38fb-40cb-a074-aea996a49d65")
-		(at 50 92)
+		(at 42.65 20)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP1"
@@ -21475,12 +21463,6 @@
 		(path "/144fb4e0-2d87-455b-b4ff-979ec90b0f1f")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21531,7 +21513,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "3696c576-82c3-4aac-8263-ac6e3f7598df")
-		(at 50 96)
+		(at 36 44.8)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP5"
@@ -21603,12 +21585,6 @@
 		(path "/c41eda81-5f4c-4ba3-bfd2-c4e50a37978e")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21659,7 +21635,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "5a776ff9-ccf7-40b2-ae50-5a3542ff1bb4")
-		(at 57.62 92)
+		(at 41.4 24)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP4"
@@ -21731,12 +21707,6 @@
 		(path "/f9a93dca-613a-4259-80af-459badaec111")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21788,7 +21758,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "5d221bd4-c7ba-4889-9196-03e8daa358d4")
-		(at 52.54 96)
+		(at 14.2 44.2)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP6"
@@ -21860,12 +21830,6 @@
 		(path "/3723044f-d66c-421b-b704-1d2ebfd5247c")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -21916,7 +21880,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "cf31f71a-b902-4fc9-a035-ede1dbc54d06")
-		(at 52.54 92)
+		(at 44.1 23.6)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP2"
@@ -21988,12 +21952,6 @@
 		(path "/4735636d-a96e-4166-bc7f-8df92dba9c7d")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22044,7 +22002,7 @@
 	(footprint "TestPoint:TestPoint_Pad_D1.5mm"
 		(layer "B.Cu")
 		(uuid "df92162a-0acd-47eb-b0d9-4777ebd0694a")
-		(at 57.62 96)
+		(at 14.2 39)
 		(descr "SMD pad as test Point, diameter 1.5mm")
 		(tags "test point SMD pad")
 		(property "Reference" "TP8"
@@ -22116,12 +22074,6 @@
 		(path "/c3630762-763a-48f9-934c-633e0e1f43c3")
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -22681,6 +22633,14 @@
 		(uuid "1169c872-f4a5-4107-b337-1f92b2a58976")
 	)
 	(segment
+		(start 43.6 24.1)
+		(end 43.6 25.4)
+		(width 0.4)
+		(layer "B.Cu")
+		(net "3V3")
+		(uuid "6d2d9f2a-d421-429e-9d1f-62f9c0c92f6b")
+	)
+	(segment
 		(start 8.4 53.45)
 		(end 9.3 52.55)
 		(width 0.3)
@@ -22703,6 +22663,14 @@
 		(layer "B.Cu")
 		(net "3V3")
 		(uuid "c5f1fee5-f13c-4df6-aff6-f984aac931ea")
+	)
+	(segment
+		(start 44.1 23.6)
+		(end 43.6 24.1)
+		(width 0.4)
+		(layer "B.Cu")
+		(net "3V3")
+		(uuid "e0d6dbd1-5c74-498b-bc79-b3c18edcf1cd")
 	)
 	(segment
 		(start 28.65 26.5)
@@ -23881,6 +23849,14 @@
 		(uuid "dd9fec08-eebf-4573-bcb4-ad43b0388e3e")
 	)
 	(segment
+		(start 42.65 20)
+		(end 42.65 18.3)
+		(width 0.5)
+		(layer "B.Cu")
+		(net "/VBUS_F")
+		(uuid "e5423ef0-275b-4950-a536-352dd7e75bf8")
+	)
+	(segment
 		(start 4.35 21.5)
 		(end 4.35 17.2)
 		(width 1)
@@ -23991,6 +23967,14 @@
 		(layers "F.Cu" "B.Cu")
 		(net "3V3A")
 		(uuid "cd34ce4f-95a2-4482-8647-ca4db471e8a5")
+	)
+	(segment
+		(start 36.1 26.8)
+		(end 36.1 24.95)
+		(width 0.4)
+		(layer "B.Cu")
+		(net "3V3A")
+		(uuid "d77ebfc7-63bb-4015-9f30-8cfead4dc050")
 	)
 	(segment
 		(start 21.2 25.75)
@@ -24689,12 +24673,36 @@
 		(uuid "f828f742-7a76-4cea-80ef-05cbda2c410b")
 	)
 	(segment
+		(start 35 47.345)
+		(end 35.8 46.6)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "/EN")
+		(uuid "267c1ba1-cc4b-4b58-8a14-2364fc8bbcd6")
+	)
+	(segment
 		(start 32.25 47.22)
 		(end 35 47.22)
 		(width 0.2)
 		(layer "F.Cu")
 		(net "/EN")
 		(uuid "6bfad1f7-393b-45e7-b497-559ccafd653a")
+	)
+	(via
+		(at 35.8 46.6)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "/EN")
+		(uuid "c523309f-a02c-4940-a3cb-965193bae5c3")
+	)
+	(segment
+		(start 35.8 46.6)
+		(end 36 44.8)
+		(width 0.25)
+		(layer "B.Cu")
+		(net "/EN")
+		(uuid "1e565b1f-69e5-4e55-a8d9-f5ff22c30047")
 	)
 	(segment
 		(start 11.2 47.8625)
@@ -25967,6 +25975,86 @@
 		(layer "B.Cu")
 		(net "CC1")
 		(uuid "fae69d00-71ed-41e8-8318-4c85227b0883")
+	)
+	(segment
+		(start 14.75 44.68)
+		(end 16.3 44.68)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "/UART_RX")
+		(uuid "2b2e080d-c15d-4420-ab3e-5886a8a4661c")
+	)
+	(via
+		(at 16.3 44.68)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "/UART_RX")
+		(uuid "54328874-03ab-486f-846a-d1fba228dab7")
+	)
+	(segment
+		(start 15.3 42.3)
+		(end 14.6 41.6)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_RX")
+		(uuid "34a93595-59a9-451b-9747-bfd0abc57d70")
+	)
+	(segment
+		(start 16.3 44.68)
+		(end 15.3 43.68)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_RX")
+		(uuid "8b974769-c533-4ffb-8b37-b1b3a955a317")
+	)
+	(segment
+		(start 14.6 41.6)
+		(end 14.2 41.6)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_RX")
+		(uuid "9dccc600-70c3-4ff7-905d-65e6f922d357")
+	)
+	(segment
+		(start 15.3 43.68)
+		(end 15.3 42.3)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_RX")
+		(uuid "b69d0756-cf00-48df-9b08-1eab5e53babe")
+	)
+	(segment
+		(start 14.75 45.95)
+		(end 16.3 45.95)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "/UART_TX")
+		(uuid "d616d067-3708-4e14-9071-b96185698b25")
+	)
+	(via
+		(at 16.3 45.95)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "/UART_TX")
+		(uuid "cd1251cf-46c5-4d8f-b6d4-2bf535775992")
+	)
+	(segment
+		(start 14.55 44.2)
+		(end 14.2 44.2)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_TX")
+		(uuid "14e84746-972d-46ef-9d09-7cce38312129")
+	)
+	(segment
+		(start 16.3 45.95)
+		(end 14.55 44.2)
+		(width 0.2)
+		(layer "B.Cu")
+		(net "/UART_TX")
+		(uuid "fe3a1dc8-aedc-474c-baf2-e91c97c8524d")
 	)
 	(zone
 		(net "GND")
