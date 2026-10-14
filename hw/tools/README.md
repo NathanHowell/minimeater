@@ -19,7 +19,7 @@ its one-off rework scripts were retired (in git history before the re-layout).
 - `silk.py` (KiCad's python, KiCad closed): the silk pass. References at JLC minimum size placed beside their part
   where they fit, else hidden; back-silk labels for the test points (net names) and J6/J7 (FAN/SERVO).
 - `silk_back.py` (KiCad's python, KiCad closed, after silk.py): the back's artwork, the face seen with the case open.
-  Probe numbers P0-P3 between the jack pegs, the flame and wordmark, rev/date, JLC's order-number marker, a QR code to
+  Probe numbers P0-P3 between the jack pegs, the flame, wordmark and open-source-hardware mark, rev/date, JLC's order-number marker, a QR code to
   the repository (KiCad 10 barcode, knocked out of a silk square so it reads dark-on-white), KK pin names, USB. Kept in
   the group `silk_back`, which a rerun replaces; it refuses to save if anything lands on a pad, hole, via or other silk.
 - `models.py`: 3D models for the mech assembly (`src/minimeater/mech/board3d.py`).
