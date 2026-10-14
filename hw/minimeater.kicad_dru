@@ -25,3 +25,10 @@
 (rule u1_epad_solid
 	(constraint zone_connection solid)
 	(condition "A.Parent == 'U1' && A.Pad_Number == '29'"))
+
+# The back-silk QR code is knocked out of a silk square whose 0.8 mm border is its quiet zone (white silk, like
+# paper), so copper near the square does not touch the code's own margin: KiCad's 1 mm barcode separation is
+# relaxed to the silk-to-copper spacing the rest of the silk keeps.
+(rule qr_quiet_zone_in_silk
+	(constraint physical_clearance (min 0.3mm))
+	(condition "A.Type == 'Barcode' || B.Type == 'Barcode'"))
