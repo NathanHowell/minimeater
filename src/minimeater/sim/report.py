@@ -142,12 +142,13 @@ def fan_report(out: Path) -> None:
            "coupling and goes through it with 30 pF, for well under a microsecond: the PCNT filter (12.8 us) drops it, so "
            "the count is safe, but the filter is what makes it safe. The tach is at most 100 Hz (3000 rpm, two pulses "
            "a revolution), so a 1 nF capacitor at the pin (R27 and the pull-ups then filter at about 1-8 us) would "
-           "remove the kicks in hardware without slowing the edges that matter; it is not needed with the filter.", "",
+           "remove the kicks in hardware without slowing the edges that matter. It is not needed with the filter, so "
+           "it is a footprint only: C39 (0402, FAN_TACH to GND, not fitted), for rework if the count misbehaves.", "",
            "If the fan has its own tach pull-up to 5 V (Noctua does not publish it), the pin sits at about 4 V through the "
            "pad's clamp, a fraction of a milliamp steady and about 1 mA on the kicks. That is outside the pin's 3.6 V "
            "rating: measure J6.3 with the fan powered and nothing connected at bring-up. If the fan does pull up, the "
-           "fix is a divider at the pin sized from the measured value (raising R27 alone would lift the low level past "
-           "VIL).", "",
+           "fix is a divider at the pin sized from the measured value: R31 (0402, FAN_TACH to GND, not fitted) is its "
+           "footprint, against R27 1k and R16 10k (raising R27 alone would lift the low level past VIL).", "",
            "## PWM at the fan's input", "",
            "The fan pulls its PWM input up inside (Intel's spec: to at most 5.25 V, sinking at most 5 mA from the "
            "controller, so not below about 1k); the value is not published, so it is swept.", "",

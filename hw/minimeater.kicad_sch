@@ -10274,6 +10274,34 @@
 		)
 		(uuid "0eab67c6-fcfa-44ed-adf3-9446a97030f8")
 	)
+	(wire
+		(pts
+			(xy 397.51 341.63)
+			(xy 397.51 339.09)
+		)
+		(uuid "9ce7d796-6567-4668-b19c-4d3971d250f1")
+	)
+	(wire
+		(pts
+			(xy 407.67 341.63)
+			(xy 407.67 339.09)
+		)
+		(uuid "302d887d-0c6e-4508-8d35-c00ea7d2bb6a")
+	)
+	(wire
+		(pts
+			(xy 397.51 349.25)
+			(xy 397.51 351.79)
+		)
+		(uuid "e220141c-afbf-46df-9350-61620e8cac08")
+	)
+	(wire
+		(pts
+			(xy 407.67 349.25)
+			(xy 407.67 351.79)
+		)
+		(uuid "01d3e85a-f584-45bd-8717-7a1ce399805a")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -11228,6 +11256,26 @@
 			(justify left bottom)
 		)
 		(uuid "008ae76b-3ff0-46ea-aeec-d51115dfc27f")
+	)
+	(label "FAN_TACH"
+		(at 397.51 339.09 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b32b2e6a-8bb1-4b1e-beee-22d91a90d3ea")
+	)
+	(label "FAN_TACH"
+		(at 407.67 339.09 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5a676e03-0918-45dd-a3c7-1e4693233370")
 	)
 	(global_label "3V3"
 		(shape input)
@@ -27641,6 +27689,268 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 397.51 345.44 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5a6f8a76-2324-4d19-8825-847d988281c6")
+		(property "Reference" "C39"
+			(at 398.145 342.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1nF DNP"
+			(at 398.145 347.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C39")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "DNP: rework only (FAN_TACH glitch filter, docs/sim/fan.md)"
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "Device:R")
+		(at 407.67 345.44 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e7fa98f6-8e33-4c5f-aa6b-34e6c4e51712")
+		(property "Reference" "R31"
+			(at 409.702 345.44 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "DNP"
+			(at 407.67 345.44 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 407.67 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 407.67 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 407.67 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R31")
+					(unit 1)
+				)
+			)
+		)
+	
+		(property "LCSC" "DNP: rework only (FAN_TACH divider if the fan pulls tach to 5 V, docs/sim/fan.md)"
+			(at 407.67 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
+	(symbol
+		(lib_id "power:GND")
+		(at 397.51 351.79 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3319a493-b46d-4845-aa3c-cb31f05623cc")
+		(property "Reference" "#PWR070"
+			(at 397.51 358.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 397.51 355.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 397.51 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 397.51 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 397.51 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR070")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 407.67 351.79 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b50700cc-a1db-4bc4-9163-0334f0e6ccd3")
+		(property "Reference" "#PWR071"
+			(at 407.67 358.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 407.67 355.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 407.67 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 407.67 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 407.67 351.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
