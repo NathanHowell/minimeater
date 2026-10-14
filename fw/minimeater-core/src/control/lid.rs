@@ -51,21 +51,25 @@ struct Open {
 
 impl Default for LidDetector {
     fn default() -> Self {
-        Self {
-            drop_f: 10.0,
-            open_rate_f_s: 0.3,
-            close_rate_per_s: 0.0025,
-            close_rise_f: 3.0,
-            relapse_rise_f: 5.0,
-            relapse_fall_f: 3.0,
-            quick_s: 90.0,
-            window_s: 50.0,
-            max_open_s: 900.0,
-            hist: Ring::default(),
-            t: 0.0,
-            open: None,
-        }
+        Self::DEFAULT
     }
+}
+
+impl LidDetector {
+    pub const DEFAULT: Self = Self {
+        drop_f: 10.0,
+        open_rate_f_s: 0.3,
+        close_rate_per_s: 0.0025,
+        close_rise_f: 3.0,
+        relapse_rise_f: 5.0,
+        relapse_fall_f: 3.0,
+        quick_s: 90.0,
+        window_s: 50.0,
+        max_open_s: 900.0,
+        hist: Ring::filled((0.0, 0.0)),
+        t: 0.0,
+        open: None,
+    };
 }
 
 impl LidDetector {
@@ -183,17 +187,21 @@ pub struct LidRecovery {
 
 impl Default for LidRecovery {
     fn default() -> Self {
-        Self {
-            detector: Some(LidDetector::default()),
-            band_f: 20.0,
-            max_s: 900.0,
-            boost: 1.5,
-            q_hold: 0.0,
-            active_s: None,
-            was_lid: false,
-            snaps: Ring::default(),
-        }
+        Self::DEFAULT
     }
+}
+
+impl LidRecovery {
+    pub const DEFAULT: Self = Self {
+        detector: Some(LidDetector::DEFAULT),
+        band_f: 20.0,
+        max_s: 900.0,
+        boost: 1.5,
+        q_hold: 0.0,
+        active_s: None,
+        was_lid: false,
+        snaps: Ring::filled(Snapshot { q: 0.0, state: 0.0 }),
+    };
 }
 
 impl LidRecovery {
@@ -254,17 +262,16 @@ struct Ring<T> {
     len: usize,
 }
 
-impl<T: Copy + Default> Default for Ring<T> {
-    fn default() -> Self {
+impl<T: Copy> Ring<T> {
+    /// Empty; `fill` only stands in the unused slots.
+    const fn filled(fill: T) -> Self {
         Self {
-            buf: [T::default(); HIST],
+            buf: [fill; HIST],
             head: 0,
             len: 0,
         }
     }
-}
 
-impl<T: Copy> Ring<T> {
     fn push(&mut self, v: T) {
         self.buf[self.head] = v;
         self.head = (self.head + 1) % HIST;

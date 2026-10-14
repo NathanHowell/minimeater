@@ -99,7 +99,7 @@ fn fan_duty_drives_plant_and_tach() {
 fn config_flash_has_nor_semantics_and_regions_bound_it() {
     let w = RefCell::new(world());
     let io = io(&w);
-    let mut region = FlashRegion::new(io.config, 4096, 8192);
+    let mut region = FlashRegion::new::<4096, 8192>(io.config);
     let mut b = [0u8; 4];
     block_on(async {
         region.erase(0, 4096).await.unwrap();

@@ -16,7 +16,7 @@ pub const R_AIR: f64 = 287.05;
 pub const P_ATM: f64 = 101325.0;
 
 /// Ideal-gas density of air (flue gas is close enough) at 1 atm, kg/m^3.
-pub fn air_density(t_k: f64) -> f64 {
+pub const fn air_density(t_k: f64) -> f64 {
     P_ATM / (R_AIR * t_k)
 }
 
@@ -25,15 +25,15 @@ pub fn air_viscosity(t_k: f64) -> f64 {
     1.716e-5 * pow(t_k / 273.15, 1.5) * (273.15 + 110.4) / (t_k + 110.4)
 }
 
-pub fn f_to_k(f: f64) -> f64 {
+pub const fn f_to_k(f: f64) -> f64 {
     (f - 32.0) * 5.0 / 9.0 + 273.15
 }
 
-pub fn k_to_f(k: f64) -> f64 {
+pub const fn k_to_f(k: f64) -> f64 {
     (k - 273.15) * 9.0 / 5.0 + 32.0
 }
 
-pub fn c_to_k(c: f64) -> f64 {
+pub const fn c_to_k(c: f64) -> f64 {
     c + 273.15
 }
 

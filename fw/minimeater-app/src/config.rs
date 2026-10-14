@@ -40,6 +40,10 @@ mod key {
 
 /// Largest serialized record plus key, word-aligned (a full schedule: 2 + 1 + 8 x 32 = 259).
 const BUF: usize = 512;
+// a full schedule: the key, the count and four f64 per model
+const _: () = assert!(BUF >= 2 + 1 + Schedule::CAPACITY * 4 * 8);
+// the probe records' keys stay below the network ones
+const _: () = assert!(key::PROBE0 as usize + PROBE_JACKS <= key::WIFI as usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -77,18 +81,22 @@ pub struct Cook {
 
 impl Default for Cook {
     fn default() -> Self {
-        Self {
-            mode: Mode::Off,
-            sp_f: 225.0,
-            controller: ControllerKind::Mpc,
-            pit_probe: 0,
-            autotune: false,
-            manual_flap: 0.0,
-            manual_fan: 0.0,
-            hold: None,
-            base_sp: None,
-        }
+        Self::DEFAULT
     }
+}
+
+impl Cook {
+    pub const DEFAULT: Self = Self {
+        mode: Mode::Off,
+        sp_f: 225.0,
+        controller: ControllerKind::Mpc,
+        pit_probe: 0,
+        autotune: false,
+        manual_flap: 0.0,
+        manual_fan: 0.0,
+        hold: None,
+        base_sp: None,
+    };
 }
 
 /// What a food probe's stall brings about (`.4.23`); `stall_start` and `stall_end` are raised whatever
@@ -132,11 +140,15 @@ pub struct Lid {
 
 impl Default for Lid {
     fn default() -> Self {
-        Self {
-            detect: true,
-            boost: 1.5,
-        }
+        Self::DEFAULT
     }
+}
+
+impl Lid {
+    pub const DEFAULT: Self = Self {
+        detect: true,
+        boost: 1.5,
+    };
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

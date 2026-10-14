@@ -19,16 +19,20 @@ pub struct RefShaper {
 
 impl Default for RefShaper {
     fn default() -> Self {
-        Self {
-            tau_s: 360.0,
-            rate_max_f_s: 12.0 / 60.0,
-            tether_f: 40.0,
-            band_f: 5.0,
-            r: None,
-            armed: true,
-            sp: None,
-        }
+        Self::DEFAULT
     }
+}
+
+impl RefShaper {
+    pub const DEFAULT: Self = Self {
+        tau_s: 360.0,
+        rate_max_f_s: 12.0 / 60.0,
+        tether_f: 40.0,
+        band_f: 5.0,
+        r: None,
+        armed: true,
+        sp: None,
+    };
 }
 
 impl RefShaper {

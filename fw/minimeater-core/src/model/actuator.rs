@@ -31,13 +31,17 @@ pub struct FanCycler {
 
 impl Default for FanCycler {
     fn default() -> Self {
-        Self {
-            min_dwell_s: 10.0,
-            on: false,
-            dwell_s: f64::INFINITY,
-            debt_s: 0.0,
-        }
+        Self::DEFAULT
     }
+}
+
+impl FanCycler {
+    pub const DEFAULT: Self = Self {
+        min_dwell_s: 10.0,
+        on: false,
+        dwell_s: f64::INFINITY,
+        debt_s: 0.0,
+    };
 }
 
 impl FanCycler {

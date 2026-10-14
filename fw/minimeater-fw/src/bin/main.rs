@@ -24,7 +24,7 @@ use minimeater_core::model::airflow::AirPath;
 use minimeater_fw::board::{self, Esp};
 use minimeater_fw::console::{self, Port};
 use minimeater_fw::net::{self, Link, Tcp};
-use static_cell::StaticCell;
+use static_cell::{ConstStaticCell, StaticCell};
 
 // App descriptor required by the ESP-IDF second-stage bootloader.
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -67,11 +67,12 @@ async fn main(spawner: Spawner) -> ! {
     // The application's tasks on the board, as the twin runs them on the simulated one: probes scan,
     // control runs the cook, actuators drive the fan and flap and watch the supply and the load switches
     // (a source under 1.5 A or a tripped switch is a fault with both loads off), slow does the fits.
-    let model = AirPath::default();
-    static BUS: StaticCell<Bus> = StaticCell::new();
-    let bus: &'static Bus = BUS.init(Bus::new());
+    let model = AirPath::DEFAULT;
+    // built at compile time: no copy through main's stack at boot
+    static BUS: Bus = Bus::new();
+    let bus: &'static Bus = &BUS;
     static PIT: StaticCell<Pit> = StaticCell::new();
-    let pit = PIT.init_with(|| Pit::new(&settings, model, minimeater_core::model::Ambient::default()));
+    let pit = PIT.init_with(|| Pit::new(&settings, model, minimeater_core::model::Ambient::DEFAULT));
     static FOODS: StaticCell<Foods> = StaticCell::new();
     let foods = FOODS.init_with(|| Foods::new(&settings.probes));
 
@@ -107,26 +108,12 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net::wifi(controller, stack, bus).expect("wifi task"));
     spawner.spawn(net::sntp_client(stack, seed).expect("sntp task"));
     spawner.spawn(net::mdns_responder(stack, host).expect("mdns task"));
-    static MQTT_BUFS: StaticCell<minimeater_app::mqtt::Buffers> = StaticCell::new();
-    static OTLP_BUFS: StaticCell<minimeater_app::otlp::Buffers> = StaticCell::new();
-    spawner.spawn(
-        mqtt(
-            tcp!(stack),
-            id,
-            bus,
-            MQTT_BUFS.init_with(minimeater_app::mqtt::Buffers::new),
-        )
-        .expect("mqtt task"),
-    );
-    spawner.spawn(
-        otlp(
-            tcp!(stack),
-            id,
-            bus,
-            OTLP_BUFS.init_with(minimeater_app::otlp::Buffers::new),
-        )
-        .expect("otlp task"),
-    );
+    static MQTT_BUFS: ConstStaticCell<minimeater_app::mqtt::Buffers> =
+        ConstStaticCell::new(minimeater_app::mqtt::Buffers::new());
+    static OTLP_BUFS: ConstStaticCell<minimeater_app::otlp::Buffers> =
+        ConstStaticCell::new(minimeater_app::otlp::Buffers::new());
+    spawner.spawn(mqtt(tcp!(stack), id, bus, MQTT_BUFS.take()).expect("mqtt task"));
+    spawner.spawn(otlp(tcp!(stack), id, bus, OTLP_BUFS.take()).expect("otlp task"));
     spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
@@ -186,9 +173,9 @@ use run::{actuators, control, probes, slow};
 /// A TCP connector with its own static buffers.
 macro_rules! tcp {
     ($stack:expr) => {{
-        static RX: StaticCell<[u8; 2048]> = StaticCell::new();
-        static TX: StaticCell<[u8; 2048]> = StaticCell::new();
-        Tcp::new($stack, RX.init([0; 2048]), TX.init([0; 2048]))
+        static RX: ConstStaticCell<[u8; 2048]> = ConstStaticCell::new([0; 2048]);
+        static TX: ConstStaticCell<[u8; 2048]> = ConstStaticCell::new([0; 2048]);
+        Tcp::new($stack, RX.take(), TX.take())
     }};
 }
 use tcp;

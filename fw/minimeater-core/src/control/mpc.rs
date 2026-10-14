@@ -409,12 +409,16 @@ struct Past {
 
 impl Default for Past {
     fn default() -> Self {
-        Self {
-            buf: [0.0; PAST_CAP],
-            head: 0,
-            len: 0,
-        }
+        Self::DEFAULT
     }
+}
+
+impl Past {
+    pub const DEFAULT: Self = Self {
+        buf: [0.0; PAST_CAP],
+        head: 0,
+        len: 0,
+    };
 }
 
 impl Past {

@@ -227,7 +227,7 @@ impl Default for Editor {
 }
 
 impl Editor {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             line: String::new(),
             after_cr: false,
@@ -1069,17 +1069,19 @@ mod tests {
 
     #[test]
     fn config_never_shows_a_password() {
-        let mut s = Settings::default();
-        s.wifi = Some(Wifi {
-            ssid: "home".try_into().unwrap(),
-            pass: "hunter2".try_into().unwrap(),
-        });
-        s.mqtt = Some(Mqtt {
-            host: "b".try_into().unwrap(),
-            port: 1883,
-            user: "u".try_into().unwrap(),
-            pass: "s3cret".try_into().unwrap(),
-        });
+        let s = Settings {
+            wifi: Some(Wifi {
+                ssid: "home".try_into().unwrap(),
+                pass: "hunter2".try_into().unwrap(),
+            }),
+            mqtt: Some(Mqtt {
+                host: "b".try_into().unwrap(),
+                port: 1883,
+                user: "u".try_into().unwrap(),
+                pass: "s3cret".try_into().unwrap(),
+            }),
+            ..Settings::default()
+        };
         let text: std::vec::Vec<std::string::String> = config_lines(&s).iter().map(|l| l.as_str().into()).collect();
         let all = text.join("\n");
         assert!(!all.contains("hunter2") && !all.contains("s3cret"), "{all}");

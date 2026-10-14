@@ -31,6 +31,8 @@ use crate::numeric::yield_now;
 pub const WINDOW: usize = 360;
 /// Longest dead time considered, in samples (900 s at 10 s).
 pub const MAX_DELAY: usize = 90;
+// the fit's residual variance divides by WINDOW - 4 (four parameters)
+const _: () = assert!(WINDOW > 4);
 
 const TAU_MIN: f64 = 60.0;
 const TAU_MAX: f64 = 6000.0;
@@ -74,22 +76,26 @@ pub struct AutotuneConfig {
 
 impl Default for AutotuneConfig {
     fn default() -> Self {
-        Self {
-            fit_every: 30,
-            max_rms_f: 1.5,
-            max_k_rel_se: 0.08,
-            max_excursion_f: 8.0,
-            min_settled_s: 6300.0,
-            min_y_std_f: 1.0,
-            min_u_rel_std: 0.01,
-            min_blend: 0.2,
-            max_ratio: 1.5,
-            dither_f: 3.0,
-            dither_half_s: 1800.0,
-            excite_max_s: 5.0 * 3600.0,
-            excite_until_fits: 4,
-        }
+        Self::DEFAULT
     }
+}
+
+impl AutotuneConfig {
+    pub const DEFAULT: Self = Self {
+        fit_every: 30,
+        max_rms_f: 1.5,
+        max_k_rel_se: 0.08,
+        max_excursion_f: 8.0,
+        min_settled_s: 6300.0,
+        min_y_std_f: 1.0,
+        min_u_rel_std: 0.01,
+        min_blend: 0.2,
+        max_ratio: 1.5,
+        dither_f: 3.0,
+        dither_half_s: 1800.0,
+        excite_max_s: 5.0 * 3600.0,
+        excite_until_fits: 4,
+    };
 }
 
 /// One fitted window, accepted or not (telemetry).
@@ -126,15 +132,19 @@ pub struct Identifier {
 
 impl Default for Identifier {
     fn default() -> Self {
-        Self {
-            u: [0.0; WINDOW + MAX_DELAY],
-            y: [0.0; WINDOW],
-            n: 0,
-            since_fit: 0,
-            sp_f: f64::NAN,
-            dt: 0.0,
-        }
+        Self::DEFAULT
     }
+}
+
+impl Identifier {
+    pub const DEFAULT: Self = Self {
+        u: [0.0; WINDOW + MAX_DELAY],
+        y: [0.0; WINDOW],
+        n: 0,
+        since_fit: 0,
+        sp_f: f64::NAN,
+        dt: 0.0,
+    };
 }
 
 impl Identifier {
@@ -590,7 +600,10 @@ mod tests {
 
     #[test]
     fn the_airflow_map_yields_after_every_solve_and_gives_the_same_table() {
-        let (path, amb) = (crate::model::airflow::AirPath::default(), crate::model::Ambient::default());
+        let (path, amb) = (
+            crate::model::airflow::AirPath::default(),
+            crate::model::Ambient::default(),
+        );
         let (stepwise, n) = turns(crate::model::airflow::AirflowMap::build_async(&path, amb));
         assert_eq!(n, 41 * 41);
         let whole = crate::model::airflow::AirflowMap::build(&path, amb);

@@ -32,6 +32,8 @@ use crate::tasks::{Bus, Reply};
 /// The largest payload the session publishes (the discovery message is about 16 KB).
 pub const PAYLOAD: usize = 20 * 1024;
 const TX: usize = PAYLOAD + 1024;
+// a full payload still fits with the longest topic the device publishes on (`topic`'s 96 bytes)
+const _: () = assert!(TX >= PAYLOAD + super::packet::publish_overhead(96));
 const RX: usize = 1536;
 
 /// The session's memory: give it static storage.

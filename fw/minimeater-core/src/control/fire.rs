@@ -78,28 +78,32 @@ pub struct FireWatch {
 
 impl Default for FireWatch {
     fn default() -> Self {
-        Self {
-            out_deficit_f: 15.0,
-            out_fall_f: 5.0,
-            fall_s: 600.0,
-            out_keep: 0.3,
-            out_air: 1.2,
-            out_after_s: 540.0,
-            full_frac: 0.9,
-            low_after_s: 600.0,
-            low_deficit_f: 10.0,
-            clear_band_f: 5.0,
-            clear_s: 300.0,
-            state: Fire::Unknown,
-            t: 0.0,
-            dying_s: 0.0,
-            full_s: 0.0,
-            clear_t: 0.0,
-            hist: [(0.0, 0.0); HIST],
-            head: 0,
-            len: 0,
-        }
+        Self::DEFAULT
     }
+}
+
+impl FireWatch {
+    pub const DEFAULT: Self = Self {
+        out_deficit_f: 15.0,
+        out_fall_f: 5.0,
+        fall_s: 600.0,
+        out_keep: 0.3,
+        out_air: 1.2,
+        out_after_s: 540.0,
+        full_frac: 0.9,
+        low_after_s: 600.0,
+        low_deficit_f: 10.0,
+        clear_band_f: 5.0,
+        clear_s: 300.0,
+        state: Fire::Unknown,
+        t: 0.0,
+        dying_s: 0.0,
+        full_s: 0.0,
+        clear_t: 0.0,
+        hist: [(0.0, 0.0); HIST],
+        head: 0,
+        len: 0,
+    };
 }
 
 impl FireWatch {

@@ -35,13 +35,17 @@ pub struct AirPath {
 
 impl Default for AirPath {
     fn default() -> Self {
-        Self {
-            egg: Egg::default(),
-            intake: Intake::default(),
-            fan: Fan::NF_A6X25_5V,
-            top_area_m2: super::top_vent::SLIDER_QUARTER,
-        }
+        Self::DEFAULT
     }
+}
+
+impl AirPath {
+    pub const DEFAULT: Self = Self {
+        egg: Egg::DEFAULT,
+        intake: Intake::DEFAULT,
+        fan: Fan::NF_A6X25_5V,
+        top_area_m2: super::top_vent::SLIDER_QUARTER,
+    };
 }
 
 impl AirPath {
@@ -112,13 +116,19 @@ const DT_F: f64 = 10.0;
 /// Actuator coordinate u in [0, 2]: [0, 1] = flap open fraction with the fan stopped; [1, 2] = flap
 /// open and fan speed u - 1 (damper first: the fan only runs once natural draft through the open flap
 /// is not enough).
-fn u_grid(j: usize) -> f64 {
-    if j <= 20 {
-        j as f64 / 20.0
-    } else {
-        1.05 + (j - 21) as f64 * 0.05
+const U_GRID: [f64; N_U] = {
+    let mut u = [0.0; N_U];
+    let mut j = 0;
+    while j < N_U {
+        u[j] = if j <= 20 {
+            j as f64 / 20.0
+        } else {
+            1.05 + (j - 21) as f64 * 0.05
+        };
+        j += 1;
     }
-}
+    u
+};
 
 /// Flap and fan command for an airflow.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -151,7 +161,7 @@ impl AirflowMap {
             let t_k = f_to_k(T0_F + i as f64 * DT_F);
             let mut running = 0.0f64;
             for (j, cell) in row.iter_mut().enumerate() {
-                let u = u_grid(j);
+                let u = U_GRID[j];
                 let (damper, s) = if u <= 1.0 { (u, 0.0) } else { (1.0, u - 1.0) };
                 // enforce monotonic in u so the table inverts
                 running = running.max(path.air_flow(&ambient, s, damper, t_k) / CFM);
@@ -188,13 +198,11 @@ impl AirflowMap {
         } else {
             a.damper.clamp(0.0, 1.0)
         };
-        let us: [f64; N_U] = core::array::from_fn(u_grid);
-        interp(u, &us, &self.row(t_f))
+        interp(u, &U_GRID, &self.row(t_f))
     }
 
     pub fn actuate(&self, t_f: f64, q_cfm: f64) -> Actuation {
-        let us: [f64; N_U] = core::array::from_fn(u_grid);
-        let u = interp(q_cfm, &self.row(t_f), &us);
+        let u = interp(q_cfm, &self.row(t_f), &U_GRID);
         if u <= 1.0 {
             Actuation { damper: u, fan: 0.0 }
         } else {

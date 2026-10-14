@@ -17,11 +17,15 @@ pub struct Ambient {
 
 impl Default for Ambient {
     fn default() -> Self {
-        Self {
-            t_k: c_to_k(20.0),
-            wind_m_s: 0.0,
-        }
+        Self::DEFAULT
     }
+}
+
+impl Ambient {
+    pub const DEFAULT: Self = Self {
+        t_k: c_to_k(20.0),
+        wind_m_s: 0.0,
+    };
 }
 
 /// Big Green Egg Large. Defaults mirror `params.Egg`.
@@ -57,35 +61,39 @@ pub struct Egg {
 
 impl Default for Egg {
     fn default() -> Self {
-        Self {
-            outer_area_m2: 1.25,       // [est] prolate spheroid ~0.55 x 0.80 m
-            inner_area_m2: 0.95,       // [est]
-            wall_m: 0.025,             // [est]
-            ceramic_k: 1.3,            // [est]
-            ceramic_cp: 900.0,         // [est]
-            shell_mass_kg: 45.0,       // [est]
-            firebox_mass_kg: 17.0,     // [est]
-            emissivity_out: 0.9,       // [est]
-            h_in: 10.0,                // [est]
-            rad_fraction: 0.4,         // [est]
-            gas_heat_capacity: 3000.0, // [est]
-            stack_height_m: 0.55,      // [est]
-            lhv_j_kg: 29e6,            // [est]
-            afr_stoich: 10.4,          // [est]
-            excess_air: 1.3,           // [est]
-            combustion_eff: 0.85,      // [est]
-            cp_flue: 1100.0,           // [est]
-            grate_area_m2: 30e-4,      // [est]
-            grate_cd: 0.6,
-            bed_area_m2: 0.07, // [est]
-            bed_depth_m: 0.12, // [est]
-            lump_d_m: 0.03,    // [est]
-            bed_void: 0.45,    // [est]
-            bed_t_k: 900.0,    // [est]
-            top_cd: 0.6,
-            leak_area_m2: 0.3e-4, // [est] closed flap + gasket leakage
-        }
+        Self::DEFAULT
     }
+}
+
+impl Egg {
+    pub const DEFAULT: Self = Self {
+        outer_area_m2: 1.25,       // [est] prolate spheroid ~0.55 x 0.80 m
+        inner_area_m2: 0.95,       // [est]
+        wall_m: 0.025,             // [est]
+        ceramic_k: 1.3,            // [est]
+        ceramic_cp: 900.0,         // [est]
+        shell_mass_kg: 45.0,       // [est]
+        firebox_mass_kg: 17.0,     // [est]
+        emissivity_out: 0.9,       // [est]
+        h_in: 10.0,                // [est]
+        rad_fraction: 0.4,         // [est]
+        gas_heat_capacity: 3000.0, // [est]
+        stack_height_m: 0.55,      // [est]
+        lhv_j_kg: 29e6,            // [est]
+        afr_stoich: 10.4,          // [est]
+        excess_air: 1.3,           // [est]
+        combustion_eff: 0.85,      // [est]
+        cp_flue: 1100.0,           // [est]
+        grate_area_m2: 30e-4,      // [est]
+        grate_cd: 0.6,
+        bed_area_m2: 0.07, // [est]
+        bed_depth_m: 0.12, // [est]
+        lump_d_m: 0.03,    // [est]
+        bed_void: 0.45,    // [est]
+        bed_t_k: 900.0,    // [est]
+        top_cd: 0.6,
+        leak_area_m2: 0.3e-4, // [est] closed flap + gasket leakage
+    };
 }
 
 /// Our box + the egg's stainless intake tube. Defaults mirror `params.Intake`.
@@ -102,15 +110,19 @@ pub struct Intake {
 
 impl Default for Intake {
     fn default() -> Self {
-        Self {
-            tube_od_m: 1.375 * INCH, // [forum]
-            tube_id_m: 0.0316,       // [forum]
-            tube_len_m: 0.10,        // [est]
-            k_entry: 0.5,
-            k_exit: 1.0,
-            k_box: 2.0, // design target, set by CFD
-        }
+        Self::DEFAULT
     }
+}
+
+impl Intake {
+    pub const DEFAULT: Self = Self {
+        tube_od_m: 1.375 * INCH, // [forum]
+        tube_id_m: 0.0316,       // [forum]
+        tube_len_m: 0.10,        // [est]
+        k_entry: 0.5,
+        k_exit: 1.0,
+        k_box: 2.0, // design target, set by CFD
+    };
 }
 
 /// Daisy-wheel effective open areas, m^2 [est].

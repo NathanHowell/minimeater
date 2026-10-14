@@ -37,6 +37,8 @@ use static_cell::StaticCell;
 /// replaces the table; keep this in step with it.
 const CONFIG_OFFSET: u32 = 0x9000;
 const CONFIG_LEN: u32 = 0x6000;
+// the store's map needs two erase pages at least: one to write while the other is erased
+const _: () = assert!(CONFIG_LEN >= 2 * FlashStorage::SECTOR_SIZE);
 
 /// Fan PWM: 25 kHz (Intel 4-wire fan spec), 10-bit at the 80 MHz APB clock.
 const FAN_PWM_HZ: u32 = 25_000;
@@ -163,11 +165,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         load_fault: Input::new(p.GPIO3, InputConfig::default().with_pull(Pull::None)),
         led: Output::new(p.GPIO10, Level::Low, out),
         button: Input::new(p.GPIO9, InputConfig::default().with_pull(Pull::Up)),
-        config: FlashRegion::new(
-            BlockingAsync::new(FlashStorage::new(p.FLASH)),
-            CONFIG_OFFSET,
-            CONFIG_LEN,
-        ),
+        config: FlashRegion::new::<CONFIG_OFFSET, CONFIG_LEN>(BlockingAsync::new(FlashStorage::new(p.FLASH))),
         usb: CcSense {
             adc: Adc::new(p.ADC1, adc_cfg),
             cc1,

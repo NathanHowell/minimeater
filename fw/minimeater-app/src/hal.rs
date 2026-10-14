@@ -138,10 +138,16 @@ pub struct FlashRegion<F> {
 }
 
 impl<F: NorFlash> FlashRegion<F> {
-    /// `offset` and `len` must be multiples of the erase size.
-    pub fn new(flash: F, offset: u32, len: u32) -> Self {
-        assert!((offset as usize).is_multiple_of(F::ERASE_SIZE) && (len as usize).is_multiple_of(F::ERASE_SIZE));
-        Self { flash, offset, len }
+    /// `OFFSET` and `LEN` must be multiples of the erase size, which the build checks.
+    pub fn new<const OFFSET: u32, const LEN: u32>(flash: F) -> Self {
+        const {
+            assert!((OFFSET as usize).is_multiple_of(F::ERASE_SIZE) && (LEN as usize).is_multiple_of(F::ERASE_SIZE));
+        }
+        Self {
+            flash,
+            offset: OFFSET,
+            len: LEN,
+        }
     }
 
     fn check(&self, from: u32, n: usize) -> Result<u32, RegionError<F::Error>> {
