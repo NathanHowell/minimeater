@@ -1413,7 +1413,7 @@
 		(uuid "0d018679-a024-4334-b423-4bd7fe30458e")
 		(at 23.9 6.85)
 		(property "Reference" "J3"
-			(at -7.153572 11.26625 0)
+			(at 0 5.95 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "2820f1fa-ffb2-4b8c-8077-cefa46b78512")
@@ -6063,10 +6063,9 @@
 		(uuid "4d5e2ca7-a5d5-4bde-aa6d-0a8af79e0d7f")
 		(at 32.6 6.85)
 		(property "Reference" "J4"
-			(at -0.160715 12.292999 0)
+			(at 0 5.95 0)
 			(unlocked yes)
 			(layer "F.SilkS")
-			(hide yes)
 			(uuid "41d30863-1e3c-4c8c-9b74-b4689d02b7f4")
 			(effects
 				(font
@@ -19183,7 +19182,7 @@
 		(descr "USB 2.0 Type C Receptacle, GCT, 16P, top mounted, horizontal, 5A: https://gct.co/files/drawings/usb4105.pdf")
 		(tags "USB C Type-C Receptacle SMD USB 2.0 16P 16C USB4105-15-A USB4105-15-A-060 USB4105-15-A-120 USB4105-GF-A USB4105-GF-A-060 USB4105-GF-A-120")
 		(property "Reference" "J1"
-			(at -6.39 -4.23 0)
+			(at -6.05 0.28 90)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "3ef5e2dd-48b4-4d92-bce6-c1da67b7a422")
@@ -19594,7 +19593,7 @@
 		(uuid "d3490b96-2760-4063-8678-1fa7531ce713")
 		(at 15.2 6.85)
 		(property "Reference" "J2"
-			(at -3.032143 13.866248 0)
+			(at 0 5.95 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "1e620c6a-8adb-476a-b0f9-1f0211f393d1")
@@ -22024,10 +22023,9 @@
 		(uuid "f6220938-521d-4e83-9a06-4fe625abb20b")
 		(at 41.3 6.85)
 		(property "Reference" "J5"
-			(at 3.246429 12.292999 0)
+			(at 0.65 5.95 0)
 			(unlocked yes)
 			(layer "F.SilkS")
-			(hide yes)
 			(uuid "b625dc98-23d0-4c5e-a233-504667539012")
 			(effects
 				(font
