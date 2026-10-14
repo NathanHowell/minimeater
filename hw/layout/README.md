@@ -131,9 +131,11 @@ VREF_PROBE filter (FB2, R18, C27, C28), the four 0.1% bias resistors (R23-R26) a
   of C28 above the package, their ground pads on a via each (C31 shares C28's); the 45 degree feed to them clears the
   REFP/REFN pin corners by 0.17 mm. The outer caps (C29/C32) sit level with pins 11/6, ground vias outboard.
 - Reference: C28 sits right across REFP and REFN (the figure's cap between them), both reached under the package
-  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk feeds C28 and C27 (10 uF, lying across the
-  top with its VREF pad on the trunk and a via in its ground pad). The R18/FB2 filter from 3V3A sits in a row above
-  C27; 3V3A arrives at FB2 through one via (the middle of the block is enclosed by the TIP2/TIP3 lines).
+  body; REFN is ground and C28's ground has a via. The VREF_PROBE trunk runs across between the bias resistor rows
+  and feeds all four, C28 (straight down) and C27 (10 uF), which lies sideways in the gap between R24 and R25 with
+  its VREF pad on the C28 feed and a via in its ground pad. FB2 and R18 (the 3V3A filter) sit in a row above the
+  trunk between R23 and R26; 3V3A arrives at FB2 through one via (the middle of the block is enclosed by the
+  TIP2/TIP3 lines), and R18's VREF end drops straight onto the trunk.
 - "Do not place vias between bypass capacitors and the device": C25 (100 nF) and C26 (1 uF) on AVDD, C24 on DVDD,
   each joined to its pin by a trace on F.Cu, ground vias on the far side.
 - AVSS/DGND (5, 4) and A1/A0 (2, 1, address 0x40) pair up to a ground via each; RESET to R17 (pull-up).

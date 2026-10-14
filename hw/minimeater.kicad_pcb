@@ -2941,7 +2941,7 @@
 	(footprint "Capacitor_SMD:C_0805_2012Metric"
 		(layer "F.Cu")
 		(uuid "34754c26-76ef-45a9-917a-7cca2719999b")
-		(at 79.95 93.55)
+		(at 79.95 97.15)
 		(descr "Capacitor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf, https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing)")
 		(tags "capacitor")
 		(property "Reference" "C27"
@@ -7149,11 +7149,11 @@
 	(footprint "Inductor_SMD:L_0603_1608Metric"
 		(layer "F.Cu")
 		(uuid "5f0cb84d-0aed-4dff-95a0-848b8984c601")
-		(at 81.45 91.8 180)
+		(at 78.63 95.3)
 		(descr "Inductor SMD 0603 (1608 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf)")
 		(tags "inductor")
 		(property "Reference" "FB2"
-			(at 0 -1.430001 180)
+			(at 0 -1.430001 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "402953ef-c8f6-4268-a0cc-9a943cb7681f")
@@ -7165,7 +7165,7 @@
 			)
 		)
 		(property "Value" "600R@100MHz 1.3A"
-			(at 0 1.43 180)
+			(at 0 1.43 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
@@ -7178,7 +7178,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 180)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "3625bc87-1147-4e76-b423-2e5ada881126")
@@ -7189,7 +7189,7 @@
 			)
 		)
 		(property "Description" "Ferrite bead"
-			(at 0 0 180)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "71958718-2aa0-4bd4-8755-ed85d9e867e4")
@@ -7200,7 +7200,7 @@
 			)
 		)
 		(property "KiLib_Generator" "SMD_2terminal_chip_molded"
-			(at 0 0 180)
+			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "4d4dceca-7681-4872-a4d3-d23135e8b0e1")
@@ -7212,7 +7212,7 @@
 			)
 		)
 		(property "LCSC" "C85833"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
@@ -7225,7 +7225,7 @@
 			)
 		)
 		(property "MPN" "BLM18KG601SN1D"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
@@ -7243,16 +7243,6 @@
 		(sheetfile "minimeater.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -0.162779 0.51)
-			(end 0.162779 0.51)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "421abfba-e13f-41db-82e3-744075dee5c3")
-		)
-		(fp_line
 			(start -0.162779 -0.51)
 			(end 0.162779 -0.51)
 			(stroke
@@ -7261,6 +7251,16 @@
 			)
 			(layer "F.SilkS")
 			(uuid "39e90b01-0884-4ba2-a03a-fcb60d6e3b04")
+		)
+		(fp_line
+			(start -0.162779 0.51)
+			(end 0.162779 0.51)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "421abfba-e13f-41db-82e3-744075dee5c3")
 		)
 		(fp_rect
 			(start -1.48 -0.73)
@@ -7285,7 +7285,7 @@
 			(uuid "de317888-99ed-4de8-8960-8e5cabb0b3ea")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "c620063e-db2d-4070-8e08-ea1e0bb0d4b2")
@@ -7297,7 +7297,7 @@
 			)
 		)
 		(pad "1" smd roundrect
-			(at -0.7875 0 180)
+			(at -0.7875 0)
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -7306,7 +7306,7 @@
 			(uuid "7100a854-d6ad-4a3a-8784-316a2a7ac3c9")
 		)
 		(pad "2" smd roundrect
-			(at 0.7875 0 180)
+			(at 0.7875 0)
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -12440,11 +12440,11 @@
 	(footprint "Resistor_SMD:R_0402_1005Metric"
 		(layer "F.Cu")
 		(uuid "90747b2d-0261-4b34-8c5f-e70429702fbb")
-		(at 79 91.8 180)
+		(at 81.08 95.3)
 		(descr "Resistor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf)")
 		(tags "resistor")
 		(property "Reference" "R18"
-			(at 0 -1.17 180)
+			(at 0 -1.17 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "f987cdcc-4633-43a8-8049-2ab360b0765f")
@@ -12456,7 +12456,7 @@
 			)
 		)
 		(property "Value" "10R 1%"
-			(at 0 1.17 180)
+			(at 0 1.17 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
@@ -12469,7 +12469,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 180)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "9676ce92-8111-406e-8f27-077260cfaa2c")
@@ -12480,7 +12480,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 0 0 180)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "b2b4c5ec-4fd1-4715-94d9-eb8d7624c751")
@@ -12491,7 +12491,7 @@
 			)
 		)
 		(property "KiLib_Generator" "C25077"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
@@ -12504,7 +12504,7 @@
 			)
 		)
 		(property "LCSC" "C25077"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
@@ -12522,16 +12522,6 @@
 		(sheetfile "minimeater.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -0.153641 0.38)
-			(end 0.153641 0.38)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "4d08389b-a731-4fb9-b4d3-6973f05193a1")
-		)
-		(fp_line
 			(start -0.153641 -0.38)
 			(end 0.153641 -0.38)
 			(stroke
@@ -12540,6 +12530,16 @@
 			)
 			(layer "F.SilkS")
 			(uuid "4973af5f-bc4f-4120-9fc5-7334c4c0cc75")
+		)
+		(fp_line
+			(start -0.153641 0.38)
+			(end 0.153641 0.38)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "4d08389b-a731-4fb9-b4d3-6973f05193a1")
 		)
 		(fp_rect
 			(start -0.93 -0.47)
@@ -12564,7 +12564,7 @@
 			(uuid "5719c5d7-9206-49a7-8191-0923f2c95920")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 180)
+			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "cc4a52d0-3753-4d2f-b217-2d71b17bc8a3")
@@ -12576,7 +12576,7 @@
 			)
 		)
 		(pad "1" smd roundrect
-			(at -0.51 0 180)
+			(at -0.51 0)
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -12585,7 +12585,7 @@
 			(uuid "7be9c094-6b50-462b-b899-f1fd7befed2a")
 		)
 		(pad "2" smd roundrect
-			(at 0.51 0 180)
+			(at 0.51 0)
 			(size 0.54 0.64)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -22696,6 +22696,14 @@
 		(uuid "2aad01ed-1fb7-4b00-afae-332544128410")
 	)
 	(via
+		(at 80.9 97.15)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "30f72658-dbd9-4b10-be45-39c6d9e2d001")
+	)
+	(via
 		(at 20 93.3)
 		(size 0.6)
 		(drill 0.3)
@@ -22838,14 +22846,6 @@
 		(layers "F.Cu" "B.Cu")
 		(net "GND")
 		(uuid "ab2aa2e2-ef38-4a18-a85a-979558e89fc1")
-	)
-	(via
-		(at 80.9 93.55)
-		(size 0.6)
-		(drill 0.3)
-		(layers "F.Cu" "B.Cu")
-		(net "GND")
-		(uuid "acd9cf0a-e473-4fbc-a91b-c6d6682230ff")
 	)
 	(via
 		(at 97.73 71.45)
@@ -23056,6 +23056,14 @@
 		(uuid "e475fd86-84ea-413d-8e22-eb2b90c4d473")
 	)
 	(segment
+		(start 77.8425 94.3)
+		(end 77.8425 95.3)
+		(width 0.5)
+		(layer "F.Cu")
+		(net "3V3A")
+		(uuid "1a6efaca-64e7-4c4e-bed2-2d175c6fab9f")
+	)
+	(segment
 		(start 77.1375 101.675)
 		(end 73.7 101.675)
 		(width 0.3)
@@ -23063,21 +23071,29 @@
 		(net "3V3A")
 		(uuid "6fc99ff4-344b-40da-b22f-25a180a812f0")
 	)
-	(segment
-		(start 82.2375 90.75)
-		(end 82.2375 91.8)
-		(width 0.5)
-		(layer "F.Cu")
-		(net "3V3A")
-		(uuid "f64a3910-bb51-4f76-ae11-ec5c23760733")
-	)
 	(via
-		(at 82.2375 90.75)
+		(at 77.8425 94.3)
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
 		(net "3V3A")
-		(uuid "b399c184-e489-474a-aad4-eb004b4ee674")
+		(uuid "a5978614-e97f-43a4-97ef-abbaaa7e7a6d")
+	)
+	(segment
+		(start 82.7 96.05)
+		(end 82.7 97.25)
+		(width 0.25)
+		(layer "F.Cu")
+		(net "/VREF_PROBE")
+		(uuid "08fe3f33-b8b8-4c4a-b6fa-2eb829e74d41")
+	)
+	(segment
+		(start 79 96.05)
+		(end 79 98.1)
+		(width 0.25)
+		(layer "F.Cu")
+		(net "/VREF_PROBE")
+		(uuid "0d4b35bd-17d2-4cf2-842b-72d8697f0a1d")
 	)
 	(segment
 		(start 77.1375 99.725)
@@ -23088,38 +23104,6 @@
 		(uuid "3b85d95e-6173-4d91-b94f-3e71d0b45084")
 	)
 	(segment
-		(start 79 93.55)
-		(end 79 95.3)
-		(width 0.25)
-		(layer "F.Cu")
-		(net "/VREF_PROBE")
-		(uuid "3c775579-08aa-492a-b245-a80b91125092")
-	)
-	(segment
-		(start 78.49 91.8)
-		(end 78.49 92.8)
-		(width 0.25)
-		(layer "F.Cu")
-		(net "/VREF_PROBE")
-		(uuid "51727993-82d8-4111-9951-f8e217c9ada6")
-	)
-	(segment
-		(start 78.49 92.8)
-		(end 79 93.31)
-		(width 0.25)
-		(layer "F.Cu")
-		(net "/VREF_PROBE")
-		(uuid "616fb34e-ab38-403e-af02-fb624b334eed")
-	)
-	(segment
-		(start 82.7 95.75)
-		(end 82.7 97.25)
-		(width 0.25)
-		(layer "F.Cu")
-		(net "/VREF_PROBE")
-		(uuid "7014f613-c7d4-42e7-a1d0-d892452c18a4")
-	)
-	(segment
 		(start 78.4 99.725)
 		(end 79.52 98.6)
 		(width 0.25)
@@ -23128,28 +23112,20 @@
 		(uuid "770d2fbd-aae2-4c35-9016-7a21a965d0d3")
 	)
 	(segment
-		(start 79 95.3)
-		(end 79 98.1)
+		(start 81.59 95.3)
+		(end 81.59 96.05)
 		(width 0.25)
 		(layer "F.Cu")
 		(net "/VREF_PROBE")
-		(uuid "7900986f-d701-4e7a-a4f5-a02fa6312c23")
+		(uuid "97a6ec4f-cfcd-4c11-ace8-1e66019e5157")
 	)
 	(segment
-		(start 77.3 95.75)
+		(start 77.3 96.05)
 		(end 77.3 97.25)
 		(width 0.25)
 		(layer "F.Cu")
 		(net "/VREF_PROBE")
-		(uuid "8e1ba7cc-5f2c-46c5-a23f-9595fb8cbea2")
-	)
-	(segment
-		(start 76.575 95.75)
-		(end 83.425 95.75)
-		(width 0.25)
-		(layer "F.Cu")
-		(net "/VREF_PROBE")
-		(uuid "c03c815b-f0d2-4720-89e2-fb355aa762bd")
+		(uuid "cb1d9e8b-a6ea-41d2-84a0-e3932b30de4d")
 	)
 	(segment
 		(start 79 98.1)
@@ -23158,6 +23134,14 @@
 		(layer "F.Cu")
 		(net "/VREF_PROBE")
 		(uuid "e074c8a6-026a-4ad8-8066-a8f9fd581240")
+	)
+	(segment
+		(start 76.475 96.05)
+		(end 83.525 96.05)
+		(width 0.25)
+		(layer "F.Cu")
+		(net "/VREF_PROBE")
+		(uuid "eae62ce8-97a0-4835-b170-46e21bcbe0cf")
 	)
 	(segment
 		(start 102.2 75)
@@ -23352,12 +23336,12 @@
 		(uuid "fc2c5439-8f22-466e-8b58-3d395d74ec8a")
 	)
 	(segment
-		(start 79.51 91.8)
-		(end 80.6625 91.8)
-		(width 0.25)
+		(start 79.4175 95.3)
+		(end 80.57 95.3)
+		(width 0.3)
 		(layer "F.Cu")
 		(net "/3V3A_FILT")
-		(uuid "2d8679f1-6288-4ed8-983f-ae21f8d27d80")
+		(uuid "257d89cf-ef77-4c47-9f12-3824e7c2f661")
 	)
 	(segment
 		(start 85.35 92)
@@ -25599,18 +25583,18 @@
 			(pts
 				(xy 129.758691 64.219407) (xy 129.794655 64.268907) (xy 129.7995 64.2995) (xy 129.7995 123.7005)
 				(xy 129.780593 123.758691) (xy 129.731093 123.794655) (xy 129.7005 123.7995) (xy 0.2995 123.7995)
-				(xy 0.241309 123.780593) (xy 0.205345 123.731093) (xy 0.2005 123.7005) (xy 0.2005 90.684108) (xy 81.737 90.684108)
-				(xy 81.737 90.815892) (xy 81.767079 90.928151) (xy 81.771109 90.94319) (xy 81.836996 91.057309)
-				(xy 81.836998 91.057311) (xy 81.837 91.057314) (xy 81.930186 91.1505) (xy 81.930188 91.150501) (xy 81.93019 91.150503)
-				(xy 82.04431 91.21639) (xy 82.044308 91.21639) (xy 82.044312 91.216391) (xy 82.044314 91.216392)
-				(xy 82.171608 91.2505) (xy 82.17161 91.2505) (xy 82.30339 91.2505) (xy 82.303392 91.2505) (xy 82.430686 91.216392)
-				(xy 82.430688 91.21639) (xy 82.43069 91.21639) (xy 82.544809 91.150503) (xy 82.544809 91.150502)
-				(xy 82.544814 91.1505) (xy 82.638 91.057314) (xy 82.703892 90.943186) (xy 82.738 90.815892) (xy 82.738 90.684108)
-				(xy 82.703892 90.556814) (xy 82.70389 90.556811) (xy 82.70389 90.556809) (xy 82.638003 90.44269)
-				(xy 82.638001 90.442688) (xy 82.638 90.442686) (xy 82.544814 90.3495) (xy 82.544811 90.349498) (xy 82.544809 90.349496)
-				(xy 82.430689 90.283609) (xy 82.430691 90.283609) (xy 82.381299 90.270375) (xy 82.303392 90.2495)
-				(xy 82.171608 90.2495) (xy 82.0937 90.270375) (xy 82.044309 90.283609) (xy 81.93019 90.349496) (xy 81.836996 90.44269)
-				(xy 81.771109 90.556809) (xy 81.771108 90.556814) (xy 81.737 90.684108) (xy 0.2005 90.684108) (xy 0.2005 64.2995)
+				(xy 0.241309 123.780593) (xy 0.205345 123.731093) (xy 0.2005 123.7005) (xy 0.2005 94.234108) (xy 77.342 94.234108)
+				(xy 77.342 94.365892) (xy 77.372079 94.478151) (xy 77.376109 94.49319) (xy 77.441996 94.607309)
+				(xy 77.441998 94.607311) (xy 77.442 94.607314) (xy 77.535186 94.7005) (xy 77.535188 94.700501) (xy 77.53519 94.700503)
+				(xy 77.64931 94.76639) (xy 77.649308 94.76639) (xy 77.649312 94.766391) (xy 77.649314 94.766392)
+				(xy 77.776608 94.8005) (xy 77.77661 94.8005) (xy 77.90839 94.8005) (xy 77.908392 94.8005) (xy 78.035686 94.766392)
+				(xy 78.035688 94.76639) (xy 78.03569 94.76639) (xy 78.149809 94.700503) (xy 78.149809 94.700502)
+				(xy 78.149814 94.7005) (xy 78.243 94.607314) (xy 78.308892 94.493186) (xy 78.343 94.365892) (xy 78.343 94.234108)
+				(xy 78.308892 94.106814) (xy 78.30889 94.106811) (xy 78.30889 94.106809) (xy 78.243003 93.99269)
+				(xy 78.243001 93.992688) (xy 78.243 93.992686) (xy 78.149814 93.8995) (xy 78.149811 93.899498) (xy 78.149809 93.899496)
+				(xy 78.035689 93.833609) (xy 78.035691 93.833609) (xy 77.986299 93.820375) (xy 77.908392 93.7995)
+				(xy 77.776608 93.7995) (xy 77.6987 93.820375) (xy 77.649309 93.833609) (xy 77.53519 93.899496) (xy 77.441996 93.99269)
+				(xy 77.376109 94.106809) (xy 77.376108 94.106814) (xy 77.342 94.234108) (xy 0.2005 94.234108) (xy 0.2005 64.2995)
 				(xy 0.219407 64.241309) (xy 0.268907 64.205345) (xy 0.2995 64.2005) (xy 129.7005 64.2005)
 			)
 		)
