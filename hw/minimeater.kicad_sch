@@ -13170,7 +13170,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 354.33 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 320.04 181.61 0)
@@ -13260,7 +13269,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-07100KL"
+			(at 320.04 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 101.6 104.14 0)
@@ -13658,7 +13676,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 502.92 118.11 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 233.68 302.26 0)
@@ -13750,7 +13777,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 233.68 302.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 350.52 247.65 0)
@@ -14168,7 +14204,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-07100KL"
+			(at 193.04 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 495.3 118.11 0)
@@ -14260,7 +14305,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 495.3 118.11 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 373.38 180.34 0)
@@ -14961,7 +15015,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF4701TCE"
+			(at 365.76 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 299.72 365.76 0)
@@ -15128,7 +15191,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "SMF5.0A"
+			(at 165.1 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 63.5 236.22 90)
@@ -15218,7 +15290,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 350.52 243.84 0)
@@ -15308,7 +15389,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 365.76 297.18 0)
@@ -15622,7 +15712,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL32A107MPVNNNE"
+			(at 205.74 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 236.22 90)
@@ -15713,7 +15812,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1000TCE"
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 304.8 281.94 0)
@@ -15805,7 +15913,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 304.8 281.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 243.84 302.26 0)
@@ -15895,7 +16012,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 243.84 302.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 520.7 276.86 0)
@@ -16284,7 +16410,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "TLV62569DBVR"
+			(at 317.5 63.5 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 83.82 278.13 0)
@@ -16376,7 +16511,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 278.13 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 182.88 101.6 0)
@@ -16555,7 +16699,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402B102K500NT"
+			(at 233.68 322.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 534.67 200.66 0)
@@ -16968,7 +17121,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 528.32 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 40.64 99.06 0)
@@ -17137,7 +17299,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 240.03 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 93.98 175.26 0)
@@ -17229,7 +17400,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 93.98 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 325.12 0)
@@ -17577,7 +17757,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 274.32 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Power_Protection:USBLC6-2SC6")
 		(at 101.6 96.52 0)
@@ -17690,7 +17879,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "USBLC6-2SC6"
+			(at 101.6 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 500.38 196.85 0)
@@ -17780,7 +17978,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 500.38 196.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:FerriteBead")
 		(at 469.9 114.3 90)
@@ -18050,7 +18257,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 226.06 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 360.68 64.77 0)
@@ -18142,7 +18358,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 360.68 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 226.06 58.42 0)
@@ -18540,7 +18765,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF4533TCE"
+			(at 370.84 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 101.6 175.26 0)
@@ -18632,7 +18866,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 101.6 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 73.66 120.65 0)
@@ -18878,7 +19121,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 485.14 255.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 63.5 171.45 0)
@@ -19236,7 +19488,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05C6R8CB5NNNC"
+			(at 378.46 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Switch:SW_Push")
 		(at 406.4 313.69 90)
@@ -19516,7 +19777,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 386.08 313.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 233.68 326.39 0)
@@ -20140,7 +20410,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 281.94 205.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 320.04 185.42 0)
@@ -20384,7 +20663,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 350.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "minimeater:TPS2553DBV")
 		(at 332.74 175.26 0)
@@ -20495,7 +20783,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "TPS2553DBVR"
+			(at 332.74 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 365.76 176.53 0)
@@ -20587,7 +20884,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 365.76 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 294.64 68.58 0)
@@ -20756,7 +21062,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 215.9 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 172.72 176.53 0)
@@ -20848,7 +21163,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 172.72 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 58.42 175.26 0)
@@ -20940,7 +21264,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 58.42 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 510.54 255.27 0)
@@ -21032,7 +21365,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 510.54 255.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 502.92 121.92 0)
@@ -21355,7 +21697,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 316.23 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 508 172.72 0)
@@ -21524,7 +21875,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402B102K500NT"
+			(at 243.84 322.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 363.22 0)
@@ -21770,7 +22130,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 350.52 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:USB_C_Receptacle_USB2.0_16P")
 		(at 40.64 76.2 0)
@@ -21905,7 +22274,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "USB4105-GF-A-120"
+			(at 40.64 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 248.92 0)
@@ -22168,7 +22546,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "TLV75533PDBVR"
+			(at 76.2 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 370.84 72.39 0)
@@ -22258,7 +22645,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-07100KL"
+			(at 370.84 72.39 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 60.96 60.96 0)
@@ -22425,7 +22821,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF4701TCE"
+			(at 375.92 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 294.64 64.77 0)
@@ -22517,7 +22922,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 294.64 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 83.82 358.14 0)
@@ -22761,7 +23175,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-075K1L"
+			(at 83.82 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 76.2 228.6 0)
@@ -22954,7 +23377,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 373.38 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 238.76 90)
@@ -23045,7 +23477,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 205.74 182.88 0)
@@ -23301,7 +23742,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 396.24 313.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 223.52 302.26 0)
@@ -23478,7 +23928,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 312.42 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 101.6 179.07 0)
@@ -23645,7 +24104,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0710KL"
+			(at 386.08 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 292.1 281.94 0)
@@ -23737,7 +24205,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 292.1 281.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "minimeater:PJ-242")
 		(at 38.1 241.3 0)
@@ -23954,7 +24431,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 83.82 320.04 0)
@@ -24123,7 +24609,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 508 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 246.38 180.34 0)
@@ -24545,7 +25040,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-075K1L"
+			(at 73.66 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 375.92 297.18 0)
@@ -24820,7 +25324,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "TPS2553DBVR"
+			(at 205.74 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 299.72 176.53 0)
@@ -24912,7 +25425,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 299.72 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
 		(at 254 241.3 180)
@@ -25472,7 +25994,7 @@
 				)
 			)
 		)
-		(property "Value" "10R 1%"
+		(property "Value" "10R 5%"
 			(at 485.14 114.3 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25542,7 +26064,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF100JTCE"
+			(at 485.14 114.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 383.54 60.96 0)
@@ -25788,7 +26319,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 287.02 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 513.08 172.72 0)
@@ -26032,7 +26572,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF3300TCE"
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 233.68 306.07 0)
@@ -26201,7 +26750,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL32A107MPVNNNE"
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Security:ATECC608B-SSHDA")
 		(at 520.7 266.7 0)
@@ -26498,7 +27056,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 513.08 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 246.38 176.53 0)
@@ -26590,7 +27157,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 246.38 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "espressif:ESP32-C6-WROOM-1")
 		(at 299.72 330.2 0)
@@ -26875,7 +27451,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 238.76 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 218.44 101.6 0)
@@ -27264,7 +27849,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0749K9L"
+			(at 347.98 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 495.3 121.92 0)
@@ -27431,7 +28025,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0743K2L"
+			(at 220.98 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 406.4 318.77 0)
@@ -27621,7 +28224,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "USBLC6-2SC6"
+			(at 101.6 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 485.14 259.08 0)
@@ -27790,7 +28402,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 127 50.8 0)
@@ -27870,7 +28491,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 127 50.8 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 127 54.61 0)
@@ -28002,7 +28632,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402B102K500NT"
+			(at 397.51 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 407.67 345.44 0)
@@ -28340,7 +28979,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-07100KL"
+			(at 170.18 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 170.18 62.23 0)
@@ -28409,7 +29057,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "RC0402FR-0743K2L"
+			(at 170.18 62.23 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 175.26 64.77 0)
@@ -28480,7 +29137,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B103KB5NNNC"
+			(at 175.26 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:R")
 		(at 200.66 64.77 0)
@@ -28549,7 +29215,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "0402WGF1001TCE"
+			(at 200.66 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "Device:C")
 		(at 160.02 54.61 0)
@@ -28620,7 +29295,16 @@
 				)
 			)
 		)
-	)
+	
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 160.02 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		))
 	(symbol
 		(lib_id "power:GND")
 		(at 170.18 66.04 0)

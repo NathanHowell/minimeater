@@ -1,8 +1,15 @@
-"""Check JLCPCB assembly stock for part keywords or C-numbers.  Run: uv run scripts/jlc_stock.py ADS1220IPWR C2089026"""
+"""Check JLCPCB assembly stock for part keywords or C-numbers.  Run: uv run scripts/jlc_stock.py ADS1220IPWR C2089026
 
+`--bom [boards]` checks every assembled line of hw/minimeater.kicad_sch instead (its LCSC field, through kicad-cli's
+BOM export) against the quantity for that many boards (default 5): OK at 3x or more in stock, LOW at 1-3x, SHORT
+below, MISSING when the C-number is not listed, and flags assembled lines with no MPN. Exits 1 on SHORT or MISSING."""
+
+import csv
 import json
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
 
 URL = "https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList"
 
@@ -18,7 +25,34 @@ def search(keyword: str, size: int = 30) -> list[dict]:
     return sorted(items, key=lambda i: -(i.get("stockCount") or 0))
 
 
+def check_bom(boards: int) -> int:
+    sch = Path(__file__).resolve().parent.parent / "hw" / "minimeater.kicad_sch"
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "bom.csv"
+        subprocess.run(["kicad-cli", "sch", "export", "bom", "--fields", "Reference,Value,LCSC,MPN", "--labels", "Refs,Value,LCSC,MPN",
+                        "--group-by", "Value,LCSC", "--exclude-dnp", "--ref-range-delimiter", "", "-o", str(out), str(sch)],
+                       check=True, capture_output=True)
+        rows = [r for r in csv.DictReader(out.open()) if r["LCSC"].strip().startswith("C")]
+    bad = 0
+    for r in rows:
+        code, need = r["LCSC"].strip(), len(r["Refs"].split(",")) * boards
+        hit = [i for i in search(code, 5) if i["componentCode"] == code]
+        if not hit:
+            print(f"  {code:>10} MISSING {r['Refs']}")
+            bad += 1
+            continue
+        stock = hit[0].get("stockCount") or 0
+        flag = "OK" if stock >= 3 * need else "LOW" if stock >= need else "SHORT"
+        bad += flag == "SHORT"
+        mpn = "" if r["MPN"].strip() else "  (no MPN)"
+        print(f"  {code:>10} {flag:5} stock={stock:<8} need={need:<4} {hit[0]['componentLibraryType']:7} "
+              f"{hit[0]['componentModelEn'][:26]:26} {r['Refs'][:40]}{mpn}")
+    return 1 if bad else 0
+
+
 def main() -> None:
+    if sys.argv[1:2] == ["--bom"]:
+        sys.exit(check_bom(int(sys.argv[2]) if len(sys.argv) > 2 else 5))
     for kw in sys.argv[1:]:
         print(f"== {kw}")
         for i in search(kw)[:8]:
