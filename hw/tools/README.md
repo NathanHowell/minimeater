@@ -22,6 +22,8 @@ its one-off rework scripts were retired (in git history before the re-layout).
   Probe numbers P0-P3 between the jack pegs, the flame, wordmark and open-source-hardware mark, rev/date, JLC's order-number marker, a QR code to
   the repository (KiCad 10 barcode, knocked out of a silk square so it reads dark-on-white), KK pin names, USB. Kept in
   the group `silk_back`, which a rerun replaces; it refuses to save if anything lands on a pad, hole, via or other silk.
+- `stitch.py` (KiCad's python): edge GND stitching via candidates (JSON), plus a scratch copy with them added for a
+  refilled DRC; the vias then go in through Konnect.
 - `models.py`: 3D models for the mech assembly (`src/minimeater/mech/board3d.py`).
 - `kk_ra_step.py`, `kk_ra.py`: the right-angle KK header STEP model and footprint.
 - `connector_edge.py`: trims the connector edge so the jacks reach into the port wall (applied).
