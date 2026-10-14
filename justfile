@@ -99,3 +99,8 @@ ci-hw:
     mkdir -p build/hw
     kicad-cli sch erc --exit-code-violations --output build/hw/erc.rpt "$base.kicad_sch"
     kicad-cli pcb drc --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
+
+# One duct CFD case (OpenFOAM in a container: `container` CLI, opencfd/openfoam-run arm64), e.g. `just cfd open` or
+# `just cfd flap-45 --cfm 3`; the case and its results.json go to build/cfd/<case>.
+cfd *args:
+    uv run minimeater-cfd {{args}}
