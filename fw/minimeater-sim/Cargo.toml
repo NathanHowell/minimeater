@@ -1,7 +1,10 @@
 [package]
 name         = "minimeater-sim"
 description  = "BGE Large plant model for the host digital twin and scenario suite (no_std, deterministic)"
+authors.workspace      = true
 edition.workspace      = true
+license.workspace      = true
+repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 

@@ -3,6 +3,8 @@ name = "minimeater"
 version = "0.1.0"
 description = "BGE Large BBQ controller: models, mechanical CAD and tooling"
 readme = "README.md"
+license = "GPL-3.0-or-later AND CERN-OHL-S-2.0"  # mech/ is hardware (CERN-OHL-S); see LICENSE
+license-files = ["LICENSE", "LICENSES/*"]
 authors = [
     { name = "Nathan Howell", email = "nathan.d.howell@gmail.com" }
 ]

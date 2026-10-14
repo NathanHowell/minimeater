@@ -1,7 +1,10 @@
 [package]
 name         = "minimeater-app"
 description  = "minimeater application logic, generic over the peripheral traits in `hal`; runs on the ESP32-C6 and in the host twin"
+authors.workspace      = true
 edition.workspace      = true
+license.workspace      = true
+repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 

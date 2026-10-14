@@ -2,6 +2,7 @@
 name         = "mqtt-interop"
 description  = "The MQTT client against a real broker (Mosquitto in a container) and an independent client (rumqttc). Its own workspace: it needs embassy-time's std driver, which would clash with the twin's."
 edition      = "2024"
+license      = "GPL-3.0-or-later"
 version      = "0.0.0"
 publish      = false
 

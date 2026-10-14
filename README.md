@@ -42,3 +42,10 @@ just ha-live-check                     # real Home Assistant (container) onboard
 ```
 
 Work is tracked with [beads](https://github.com/gastownhall/beads): run `bd ready`.
+
+## License
+
+Copyright (c) 2026 Nathan Howell. The hardware (`hw/` and the enclosure in `src/minimeater/mech/`) is under the
+[CERN-OHL-S v2](LICENSES/CERN-OHL-S-2.0.txt). The firmware, the Python models and tools, and the docs are under the
+[GPL v3 or later](LICENSES/GPL-3.0-or-later.txt), with an added permission to link the vendor's binary-only radio
+libraries. [LICENSE](LICENSE) has the details and the third-party files that keep their own terms.

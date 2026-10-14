@@ -5,7 +5,10 @@ members         = ["minimeater-app", "minimeater-core", "minimeater-fw", "minime
 default-members = ["minimeater-app", "minimeater-core", "minimeater-sim", "minimeater-twin"]
 
 [workspace.package]
+authors      = ["Nathan Howell"]
 edition      = "2024"
+license      = "GPL-3.0-or-later"  # with the section 7 permission for vendor radio blobs (../LICENSE)
+repository   = "https://github.com/NathanHowell/minimeat"
 rust-version = "1.95"
 version      = "0.1.0"
 

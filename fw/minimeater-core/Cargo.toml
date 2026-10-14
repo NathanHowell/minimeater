@@ -1,7 +1,10 @@
 [package]
 name         = "minimeater-core"
 description  = "Hardware-independent controller logic: control, probe conversion, protocol. no_std; host-tested."
+authors.workspace      = true
 edition.workspace      = true
+license.workspace      = true
+repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 

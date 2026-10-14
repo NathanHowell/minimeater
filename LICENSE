@@ -1,0 +1,37 @@
+minimeater
+Copyright (c) 2026 Nathan Howell
+
+This repository holds hardware, software and documentation under two licences. The full texts are in LICENSES/.
+
+Hardware: CERN-OHL-S-2.0 (CERN Open Hardware Licence Version 2 - Strongly Reciprocal)
+  hw/                      the KiCad schematic, board, rules, our footprints and models, fab outputs and the
+                           layout/fab scripts
+  src/minimeater/mech/     the build123d enclosure, its parameters and exports
+  build/mech/              the enclosure files it generates (STEP, STL, drawings; not committed)
+
+  Source Location: https://github.com/NathanHowell/minimeat
+  (the board's back silk carries a QR code to it)
+
+Software and documentation: GPL-3.0-or-later (GNU General Public License, version 3 or any later version)
+  everything else: fw/ (the firmware workspace), src/minimeater/ outside mech/ (models, control, probes), tests/,
+  tools/, scripts/, docs/, the READMEs and the build files
+
+  Additional permission under GNU GPL version 3 section 7: if you modify this program, or any covered work, by
+  linking or combining it with the binary-only libraries a chip vendor supplies to drive its own silicon (for
+  example Espressif's Wi-Fi, Bluetooth and PHY libraries pulled in by esp-radio), the licensors of this program
+  grant you additional permission to convey the resulting work. Corresponding Source for the non-source form of
+  such a combination shall not include the source code for the parts of those libraries for which no source is
+  provided, but must still include the source of every other part.
+
+Third-party material, under its own terms and not covered by the licences above:
+  hw/lib/espressif.kicad_sym, hw/lib/espressif.pretty/, hw/lib/3d/ESP32-C6-WROOM-1.step
+      Espressif, CC-BY-SA-4.0 with the KiCad library exception (hw/lib/README.md)
+  hw/lib/3d/ (other than the KK254 models, made by hw/tools/kk_ra_step.py)
+      the parts' EasyEDA/LCSC models, for reference
+  src/minimeater/mech/data/HS-5065MG.stp, src/minimeater/mech/data/NF-A6x25.stp
+      the servo's and the fan's makers' models, for fit checks
+  KiCad's own footprint, symbol and 3D libraries used by the board
+      CC-BY-SA-4.0 with the KiCad library exception
+  Crates and Python packages are fetched at build time under their own licences (see Cargo.lock and uv.lock).
+
+SPDX-License-Identifier: CERN-OHL-S-2.0 (hardware, as listed); GPL-3.0-or-later (everything else)

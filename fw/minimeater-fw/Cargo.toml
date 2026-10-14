@@ -1,7 +1,10 @@
 [package]
 name         = "minimeater-fw"
 description  = "minimeater firmware for the ESP32-C6-WROOM-1-N8 (embassy on esp-rtos)"
+authors.workspace      = true
 edition.workspace      = true
+license.workspace      = true
+repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 

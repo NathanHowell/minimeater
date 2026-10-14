@@ -1,7 +1,10 @@
 [package]
 name         = "minimeater-twin"
 description  = "Host digital twin: the firmware's application tasks on a virtual clock against the plant model"
+authors.workspace      = true
 edition.workspace      = true
+license.workspace      = true
+repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 
