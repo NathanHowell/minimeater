@@ -166,7 +166,8 @@ Block: U1, C21/C22, R10/C18, C19/C20.
 ![All blocks and the board at one scale](montage.png)
 
 `hw/tools/montage.py` renders every block and the board (outline, fixed parts, pours hidden) at one scale, coloured
-by netclass, for the placement review. The parts that belong to a fixed part or have no datasheet layout are laid out
+by netclass, for the placement review. Each net leaving a block has an arrow at its exit labelled with where it goes
+(colour = destination), so a block's best rotation can be read off: its exits should face their destinations. The parts that belong to a fixed part or have no datasheet layout are laid out
 as small groups in staging:
 
 - J6 fan parts (40, 110), on J6's 2.54 mm pin pitch in its pin order (PWM, TACH, VFAN, GND top to bottom; the

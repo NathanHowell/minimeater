@@ -91,6 +91,9 @@ def main():
     ap.add_argument("--skip-zones", default="", help="comma-separated zone names not to draw (e.g. the board pours)")
     ap.add_argument("--labels", choices=["net", "refs", "none"], default="net")
     ap.add_argument("--no-legend", action="store_true")
+    ap.add_argument("--only", help="draw only these footprints; tracks, vias and fills clipped to their box + 1 mm")
+    ap.add_argument("--ports", help="JSON list of {pos, dir (up/down/left/right), text, color}: arrows and labels for "
+                                    "nets leaving the frame")
     a = ap.parse_args()
     if a.by_class:
         global NETCLASS
@@ -114,6 +117,10 @@ def main():
         x0, y0 = min(p[0] for p in pts) - a.pad, min(p[1] for p in pts) - a.pad
         x1, y1 = max(p[0] for p in pts) + a.pad, max(p[1] for p in pts) + a.pad
     inbox = lambda p: x0 <= p[0] <= x1 and y0 <= p[1] <= y1
+    if a.only:
+        keep = set(a.only.split(","))
+        d["pads"] = [p for p in d["pads"] if p["ref"] in keep]
+        d["footprints"] = [f for f in d["footprints"] if f["ref"] in keep]
 
     w, h = x1 - x0, y1 - y0
     dpi = 100
@@ -197,6 +204,35 @@ def main():
             ys = [q[1] for c in f["courtyard"] for q in c["outline"]]
             ax.text(f["pos"][0], min(ys) - 0.08, f["ref"] + ("" if f["value"] == f["ref"] else f"  {f['value']}"),
                     ha="center", va="bottom", fontsize=7, color="#3a3a3a", zorder=13)
+    if a.only:
+        from matplotlib.patches import Rectangle
+        keep = set(a.only.split(","))
+        pts = [q for f in d["footprints"] if f["ref"] in keep for c in f["courtyard"] for q in c["outline"]]
+        pts += [q for p in d["pads"] if p["ref"] in keep for c in p["poly"] for q in c["outline"]]
+        cx0, cy0 = min(q[0] for q in pts) - 1.0, min(q[1] for q in pts) - 1.0
+        cx1, cy1 = max(q[0] for q in pts) + 1.0, max(q[1] for q in pts) + 1.0
+        clip = Rectangle((cx0, cy0), cx1 - cx0, cy1 - cy0, transform=ax.transData)
+        for art in list(ax.lines) + list(ax.patches) + list(ax.texts):
+            art.set_clip_path(clip)
+    if a.ports:
+        step = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
+        placed = []
+        for pt in json.load(open(a.ports)):
+            dx, dy = step[pt["dir"]]
+            x, y = pt["pos"]
+            # stagger labels that would sit side by side (pins closer than a label is tall)
+            k = sum(1 for q in placed if q[0] == pt["dir"] and abs((q[1] - x) * dy - (q[2] - y) * dx) < 0.9
+                    and abs((q[1] - x) * dx + (q[2] - y) * dy) < 1.5)
+            placed.append((pt["dir"], x, y))
+            ln = 1.2 + 3.6 * (k % 2)
+            ex, ey = x + dx * ln, y + dy * ln
+            ax.annotate("", xy=(ex, ey), xytext=(x, y), zorder=14,
+                        arrowprops=dict(arrowstyle="-|>", color=pt["color"], lw=1.2, mutation_scale=8))
+            vert = dy != 0
+            ax.text(ex + dx * 0.15, ey + dy * 0.15, pt["text"], color=pt["color"], fontsize=6, fontweight="bold",
+                    rotation=90 if vert else 0, zorder=15,
+                    ha={-1: "right", 1: "left", 0: "center"}[dx], va={-1: "bottom", 1: "top", 0: "center"}[dy],
+                    bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.85))
     if NETCLASS is not None and not a.no_legend:
         from matplotlib.patches import Patch
         ax.legend(handles=[Patch(color=c, label=k) for k, c in CLASS_COLOURS.items()], loc="lower right", fontsize=8,

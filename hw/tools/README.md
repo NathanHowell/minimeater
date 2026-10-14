@@ -7,7 +7,9 @@ its one-off rework scripts were retired (in git history before the re-layout).
 - `render.py <dump.json> <out.png> [--refs ... | --bbox ...] [--layers ...] [--rats]` (uv, matplotlib): copper
   coloured and labelled by net, for layout reviews.
 - `montage.py <dump.json> <out.png>` (uv, matplotlib + pillow): every block and the board at one scale, coloured by
-  netclass (render.py `--by-class`), for placement reviews.
+  netclass (render.py `--by-class`), for placement reviews. Every net leaving a block (GND aside) gets a port arrow
+  at its exit (open track end, else the pad nearest the edge) labelled `net > destinations` and coloured by
+  destination; the fixed parts' pins get the same, pointing into the board (render.py `--ports`, `--only`).
 - `blockcheck.sh <x0,y0,x1,y1> <out.png> "<title>"`: DRC items inside a block's box (`drcbox.py`) plus its F.Cu render.
 - `parts.py <out.json>`: each reference's footprint and courtyard box from the schematic and libraries.
 - `kdrc.py`: kicad-cli DRC from KiCad's python, returns the violations.
