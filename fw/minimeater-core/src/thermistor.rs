@@ -18,9 +18,14 @@ pub struct Thermistor {
 impl Thermistor {
     /// Beta model expressed as Steinhart-Hart with `c = 0`.
     pub fn from_beta(r25: f64, beta: f64) -> Self {
+        Self::from_beta_ln(log(r25), beta)
+    }
+
+    /// [`Self::from_beta`] from `ln(r25)`, so a fixed one can be built in.
+    pub const fn from_beta_ln(ln_r25: f64, beta: f64) -> Self {
         let b = 1.0 / beta;
         Self {
-            a: 1.0 / crate::units::c_to_k(25.0) - b * log(r25),
+            a: 1.0 / crate::units::c_to_k(25.0) - b * ln_r25,
             b,
             c: 0.0,
         }
@@ -63,7 +68,7 @@ pub enum Preset {
 impl Preset {
     pub const ALL: [Preset; 3] = [Preset::ThermoworksPro, Preset::MaverickEt732, Preset::GenericB3950];
 
-    pub fn thermistor(self) -> Thermistor {
+    pub const fn thermistor(self) -> Thermistor {
         match self {
             Preset::ThermoworksPro => Thermistor {
                 a: 7.343140544e-4,
@@ -75,7 +80,10 @@ impl Preset {
                 b: 1.91532e-4,
                 c: 6.557e-8,
             },
-            Preset::GenericB3950 => Thermistor::from_beta(100e3, 3950.0),
+            Preset::GenericB3950 => {
+                const _: () = assert!(crate::consts::BUILT_B3950_R25 == 100e3);
+                Thermistor::from_beta_ln(crate::consts::LN_B3950_R25, 3950.0)
+            }
         }
     }
 
@@ -128,6 +136,15 @@ impl Jack {
 mod tests {
     use super::*;
     use crate::units::{f_to_k, k_to_f};
+
+    #[test]
+    fn built_in_b3950_matches_from_beta_bit_for_bit() {
+        let (built, runtime) = (Preset::GenericB3950.thermistor(), Thermistor::from_beta(100e3, 3950.0));
+        assert_eq!(
+            (built.a.to_bits(), built.b.to_bits()),
+            (runtime.a.to_bits(), runtime.b.to_bits())
+        );
+    }
 
     // (preset, F, R ohm, ratio at 47k) from `probes.py` (uv run python; see fw/README.md).
     const REFERENCE: [(Preset, f64, f64, f64); 9] = [

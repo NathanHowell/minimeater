@@ -22,7 +22,7 @@
 //! are found by a grid and a local search (variable projection). Python reference for the models it
 //! should find: `control.identify` and `docs/modeling/control.md`.
 
-use libm::{exp, log, round, sqrt};
+use libm::{exp, round, sqrt};
 
 use super::{Fopdt, Obs, Schedule};
 use crate::numeric::yield_now;
@@ -37,6 +37,9 @@ const _: () = assert!(WINDOW > 4);
 const TAU_MIN: f64 = 60.0;
 const TAU_MAX: f64 = 6000.0;
 const TAU_GRID: usize = 24;
+use crate::consts::{BUILT_TAU_GRID, BUILT_TAU_MAX, BUILT_TAU_MIN, LN_TAU_MAX, LN_TAU_MIN, TAU_COARSE};
+// build.rs computed the logs and the grid from these: a change here must be made there too
+const _: () = assert!(TAU_MIN == BUILT_TAU_MIN && TAU_MAX == BUILT_TAU_MAX && TAU_GRID == BUILT_TAU_GRID);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AutotuneConfig {
@@ -205,13 +208,13 @@ impl Identifier {
     /// [`Self::fit`] giving the executor a turn after every least-squares solve, so a task sharing the executor
     /// waits for one solve at most.
     pub async fn fit_async(&self) -> Option<Fit> {
-        let (l0, l1) = (log(TAU_MIN), log(TAU_MAX));
+        let (l0, l1) = (LN_TAU_MIN, LN_TAU_MAX);
         let mut best: Option<(f64, f64, usize)> = None;
-        // coarse grid: tau log-spaced, dead time every 3 samples
-        for i in 0..=TAU_GRID {
+        // coarse grid: tau log-spaced (exp of each point from the build), dead time every 3 samples
+        for (i, &tau) in TAU_COARSE.iter().enumerate() {
             let lt = l0 + (l1 - l0) * i as f64 / TAU_GRID as f64;
             for d in (0..=MAX_DELAY).step_by(3) {
-                if let Some(s) = self.solve(exp(lt), d)
+                if let Some(s) = self.solve(tau, d)
                     && best.is_none_or(|b| s.sse < b.0)
                 {
                     best = Some((s.sse, lt, d));
@@ -589,6 +592,18 @@ pub fn scheduling_point(sp_f: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use libm::log;
+
+    #[test]
+    fn built_constants_match_libm_bit_for_bit() {
+        assert_eq!(LN_TAU_MIN.to_bits(), log(TAU_MIN).to_bits());
+        assert_eq!(LN_TAU_MAX.to_bits(), log(TAU_MAX).to_bits());
+        for (i, tau) in TAU_COARSE.iter().enumerate() {
+            let lt = log(TAU_MIN) + (log(TAU_MAX) - log(TAU_MIN)) * i as f64 / TAU_GRID as f64;
+            assert_eq!(tau.to_bits(), exp(lt).to_bits(), "grid point {i}");
+        }
+    }
 
     /// A discrete FOPDT driven by `input`, with deterministic pseudo-noise, recorded into a window.
     fn record(k: f64, tau: f64, d: usize, input: impl Fn(usize) -> f64, noise: f64) -> Identifier {
