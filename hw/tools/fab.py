@@ -27,6 +27,16 @@ build.mkdir()
 layers = "F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts"
 
 
+KICAD_PY = os.environ.get("KICAD_PY") or "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3"
+ORIGIN = """
+import sys, pcbnew
+b = pcbnew.LoadBoard(sys.argv[1])
+r = b.GetBoardEdgesBoundingBox()
+b.GetDesignSettings().SetAuxOrigin(pcbnew.VECTOR2I(r.GetX(), r.GetBottom()))
+pcbnew.SaveBoard(sys.argv[1], b)
+"""
+
+
 def refilled(src: Path, name: str) -> Path:
     """A copy of `src` (with its project and rules beside it) whose zones kicad-cli has refilled and saved."""
     dst = build / f"{name}.kicad_pcb"
@@ -36,6 +46,9 @@ def refilled(src: Path, name: str) -> Path:
             shutil.copy(src.with_suffix(f".{ext}"), dst.with_suffix(f".{ext}"))
     subprocess.run(["kicad-cli", "pcb", "drc", "--refill-zones", "--save-board", "-o", str(build / f"{name}-drc.rpt"), str(dst)],
                    check=True, capture_output=True)
+    # every output is measured from the board outline's bottom-left corner (JLC's convention): the gerbers, drill and
+    # CPL all positive and in one frame, so JLC's assembly upload has nothing to align
+    subprocess.run([KICAD_PY, "-c", ORIGIN, str(dst)], check=True, capture_output=True)
     return dst
 
 
@@ -43,8 +56,8 @@ def gerbers(board: Path, name: str) -> None:
     g = out / f"{name}-gerber"
     shutil.rmtree(g, ignore_errors=True)  # generated; stale files would ride along in the zip
     g.mkdir()
-    subprocess.run(["kicad-cli", "pcb", "export", "gerbers", "--layers", layers, "--subtract-soldermask", "--no-x2", "-o", str(g), str(board)], check=True)
-    subprocess.run(["kicad-cli", "pcb", "export", "drill", "--format", "excellon", "--drill-origin", "absolute", "--excellon-separate-th", "-o", str(g) + "/", str(board)], check=True)
+    subprocess.run(["kicad-cli", "pcb", "export", "gerbers", "--layers", layers, "--subtract-soldermask", "--no-x2", "--use-drill-file-origin", "-o", str(g), str(board)], check=True)
+    subprocess.run(["kicad-cli", "pcb", "export", "drill", "--format", "excellon", "--drill-origin", "plot", "--excellon-separate-th", "-o", str(g) + "/", str(board)], check=True)
     with zipfile.ZipFile(out / f"{name}-gerber.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(g.iterdir()):
             z.write(f, f.name)
@@ -85,7 +98,7 @@ def jlc_origin(lcsc: str, rot: float) -> tuple[float, float]:
 
 def cpl(board: Path, name: str, placed: dict[str, str]) -> None:
     pos = build / f"{name}-pos.csv"
-    subprocess.run(["kicad-cli", "pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "front", "--exclude-dnp", "-o", str(pos), str(board)], check=True)
+    subprocess.run(["kicad-cli", "pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "front", "--exclude-dnp", "--use-drill-file-origin", "-o", str(pos), str(board)], check=True)
     with pos.open() as f, (out / f"{name}-cpl.csv").open("w", newline="") as o:
         w = csv.writer(o)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
