@@ -101,11 +101,11 @@ class Pcb:
     jack_open_z: tuple[float, float] = (-0.2, 3.8)  # above the board's top face
     # the status LED and the button on the +y edge (the side away from the ports), both facing +y
     led_x: float = 15.75  # board frame; Lite-On LTST-S220KGKT side-view green, C160469 (2.2 x 1 mm)
-    btn_x: float = 15.05  # ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open
+    btn_x: float = 19.0  # SW1 at KiCad (41.25, 41.1); ALPS SKRPACE010 top-push tact switch, C139797 (4.2 x 3.2 x 2.5 mm): inside, pressed with the case open
     led_z: float = 0.5  # emitter and actuator heights, under the board's parts face [est]
     btn_z: float = 1.0
     sensor: tuple[float, float] = (-18.85, 24.8)  # ambient sensor TMP117, board frame: on the parts face (single-sided assembly), facing down at the louvres in the pan floor, rear corner
-    btn_y: float = 4.8  # the reset button (SW1) faces down: a hole in the pan floor under it takes a paper clip
+    btn_y: float = 14.1  # the reset button (SW1) faces down: a hole in the pan floor under it takes a paper clip
 
 
 @dataclass(frozen=True)

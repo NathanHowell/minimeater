@@ -13,7 +13,9 @@ its one-off rework scripts were retired (in git history before the re-layout).
 - `blockcheck.sh <x0,y0,x1,y1> <out.png> "<title>"`: DRC items inside a block's box (`drcbox.py`) plus its F.Cu render.
 - `parts.py <out.json>`: each reference's footprint and courtyard box from the schematic and libraries.
 - `kdrc.py`: kicad-cli DRC from KiCad's python, returns the violations.
-- `fab.py` (`uv run python hw/tools/fab.py`): gerber zip, JLC BOM and CPL into `hw/fab/`.
+- `fab.py` (`uv run python hw/tools/fab.py`): gerber zip, JLC BOM and CPL into `hw/fab/`, from a zone-refilled copy;
+  plus a one-up assembly panel (`minimeater-panel-*`: 5 mm rails left and right, mouse bites, three 1.152 mm NPTH
+  tooling holes and three fiducials on the rails) when KiKit is installed in `hw/.kikit` (see the script's docstring).
 - `models.py`: 3D models for the mech assembly (`src/minimeater/mech/board3d.py`).
 - `kk_ra_step.py`, `kk_ra.py`: the right-angle KK header STEP model and footprint.
 - `connector_edge.py`: trims the connector edge so the jacks reach into the port wall (applied).

@@ -17,7 +17,9 @@ build/
 
 # KiCad lock files
 *.lck
-hw/fab/gerber/
+hw/fab/build/
+hw/fab/*-gerber/
+hw/.kikit/
 hw/minimeater_models.kicad_pcb
 hw/minimeater_models.*
 
