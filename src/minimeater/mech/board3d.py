@@ -1,7 +1,11 @@
 """The real board for the assembly: KiCad's own STEP export of hw/minimeater.kicad_pcb with its components, placed in the
-mech frame. Needs KiCad (`kicad-cli`, and its bundled python for `hw/tools/models.py`); without it the assembly keeps
-the board's box. Gitignored output only (`build/mech/pcb.step`)."""
+mech frame. Needs KiCad: the Mac app (`kicad-cli`, and its bundled python for `hw/tools/models.py`), or the kicad
+container under podman (`MINIMEATER_KICAD_IMAGE`, default docker.io/kicad/kicad:10.0). The container has no KiCad stock
+3D library, so the stock parts it cannot find (resistors, capacitors, the TVS and other small SMD parts) are missing from
+the board there; the vendored models (the module, the connectors, the inductor, the switch, the LED) are all in. Without
+either the assembly keeps the board's box. Gitignored output only (`build/mech/pcb.step`)."""
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -16,8 +20,19 @@ KICAD_PY = "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/V
 CENTRE = (P.pcb.x_len / 2 - P.pcb.usb_end, P.pcb.y_len / 2)
 
 
-def available() -> bool:
+IMAGE = os.environ.get("MINIMEATER_KICAD_IMAGE", "docker.io/kicad/kicad:10.0")
+
+
+def _native() -> bool:
     return shutil.which("kicad-cli") is not None and Path(KICAD_PY).exists()
+
+
+def _container() -> bool:
+    return shutil.which("podman") is not None and subprocess.run(["podman", "image", "exists", IMAGE]).returncode == 0
+
+
+def available() -> bool:
+    return _native() or _container()
 
 
 def export_board(out: Path) -> Path | None:
@@ -26,10 +41,17 @@ def export_board(out: Path) -> Path | None:
         return None
     out.mkdir(parents=True, exist_ok=True)
     tmp = Path("hw/minimeater_models.kicad_pcb")  # beside the project, so ${KIPRJMOD}/lib/3d resolves; gitignored
-    subprocess.run([KICAD_PY, "hw/tools/models.py", "hw/minimeater.kicad_pcb", str(tmp)], check=True, capture_output=True)
     step = out / "pcb.step"
-    subprocess.run(["kicad-cli", "pcb", "export", "step", "--subst-models", "--no-dnp",
-                    "--user-origin", f"{CENTRE[0]}x{CENTRE[1]}mm", "-o", str(step), str(tmp)], check=True, capture_output=True)
+    origin = f"{CENTRE[0]}x{CENTRE[1]}mm"
+    export = ["kicad-cli", "pcb", "export", "step", "--subst-models", "--no-dnp", "--user-origin", origin, "-o", str(step), str(tmp)]
+    if _native():
+        subprocess.run([KICAD_PY, "hw/tools/models.py", "hw/minimeater.kicad_pcb", str(tmp)], check=True, capture_output=True)
+        subprocess.run(export, check=True, capture_output=True)
+    else:  # the repository mounted as the working directory, owned by the caller's user
+        export[export.index(str(step))] = str(step.resolve().relative_to(Path.cwd()))
+        script = f"python3 hw/tools/models.py hw/minimeater.kicad_pcb {tmp} && {' '.join(export)}"
+        subprocess.run(["podman", "run", "--rm", "--userns=keep-id", "-v", f"{Path.cwd()}:/work:Z", "-w", "/work", "-e", "HOME=/tmp",
+                        IMAGE, "sh", "-c", script], check=True, capture_output=True)
     tmp.unlink()
     return step
 

@@ -60,3 +60,25 @@ def interferences(parts, tol=0.5):
             if v > tol:
                 out.append((a, b, round(v, 1)))
     return out
+
+
+def touching(board, parts, tol=0.5, limit=None):
+    """Where the solids of `board` (a compound of hundreds: the real board) share more than `tol` mm^3 with a shape in
+    `parts`: [(part, volume, bounding box)], at most `limit` of them. Only the pairs whose bounding boxes meet are
+    intersected."""
+    box = lambda s: s.bounding_box(optimal=False)  # noqa: E731  (loose is enough to rule pairs out, and fast)
+    boxes = {n: box(s) for n, s in parts.items()}
+    out = []
+    for so in board.solids():
+        b = box(so)
+        for name, shape in parts.items():
+            c = boxes[name]
+            if (b.min.X > c.max.X or c.min.X > b.max.X or b.min.Y > c.max.Y or c.min.Y > b.max.Y
+                    or b.min.Z > c.max.Z or c.min.Z > b.max.Z):
+                continue
+            v = overlap(so, shape)
+            if v > tol:
+                out.append((name, round(v, 1), tuple(round(x, 1) for x in (*b.min, *b.max))))
+                if limit and len(out) >= limit:
+                    return out
+    return out

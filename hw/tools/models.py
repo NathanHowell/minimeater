@@ -1,12 +1,14 @@
 """Copies the 3D model references from the library footprints onto the placed ones (the board lost them when it was
-built). Usage: models.py <in.kicad_pcb> <out.kicad_pcb>   (KiCad's bundled python; run from the repo root)."""
+built). Usage: models.py <in.kicad_pcb> <out.kicad_pcb>   (KiCad's bundled python, or python3 in the kicad container; run from the repo root)."""
 import os
 import sys
 
-sys.path.insert(0, '/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.9/site-packages')
+MAC = '/Applications/KiCad/KiCad.app/Contents'
+if os.path.isdir(MAC):  # KiCad's own python on the Mac; elsewhere (the kicad container) pcbnew is already importable
+    sys.path.insert(0, MAC + '/Frameworks/Python.framework/Versions/Current/lib/python3.9/site-packages')
 import pcbnew
 
-STOCK = '/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints'
+STOCK = next(d for d in (MAC + '/SharedSupport/footprints', '/usr/share/kicad/footprints') if os.path.isdir(d))
 PROJECT = {'minimeater': os.path.abspath('hw/lib/minimeater.pretty'), 'espressif': os.path.abspath('hw/lib/espressif.pretty')}
 b = pcbnew.LoadBoard(sys.argv[1])
 missing = []
