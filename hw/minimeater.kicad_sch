@@ -8188,6 +8188,221 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Amplifier_Current:INA199xxDCK"
+			(pin_names
+				(offset 0.127)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at 3.81 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "INA199xxDCK"
+				(at 3.81 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
+				(at 0 -24.13 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/ina199.pdf"
+				(at 0 -21.59 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "INA199 26-V, Bidirectional, Zero-Drift, Low- or High-Side, Voltage-Output, Current-Shunt Monitor, SOT-363, SC-70"
+				(at 0 -19.05 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "current monitor shunt sensor bidirectional"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "*SC?70*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "INA199xxDCK_0_1"
+				(polyline
+					(pts
+						(xy 5.08 0)
+						(xy -5.08 5.08)
+						(xy -5.08 -5.08)
+						(xy 5.08 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "INA199xxDCK_1_1"
+				(pin input line
+					(at 2.54 -7.62 90)
+					(length 6.35)
+					(name "REF"
+						(effects
+							(font
+								(size 0.508 0.508)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -2.54 -7.62 90)
+					(length 3.81)
+					(name "GND"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -2.54 7.62 270)
+					(length 3.81)
+					(name "V+"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(junction
 		(at 506.73 198.12)
@@ -8350,6 +8565,16 @@
 		(diameter 0)
 		(uuid "239f3bef-08e0-4cc0-b5e9-31a5f0ae3f82")
 	)
+	(junction
+		(at 240.03 220.98)
+		(diameter 0)
+		(uuid "a824d537-d770-4ddc-bde6-5d8a70828376")
+	)
+	(junction
+		(at 224.79 207.01)
+		(diameter 0)
+		(uuid "ec7fed58-5867-4a12-81e1-16dda8f40e6d")
+	)
 	(no_connect
 		(at 50.8 325.12)
 		(uuid "03d79c9f-e5dd-42f6-9aa5-1e6fac5eca13")
@@ -8405,10 +8630,6 @@
 	(no_connect
 		(at 55.88 91.44)
 		(uuid "cb081a2e-99fc-467b-b2a5-83f3201e6a55")
-	)
-	(no_connect
-		(at 271.78 327.66)
-		(uuid "d2cc0da6-d893-42fb-aad0-4357458e5f8a")
 	)
 	(no_connect
 		(at 274.32 342.9)
@@ -10598,6 +10819,97 @@
 		)
 		(uuid "7bfa05ed-5ca6-447f-a7bc-e139041b1262")
 	)
+	(wire
+		(pts
+			(xy 215.9 228.6)
+			(xy 215.9 231.14)
+		)
+		(uuid "a354117a-4070-43d6-9903-a2531e244749")
+	)
+	(wire
+		(pts
+			(xy 220.98 228.6)
+			(xy 220.98 231.14)
+		)
+		(uuid "8b742f70-533c-48af-8ffd-9d31d6a01260")
+	)
+	(wire
+		(pts
+			(xy 215.9 231.14)
+			(xy 220.98 231.14)
+		)
+		(uuid "ab68102d-92ac-4d99-840a-edfc3ce0800a")
+	)
+	(wire
+		(pts
+			(xy 226.06 220.98)
+			(xy 227.33 220.98)
+		)
+		(uuid "9de6b834-8072-4cee-adfd-9bd800ca3e5f")
+	)
+	(wire
+		(pts
+			(xy 234.95 220.98)
+			(xy 245.11 220.98)
+		)
+		(uuid "2134e106-b314-4a71-8f8b-4522920783ba")
+	)
+	(wire
+		(pts
+			(xy 215.9 213.36)
+			(xy 215.9 207.01)
+		)
+		(uuid "dd6154be-93f2-4634-b8ba-98b7049baa22")
+	)
+	(wire
+		(pts
+			(xy 215.9 207.01)
+			(xy 229.87 207.01)
+		)
+		(uuid "db805baf-c420-4ce0-bd59-c74c4f2fbdb2")
+	)
+	(wire
+		(pts
+			(xy 191.77 203.2)
+			(xy 196.85 203.2)
+		)
+		(uuid "0e244f9d-337f-4813-973d-189ff3f78447")
+	)
+	(wire
+		(pts
+			(xy 204.47 203.2)
+			(xy 209.55 203.2)
+		)
+		(uuid "d67ab07f-b858-48dd-ad22-7b8d0a6f2e3f")
+	)
+	(wire
+		(pts
+			(xy 204.47 203.2)
+			(xy 204.47 218.44)
+		)
+		(uuid "44de8f5c-6c34-4f6f-86cf-2ab0c85a9aa2")
+	)
+	(wire
+		(pts
+			(xy 204.47 218.44)
+			(xy 210.82 218.44)
+		)
+		(uuid "7ee7848c-1e43-4c1e-bdc3-aabf82044208")
+	)
+	(wire
+		(pts
+			(xy 196.85 203.2)
+			(xy 196.85 223.52)
+		)
+		(uuid "1f589e98-ae00-4d3b-8e73-501a8641b38b")
+	)
+	(wire
+		(pts
+			(xy 196.85 223.52)
+			(xy 210.82 223.52)
+		)
+		(uuid "d746ca4f-101a-4cfd-82f7-df3132c106f1")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -10712,16 +11024,6 @@
 		)
 		(uuid "b10c0e4d-0bfd-4deb-bed5-b108aa071bee")
 	)
-	(text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nADC_DRDY | IO2 | probe ADC data-ready, 10k pull-up (ADC1_CH2)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO6 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
-		(at 205.74 378.46 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left top)
-		)
-		(uuid "b1da903e-7b06-4021-8892-18965afe534e")
-	)
 	(text "SECURE ELEMENT: ATECC608B, I2C 0x60; bus at 100 kHz for the wake pulse"
 		(at 500 236 0)
 		(effects
@@ -10732,26 +11034,6 @@
 			(justify left bottom)
 		)
 		(uuid "b7c162bf-38d2-461e-82cd-eee458d09fb6")
-	)
-	(text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red)\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current.\nHand-soldered; not in the JLC BOM/assembly."
-		(at 330.2 255.27 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left top)
-		)
-		(uuid "bd36e4f8-df59-4049-96af-c5b73b62c5a1")
-	)
-	(text "POWER TREE\nVBUS (5 V, 1.1 A PTC F1) -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO (0.6 A), VFAN (0.52 A)\nNOTE: SMF5.0A clamps ~9.2 V peak but TLV62569 abs max is 6 V;\nthe PTC and 100uF bulk absorb surge energy. Accepted risk."
-		(at 150 125 0)
-		(effects
-			(font
-				(size 1.8 1.8)
-			)
-			(justify left bottom)
-		)
-		(uuid "c0813d11-d59f-4361-9642-af554fdd0be8")
 	)
 	(text "VREF_PROBE rail: 3V3A - ferrite - 10R - 10uF + 100nF; feeds only the four 47k bias resistors and REFP"
 		(at 455 104 0)
@@ -10782,16 +11064,6 @@
 			(justify left top)
 		)
 		(uuid "deb8bc43-9b4e-4077-94c9-ff54d4e89e4e")
-	)
-	(text "U6, U7 TPS2553: current-limited power switches from VBUS_F.\nU6 -> VSERVO (damper servo, J7), limit by R5; U7 -> VFAN (blower, J6), limit by R6.\nEN from the MCU, 100k pull-downs (R8, R9) keep both off through boot.\nOpen-drain FAULT shared on LOAD_FAULT (R7). In: C16/C17 100 nF; out: 10 uF + 100 nF."
-		(at 170 192 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left top)
-		)
-		(uuid "04a06c9d-af66-4667-9d62-f260cefe5a94")
 	)
 	(text "U2, U3 USBLC6-2SC6: ESD clamps at the USB-C (pins 1/6 and 3/4 are\nthe same I/O inside the part). J1 side on 6/4, MCU side on 1/3, so the\npair runs J1 -> U2 -> ESP32-C6 straight through (flow-through, 90 ohm).\nU2: USB 2.0 pair. U3: CC1/CC2 (Rd 5.1k R1, R2 on the J1 side;\nC19/C20 1 nF at the MCU ADC pins). Pin 5 to VBUS_RAW with\nC38 100 nF at the pins (ST fig. 17)."
 		(at 120 72 0)
@@ -11793,28 +12065,6 @@
 		(uuid "1770f8f5-fbb6-4131-8e01-3508da19f1a9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 375.92 349.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
-	(global_label "VSERVO"
-		(shape output)
-		(at 256.54 172.72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "190e53bc-2945-4559-9512-0e07f19abb74")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 256.54 172.72 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12925,6 +13175,97 @@
 		)
 		(uuid "e17a5ce3-8565-42c6-b598-8df93b9a76e9")
 	)
+	(global_label "SERVO_ISENSE"
+		(shape output)
+		(at 245.11 220.98 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ef8eef3c-7fb1-4b6e-8421-5f3e8fc1a6df")
+	)
+	(global_label "VSERVO_SW"
+		(shape output)
+		(at 256.54 172.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a6b4d740-70de-4946-9199-02cde3517f04")
+	)
+	(global_label "SERVO_ISENSE"
+		(shape input)
+		(at 271.78 327.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "80712931-4c26-43e4-84f1-8153dc140d2e")
+	)
+	(global_label "3V3"
+		(shape input)
+		(at 229.87 207.01 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5e601ea3-598e-4ccf-96fb-51226d17c90a")
+	)
+	(global_label "VSERVO"
+		(shape bidirectional)
+		(at 191.77 203.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "990f2a27-8fcf-457e-b662-97f231655edc")
+	)
+	(global_label "VSERVO_SW"
+		(shape bidirectional)
+		(at 209.55 203.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4c6d3fd1-7169-4a8d-814b-42f37f5ec483")
+	)
+  (text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red), after the current-sense shunt R36\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current (servo side of R36).\nHand-soldered; not in the JLC BOM/assembly."
+    (at 330.2 255.27 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "c3e05fdc-ea86-4510-90b9-01f356a5a4a2")
+  )
+  (text "POWER TREE\nVBUS (5 V, 1.1 A PTC F1) -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO_SW (0.6 A) -> 0.1R shunt R36 -> VSERVO; VFAN (0.52 A)\nNOTE: SMF5.0A clamps ~9.2 V peak but TLV62569 abs max is 6 V;\nthe PTC and 100uF bulk absorb surge energy. Accepted risk."
+    (at 150 125 0)
+    (effects (font (size 1.8 1.8)) (justify left bottom))
+    (uuid "ff2160c5-7bb5-423f-8ae8-5c17a3666f5f")
+  )
+  (text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nADC_DRDY | IO2 | probe ADC data-ready, 10k pull-up (ADC1_CH2)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nSERVO_ISENSE | IO6 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH6; MTCK, not a strapping pin)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
+    (at 205.74 378.46 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "eeae86f1-960f-4a92-826f-ed61bbc421a9")
+  )
+  (text "U6, U7 TPS2553: current-limited power switches from VBUS_F.\nU6 -> VSERVO_SW -> R36 -> VSERVO (servo, J7), limit by R5; U7 -> VFAN (blower, J6), limit by R6.\nEN from the MCU, 100k pull-downs (R8, R9) keep both off through boot.\nOpen-drain FAULT shared on LOAD_FAULT (R7). In: C16/C17 100 nF; out: 10 uF + 100 nF."
+    (at 170 192 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "8eebf776-c9ee-4a2a-b58c-26dc7698349f")
+  )
+  (text "U13 INA181A1: servo current\nR36 0.1R, VSERVO_SW -> VSERVO\n(C36 reservoir on servo side).\n2 V/A: 1.2 V at the 0.6 A limit.\nR37/C44 1.6 kHz -> IO6.\nKelvin lines to R36's pads."
+    (at 240.03 203.2 0)
+    (effects (font (size 1.27 1.27)) (justify left top))
+    (uuid "129d07b2-f910-47d2-ad9a-e2acec8068c9")
+  )
 	(symbol
 		(lib_id "power:GND")
 		(at 243.84 326.39 0)
@@ -13154,6 +13495,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 354.33 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -13170,16 +13520,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 83.82 354.33 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 320.04 181.61 0)
@@ -13253,6 +13594,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-07100KL"
+			(at 320.04 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -13269,16 +13619,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-07100KL"
-			(at 320.04 181.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 101.6 104.14 0)
@@ -13660,6 +14001,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 502.92 118.11 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -13676,16 +14026,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 502.92 118.11 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 233.68 302.26 0)
@@ -13761,6 +14102,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 233.68 302.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -13777,16 +14127,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05A105KA5NQNC"
-			(at 233.68 302.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 350.52 247.65 0)
@@ -14188,6 +14529,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-07100KL"
+			(at 193.04 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -14204,16 +14554,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-07100KL"
-			(at 193.04 181.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 495.3 118.11 0)
@@ -14289,6 +14630,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 495.3 118.11 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -14305,16 +14655,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 495.3 118.11 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 373.38 180.34 0)
@@ -14999,6 +15340,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 365.76 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15015,16 +15365,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF4701TCE"
-			(at 365.76 345.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 299.72 365.76 0)
@@ -15175,6 +15516,15 @@
 				)
 			)
 		)
+		(property "MPN" "SMF5.0A"
+			(at 165.1 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15191,16 +15541,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "SMF5.0A"
-			(at 165.1 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 63.5 236.22 90)
@@ -15274,6 +15615,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15290,16 +15640,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1001TCE"
-			(at 63.5 236.22 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 350.52 243.84 0)
@@ -15373,6 +15714,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 350.52 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15389,16 +15739,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 350.52 243.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 365.76 297.18 0)
@@ -15696,6 +16037,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL32A107MPVNNNE"
+			(at 205.74 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15712,16 +16062,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL32A107MPVNNNE"
-			(at 205.74 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 236.22 90)
@@ -15796,6 +16137,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1000TCE"
+			(at 271.78 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -15812,16 +16162,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1000TCE"
-			(at 271.78 236.22 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 304.8 281.94 0)
@@ -15897,6 +16238,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 304.8 281.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "2"
@@ -15913,16 +16263,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 304.8 281.94 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 243.84 302.26 0)
@@ -15996,6 +16337,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 243.84 302.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -16012,16 +16362,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 243.84 302.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 520.7 276.86 0)
@@ -16385,6 +16726,15 @@
 				)
 			)
 		)
+		(property "MPN" "TLV62569DBVR"
+			(at 317.5 63.5 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -16410,16 +16760,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "TLV62569DBVR"
-			(at 317.5 63.5 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 83.82 278.13 0)
@@ -16495,6 +16836,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 278.13 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -16511,16 +16861,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 83.82 278.13 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 182.88 101.6 0)
@@ -16683,6 +17024,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402B102K500NT"
+			(at 233.68 322.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -16699,16 +17049,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402B102K500NT"
-			(at 233.68 322.58 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 534.67 200.66 0)
@@ -17105,6 +17446,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 528.32 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17121,16 +17471,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 528.32 168.91 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 40.64 99.06 0)
@@ -17283,6 +17624,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 240.03 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17299,16 +17649,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 83.82 240.03 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 93.98 175.26 0)
@@ -17384,6 +17725,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 93.98 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17400,16 +17750,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05A105KA5NQNC"
-			(at 93.98 175.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 325.12 0)
@@ -17741,6 +18082,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 274.32 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17757,16 +18107,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1001TCE"
-			(at 63.5 274.32 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Power_Protection:USBLC6-2SC6")
 		(at 101.6 96.52 0)
@@ -17851,6 +18192,15 @@
 				)
 			)
 		)
+		(property "MPN" "USBLC6-2SC6"
+			(at 101.6 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17879,16 +18229,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "USBLC6-2SC6"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 500.38 196.85 0)
@@ -17962,6 +18303,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 500.38 196.85 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -17978,16 +18328,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 500.38 196.85 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:FerriteBead")
 		(at 469.9 114.3 90)
@@ -18241,6 +18582,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 226.06 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -18257,16 +18607,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 226.06 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 360.68 64.77 0)
@@ -18342,6 +18683,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 360.68 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -18358,16 +18708,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 360.68 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 226.06 58.42 0)
@@ -18749,6 +19090,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF4533TCE"
+			(at 370.84 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -18765,16 +19115,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF4533TCE"
-			(at 370.84 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 101.6 175.26 0)
@@ -18850,6 +19191,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 101.6 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -18866,16 +19216,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 101.6 175.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 73.66 120.65 0)
@@ -19105,6 +19446,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 485.14 255.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -19121,16 +19471,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 485.14 255.27 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 63.5 171.45 0)
@@ -19472,6 +19813,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05C6R8CB5NNNC"
+			(at 378.46 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -19488,16 +19838,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05C6R8CB5NNNC"
-			(at 378.46 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Switch:SW_Push")
 		(at 406.4 313.69 90)
@@ -19761,6 +20102,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 386.08 313.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -19777,16 +20127,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 386.08 313.69 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 233.68 326.39 0)
@@ -20394,6 +20735,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 281.94 205.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -20410,16 +20760,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 281.94 205.74 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 320.04 185.42 0)
@@ -20647,6 +20988,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 350.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -20663,16 +21013,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1001TCE"
-			(at 63.5 350.52 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "minimeater:TPS2553DBV")
 		(at 332.74 175.26 0)
@@ -20755,6 +21096,15 @@
 				)
 			)
 		)
+		(property "MPN" "TPS2553DBVR"
+			(at 332.74 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -20783,16 +21133,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "TPS2553DBVR"
-			(at 332.74 175.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 365.76 176.53 0)
@@ -20868,6 +21209,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 365.76 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -20884,16 +21234,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 365.76 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 294.64 68.58 0)
@@ -21046,6 +21387,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 215.9 54.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21062,16 +21412,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 215.9 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 172.72 176.53 0)
@@ -21147,6 +21488,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 172.72 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21163,16 +21513,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 172.72 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 58.42 175.26 0)
@@ -21248,6 +21589,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 58.42 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21264,16 +21614,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05A105KA5NQNC"
-			(at 58.42 175.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 510.54 255.27 0)
@@ -21349,6 +21690,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 510.54 255.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21365,16 +21715,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 510.54 255.27 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 502.92 121.92 0)
@@ -21681,6 +22022,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 83.82 316.23 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21697,16 +22047,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 83.82 316.23 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 508 172.72 0)
@@ -21859,6 +22200,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402B102K500NT"
+			(at 243.84 322.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -21875,16 +22225,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402B102K500NT"
-			(at 243.84 322.58 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 363.22 0)
@@ -22114,6 +22455,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 350.52 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -22130,16 +22480,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 350.52 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:USB_C_Receptacle_USB2.0_16P")
 		(at 40.64 76.2 0)
@@ -22213,6 +22554,15 @@
 				)
 			)
 		)
+		(property "MPN" "USB4105-GF-A-120"
+			(at 40.64 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "A1"
@@ -22274,16 +22624,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "USB4105-GF-A-120"
-			(at 40.64 76.2 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 55.88 248.92 0)
@@ -22521,6 +22862,15 @@
 				)
 			)
 		)
+		(property "MPN" "TLV75533PDBVR"
+			(at 76.2 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -22546,16 +22896,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "TLV75533PDBVR"
-			(at 76.2 173.99 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 370.84 72.39 0)
@@ -22629,6 +22970,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-07100KL"
+			(at 370.84 72.39 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -22645,16 +22995,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-07100KL"
-			(at 370.84 72.39 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 60.96 60.96 0)
@@ -22805,6 +23146,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 375.92 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -22821,16 +23171,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF4701TCE"
-			(at 375.92 345.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 294.64 64.77 0)
@@ -22906,6 +23247,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 294.64 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -22922,16 +23272,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 294.64 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 83.82 358.14 0)
@@ -23159,6 +23500,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-075K1L"
+			(at 83.82 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -23175,16 +23525,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-075K1L"
-			(at 83.82 116.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 76.2 228.6 0)
@@ -23361,6 +23702,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 373.38 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -23377,16 +23727,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 373.38 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 271.78 238.76 90)
@@ -23461,6 +23802,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 271.78 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -23477,16 +23827,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1001TCE"
-			(at 271.78 238.76 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 205.74 182.88 0)
@@ -23726,6 +24067,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 396.24 313.69 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -23742,16 +24092,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 396.24 313.69 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 223.52 302.26 0)
@@ -23912,6 +24253,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 63.5 312.42 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -23928,16 +24278,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF1001TCE"
-			(at 63.5 312.42 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 101.6 179.07 0)
@@ -24088,6 +24429,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0710KL"
+			(at 386.08 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -24104,16 +24454,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0710KL"
-			(at 386.08 345.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 292.1 281.94 0)
@@ -24189,6 +24530,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 292.1 281.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -24205,16 +24555,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 292.1 281.94 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "minimeater:PJ-242")
 		(at 38.1 241.3 0)
@@ -24415,6 +24756,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 240.03 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -24431,16 +24781,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 240.03 243.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 83.82 320.04 0)
@@ -24593,6 +24934,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05A105KA5NQNC"
+			(at 508 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -24609,16 +24959,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05A105KA5NQNC"
-			(at 508 168.91 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 246.38 180.34 0)
@@ -25024,6 +25365,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-075K1L"
+			(at 73.66 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -25040,16 +25390,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-075K1L"
-			(at 73.66 116.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 375.92 297.18 0)
@@ -25296,6 +25637,15 @@
 				)
 			)
 		)
+		(property "MPN" "TPS2553DBVR"
+			(at 205.74 175.26 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -25324,16 +25674,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "TPS2553DBVR"
-			(at 205.74 175.26 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 299.72 176.53 0)
@@ -25409,6 +25750,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 299.72 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -25425,16 +25775,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 299.72 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
 		(at 254 241.3 180)
@@ -26048,6 +26389,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF100JTCE"
+			(at 485.14 114.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -26064,16 +26414,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF100JTCE"
-			(at 485.14 114.3 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 383.54 60.96 0)
@@ -26303,6 +26644,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 287.02 64.77 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -26319,16 +26669,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 287.02 64.77 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 513.08 172.72 0)
@@ -26556,6 +26897,15 @@
 				)
 			)
 		)
+		(property "MPN" "0402WGF3300TCE"
+			(at 386.08 238.76 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -26572,16 +26922,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "0402WGF3300TCE"
-			(at 386.08 238.76 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 233.68 306.07 0)
@@ -26734,6 +27075,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL32A107MPVNNNE"
+			(at 335.28 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -26750,16 +27100,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL32A107MPVNNNE"
-			(at 335.28 243.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Security:ATECC608B-SSHDA")
 		(at 520.7 266.7 0)
@@ -27040,6 +27381,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 513.08 168.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -27056,16 +27406,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 513.08 168.91 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 246.38 176.53 0)
@@ -27141,6 +27482,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 246.38 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -27157,16 +27507,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 246.38 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "espressif:ESP32-C6-WROOM-1")
 		(at 299.72 330.2 0)
@@ -27435,6 +27776,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 238.76 176.53 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -27451,16 +27801,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL21A106KAYNNNE"
-			(at 238.76 176.53 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 218.44 101.6 0)
@@ -27833,6 +28174,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0749K9L"
+			(at 347.98 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -27849,16 +28199,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0749K9L"
-			(at 347.98 181.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 495.3 121.92 0)
@@ -28009,6 +28350,15 @@
 				)
 			)
 		)
+		(property "MPN" "RC0402FR-0743K2L"
+			(at 220.98 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -28025,16 +28375,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "RC0402FR-0743K2L"
-			(at 220.98 181.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 406.4 318.77 0)
@@ -28196,6 +28537,15 @@
 				)
 			)
 		)
+		(property "MPN" "USBLC6-2SC6"
+			(at 101.6 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -28224,16 +28574,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "USBLC6-2SC6"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 485.14 259.08 0)
@@ -28386,6 +28727,15 @@
 				)
 			)
 		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 342.9 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(body_style 1)
 		(in_pos_files yes)
 		(pin "1"
@@ -28402,16 +28752,7 @@
 				)
 			)
 		)
-	
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 342.9 243.84 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		))
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 127 50.8 0)
@@ -28483,15 +28824,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C38")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "CL05B104KO5NNNC"
 			(at 127 50.8 0)
 			(hide yes)
@@ -28500,7 +28832,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C38")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 127 54.61 0)
@@ -28624,15 +28965,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C39")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "0402B102K500NT"
 			(at 397.51 345.44 0)
 			(hide yes)
@@ -28641,7 +28973,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C39")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 407.67 345.44 0)
@@ -28971,15 +29312,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R33")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "RC0402FR-07100KL"
 			(at 170.18 54.61 0)
 			(hide yes)
@@ -28988,7 +29320,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R33")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 170.18 62.23 0)
@@ -29049,15 +29390,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R34")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "RC0402FR-0743K2L"
 			(at 170.18 62.23 0)
 			(hide yes)
@@ -29066,7 +29398,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R34")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 175.26 64.77 0)
@@ -29129,15 +29470,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C42")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "CL05B103KB5NNNC"
 			(at 175.26 64.77 0)
 			(hide yes)
@@ -29146,7 +29478,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C42")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:R")
 		(at 200.66 64.77 0)
@@ -29207,15 +29548,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "R35")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "0402WGF1001TCE"
 			(at 200.66 64.77 0)
 			(hide yes)
@@ -29224,7 +29556,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R35")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 160.02 54.61 0)
@@ -29287,15 +29628,6 @@
 				)
 			)
 		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C41")
-					(unit 1)
-				)
-			)
-		)
-	
 		(property "MPN" "CL05B104KO5NNNC"
 			(at 160.02 54.61 0)
 			(hide yes)
@@ -29304,7 +29636,16 @@
 					(size 1.27 1.27)
 				)
 			)
-		))
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C41")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 170.18 66.04 0)
@@ -29605,6 +29946,594 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "#PWR072")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Current:INA199xxDCK")
+		(at 218.44 220.98 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "849a6900-2712-448f-a42b-94fdf2a61564")
+		(property "Reference" "U13"
+			(at 203.2 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "INA181A1"
+			(at 203.2 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/ina181.pdf"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "INA181A1 current-sense amplifier, gain 20 V/V, SC-70-6 (DCK); symbol INA199xxDCK has the same DCK pinout: REF 1, GND 2, VS 3, IN+ 4, IN- 5, OUT 6"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Function" "Servo current sense: amplifies the drop across shunt R36 (VSERVO_SW -> VSERVO), 2 V/A, REF to GND (0 V at 0 A); out via R37/C44 (1.6 kHz) on SERVO_ISENSE to GPIO6 (ADC1_CH6)"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22443503"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "INA181A1IDCKR"
+			(at 218.44 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "U13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 200.66 203.2 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "22c6dd2d-b5c3-40f1-9f70-68e5c36a78b5")
+		(property "Reference" "R36"
+			(at 200.66 200.66 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0R1 1%"
+			(at 200.66 205.74 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 200.66 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Current-sense shunt 0.1 ohm 1% 0402, 250 mW"
+			(at 200.66 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C2088598"
+			(at 200.66 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "ERJ-2BWFR100X"
+			(at 200.66 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R36")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 231.14 220.98 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "39c5f19a-11a2-4e03-bfb4-7e9aabdb0e0c")
+		(property "Reference" "R37"
+			(at 231.14 218.44 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 231.14 223.52 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 231.14 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 231.14 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 231.14 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 231.14 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 231.14 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R37")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 240.03 224.79 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "05f084fe-381a-4814-833c-d817546c9e07")
+		(property "Reference" "C44"
+			(at 240.665 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 240.665 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 240.03 224.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 240.03 224.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 240.03 224.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 240.03 224.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 240.03 224.79 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C44")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 224.79 210.82 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7cdd4eda-90b2-46a8-9c6b-b54af4a3661b")
+		(property "Reference" "C43"
+			(at 225.425 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 225.425 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 224.79 210.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 224.79 210.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 224.79 210.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 224.79 210.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 224.79 210.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "C43")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 215.9 231.14 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ea4fc4d4-613a-428f-b73b-8ae571bd582b")
+		(property "Reference" "#PWR077"
+			(at 215.9 237.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 215.9 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 215.9 231.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 215.9 231.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 215.9 231.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR077")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 224.79 214.63 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "135b80d6-1734-40de-9893-e82e7138ea4a")
+		(property "Reference" "#PWR078"
+			(at 224.79 220.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 224.79 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 224.79 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 224.79 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 224.79 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR078")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 240.03 228.6 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b0598716-ca1b-4b35-a82d-c829f647f76b")
+		(property "Reference" "#PWR079"
+			(at 240.03 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 244.48 230.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 240.03 228.6 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 240.03 228.6 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 240.03 228.6 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR079")
 					(unit 1)
 				)
 			)
