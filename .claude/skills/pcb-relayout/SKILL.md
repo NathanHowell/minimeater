@@ -86,11 +86,11 @@ U2/U3 go behind J1 (geometry in bead minimeat-bk4).
 ## Netclasses and DRC limits (hw/minimeater.kicad_pro, hw/minimeater.kicad_dru)
 
 JLCPCB's 4-layer capabilities are our limits (user decision): every class has 0.1 mm clearance (JLC pad to track);
-Board Setup 0.09 mm track/gap, 0.15/0.25 mm min via, 0.2 mm hole to hole; kicad_dru adds 0.2 mm hole clearance,
-0.15 mm annular ring, 0.2 mm edge, silk text 1.0/0.15 mm (J1's land pattern keeps 0.19 mm hole clearance). Class
+Board Setup 0.09 mm track/gap, 0.45/0.3 mm min via (JLC's included minimum; smaller costs more), 0.2 mm hole to hole;
+kicad_dru adds 0.2 mm hole clearance, 0.15 mm annular ring (vias 0.075, for the 0.45/0.3 via), 0.2 mm edge, silk text 1.0/0.15 mm (J1's land pattern keeps 0.19 mm hole clearance). Class
 widths: Default/Analog 0.2 (TIPx, AINx, VREF_PROBE), Power 0.5 (3V3, 3V3A, 3V3A_FILT, VBUS_LDO), PowerHigh 0.8
 (VBUS_RAW, VBUS_F, VFAN, VSERVO, BUCK_SW), GND 0.4, USB 0.27 (90 ohm edge-coupled on F.Cu over In1, 7628 prepreg
-~0.21 mm). Vias 0.6/0.3. Stack: F.Cu, In1 = GND plane, In2 signal, B.Cu.
+~0.21 mm). Vias 0.6/0.3; 0.45/0.3 for via-in-pad in pads under 0.8 mm (0402s). Stack: F.Cu, In1 = GND plane, In2 signal, B.Cu.
 
 KiCad writes its in-memory project settings back to kicad_pro when the project closes, so a netclass or Board Setup
 change made with KiCad open is lost (this happened twice). Change them with Konnect create_netclass /

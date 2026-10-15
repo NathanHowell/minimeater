@@ -12,7 +12,9 @@ the board.
 Netclasses and limits (`hw/minimeater.kicad_pro`, `hw/minimeater.kicad_dru`): JLCPCB 4-layer capabilities, 0.1 mm
 clearance in every class. Widths: Default/Analog 0.2 (TIPx, AINx, VREF_PROBE), Power 0.5 (3V3, 3V3A, 3V3A_FILT,
 VBUS_LDO), PowerHigh 0.8 (VBUS_RAW, VBUS_F, VFAN, VSERVO, BUCK_SW), GND 0.4, USB 0.27 (90 ohm edge-coupled on F.Cu
-over In1, 7628 prepreg ~0.21 mm). Vias 0.6/0.3.
+over In1, 7628 prepreg ~0.21 mm). Vias 0.6/0.3, and 0.45/0.3 in pads under 0.8 mm (0402s, SOT-23 and SOIC leads): via-in-pad is
+filled and capped, so a via goes in the pad it serves wherever it fits without rerouting another net. 0.45/0.3 is JLC's
+included minimum; anything smaller costs more.
 
 ## U4 TLV62569 buck (3V3), origin (20, 75)
 
