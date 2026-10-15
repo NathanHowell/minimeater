@@ -7,8 +7,10 @@
 //! control task over the [`Bus`] the way Improv does, so a setting goes through the same save-and-publish path as
 //! any other.
 
+use core::cell::RefCell;
 use core::fmt::{self, Write as _};
 
+use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::Subscriber;
 use embedded_io_async::Write;
@@ -215,6 +217,58 @@ impl Step {
     }
 }
 
+/// Longest log line the board writes, newline included.
+pub const LOG_LINE: usize = 160;
+
+/// What the board's log writer needs to put a log line on the same terminal as a half-typed command: while the prompt
+/// is up it holds the text that redraws it, and [`Live::wrap`] puts a log line between an erase and that redraw, so
+/// the typed line is not left with a log line in the middle of it. Empty (and `wrap` has nothing to do) until someone
+/// types, while a command runs, and when no terminal is attached.
+pub struct Live(Mutex<CriticalSectionRawMutex, RefCell<Option<String<{ PROMPT.len() + LINE }>>>>);
+
+/// A log line, wrapped.
+pub type Wrapped = Vec<u8, { 4 + LOG_LINE + PROMPT.len() + LINE }>;
+
+impl Live {
+    pub const fn new() -> Self {
+        Self(Mutex::new(RefCell::new(None)))
+    }
+
+    fn set(&self, text: Option<&str>) {
+        self.0.lock(|c| {
+            *c.borrow_mut() = text.map(|t| {
+                let mut s = String::new();
+                let _ = s.push_str(PROMPT);
+                let _ = s.push_str(t);
+                s
+            })
+        });
+    }
+
+    /// `log` with the prompt line erased before it and redrawn after it; `None` when there is no prompt to keep tidy
+    /// (write `log` as it is).
+    pub fn wrap(&self, log: &[u8]) -> Option<Wrapped> {
+        self.0.lock(|c| {
+            let c = c.borrow();
+            let redraw = c.as_ref()?;
+            let mut out = Wrapped::new();
+            out.extend_from_slice(b"\r\x1b[K").ok()?;
+            out.extend_from_slice(log).ok()?;
+            out.extend_from_slice(redraw.as_bytes()).ok()?;
+            Some(out)
+        })
+    }
+}
+
+impl Default for Live {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// The one terminal, the USB-C port's.
+pub static LIVE: Live = Live::new();
+
 /// Line editing: characters, backspace, ^U (clear), ^W (word), ^C (cancel), Tab (complete), the arrow keys for the
 /// last few lines, and CR, LF or CRLF to end a line. It knows nothing of bytes or Improv: it takes [`Key`]s.
 pub struct Editor {
@@ -224,6 +278,8 @@ pub struct Editor {
     /// How far back the arrow keys have gone (0 = the line being typed).
     back: usize,
     draft: String<LINE>,
+    /// Someone has typed: there is a prompt on their screen.
+    engaged: bool,
 }
 
 impl Default for Editor {
@@ -240,7 +296,19 @@ impl Editor {
             history: Vec::new(),
             back: 0,
             draft: String::new(),
+            engaged: false,
         }
+    }
+
+    /// Tells `live` what is on the screen, to redraw after a log line (call after each key that did not end a line,
+    /// and after the prompt that follows a command).
+    pub fn show(&self, live: &Live) {
+        live.set(self.engaged.then_some(self.line.as_str()));
+    }
+
+    /// A command is running: nothing to redraw until its prompt is back.
+    pub fn hide(&self, live: &Live) {
+        live.set(None);
     }
 
     fn redraw(&self, s: &mut Step) {
@@ -329,6 +397,7 @@ impl Editor {
     pub fn apply(&mut self, key: Key) -> Step {
         let mut s = Step::default();
         let was_cr = core::mem::take(&mut self.after_cr);
+        self.engaged |= matches!(key, Key::Char(_) | Key::Cr | Key::CtrlC);
         match key {
             Key::Cr | Key::Lf => {
                 if key == Key::Lf && was_cr {
@@ -1086,6 +1155,39 @@ mod tests {
         assert!(parse("status now").is_err());
         assert!(matches!(parse("frobnicate"), Err(ParseError::Unknown(_))));
         assert_eq!(parse("help wifi").unwrap(), Cmd::Help(Some("wifi".try_into().unwrap())));
+    }
+
+    #[test]
+    fn a_log_line_does_not_split_the_typed_line() {
+        let live = Live::new();
+        let mut e = Editor::new();
+        // nobody has typed: the log line goes out as it is
+        e.show(&live);
+        assert!(live.wrap(b"I log\n").is_none());
+        // half a command on the screen: erase, the log line, then the prompt and the command again
+        for &b in b"wifi cl" {
+            e.apply(Key::Char(b));
+        }
+        e.show(&live);
+        let w = live.wrap(b"I log\n").unwrap();
+        assert_eq!(w.as_slice(), b"\r\x1b[KI log\nminimeater> wifi cl");
+        // edits are followed, and the line is shown empty once it is run
+        e.apply(Key::Backspace);
+        e.show(&live);
+        assert!(live.wrap(b"x\n").unwrap().ends_with(b"minimeater> wifi c"));
+        let step = e.apply(Key::Cr);
+        assert!(step.line.is_some());
+        e.hide(&live);
+        assert!(live.wrap(b"x\n").is_none(), "nothing to redraw while a command runs");
+        e.show(&live);
+        assert!(live.wrap(b"x\n").unwrap().ends_with(b"minimeater> "));
+        // the longest log line and the longest typed line fit
+        let long = [b'a'; LOG_LINE];
+        for _ in 0..LINE {
+            e.apply(Key::Char(b'a'));
+        }
+        e.show(&live);
+        assert!(live.wrap(&long).is_some());
     }
 
     #[test]

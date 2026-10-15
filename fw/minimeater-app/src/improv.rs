@@ -233,9 +233,11 @@ async fn key<I: Write>(
         let _ = io.flush().await;
     }
     if let Some(line) = step.line {
+        editor.hide(&repl::LIVE);
         repl::execute(io, &line, who, bus, replies).await;
         repl::prompt(io).await;
     }
+    editor.show(&repl::LIVE);
 }
 
 /// The conversation with a client on `io`, for ever; the serial REPL (`repl`) lives on the same bytes. The device is `Ready` (or `Provisioned` if it has

@@ -23,10 +23,11 @@ use esp_hal::peripherals::USB_DEVICE;
 use esp_hal::usb::usb_serial_jtag::{UsbSerialJtag, UsbSerialJtagRx, UsbSerialJtagTx};
 use heapless::String;
 use log::{LevelFilter, Log, Metadata, Record};
+use minimeater_app::repl;
 use static_cell::StaticCell;
 
 /// Longest log line, newline included; longer ones are cut.
-const LINE: usize = 160;
+const LINE: usize = minimeater_app::repl::LOG_LINE;
 /// Log lines waiting for the writer.
 const QUEUE: usize = 24;
 /// A host that does not take a write in this long is not there.
@@ -107,7 +108,11 @@ async fn write(tx: &mut Tx, data: &[u8]) {
 pub async fn writer(tx: &'static SharedTx) {
     loop {
         let line = LINES.receive().await;
-        write(&mut *tx.lock().await, line.as_bytes()).await;
+        // a prompt with something typed on it is kept whole: erased for the log line and drawn again after it
+        match repl::LIVE.wrap(line.as_bytes()) {
+            Some(w) => write(&mut *tx.lock().await, &w).await,
+            None => write(&mut *tx.lock().await, line.as_bytes()).await,
+        }
     }
 }
 
