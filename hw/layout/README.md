@@ -127,7 +127,7 @@ and REF 1, GND 2, VS 3 along the bottom, as drawn.
 - Bypass: C43 100 nF straight under VS and GND, ground pad left with its via beside it (figure's "VIA to Ground
   Plane"), 3V3 entering from the right. REF tied to the GND pin along the bottom row (unidirectional, 0 V at 0 A).
 - Output: OUT left into R37 1k, C44 100 nF to ground straight below R37's far end (the pin side of the filter, its own
-  ground via), SERVO_ISENSE leaves left toward U1 IO6. In placement it is a quiet 0.2 mm line away from BUCK_SW, the
+  ground via), SERVO_ISENSE leaves left toward U1 IO2 (pin 27; was IO6 until minimeat-9jn). In placement it is a quiet 0.2 mm line away from BUCK_SW, the
   fan PWM and the servo signal.
 - Block 6 x 5.5 mm. DRC in the box: only the connections that lead out of the block.
 

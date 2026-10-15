@@ -7,10 +7,11 @@
 //! | Signal | GPIO | | Signal | GPIO |
 //! |---|---|---|---|---|
 //! | USB-C CC1 / CC2 (ADC1) | 0 / 1 | | I2C SDA / SCL (ADS122C04, TMP117, ATECC608B) | 23 / 22 |
-//! | ADS122C04 DRDY | 2 | | fan PWM / tach | 18 / 19 |
+//! | ADS122C04 DRDY | 6 | | fan PWM / tach | 18 / 19 |
 //! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
 //! | status LED | 10 | | fan power enable (TPS2553) | 11 |
-//! | load-switch fault (open drain, shared) | 3 | | spare (no-connect) | 4 / 5 / 6 / 7 / 15 |
+//! | load-switch fault (open drain, shared) | 3 | | spare (no-connect) | 4 / 5 / 7 / 15 |
+//! | servo current sense (INA181, ADC1; not read yet, minimeat-sul) | 2 | | | |
 //! | UART0 TX / RX (test pads) | 16 / 17 | | USB D- / D+ | 12 / 13 |
 
 use embassy_embedded_hal::adapter::BlockingAsync;
@@ -110,7 +111,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     static I2C_BUS: StaticCell<Mutex<CriticalSectionRawMutex, I2c<'static, Async>>> = StaticCell::new();
     let i2c = I2C_BUS.init(Mutex::new(i2c));
     // DRDY is open-drain; the internal pull-up is the only one (no resistor on the board)
-    let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
+    let drdy = Input::new(p.GPIO6, InputConfig::default().with_pull(Pull::Up));
     let probes = Ads122c04::new(I2cDevice::new(i2c), ads122c04::ADDRESS, drdy, Delay);
     let ambient = Tmp117::new(I2cDevice::new(i2c), tmp117::ADDRESS);
     static SECURE_ELEMENT: StaticCell<SecureElement> = StaticCell::new();
