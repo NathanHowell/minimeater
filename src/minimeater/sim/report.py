@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from ..model.probes import PROBES
-from . import budget as Q, dissipation as DI, fan as FN, frontend as F, ngspice, power as W, rails as RL
+from . import budget as Q, buck_ti as BT, dissipation as DI, fan as FN, frontend as F, ngspice, power as W, rails as RL
 
 TEMPS_F = (32, 150, 225, 325, 500)
 TOPOLOGIES = ("as_drawn", "bias_at_tip")
@@ -162,6 +162,8 @@ def _tvs_surge() -> str:
 
 def rails_report(out: Path) -> None:
     g = RL.scenarios()
+    ti = RL.ti_crosscheck(g)
+    bk = BT.checks() if ti is not None else None
     d_dyn = RL.DIP_V_PER_A * (RL.Rails().i_mcu_tx - RL.Rails().i_mcu_idle)
     ripple = 0.1 * 7.5e-6 / RL.C_OUT_3V3  # Figure 15's 0.1 V pk-pk on about 7.5 uF, same charge per pulse (conservative at 3.3 V)
     floor = RL.V3_LOW - d_dyn - ripple
@@ -170,7 +172,7 @@ def rails_report(out: Path) -> None:
           "cable R and L, or a current-limited port) - D1 and C38/C41 - U12 eFuse (as in `power.md`, with its 3.65 V falling UVLO) - "
           "VBUS_F (C1, C2, C4, 100 nF, derated) - U4 (3V3), U5 behind FB1 (3V3A), the U6 servo and U7 fan switches into their "
           "output capacitors and loads. The module's draw is 80 mA idle and 352 mA in a TX burst (ADR 0004), edges 1 us.", "",
-          "No vendor model of the TLV62569 runs in ngspice, so U4 is two behavioural halves. Its **input** is a constant-power load "
+          "U4 is two behavioural halves (TI's own transient model also runs, and is compared below). Its **input** is a constant-power load "
           f"(93 % efficient, UVLO {RL.BUCK_UVLO_ON} V on / {RL.BUCK_UVLO_OFF} V off, 0.8 ms soft start): that is what the 5 V rail sees. "
           f"Its **output** is the regulated 3V3 less the load step's droop from the datasheet's own transient capture (SLVSDG1C "
           f"Figure 18: a 1.2 A step at 1 A/us dips 0.2 V and recovers in about 4 us, so {RL.DIP_V_PER_A:.3f} V per amp and 4 us, as a "
@@ -241,14 +243,72 @@ def rails_report(out: Path) -> None:
            "BOM (the part C36 uses too), ADR 0004 sized it (100-220 uF) to absorb the servo's start and the WiFi bursts, which a real "
            "charger's slower regulation needs more than this model's ideal source does, and it does not endanger the 0.5 A port's boot. If bring-up shows ripple on VBUS_F at the servo's "
            "PWM or the radio, the capacitance is the first thing to look at; if it does not, there is room to drop it.", "",
+           *_ti_section(ti, bk),
            "## Not covered", "",
-           "- U4's loop and PSM ripple (the capture-based droop above stands in for them): measure the 3V3 ripple and a burst's "
-           "dip at bring-up (`.3.9`, `.3.15` compares them with this).",
+           "- U4's loop and PSM ripple (the capture-based droop above stands in for them, TI's model is optimistic about both): "
+           "measure the 3V3 ripple and a burst's dip at bring-up (`.3.9`, `.3.15` compares them with this).",
            "- USB PD voltage transitions: none, the board is 5 V only (ADR 0004).",
            "- A source with foldback or hiccup, and a cable with its own capacitance.",
            "- U5's PSRR (the probe supply's ripple is in `probe-frontend.md`).", ""]
     (out / "rails.md").write_text("\n".join(md))
     print(out / "rails.md")
+
+
+def _ti_section(ti, bk) -> list[str]:
+    """`rails.md`'s section on TI's transient model: against the datasheet, at the board's points, and in the loop."""
+    if ti is None or bk is None:
+        return ["## TI's transient model", "",
+                "Not run: TI's TLV62569 model could not be fetched (`ti_models.py`; set `MINIMEATER_TLV62569_LIB` to a copy).", ""]
+    f15, f18, tx, pts = bk["fig15"], bk["fig18"], bk["tx"], bk["points"]
+    budget_floor = RL.V3_LOW - RL.DIP_V_PER_A * (RL.Rails().i_mcu_tx - RL.Rails().i_mcu_idle) - 0.1 * 7.5e-6 / RL.C_OUT_3V3
+    v3_top = max(mt["v3_max"] for *_, mt in ti)
+    md = ["## TI's transient model", "",
+          "TI publishes an unencrypted PSpice model of the TLV62569 (SLVMBW3: adaptive off time, peak current, PSM). It runs in ngspice "
+          "after two syntax changes (`ti_models.py`; the file is fetched on first use and is not in the repo). Here it is first "
+          "checked against the datasheet's waveforms, then used as U4 in the full netlist (`Rails(buck=\"ti\")`) for six of the "
+          "scenarios above.", "",
+          "### Against the datasheet", "",
+          "At the datasheet's own conditions (SLVSDG1C Table 3: 5 V in, 1.8 V out, 2.2 uH, 10 uF, no C3), read off its figures:", "",
+          "| | Model | Datasheet |", "|---|---|---|",
+          f"| PSM ripple at 0.1 A (Figure 15) | {f15['pp'] * 1e3:.0f} mV pk-pk | about 90 mV `[fig]` |",
+          f"| 0.8 A to 2 A at 1 A/us, dip (Figure 18) | {f18['dip'] * 1e3:.0f} mV, lowest at {f18['t_dip'] * 1e6:.1f} us | about 200 mV `[fig]` |",
+          f"| Overshoot on the release | {f18['overshoot'] * 1e3:.0f} mV | about 170-200 mV `[fig]` |",
+          f"| Back within 20 mV | {f18['t_back'] * 1e6:.1f} us | about 4-5 us `[fig]` |", "",
+          "At the board's 3V3 (R3/R4/C7, the derated output capacitors, 5 V in):", "",
+          "| Load | Ripple pk-pk | Level (mean) | Efficiency, model | Efficiency, Figure 9 |", "|---|---|---|---|---|"]
+    for p in pts:
+        md.append(f"| {p['i'] * 1e3:.0f} mA | {p['pp'] * 1e3:.1f} mV | {p['mean']:.3f} V | {p['eta']:.1%} | {p['eta_fig9']:.1%} |")
+    md += ["",
+           f"The model's PSM ripple is {f15['pp'] / 0.09:.0%} of the datasheet's at Figure 15's conditions, its load-step dip is "
+           f"{f18['dip'] / 0.2:.0%} of the figure's, and its efficiency is 2-4 points above the curve: it has no switching or "
+           "gate-drive loss. So it is not a better budget than the capture-based one, and **the 3V3 floor above stays on the "
+           "datasheet's numbers**. In PSM the model's output sits above its set point (idle mean "
+           f"{pts[0]['mean'] - RL.V3_NOM:+.3f} V at 30 mA, as the datasheet says it does), so the low end of the window is the "
+           f"idle *valley*: from it the TX burst takes the model {tx['drop'] * 1e3:.0f} mV more "
+           f"(lowest {tx['min_burst']:.3f} V from a valley of {tx['valley_pre']:.3f} V, {tx['pp_pre'] * 1e3:.0f} mV of ripple at idle); "
+           f"on the release it overshoots {tx['overshoot'] * 1e3:.0f} mV. Start-up with 80 mA on it takes {tx['t_up'] * 1e6:.0f} us "
+           f"to 90 % (the behavioural model's 0.8 ms soft-start ramp, `[spec]`, is slower), peaking at {tx['start_max']:.3f} V "
+           f"({1e3 * (tx['start_max'] - RL.V3_NOM):.0f} mV over its set point). On the model's drop the floor would be "
+           f"{RL.V3_LOW - tx['drop']:.2f} V, not the budget's {budget_floor:.3f} V.", "",
+           "### In the loop", "",
+           "The same netlists as above with the model as U4 (EN on VIN, the 3V3 load a current sink, and the efficiency it lacks "
+           "drawn from VBUS_F as an extra load). `beh` is the behavioural U4 of the sections above.", "",
+           "| Scenario | 3V3 up, beh / TI | 3V3 minimum, beh / TI | 3V3 maximum, beh / TI | VBUS_F minimum, beh / TI | Result, beh / TI |",
+           "|---|---|---|---|---|---|"]
+    for n, r, m, mt in ti:
+        def res(x, r=r):
+            return f"brownout at +{1e3 * (x['t_end'] - r.t_servo):.2f} ms" if x["brownout"] else "holds"
+        md.append(f"| {n} | {m['t_3v3'] * 1e3:.2f} / {mt['t_3v3'] * 1e3:.2f} ms | {m['v3_min']:.3f} / {mt['v3_min']:.3f} V | "
+                  f"{m['v3_max']:.3f} / {mt['v3_max']:.3f} V | {m['vbus_f_min']:.2f} / {mt['vbus_f_min']:.2f} V | {res(m)} / {res(mt)} |")
+    md += ["",
+           "The 5 V side agrees: the VBUS_F minima agree to within 10 mV, and a 0.5 A port browns out at the same "
+           "point, on the servo's switch-on, in both. That is what the constant-power load was for, and TI's switching model, "
+           "chopping the input current at 1.4 MHz into the 100 uF and the eFuse, does not change it. The 3V3 minima in the "
+           "model are higher than the behavioural ones for the reasons above (its PSM rise, shallower dip): they are not a "
+           "second opinion on the floor. The maxima are new: with the set point at the high end of its window "
+           f"({RL.V3_HIGH:.3f} V) the model's PSM puts 3V3 up to {v3_top:.2f} V at plug-in, {(v3_top - RL.V3_HIGH) * 1e3:.0f} mV over "
+           "the window, still inside the module's 3.6 V maximum (ESP32-C6-WROOM-1 VDD33 `[spec]`).", ""]
+    return md
 
 
 def budget_report(out: Path) -> None:

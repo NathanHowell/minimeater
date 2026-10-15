@@ -120,3 +120,55 @@ def test_worst_chain_on_a_1p5_a_source_keeps_the_rails_up():
     assert not m["brownout"]
     assert m["v3_min"] > R.V_MCU_MIN + 0.1
     assert m["vbus_f_min"] > 4.0
+
+
+def test_ti_model_conversion_for_ngspice():
+    from minimeater.sim import ti_models
+
+    src = (".MODEL         _U7_S32 VSWITCH Roff=1e6 Ron=10m Voff=0.2 Von=0.8\r\n.IC         V(PAUSE )=0\r\n"
+           ".MODEL         _U3_S68 VSWITCH Roff=100e6 Ron=1 Voff=0.2 Von=0.8\r\n")
+    out = ti_models.to_ngspice(src)
+    assert "VSWITCH" not in out and ".IC" not in out and "\r" not in out
+    assert "_U7_S32 SW vt=0.5 vh=0 roff=1e6 ron=10m" in out and "_U3_S68 SW vt=0.5 vh=0 roff=100e6 ron=1" in out
+
+
+@pytest.fixture(scope="module")
+def ti_lib():
+    """TI's model, fetched on first use; the tests that need it are skipped when it cannot be had."""
+    from minimeater.sim import ti_models
+
+    lib = ti_models.tlv62569()
+    if lib is None:
+        pytest.skip("TI's TLV62569 transient model is not available")
+    return lib
+
+
+def test_ti_model_is_gentler_than_the_datasheets_load_step(ti_lib):
+    """Figure 18 (0.8 A to 2 A at 1 A/us, 1.8 V, 10 uF) dips about 0.2 V; TI's model dips about 0.13 V: the capture-based U4
+    in rails.py is the more pessimistic of the two, which is why the 3V3 floor uses it."""
+    from minimeater.sim import buck_ti as B
+
+    f = B.fig18()
+    assert abs(f["pre"] - 1.8) < 0.03
+    assert 0.08 < f["dip"] < 0.2
+    assert f["t_back"] < 15e-6
+
+
+def test_ti_buck_brings_the_3v3_up_in_the_power_path(ti_lib):
+    from minimeater.sim import rails as R
+
+    r = R.Rails(buck="ti", tx=(2.5e-3, 0.5e-3, 1), v3=R.V3_LOW, t_stop=3.5e-3, t_mcu=2e-3)
+    m = R.metrics(r, R.run(r))
+    assert not m["brownout"]
+    assert 1.0e-3 < m["t_3v3"] < 2.0e-3  # behavioural: 1.7 ms
+    assert R.V3_LOW - 0.05 < m["v3_min"] and m["v3_max"] < R.V3_HIGH + 0.1
+
+
+def test_ti_buck_on_a_half_amp_port_browns_out_with_the_servo_like_the_behavioural_one(ti_lib):
+    from minimeater.sim import rails as R
+
+    kw = dict(servo="stall", t_servo=3e-3, v_src=4.75, r_cable=0.3, i_limit=0.5, l_cable=0, t_stop=6e-3, t_mcu=2e-3)
+    m_ti = R.metrics(R.Rails(buck="ti", **kw), R.run(R.Rails(buck="ti", **kw)))
+    m_b = R.metrics(R.Rails(**kw), R.run(R.Rails(**kw)))
+    assert m_ti["brownout"] and m_b["brownout"]
+    assert abs((m_ti["t_end"] - 3e-3) - (m_b["t_end"] - 3e-3)) < 0.1e-3
