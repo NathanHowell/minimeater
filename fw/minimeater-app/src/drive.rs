@@ -19,6 +19,15 @@ pub struct ServoCal {
     pub open_us: f64,
 }
 
+impl From<crate::config::ServoPulses> for ServoCal {
+    fn from(p: crate::config::ServoPulses) -> Self {
+        Self {
+            closed_us: f64::from(p.closed_us),
+            open_us: f64::from(p.open_us),
+        }
+    }
+}
+
 impl ServoCal {
     /// A typical hobby servo, 1 to 2 ms over 90 degrees. [est until `.2.9` picks the servo]
     pub const DEFAULT: ServoCal = ServoCal {
@@ -62,6 +71,11 @@ impl ServoDrive {
             angle_deg: None,
             still_s: HOLD_S,
         }
+    }
+
+    /// Forgets where the flap is: something else moved the servo, so the next command is a jump.
+    pub fn forget(&mut self) {
+        self.angle_deg = None;
     }
 
     /// Where the servo has been told to be.

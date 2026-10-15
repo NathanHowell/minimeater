@@ -48,6 +48,17 @@ pub enum Request {
     MqttCaSave,
     /// Forgets the pinned CA: MQTT is plaintext.
     MqttCaClear,
+    /// Servo bring-up, from the serial REPL (`servo`), not on MQTT. Drives the damper servo to this pulse width, us, and holds it
+    /// there (the controller leaves the flap alone) until `ServoDone`, a cook, or a reboot. Refused while a cook is running.
+    ServoJog(u16),
+    /// Notes the jogged pulse as the closed or the open stop.
+    ServoMark(crate::config::Stop),
+    /// Makes the two marks the servo calibration, saved, and ends the jog.
+    ServoSave,
+    /// Forgets the calibration: the nominal 1 to 2 ms again.
+    ServoClear,
+    /// Ends the jog without saving; the marks are dropped.
+    ServoDone,
     Otlp(Option<Otlp>),
     /// Blink the LED for 10 s.
     Identify,

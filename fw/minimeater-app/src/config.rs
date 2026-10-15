@@ -37,6 +37,7 @@ mod key {
     pub const MQTT: u16 = 0x0202;
     pub const OTLP: u16 = 0x0203;
     pub const MQTT_CA: u16 = 0x0204;
+    pub const SERVO: u16 = 0x0301;
 }
 
 /// Largest serialized record plus key, word-aligned (a full schedule: 2 + 1 + 8 x 32 = 259).
@@ -52,6 +53,35 @@ const _: () = assert!(BUF >= 2 + 2 + CA_MAX);
 
 /// The DER certificate of the CA that signs the MQTT broker's certificate (`tls`).
 pub type Ca = Vec<u8, CA_MAX>;
+
+/// The servo pulse widths a calibration may hold, us: wider than any hobby servo's travel, so a jog cannot be out of reach of one.
+pub const SERVO_US: core::ops::RangeInclusive<u16> = 500..=2500;
+/// The least the closed and open pulses may differ by, us: closer than this is a mistaken mark, not a damper.
+pub const SERVO_SPAN_MIN_US: u16 = 200;
+
+/// A flap stop the bring-up marks.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Stop {
+    Closed,
+    Open,
+}
+
+/// The pulse widths at which the flap is closed and fully open (`servo`), as the bring-up procedure found them. Closed above
+/// open is a servo mounted the other way round.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ServoPulses {
+    pub closed_us: u16,
+    pub open_us: u16,
+}
+
+impl ServoPulses {
+    /// Both in range and far enough apart to be a travel.
+    pub fn valid(self) -> bool {
+        SERVO_US.contains(&self.closed_us)
+            && SERVO_US.contains(&self.open_us)
+            && self.closed_us.abs_diff(self.open_us) >= SERVO_SPAN_MIN_US
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -240,6 +270,8 @@ pub struct Settings {
     /// The CA the broker's certificate must chain to. MQTT uses TLS (with the device certificate) exactly when this is set;
     /// without it the connection is plaintext.
     pub mqtt_ca: Option<Ca>,
+    /// The damper servo's measured closed and open pulses; the nominal 1 to 2 ms until the bring-up procedure has run.
+    pub servo: Option<ServoPulses>,
     pub otlp: Option<Otlp>,
 }
 
@@ -253,6 +285,7 @@ impl Default for Settings {
             wifi: None,
             mqtt: None,
             mqtt_ca: None,
+            servo: None,
             otlp: None,
         }
     }
@@ -568,6 +601,21 @@ impl Record for Ca {
     }
 }
 
+impl Record for ServoPulses {
+    fn encode(&self, w: &mut W) -> Result<(), SerializationError> {
+        w.u16(self.closed_us)?;
+        w.u16(self.open_us)
+    }
+
+    fn decode(r: &mut R) -> Option<Self> {
+        let p = Self {
+            closed_us: r.u16()?,
+            open_us: r.u16()?,
+        };
+        p.valid().then_some(p)
+    }
+}
+
 impl Record for Otlp {
     fn encode(&self, w: &mut W) -> Result<(), SerializationError> {
         w.str(&self.host)?;
@@ -661,6 +709,8 @@ impl<F: NorFlash> ConfigStore<F> {
         s.mqtt = self.fetch::<Mqtt>(key::MQTT).await?.filter(|m| !m.host.is_empty());
         // (an empty certificate is the tombstone)
         s.mqtt_ca = self.fetch::<Ca>(key::MQTT_CA).await?.filter(|c| !c.is_empty());
+        // (zeros are the tombstone: they are not a valid calibration, so they load as none)
+        s.servo = self.fetch::<ServoPulses>(key::SERVO).await?;
         s.otlp = self.fetch::<Otlp>(key::OTLP).await?.filter(|o| !o.host.is_empty());
         Ok(s)
     }
@@ -713,6 +763,17 @@ impl<F: NorFlash> ConfigStore<F> {
         if s.mqtt_ca != self.saved.mqtt_ca {
             self.store(key::MQTT_CA, s.mqtt_ca.clone().unwrap_or_default()).await?;
             self.saved.mqtt_ca = s.mqtt_ca.clone();
+        }
+        if s.servo != self.saved.servo {
+            self.store(
+                key::SERVO,
+                s.servo.unwrap_or(ServoPulses {
+                    closed_us: 0,
+                    open_us: 0,
+                }),
+            )
+            .await?;
+            self.saved.servo = s.servo;
         }
         if s.otlp != self.saved.otlp {
             let o = s.otlp.clone().unwrap_or(Otlp {

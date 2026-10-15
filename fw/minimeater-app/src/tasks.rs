@@ -40,7 +40,7 @@ use minimeater_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
 use crate::ambient::{PLAUSIBLE_C, compensate};
-use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
+use crate::config::{ConfigStore, Cook, Mode, ProbeKind, SERVO_US, ServoPulses, Settings, Stop};
 use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower, Watchdog};
@@ -163,6 +163,18 @@ struct Bench {
     map: AirflowMap,
 }
 
+/// The damper servo as the bring-up leaves it: what the actuator task drives with, and the REPL's jog and marks.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ServoCtl {
+    /// The saved calibration; the nominal one when none.
+    pub cal: Option<ServoPulses>,
+    /// A pulse width, us, being held by hand: the flap law is off while it is set.
+    pub jog: Option<u16>,
+    /// The pulses marked so far this bring-up.
+    pub closed_mark: Option<u16>,
+    pub open_mark: Option<u16>,
+}
+
 /// Everything the tasks exchange. One static instance per board.
 pub struct Bus {
     /// In: `~/set` and `~/cmd` once parsed ([`crate::proto::parse`]), or a twin scenario. Each is
@@ -195,6 +207,7 @@ pub struct Bus {
     /// Hardware faults raised by any task, and the fan's last tach reading.
     faults: Mutex<M, Cell<Faults>>,
     fan_rpm: Mutex<M, Cell<Option<f64>>>,
+    servo: Mutex<M, Cell<ServoCtl>>,
     /// Counts the actuator task's passes, so the control task can tell it from a hung one.
     beat: Mutex<M, Cell<u32>>,
     act: Signal<M, Actuation>,
@@ -232,6 +245,12 @@ impl Bus {
             })),
             faults: Mutex::new(Cell::new(Faults(0))),
             fan_rpm: Mutex::new(Cell::new(None)),
+            servo: Mutex::new(Cell::new(ServoCtl {
+                cal: None,
+                jog: None,
+                closed_mark: None,
+                open_mark: None,
+            })),
             beat: Mutex::new(Cell::new(0)),
             act: Signal::new(),
             job: Signal::new(),
@@ -258,6 +277,19 @@ impl Bus {
         self.config.lock(|c| *c.borrow_mut() = Some(settings.clone()));
         let rev = self.config_rev.try_get().unwrap_or(0).wrapping_add(1);
         self.config_rev.sender().send(rev);
+    }
+
+    /// The servo calibration and jog as they are now.
+    pub fn servo(&self) -> ServoCtl {
+        self.servo.lock(Cell::get)
+    }
+
+    fn servo_with(&self, f: impl FnOnce(&mut ServoCtl)) {
+        self.servo.lock(|c| {
+            let mut s = c.get();
+            f(&mut s);
+            c.set(s);
+        });
     }
 
     /// Raises or clears a fault; the `fault` and `fault_clear` events fire on the change only.
@@ -346,6 +378,62 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             settings.otlp = o;
             Ok(changed)
         }
+        Request::ServoJog(us) => {
+            if pit.cook().mode != Mode::Off {
+                return Err(Error::new(ErrorCode::NotAllowed, "not while a cook is running"));
+            }
+            if !SERVO_US.contains(&us) {
+                return Err(Error::new(ErrorCode::OutOfRange, "pulse out of range"));
+            }
+            bus.servo_with(|s| s.jog = Some(us));
+            Ok(false)
+        }
+        Request::ServoMark(stop) => {
+            let Some(us) = bus.servo().jog else {
+                return Err(Error::new(ErrorCode::NotAllowed, "jog the servo there first"));
+            };
+            bus.servo_with(|s| match stop {
+                Stop::Closed => s.closed_mark = Some(us),
+                Stop::Open => s.open_mark = Some(us),
+            });
+            Ok(false)
+        }
+        Request::ServoSave => {
+            let s = bus.servo();
+            let (Some(closed_us), Some(open_us)) = (s.closed_mark, s.open_mark) else {
+                return Err(Error::new(ErrorCode::NotAllowed, "mark both closed and open first"));
+            };
+            let pulses = ServoPulses { closed_us, open_us };
+            if !pulses.valid() {
+                return Err(Error::new(
+                    ErrorCode::OutOfRange,
+                    "closed and open are too close together",
+                ));
+            }
+            let changed = settings.servo != Some(pulses);
+            settings.servo = Some(pulses);
+            bus.servo_with(|s| {
+                *s = ServoCtl {
+                    cal: Some(pulses),
+                    ..ServoCtl::default()
+                }
+            });
+            Ok(changed)
+        }
+        Request::ServoClear => {
+            let changed = settings.servo.take().is_some();
+            bus.servo_with(|s| *s = ServoCtl::default());
+            Ok(changed)
+        }
+        Request::ServoDone => {
+            bus.servo_with(|s| {
+                *s = ServoCtl {
+                    cal: s.cal,
+                    ..ServoCtl::default()
+                }
+            });
+            Ok(false)
+        }
         Request::Identify => {
             bus.identify.signal(());
             Ok(false)
@@ -383,6 +471,7 @@ pub async fn control<B: Board>(
     // armed here, after the boot's flash reads and the self-survey; a hang from now on resets the board into the saved cook
     wdt.start(WATCHDOG_MS);
     let mut beat = 0;
+    bus.servo_with(|s| s.cal = settings.servo);
     // the first full scan before the first period
     while bus.snapshot().passes == 0 {
         Timer::after_millis(100).await;
@@ -451,6 +540,10 @@ pub async fn control<B: Board>(
             t_k: c_to_k(ambient_c.unwrap_or(20.0)),
             ..Ambient::default()
         };
+        // a jog left on when a cook starts would hold the flap shut on it
+        if pit.cook().mode != Mode::Off {
+            bus.servo_with(|s| s.jog = None);
+        }
         let jack = settings.cook.pit_probe as usize;
         let (out, events) = pit.step(temps[jack], amb, PERIOD_S);
         bus.act.signal(out.act);
@@ -554,6 +647,7 @@ async fn handle<B: Board>(
         Request::Defaults => {
             *settings = Settings::default();
             pit.reset(settings);
+            bus.servo_with(|s| *s = ServoCtl::default());
             // saved here, not left to the next period: the reboot is half a second away
             let saved = store.save(settings).await;
             bus.publish_config(settings);
@@ -637,9 +731,26 @@ pub async fn actuators<B: Board>(
         let _ = fan.set_duty_cycle((duty * max) as u16);
 
         // pulse first, then power: a servo waking up goes straight to the new position
-        let s = flap.tick(flap_angle_deg(act.damper), DT);
-        servo.set_pulse_us(s.pulse_us);
-        let _ = if s.power && live {
+        let ctl = bus.servo();
+        let cal = ctl.cal.map_or(ServoCal::DEFAULT, ServoCal::from);
+        if flap.cal != cal {
+            // a new calibration moves the pulse for the angle the flap is at: drive it there
+            flap.cal = cal;
+            flap.forget();
+        }
+        let (pulse_us, powered) = match ctl.jog {
+            // held by hand (bring-up): the flap law is off, and where the flap is when it ends is not known
+            Some(us) => {
+                flap.forget();
+                (us, true)
+            }
+            None => {
+                let s = flap.tick(flap_angle_deg(act.damper), DT);
+                (s.pulse_us, s.power)
+            }
+        };
+        servo.set_pulse_us(pulse_us);
+        let _ = if powered && live {
             power.set_high()
         } else {
             power.set_low()
@@ -702,5 +813,103 @@ mod tests {
         assert_eq!(go(Request::MqttCaClear), Ok(true));
         assert_eq!(go(Request::MqttCaClear), Ok(false));
         assert_eq!(settings.mqtt_ca, None);
+    }
+}
+
+#[cfg(test)]
+mod servo_tests {
+    use minimeater_core::model::Ambient;
+    use minimeater_core::model::airflow::AirPath;
+
+    use super::*;
+
+    #[test]
+    fn bring_up_marks_both_stops_then_saves_a_valid_calibration() {
+        let bus = Bus::new();
+        let mut settings = Settings::default();
+        let mut pit = Pit::new(&settings, AirPath::default(), Ambient::default());
+        let mut go = |req| apply(req, &mut pit, &mut settings, &bus);
+
+        // nothing is held, so there is nothing to mark
+        assert_eq!(
+            go(Request::ServoMark(Stop::Closed)).unwrap_err().code,
+            ErrorCode::NotAllowed
+        );
+        assert_eq!(go(Request::ServoJog(499)).unwrap_err().code, ErrorCode::OutOfRange);
+        assert_eq!(go(Request::ServoJog(2501)).unwrap_err().code, ErrorCode::OutOfRange);
+        assert_eq!(go(Request::ServoJog(1100)), Ok(false));
+        assert_eq!(bus.servo().jog, Some(1100));
+        // one mark is not enough
+        assert_eq!(go(Request::ServoMark(Stop::Closed)), Ok(false));
+        assert_eq!(go(Request::ServoSave).unwrap_err().code, ErrorCode::NotAllowed);
+        // two marks on the same pulse are a mistake, not a damper
+        assert_eq!(go(Request::ServoMark(Stop::Open)), Ok(false));
+        assert_eq!(go(Request::ServoSave).unwrap_err().code, ErrorCode::OutOfRange);
+        assert_eq!(bus.servo().cal, None, "nothing was saved");
+        assert_eq!(go(Request::ServoJog(1900)), Ok(false));
+        assert_eq!(go(Request::ServoMark(Stop::Open)), Ok(false));
+        assert_eq!(go(Request::ServoSave), Ok(true));
+        let want = ServoPulses {
+            closed_us: 1100,
+            open_us: 1900,
+        };
+        assert_eq!(
+            bus.servo(),
+            ServoCtl {
+                cal: Some(want),
+                ..ServoCtl::default()
+            }
+        );
+        // the same again changes nothing stored
+        assert_eq!(go(Request::ServoJog(1100)), Ok(false));
+        assert_eq!(go(Request::ServoMark(Stop::Closed)), Ok(false));
+        assert_eq!(go(Request::ServoJog(1900)), Ok(false));
+        assert_eq!(go(Request::ServoMark(Stop::Open)), Ok(false));
+        assert_eq!(go(Request::ServoSave), Ok(false));
+        // letting go keeps the calibration and drops the jog and the marks
+        assert_eq!(go(Request::ServoJog(1500)), Ok(false));
+        assert_eq!(go(Request::ServoDone), Ok(false));
+        assert_eq!(
+            bus.servo(),
+            ServoCtl {
+                cal: Some(want),
+                ..ServoCtl::default()
+            }
+        );
+        assert_eq!(go(Request::ServoClear), Ok(true));
+        assert_eq!(go(Request::ServoClear), Ok(false));
+        assert_eq!(bus.servo(), ServoCtl::default());
+        assert_eq!(settings.servo, None);
+    }
+
+    #[test]
+    fn a_servo_mounted_the_other_way_round_is_a_valid_calibration() {
+        let bus = Bus::new();
+        let mut settings = Settings::default();
+        let mut pit = Pit::new(&settings, AirPath::default(), Ambient::default());
+        let mut go = |req| apply(req, &mut pit, &mut settings, &bus);
+        go(Request::ServoJog(1900)).unwrap();
+        go(Request::ServoMark(Stop::Closed)).unwrap();
+        go(Request::ServoJog(1100)).unwrap();
+        go(Request::ServoMark(Stop::Open)).unwrap();
+        assert_eq!(go(Request::ServoSave), Ok(true));
+        assert_eq!(
+            settings.servo,
+            Some(ServoPulses {
+                closed_us: 1900,
+                open_us: 1100
+            })
+        );
+    }
+
+    #[test]
+    fn no_jog_while_a_cook_is_running() {
+        let bus = Bus::new();
+        let mut settings = Settings::default();
+        settings.cook.mode = Mode::Run;
+        let mut pit = Pit::new(&settings, AirPath::default(), Ambient::default());
+        let e = apply(Request::ServoJog(1500), &mut pit, &mut settings, &bus).unwrap_err();
+        assert_eq!(e.code, ErrorCode::NotAllowed);
+        assert_eq!(bus.servo().jog, None);
     }
 }

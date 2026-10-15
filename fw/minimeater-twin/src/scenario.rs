@@ -11,7 +11,7 @@ use minimeater_core::model::airflow::AirPath;
 use minimeater_core::model::{Ambient, top_vent};
 use minimeater_core::thermistor::Preset;
 use minimeater_core::units::c_to_k;
-use minimeater_sim::hal::{Faults, Wiring, World};
+use minimeater_sim::hal::{Faults, ServoMech, Wiring, World};
 use minimeater_sim::{Dynamics, Environment, Fuel, Meat, Plant};
 
 /// Something that happens to the egg or the board, or something the user does.
@@ -109,6 +109,8 @@ pub struct Scenario {
     pub top_area_m2: f64,
     pub start: Start,
     pub fuel: Fuel,
+    /// The servo's true pulse range, which the app does not know until it is calibrated.
+    pub servo: ServoMech,
     /// In flash at power-on.
     pub settings: Settings,
     pub jacks: [Wiring; 4],
@@ -193,6 +195,7 @@ impl Scenario {
             top_area_m2,
             start: Start::Cold,
             fuel: Fuel::default(),
+            servo: ServoMech::default(),
             settings,
             jacks: [Wiring::Pit(pit_probe), Wiring::Empty, Wiring::Empty, Wiring::Empty],
             actions: vec![
@@ -505,6 +508,7 @@ impl Scenario {
         };
         let mut w = World::new(plant, env);
         w.jacks = self.jacks;
+        w.servo = self.servo;
         w
     }
 }

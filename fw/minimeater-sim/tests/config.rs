@@ -6,7 +6,7 @@ use core::cell::{Cell, RefCell};
 
 use embassy_futures::block_on;
 use embedded_storage_async::nor_flash::{ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash};
-use minimeater_app::config::{ConfigStore, ControllerKind, Mode, Mqtt, ProbeKind, Settings, Wifi};
+use minimeater_app::config::{ConfigStore, ControllerKind, Mode, Mqtt, ProbeKind, ServoPulses, Settings, Wifi};
 use minimeater_core::control::{Fopdt, Schedule};
 use minimeater_core::model::airflow::AirPath;
 use minimeater_core::model::{Ambient, top_vent};
@@ -78,6 +78,10 @@ fn cooking() -> Settings {
         )
         .unwrap(),
     );
+    s.servo = Some(ServoPulses {
+        closed_us: 1130,
+        open_us: 1870,
+    });
     s.otlp = Some(minimeater_app::config::Otlp {
         host: "collector.local".try_into().unwrap(),
         port: 4318,
@@ -130,6 +134,24 @@ fn a_forgotten_broker_and_collector_stay_forgotten() {
         (None, None, None)
     );
     assert_eq!(got, s);
+}
+
+#[test]
+fn a_forgotten_servo_calibration_stays_forgotten() {
+    let w = world();
+    let mut s = cooking();
+    block_on(async {
+        let (mut store, _) = ConfigStore::open(io(&w).config).await;
+        store.save(&s).await.unwrap();
+    });
+    assert_eq!(boot(&w).servo, s.servo);
+    s.servo = None;
+    block_on(async {
+        let (mut store, _) = ConfigStore::open(io(&w).config).await;
+        store.save(&s).await.unwrap();
+    });
+    assert_eq!(boot(&w).servo, None);
+    assert_eq!(boot(&w), s);
 }
 
 #[test]
@@ -338,6 +360,11 @@ fn power_cut_at_any_point_of_a_save_loses_nothing_old() {
                 got.schedule
             );
             assert!(got.probes[0] == old.probes[0] || got.probes[0] == new.probes[0]);
+            assert!(
+                got.servo == old.servo || got.servo == new.servo,
+                "budget {budget}: servo {:?}",
+                got.servo
+            );
             assert_eq!(
                 (&got.probes[1..], &got.wifi, &got.mqtt, &got.mqtt_ca),
                 (&old.probes[1..], &old.wifi, &old.mqtt, &old.mqtt_ca)

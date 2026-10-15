@@ -18,7 +18,7 @@ use embassy_time::{Duration, with_timeout};
 use embedded_io_async::Write;
 use heapless::{String, Vec};
 
-use crate::config::{CA_MAX, Mode, Mqtt, Otlp, Settings, Wifi};
+use crate::config::{CA_MAX, Mode, Mqtt, Otlp, SERVO_US, Settings, Stop, Wifi};
 use crate::drivers::cert::looks_like_certificate;
 use crate::enrol::{CHUNK, Job, Out};
 use crate::net::Identity;
@@ -105,6 +105,12 @@ pub const CATALOG: &[Spec] = &[
         subs: &[],
     },
     Spec {
+        name: "servo",
+        usage: "servo | servo jog <us> | servo jog +<n> | servo jog -<n> | servo mark closed | servo mark open | servo save | servo done | servo clear",
+        help: "calibrate the damper servo: hold a pulse width (500 to 2500 us), mark the closed and open stops, save",
+        subs: &["jog", "mark", "save", "done", "clear"],
+    },
+    Spec {
         name: "identity",
         usage: "identity | identity csr | identity provision lock | identity rekey replace | identity cert [start | add <base64> | save]",
         help: "the device key in the secure element: look, print the certificate request, lock it in (one way), or store the CA's certificate",
@@ -130,6 +136,7 @@ fn values(words: &[&str], index: usize) -> &'static [&'static str] {
         (Some("otlp"), 3) if words.get(1) == Some(&"set") => &["4318", "4317"],
         (Some("otlp"), 4) if words.get(1) == Some(&"set") => &["30", "60", "300"],
         (Some("identity"), 2) if words.get(1) == Some(&"cert") => &["start", "add", "save"],
+        (Some("servo"), 2) if words.get(1) == Some(&"mark") => &["closed", "open"],
         (Some("mqtt"), 2) if words.get(1) == Some(&"ca") => &["start", "add", "save", "clear"],
         _ => &[],
     }
@@ -485,6 +492,7 @@ pub enum Cmd {
     MqttCa(CaCmd),
     Otlp(Option<Otlp>),
     Setpoint(f64),
+    Servo(ServoCmd),
     Identify,
     Reboot,
     /// `factory-reset`: true once the confirmation word came with it.
@@ -501,6 +509,24 @@ pub enum CaCmd {
     Add(String<64>),
     Save,
     Clear,
+}
+
+/// What `servo` was asked: the bring-up of the damper servo's closed and open pulse widths (`docs/mech.md`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ServoCmd {
+    Show,
+    Jog(Jog),
+    Mark(Stop),
+    Save,
+    Done,
+    Clear,
+}
+
+/// A pulse width to hold, us: given, or a step from the one being held.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Jog {
+    To(u16),
+    By(i16),
 }
 
 /// What `identity` was asked.
@@ -634,6 +660,39 @@ mod grammar {
             .ok_or(why("the interval is 5 to 3600 s"))
     }
 
+    fn jog(w: Word) -> Result<Jog, ParseError> {
+        let range = why("the pulse is 500 to 2500 us");
+        if w.starts_with(['+', '-']) {
+            w.parse::<i16>()
+                .ok()
+                .filter(|n| n.unsigned_abs() <= SERVO_US.end() - SERVO_US.start())
+                .map(Jog::By)
+                .ok_or(why("a step is up to 2000 us"))
+        } else {
+            w.parse::<u16>()
+                .ok()
+                .filter(|us| SERVO_US.contains(us))
+                .map(Jog::To)
+                .ok_or(range)
+        }
+    }
+
+    fn servo(i: &mut In<'_>) -> R<Cmd> {
+        opt(alt((
+            preceded(kw("jog"), cut_err(arg.try_map(jog))).map(ServoCmd::Jog),
+            preceded(
+                kw("mark"),
+                cut_err(alt((kw("closed").value(Stop::Closed), kw("open").value(Stop::Open)))),
+            )
+            .map(ServoCmd::Mark),
+            kw("save").value(ServoCmd::Save),
+            kw("done").value(ServoCmd::Done),
+            kw("clear").value(ServoCmd::Clear),
+        )))
+        .map(|c| Cmd::Servo(c.unwrap_or(ServoCmd::Show)))
+        .parse_next(i)
+    }
+
     fn identity(i: &mut In<'_>) -> R<Cmd> {
         opt(alt((
             kw("csr").value(Enrol::Csr),
@@ -760,6 +819,7 @@ mod grammar {
             )
             .parse_next(i),
             "identity" => command_args("identity", identity).parse_next(i),
+            "servo" => command_args("servo", servo).parse_next(i),
             "setpoint" => command_args("setpoint", setpoint).parse_next(i),
             "wifi" => command_args("wifi", wifi).parse_next(i),
             "mqtt" => command_args("mqtt", mqtt).parse_next(i),
@@ -797,8 +857,8 @@ pub async fn prompt<I: Write>(io: &mut I) {
 }
 
 /// The settings as `config` shows them: passwords are never printed.
-pub fn config_lines(s: &Settings) -> Vec<String<120>, 7> {
-    let mut out: Vec<String<120>, 7> = Vec::new();
+pub fn config_lines(s: &Settings) -> Vec<String<120>, 8> {
+    let mut out: Vec<String<120>, 8> = Vec::new();
     let mut l: String<120> = String::new();
     let _ = match &s.wifi {
         Some(w) => write!(
@@ -827,6 +887,12 @@ pub fn config_lines(s: &Settings) -> Vec<String<120>, 7> {
     let _ = match &s.mqtt_ca {
         Some(ca) => write!(l, "tls      on, pinned CA of {} bytes", ca.len()),
         None => write!(l, "tls      off (plaintext)"),
+    };
+    let _ = out.push(l);
+    let mut l: String<120> = String::new();
+    let _ = match &s.servo {
+        Some(p) => write!(l, "servo    closed {} us, open {} us", p.closed_us, p.open_us),
+        None => write!(l, "servo    nominal (not calibrated)"),
     };
     let _ = out.push(l);
     let mut l: String<120> = String::new();
@@ -934,6 +1000,96 @@ async fn mqtt_ca<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: 
                 replies,
                 Request::MqttCaClear,
                 "pinned CA forgotten; MQTT is plaintext",
+            )
+            .await
+        }
+    }
+}
+
+/// `servo ...`: hold a pulse, mark the stops, save. The jog is applied by the actuator task within a second.
+async fn servo<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: ServoCmd) {
+    let ctl = bus.servo();
+    match c {
+        ServoCmd::Show => {
+            match ctl.cal {
+                Some(p) => {
+                    say(
+                        io,
+                        format_args!("calibrated: closed {} us, open {} us", p.closed_us, p.open_us),
+                    )
+                    .await
+                }
+                None => {
+                    say(
+                        io,
+                        format_args!("not calibrated: the nominal 1000 us closed, 2000 us open"),
+                    )
+                    .await
+                }
+            }
+            match ctl.jog {
+                Some(us) => say(io, format_args!("holding {us} us (servo done lets go)")).await,
+                None => say(io, format_args!("not holding; servo jog <us> starts the bring-up")).await,
+            }
+            let mark = |m: Option<u16>| {
+                m.map_or(String::<12>::new(), |us| {
+                    let mut s = String::new();
+                    let _ = write!(s, "{us} us");
+                    s
+                })
+            };
+            if ctl.closed_mark.is_some() || ctl.open_mark.is_some() {
+                say(
+                    io,
+                    format_args!(
+                        "marked: closed {}, open {}",
+                        mark(ctl.closed_mark).as_str(),
+                        mark(ctl.open_mark).as_str()
+                    ),
+                )
+                .await;
+            }
+        }
+        ServoCmd::Jog(j) => {
+            let us = match j {
+                Jog::To(us) => us,
+                Jog::By(n) => match ctl.jog {
+                    Some(us) => us.saturating_add_signed(n).clamp(*SERVO_US.start(), *SERVO_US.end()),
+                    None => {
+                        say(io, format_args!("error: not holding yet: servo jog <us> first")).await;
+                        return;
+                    }
+                },
+            };
+            let mut done: String<40> = String::new();
+            let _ = write!(done, "holding {us} us");
+            request(io, bus, replies, Request::ServoJog(us), &done).await
+        }
+        ServoCmd::Mark(stop) => {
+            let done = match stop {
+                Stop::Closed => "marked as closed",
+                Stop::Open => "marked as open",
+            };
+            request(io, bus, replies, Request::ServoMark(stop), done).await
+        }
+        ServoCmd::Save => request(io, bus, replies, Request::ServoSave, "saved; the flap uses it now").await,
+        ServoCmd::Done => {
+            request(
+                io,
+                bus,
+                replies,
+                Request::ServoDone,
+                "let go; the flap follows the controller",
+            )
+            .await
+        }
+        ServoCmd::Clear => {
+            request(
+                io,
+                bus,
+                replies,
+                Request::ServoClear,
+                "calibration forgotten; the nominal 1 to 2 ms",
             )
             .await
         }
@@ -1065,6 +1221,7 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
             request(io, bus, replies, Request::Otlp(o), done).await
         }
         Cmd::MqttCa(c) => mqtt_ca(io, bus, replies, c).await,
+        Cmd::Servo(c) => servo(io, bus, replies, c).await,
         Cmd::Identify => request(io, bus, replies, Request::Identify, "blinking for 10 s").await,
         Cmd::Reboot => request(io, bus, replies, Request::Reboot, "rebooting").await,
         Cmd::FactoryReset(false) => {
@@ -1402,6 +1559,38 @@ mod tests {
         }
         e.show(&live);
         assert!(live.wrap(&long).is_some());
+    }
+
+    #[test]
+    fn servo_commands() {
+        let servo = |s: &str| parse(s).unwrap();
+        assert_eq!(servo("servo"), Cmd::Servo(ServoCmd::Show));
+        assert_eq!(servo("servo jog 1500"), Cmd::Servo(ServoCmd::Jog(Jog::To(1500))));
+        assert_eq!(servo("servo jog +25"), Cmd::Servo(ServoCmd::Jog(Jog::By(25))));
+        assert_eq!(servo("servo jog -400"), Cmd::Servo(ServoCmd::Jog(Jog::By(-400))));
+        assert_eq!(servo("servo mark closed"), Cmd::Servo(ServoCmd::Mark(Stop::Closed)));
+        assert_eq!(servo("servo mark open"), Cmd::Servo(ServoCmd::Mark(Stop::Open)));
+        assert_eq!(servo("servo save"), Cmd::Servo(ServoCmd::Save));
+        assert_eq!(servo("servo done"), Cmd::Servo(ServoCmd::Done));
+        assert_eq!(servo("servo clear"), Cmd::Servo(ServoCmd::Clear));
+        // a pulse outside what any hobby servo takes is refused before it reaches the servo
+        for bad in [
+            "servo jog",
+            "servo jog 499",
+            "servo jog 2501",
+            "servo jog 0",
+            "servo jog +",
+            "servo jog +2001",
+            "servo jog soon",
+            "servo mark",
+            "servo mark half",
+            "servo now",
+            "servo save now",
+        ] {
+            assert!(parse(bad).is_err(), "{bad}");
+        }
+        assert_eq!(candidates("servo m").as_slice(), &["mark"]);
+        assert_eq!(candidates("servo mark ").as_slice(), &["closed", "open"]);
     }
 
     #[test]
