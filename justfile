@@ -22,6 +22,10 @@ mqtt-interop:
 tls-interop:
     cd fw/mqtt-interop && cargo test --release --test tls
 
+# The same against Mosquitto in a container (MINIMEATER_CONTAINER, default podman): client certificate required, its name as the user, an ACL by name.
+mosquitto-tls:
+    cd fw/mqtt-interop && cargo test --release --test tls -- --ignored --nocapture
+
 # Has Home Assistant's own MQTT discovery code validate the device-discovery message the firmware publishes.
 ha-discovery-check:
     mkdir -p fw/target/tmp

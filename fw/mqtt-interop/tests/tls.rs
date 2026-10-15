@@ -16,7 +16,7 @@ use minimeater_app::config::{Ca, Mqtt, Settings};
 use minimeater_app::drivers::csr::{self, ToBeSigned};
 use minimeater_app::mqtt::{Buffers, Identity, run};
 use minimeater_app::tasks::{Bus, Reply};
-use minimeater_app::tls::{DigestSigner, NoClock, Prepared, Provider, RECORD, Secure, SignFailed};
+use minimeater_app::tls::{DigestSigner, NoClock, Prepared, Provider, RECORD, Secure, SignFailed, WRITE_RECORD};
 use p256::ecdsa::SigningKey;
 use p256::ecdsa::signature::hazmat::PrehashSigner;
 use rand_core::OsRng;
@@ -299,7 +299,7 @@ fn pki(name: &str) -> Option<Pki> {
             key: soft,
             cert,
             read: vec![0; RECORD],
-            write: vec![0; RECORD],
+            write: vec![0; WRITE_RECORD],
         },
     })
 }
@@ -423,5 +423,115 @@ async fn a_broker_the_pinned_ca_did_not_sign_is_not_spoken_to() {
         peer.wait(|v| v["packet"].is_string(), Duration::from_millis(200))
             .is_none(),
         "the device spoke MQTT to a broker it should not trust"
+    );
+}
+
+/// Mosquitto in a container (`just mosquitto-tls`): a listener that requires a client certificate from the private CA, takes the
+/// certificate's name as the user name, and lets a user write only under `minimeater/<its name>/`. The device's session
+/// connects with its certificate and its status reaches a subscriber on the broker's local plaintext listener.
+#[tokio::test(flavor = "current_thread")]
+#[ignore = "needs a container runtime: run `just mosquitto-tls`"]
+async fn the_session_works_against_mosquitto_with_the_certificate_name_as_the_user() {
+    let runtime = std::env::var("MINIMEATER_CONTAINER").unwrap_or_else(|_| "podman".into());
+    let pki = pki("mosq").expect("openssl");
+    let dir = &pki.dir;
+    std::fs::write(
+        dir.join("mosquitto.conf"),
+        "per_listener_settings true\n\
+         listener 8883\n\
+         cafile /certs/ca.pem\n\
+         certfile /certs/server.pem\n\
+         keyfile /certs/server.key\n\
+         require_certificate true\n\
+         use_identity_as_username true\n\
+         tls_version tlsv1.3\n\
+         allow_anonymous false\n\
+         acl_file /certs/acl\n\
+         listener 1883 127.0.0.1\n\
+         allow_anonymous true\n",
+    )
+    .unwrap();
+    std::fs::write(dir.join("acl"), "pattern readwrite minimeater/%u/#\n").unwrap();
+    for f in ["server.key", "ca.pem", "server.pem", "mosquitto.conf", "acl"] {
+        // (the broker runs as another user inside the container)
+        Command::new("chmod")
+            .args(["644", f])
+            .current_dir(dir)
+            .status()
+            .unwrap();
+    }
+    let port = free_port();
+    let name = format!("mm-tls-mosq-{}", std::process::id());
+    struct Container(String, String);
+    impl Drop for Container {
+        fn drop(&mut self) {
+            let _ = Command::new(&self.0)
+                .args(["rm", "-f", &self.1])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+        }
+    }
+    let _container = Container(runtime.clone(), name.clone());
+    let started = Command::new(&runtime)
+        .args([
+            "run",
+            "-d",
+            "--name",
+            &name,
+            "-p",
+            &format!("127.0.0.1:{port}:8883"),
+            "-v",
+        ])
+        .arg(format!("{}:/certs:ro", dir.display()))
+        .args([
+            "docker.io/library/eclipse-mosquitto:2",
+            "mosquitto",
+            "-c",
+            "/certs/mosquitto.conf",
+        ])
+        .status()
+        .expect("container runtime");
+    assert!(started.success());
+    std::thread::sleep(Duration::from_secs(3));
+
+    // a subscriber on the local listener, started first: it takes the first status message
+    let sub = Command::new(&runtime)
+        .args([
+            "exec",
+            &name,
+            "mosquitto_sub",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            "1883",
+            "-t",
+            "minimeater/mm-it/status",
+            "-C",
+            "1",
+            "-W",
+            "25",
+        ])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("mosquitto_sub");
+    LocalSet::new()
+        .run_until(device(port, &pki.ca_der, pki.tls, Duration::from_secs(8)))
+        .await;
+    let out = sub.wait_with_output().unwrap();
+    let said = String::from_utf8_lossy(&out.stdout);
+    if said.trim() != "online" {
+        let logs = Command::new(&runtime).args(["logs", &name]).output().unwrap();
+        println!(
+            "{}{}",
+            String::from_utf8_lossy(&logs.stdout),
+            String::from_utf8_lossy(&logs.stderr)
+        );
+    }
+    assert_eq!(
+        said.trim(),
+        "online",
+        "the broker accepted the device by its certificate and relayed its status"
     );
 }

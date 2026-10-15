@@ -136,6 +136,7 @@ cd fw && cargo run -p minimeater-fw --release   # build + flash ESP32-C6 over US
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
 just scenarios                         # the 23-scenario suite on the twin: bounds + baselines, PNG per run
 just mqtt-interop                     # the MQTT client against Mosquitto in a container (Apple `container` CLI) and rumqttc
+just mosquitto-tls                     # the same against Mosquitto in a container: certificate name as the user, an ACL by name (podman; MINIMEATER_CONTAINER)
 just tls-interop                       # the MQTT client over TLS 1.3 with a client certificate against a Python TLS peer (needs openssl and uv)
 just ha-discovery-check                # Home Assistant's own code validates the device-discovery message
 just otlp-interop                     # the OTLP exporter against a real OpenTelemetry collector in a container (docs/telemetry.md)

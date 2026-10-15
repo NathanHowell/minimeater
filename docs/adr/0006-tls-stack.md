@@ -31,7 +31,7 @@ C3 and S3 only; nothing found shows an opaque-key callback.
   using a `try_lock` of the shared bus (`minimeat-b5w`).
 - **CPU cost:** the key exchange and the certificate checks are software P-256 on the C6 and block the executor while they run.
   `minimeat-cqv` measures it on a board; if the stall is too long TLS moves to a lower-priority executor than the control loop.
-- **Memory:** two 16,640-byte record buffers (static, shared by connections one at a time) and 2 KiB for the server certificate in the verifier. Wiring it into the MQTT task grew the firmware by about 129 KB of flash (text 796 to 925 KB) and 37 KB of RAM (`.bss` 214 to 250 KB; the stack region left over fell from 128 to 91 KB).
+- **Memory:** a 16,640-byte buffer to read TLS records into and a 4,096-byte one to write them from (static, shared by connections one at a time; a write buffer sized like the read one makes records longer than TLS allows and Mosquitto drops the connection, which `just mosquitto-tls` found) and 2 KiB for the server certificate in the verifier. Wiring it into the MQTT task grew the firmware by about 129 KB of flash (text 796 to 925 KB) and about 25 KB of RAM (`.bss` 214 to about 238 KB; the stack region left over fell by the same).
 - **io versions:** `embedded-tls` uses `embedded-io-async` 0.7, the rest of the app 0.6; `tls::Duplex` and its error bridge
   join them. Move the app to 0.7 when the HAL crates do and drop the bridge.
 - **Certificate dates** use the SNTP wall clock (`net::DeviceClock`). Until SNTP has answered there is no time and the validity dates are not checked; the CA signature, the key proof and the host name still are. A private CA's certificates last years, so a wrong clock failing a good certificate is the bigger risk.

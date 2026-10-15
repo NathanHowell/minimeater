@@ -125,8 +125,8 @@ async fn main(spawner: Spawner) -> ! {
     // TLS for MQTT when a CA is pinned (`mqtt ca`): the device key in the secure element, two record buffers
     static TLS_READ: ConstStaticCell<[u8; minimeater_app::tls::RECORD]> =
         ConstStaticCell::new([0; minimeater_app::tls::RECORD]);
-    static TLS_WRITE: ConstStaticCell<[u8; minimeater_app::tls::RECORD]> =
-        ConstStaticCell::new([0; minimeater_app::tls::RECORD]);
+    static TLS_WRITE: ConstStaticCell<[u8; minimeater_app::tls::WRITE_RECORD]> =
+        ConstStaticCell::new([0; minimeater_app::tls::WRITE_RECORD]);
     let tls = minimeater_fw::tls::Client::new(
         minimeater_fw::tls::DeviceRng,
         rest.secure_element,

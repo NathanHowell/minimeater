@@ -36,8 +36,12 @@ use crate::enrol::Shared;
 
 /// Largest server certificate the verifier keeps while the handshake runs (it checks the signature at the end).
 pub const SERVER_CERT: usize = 2048;
-/// The TLS record buffers a connection needs: the largest record TLS allows (16 KiB and overhead).
+/// The buffer a connection reads TLS records into: the largest record TLS allows (16 KiB and overhead).
 pub const RECORD: usize = 16_640;
+/// The buffer it builds records to send in. A record carries at most 16,384 bytes of data, and a buffer sized for the largest
+/// received record would make records too long for the peer (Mosquitto drops the connection); a smaller one splits a big
+/// publish into several records, which costs little and saves RAM.
+pub const WRITE_RECORD: usize = 4_096;
 
 /// Something that signs a SHA-256 digest with the device key: the ATECC608B on the board, a software key in tests.
 /// `embedded-tls` asks for signatures from non-async code, so this one is too; see `minimeat-b5w` for how the board makes
@@ -122,7 +126,7 @@ impl<R: CryptoRngCore, S: DigestSigner, C: TlsClock> CryptoProvider for Provider
 
 /// What one TLS connection needs, borrowed from the [`Secure`] it comes from.
 pub struct Prepared<'a, P> {
-    /// Record buffers: [`RECORD`] bytes each.
+    /// Record buffers: [`RECORD`] bytes to read into, [`WRITE_RECORD`] to write from.
     pub read: &'a mut [u8],
     pub write: &'a mut [u8],
     pub provider: P,
@@ -143,18 +147,23 @@ pub trait Secure {
 }
 
 /// The device's TLS: random numbers from `Rng`, time from `Clock`, the key in the secure element behind `chip`, the certificate
-/// read from the chip's slot for each connection, and two static record buffers.
+/// read from the chip's slot for each connection, and two static record buffers ([`RECORD`] and [`WRITE_RECORD`] bytes).
 pub struct Client<'a, Rng, Clock, I, T> {
     rng: Rng,
     chip: &'a Shared<I, T>,
     read: &'a mut [u8; RECORD],
-    write: &'a mut [u8; RECORD],
+    write: &'a mut [u8; WRITE_RECORD],
     cert: crate::drivers::cert::Der,
     _clock: core::marker::PhantomData<Clock>,
 }
 
 impl<'a, Rng, Clock, I, T> Client<'a, Rng, Clock, I, T> {
-    pub fn new(rng: Rng, chip: &'a Shared<I, T>, read: &'a mut [u8; RECORD], write: &'a mut [u8; RECORD]) -> Self {
+    pub fn new(
+        rng: Rng,
+        chip: &'a Shared<I, T>,
+        read: &'a mut [u8; RECORD],
+        write: &'a mut [u8; WRITE_RECORD],
+    ) -> Self {
         Self {
             rng,
             chip,
