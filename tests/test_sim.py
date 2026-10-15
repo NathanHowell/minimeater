@@ -93,3 +93,30 @@ def test_hot_plug_leaves_the_tvs_far_under_its_rating():
         h = W.hotplug(W.HotPlug(2e-6, 0.05, caps))
         assert h["tvs_peak"] < 21.7  # SMF5.0A pulse current
         assert h["tvs_energy"] < 1e-3  # J
+
+
+def test_a_half_amp_port_boots_the_board_with_the_loads_gated():
+    from minimeater.sim import rails as R
+
+    r = R.Rails(tx=(5e-3, 0.5e-3, 2), v_src=4.75, r_cable=0.3, i_limit=0.5, l_cable=0, v3=R.V3_LOW, t_stop=8e-3)
+    m = R.metrics(r, R.run(r))
+    assert not m["brownout"] and m["t_3v3"] < 3e-3 and m["v3_min"] > R.V_MCU_MIN
+
+
+def test_the_servo_on_a_half_amp_port_browns_the_board_out():
+    """ADR 0004's 1.5 A rule: the servo's 0.6 A limit and the fan and radio are 1.1 A against 0.5 A."""
+    from minimeater.sim import rails as R
+
+    r = R.Rails(servo="stall", t_servo=6e-3, v_src=4.75, r_cable=0.3, i_limit=0.5, l_cable=0, t_stop=10e-3)
+    m = R.metrics(r, R.run(r))
+    assert m["brownout"] and m["t_end"] < r.t_servo + 1e-3
+
+
+def test_worst_chain_on_a_1p5_a_source_keeps_the_rails_up():
+    from minimeater.sim import rails as R
+
+    r = R.Rails(v_src=4.75, r_cable=0.3, i_limit=1.5, l_cable=0, v3=R.V3_LOW, **R.WORST)
+    m = R.metrics(r, R.run(r))
+    assert not m["brownout"]
+    assert m["v3_min"] > R.V_MCU_MIN + 0.1
+    assert m["vbus_f_min"] > 4.0

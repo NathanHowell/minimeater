@@ -46,4 +46,4 @@ The rail stays above 4.5 V. The source current is 0.9 A for about a millisecond,
 - L1 2.2 uH with 3 x 10 uF at the output is the datasheet's standard LC (Table 4, 10 uF at 2.2 uH, also proven at 22 and 2 x 22 uF); with the DC-bias loss at 3.3 V (about 55 %) and the -50 % tolerance the effective output capacitance is still above the 10 uF row.
 - R3 453k / R4 100k with C7 6.8 pF: 3.32 V, and the 6.8 pF feed-forward is the datasheet's value for R2 = 100k (R2 maximum 200k).
 - Switching 1.5 MHz, high-side current limit 3 A, soft start 800 us, UVLO 2.3-2.45 V falling: the servo turn-on above leaves the rail at 4.5 V, far from UVLO.
-- A load-step simulation would need a vendor model; measure the 3V3 ripple and a Wi-Fi burst at bring-up.
+- There is no vendor model of the buck for ngspice: `rails.md` runs the 5 V and 3V3 transients with a behavioural one (constant-power input, the datasheet's own load-step capture at the output); measure the 3V3 ripple and a Wi-Fi burst at bring-up.
