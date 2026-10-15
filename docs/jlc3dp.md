@@ -63,7 +63,7 @@ The M3 types (hole Ø3.6, a 9.6 mm boss, the same flat) are no better. Use the s
 
 ### The flap is machined, not printed
 
-The disc's edge and its D-bore need ±0.05 mm; the vendors print to ±0.3 mm. The flap is a CNC part in `minimeater-cnc.zip` with the crank and the coupler, and the printed duct's bore at the flap station is reamed to size after printing (Ø32 H7, +0.025/0, about 40 mm: a standard 32 mm machine reamer in a drill press or a lathe; the bore was Ø31.6, which has no stock reamer). Without the ream the gap swings from jammed to a 0.36 cm² leak (`tests/test_mech.py::test_flap_fit_needs_the_bore_reamed`).
+The disc's edge and its D-bore need ±0.05 mm; the vendors print to ±0.3 mm. The flap is a CNC part in `minimeater-cnc.zip` with the crank and the coupler, and the printed duct's bore at the flap station is reamed to size after printing (Ø32 H7, +0.025/0, about 40 mm: a standard 32 mm machine reamer in a drill press or a lathe, fed from the fan's end through the cone and stopped before the neck at x = -25, which is narrower; the bore was Ø31.6, which has no stock reamer). Without the ream the gap swings from jammed to a 0.36 cm² leak (`tests/test_mech.py::test_flap_fit_needs_the_bore_reamed`).
 
 ## JLC3DP's thin-wall heatmap (checked 2026-10-12)
 

@@ -136,7 +136,7 @@ class Damper:
     flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
     ream_tol: float = 0.03  # radial: the duct's bore at the flap station reamed to size; as printed it is +-0.15 (JLC: +-0.3 mm)
     print_bore_tol: float = 0.15
-    bore_d: float = 32.0  # the duct's straight bore, a standard H7 reamer size (Ø32 +0.025/0), reamed at the flap station; the tube's ID (30.83) is 1.17 mm smaller: a 0.585 mm step in at its end face, K ~0.04 on the tube's velocity head (accepted: no room for a taper between the flap's swing and the shoulder)
+    bore_d: float = 32.0  # the duct's straight bore, a standard H7 reamer size (Ø32 +0.025/0), reamed at the flap station; it necks down to the tube's ID before the shoulder (Coupling.neck_len), so it is reamed from the fan's end
     flap_gap: float = 0.15  # radial; closed leak target <= 0.3 cm^2 (.2.3)
     stub_len: float = 3.0
     flap_x: float = -37.5  # shaft axis
@@ -185,6 +185,8 @@ class Linkage:
 @dataclass(frozen=True)
 class Coupling:
     depth: float = 20.0  # socket depth the tube enters
+    neck_len: float = 5.0  # the bore narrows from Damper.bore_d to the tube's ID over this length, ending at the flat shoulder, so the airway runs on flush into the tube
+    seat_relief: float = 0.4  # radial: a ring pit at the shoulder's outer corner, 0.5 deep, so the print's corner round cannot hold the tube's end off the shoulder
     oring_id: float = 34.0  # [est] 34 x 2.5 O-ring, the seal at the joint (.2.5)
     oring_cs: float = 2.5
     groove_depth: float = 1.9  # from the bore wall outward: sets the squeeze on the tube

@@ -158,8 +158,26 @@ def grille_cut():
     for z in GRILLE_ZS:
         s = louvre(z, X_REAR, REAR_T, 80.0, S.grille_slot)
         cut = s if cut is None else cut + s
-    cut = cut & field
+    cut = cut & field & under_chamfer(GRILLE_SKIN)
     return cut - box(X_REAR - 3, G.REAR_IN_X + 3, -50, 50, -S.grille_bar, S.grille_bar)
+
+
+GRILLE_SKIN = 1.2  # the louvres keep this much wall under the rear chamfer: the top slots climbing inward would open through it, upward
+
+
+def under_chamfer(skin):
+    """The space inside the rear face's 45 degree chamfer offset `skin` into the wall, carried on at 45 degrees past it,
+    so a cutter clipped to it never breaks through the chamfer."""
+    secs = sections()
+    x, c = secs[0][0], S.rear_chamfer
+    w1, h1, r1, zc1 = profile(x + c * KS, S.crown, S.peak_r)
+    d = skin * math.sqrt(1 + 1 / KS**2)  # the perpendicular skin, measured across the section
+
+    def sec(xs):
+        g = (xs - x) / KS - c - d  # how far the offset chamfer has grown at xs
+        return Plane.YZ.offset(xs) * Pos(0, zc1) * RectangleRounded(w1 + 2 * g, h1 + 2 * g, r1 + g)
+
+    return loft([sec(x - 3.0), sec(x + c * KS + 8.0)], ruled=True)
 
 
 def vent_cut():
@@ -283,7 +301,11 @@ def rear_lip(clear=0.0):
     `clear` it is the notch cut from the hood. Both faces print nose up."""
     x0 = X_REAR + REAR_T / 2 - clear
     h = LAP + clear
-    return prism_xz([(x0, h), (G.REAR_IN_X + 1.0, h), (G.REAR_IN_X + 1.0, -0.01 - clear), (x0 + h * KS, -0.01 - clear)], -50.0, 50.0)
+    lip = prism_xz([(x0, h), (G.REAR_IN_X + 1.0, h), (G.REAR_IN_X + 1.0, -0.01 - clear), (x0 + h * KS, -0.01 - clear)], -50.0, 50.0)
+    # it stops inside the flanks' inner half, as the tongue does, and under the rear chamfer, so the hood keeps a skirt outside
+    # it at the corners (cut across the whole width it came through the flank and the chamfer)
+    skin = W - S.lip_t - clear
+    return lip & _loft(sections(), skin, x0=X_REAR - 5.0) & under_chamfer(skin)
 
 
 def fan_shims():

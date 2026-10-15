@@ -1,7 +1,7 @@
 """The air inside the duct, as the solver sees it (mm, assembly frame, flow along +x).
 
 The fan's outlet annulus (the frame's bore around the motor hub, the last `FAN_STUB` mm of the fan), the duct's
-contraction cone, the straight bore with the flap and its rod at an angle, and the intake tube from the socket's
+contraction cone, the straight bore with the flap and its rod at an angle, its neck down to the tube's bore, and the intake tube from the socket's
 shoulder on for `tube_d` diameters (so the flow can settle and the loss be read off the developed pressure line).
 The fan's blades and struts are not modelled: the inlet is the annulus, with an optional swirl (case.py).
 """
@@ -44,7 +44,9 @@ def fluid(flap_deg: float, tube_d: float, dm=None):
     s = stations(tube_d)
     air = xcyl(s.r_fan, s.x_in, s.x_fan + 0.01) - xcyl(s.r_hub, s.x_in - 1, s.x_fan)
     air += xcone(s.r_fan, s.r_bore, s.x_fan, s.x_bore)
-    air += xcyl(s.r_bore, s.x_bore - 0.01, s.x_tube)
+    x_neck = s.x_tube - P.coupling.neck_len
+    air += xcyl(s.r_bore, s.x_bore - 0.01, x_neck + 0.01)
+    air += xcone(s.r_bore, s.r_tube, x_neck, s.x_tube + 0.01)
     air += xcyl(s.r_tube, s.x_tube - 0.01, s.x_out)
     air -= about_shaft(flap(dm), flap_deg)
     air -= about_shaft(mock.rod(), flap_deg)

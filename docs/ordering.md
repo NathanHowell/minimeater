@@ -33,7 +33,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP, all three in
 
 ### Tool you may need
 
-- **Ø32 mm H7 machine reamer (+0.025/0), 40 mm or more of flute.** The duct's straight bore is Ø32.0 and is reamed at the flap station after printing; as printed (±0.3 mm) it would jam the flap or leak. Ø32 is a standard size (for example the Hoffmann machine reamer H7 Ø32, [164000-32](https://www.hoffmann-group.com/IE/en/brownlo/p/164000-32)); a plain HSS straight-flute one from an industrial supplier or a general import brand is enough for five nylon ducts, and a fixed reamer costs much less than the adjustable one. Or ask a machine shop to ream or bore the five. See `docs/mech.md` and `docs/jlc3dp.md`.
+- **Ø32 mm H7 machine reamer (+0.025/0), 40 mm or more of flute.** The duct's straight bore is Ø32.0 and is reamed at the flap station after printing, from the fan's end (the bore necks to Ø30.83 at the socket, so the reamer stops short of it at x = -25); as printed (±0.3 mm) it would jam the flap or leak. Ø32 is a standard size (for example the Hoffmann machine reamer H7 Ø32, [164000-32](https://www.hoffmann-group.com/IE/en/brownlo/p/164000-32)); a plain HSS straight-flute one from an industrial supplier or a general import brand is enough for five nylon ducts, and a fixed reamer costs much less than the adjustable one. Or ask a machine shop to ream or bore the five. See `docs/mech.md` and `docs/jlc3dp.md`.
 
 ## 3. Electronics, hand-soldered
 

@@ -280,3 +280,16 @@ def test_the_made_rod_matches_the_assemblys_rod():
     made, mocked = MACHINED["rod"]().bounding_box(), mock.rod().bounding_box()
     assert abs(made.size.X - P.damper.rod_len) < 1e-6 and abs(mocked.size.Z - P.damper.rod_len) < 1e-6
     assert abs(max(made.size.Y, made.size.Z) - P.damper.shaft_d) < 1e-6 and abs(min(made.size.Y, made.size.Z) - P.damper.shaft_flat) < 1e-6
+
+
+def test_the_airway_runs_flush_into_the_tube():
+    """The bore necks down to the tube's ID at the shoulder, and the tube's end face sits on a flat shoulder: no end
+    face meets the flow, and the corner relief keeps the print's corner round from holding the tube off."""
+    from build123d import Vector
+
+    duct, x0, t = A.printed()["duct"], -P.coupling.depth, P.tube
+    solid = lambda x, r: duct.is_inside(Vector(x, 0.0, r))
+    assert solid(x0 - 0.1, t.id / 2 + 0.05) and not solid(x0 - 0.1, t.id / 2 - 0.05)  # the neck ends at the tube's bore
+    assert solid(x0 - 0.1, (t.id + t.od) / 4)  # the shoulder under the tube's wall
+    assert not solid(x0 - 0.2, t.od / 2 - 0.1)  # the relief at its outer corner
+    assert not solid(x0 - P.coupling.neck_len - 0.1, P.damper.bore_d / 2 - 0.05)  # the full bore before the neck

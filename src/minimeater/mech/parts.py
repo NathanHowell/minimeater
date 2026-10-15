@@ -119,16 +119,17 @@ def _socket_r(x, th, amp):
 def _socket_stations():
     c = P.coupling
     step = c.ext_len / 20  # the same spacing all the way, so the loft's spline does not ring between sparse and dense sections
-    n0 = math.ceil((0.5 - g.socket_x0) / step)
-    xs = [-step * i for i in range(n0 + 1)]  # round, from the mouth back past the shoulder
+    n0 = math.ceil(-g.socket_x0 / step - 1e-9)
+    xs = [max(-step * i, g.socket_x0) for i in range(n0 + 1)]  # round, from the mouth back to the shoulder
     xs += [step * i for i in range(1, 20)]  # the transition
-    xs += [c.ext_len - c.lead_len + c.lead_len * i / 4 for i in range(1, 5)]  # the lead
+    n = 2 * math.ceil(c.lead_len / step)
+    xs += [c.ext_len - c.lead_len + c.lead_len * i / n for i in range(1, n + 1)]  # the lead, where the bore opens fastest: twice as dense
     return sorted(set(round(x, 6) for x in xs))
 
 
 def socket_loft(extra=0.0, x0=None):
     """The socket's bore offset outward by `extra` (0: the bore; the wall's thickness: the extension's outside), lofted through
-    sections from `x0` (default: behind the shoulder) to the mouth."""
+    sections from `x0` (default: the shoulder) to the mouth."""
     n = 16 * P.coupling.lobes
     wires = []
     xs = _socket_stations() if x0 is None else [x0] + [x for x in _socket_stations() if x > x0]
@@ -229,9 +230,11 @@ def duct():
 
     # the airway and the features cut into the walls
     body -= xcone(P.fan.aperture_d / 2, br, g.fan_face_x - 0.1, g.straight_x0)
-    body -= xcyl(br, g.straight_x0 - 0.01, g.socket_x0 + 0.01)
-    body -= socket_loft()
-    body -= xcone(br, sock_r() + 0.01, g.socket_x0 - (sock_r() - br) * k, g.socket_x0 + 0.01)  # the shoulder, 44 deg
+    x_neck = g.socket_x0 - c.neck_len
+    body -= xcyl(br, g.straight_x0 - 0.01, x_neck + 0.01)
+    body -= xcone(br, P.tube.id / 2, x_neck, g.socket_x0 + 0.01)  # the neck down to the tube's bore
+    body -= socket_loft()  # it stops at the flat shoulder the tube's end face sits on
+    body -= xcyl(sock_r(), g.socket_x0 - 0.5, g.socket_x0 + 0.01) - xcyl(P.tube.od / 2 - c.seat_relief, g.socket_x0 - 1, g.socket_x0 + 1)  # the seat's corner relief
     body -= xcyl(groove_r(), c.oring_x - 1.6, c.oring_x + 1.6)
     body -= zcyl(1.7, -dr + 1.2, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom: a 1.2 mm skin
     for sy in (-1, 1):

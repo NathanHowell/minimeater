@@ -30,7 +30,7 @@ Companion to `docs/ordering.md` (what and how many). Researched 2026-10-12 from 
    - **Cut and mill it yourself:** Misumi's 3 mm SUS440C straight shaft is sold cut to length (100 mm and up), then mill the flat.
    - Pololu's "3 mm D-shaft" category is wheels and collets; it does not sell the shaft.
 2. **Silicone port caps.** The jacks are open Ø5 holes beside the housings, so the usual 3.5 mm and USB-C dust plugs only partly fit. USB-C: PortPlugs (a 5-pack with matching 3.5 mm plugs was listed at Newegg), and silicone USB-C cover inserts from Adafruit, Element14 and others. Jacks: a generic Ø5 silicone flanged plug (McMaster's tapered or flanged silicone plugs) is the likely fit; the 3.5 mm plugs are probably too small. Buy samples and measure on the first print; the bay's end walls no longer have tether holes.
-3. **Ø32 H7 reamer.** The reamer the order list points to (Hoffmann 164000-32) is a Morse-taper machine reamer around CHF 200; a Somta 32 mm is $300 and was sold out. Five nylon ducts do not justify that: get a local machine shop to ream five bores to Ø32 H7 at the flap station, or buy the reamer for a hand-feed on a drill press only if you will reuse it.
+3. **Ø32 H7 reamer.** The reamer the order list points to (Hoffmann 164000-32) is a Morse-taper machine reamer around CHF 200; a Somta 32 mm is $300 and was sold out. Five nylon ducts do not justify that: get a local machine shop to ream five bores to Ø32 H7 at the flap station (from the fan's end; the bore necks narrower at the socket), or buy the reamer for a hand-feed on a drill press only if you will reuse it.
 4. **Clear Ø1.75 filament for the light pipe.** A few centimetres of clear PETG or PLA filament from any filament seller or Amazon.
 
 ## Order plan

@@ -59,7 +59,7 @@ def write_packages(out: Path):
     package(out / "3dprint", "minimeater-3dprint.zip", readme("minimeater printed parts (print pose; mm)", list(PRINT_NOTES.items()), [
         "Material: MJF PA12S-HP (black nylon), all three parts; see docs/jlc3dp.md. No threaded inserts: all screws go",
         "straight into the plastic. Shell walls are 2.8 mm, the duct's 2.2-2.4. Ream the duct's bore at the flap station (x = -37.5, Ø32 H7 +0.025/0,",
-        "about 40 mm of it) after printing: the machined flap's gap to it is 0.15 mm.",
+        "about 40 mm of it) after printing, from the fan's end; stop the tip at x = -25, where the bore necks to the tube's Ø30.83: the machined flap's gap to it is 0.15 mm.",
     ]))
     package(out / "cnc", "minimeater-cnc.zip", readme("minimeater machined parts (mm)", list(CNC_NOTES.items()), [
         "<part>.pdf beside <part>.step: the drawing with the threads (M2 x 0.4-6H, tap drill Ø1.6), the D-bores and their tolerances.",

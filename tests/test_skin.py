@@ -173,3 +173,16 @@ def test_reset_hole_and_louvres_open_the_floor_under_the_parts(shells):
     # the floor is otherwise closed beside them
     solid = box(P.shell.vent_slots[0][0] + 0.1, P.shell.vent_slots[0][1] - 0.1, p.sensor[1] - 0.5, p.sensor[1] + 0.5, G.BELLY_Z + 1.1, G.FLOOR_Z - 0.2)  # the rib between the slots
     assert A.overlap(solid, pan) > 0.5 * solid.volume
+
+
+def test_the_louvres_stay_under_the_rear_chamfer():
+    """Climbing inward, the top slots would open through the chamfer over the grille, an upward face rain runs into."""
+    assert (K.grille_cut() - K.under_chamfer(K.GRILLE_SKIN - 0.01)).volume < 1e-6
+
+
+def test_the_rear_lip_stays_inside_the_skin():
+    """The pan's rear lip and the hood's notch for it stop inside the flanks' inner half and under the rear chamfer:
+    cut across the whole width they came out through the corners, a tab in a gap on the outside."""
+    skin = K.W - K.S.lip_t - 0.2 - 0.01
+    keep = K._loft(K.sections(), skin, x0=K.X_REAR - 5.0) & K.under_chamfer(skin)
+    assert not (K.rear_lip(0.2) - keep).volume > 1e-6
