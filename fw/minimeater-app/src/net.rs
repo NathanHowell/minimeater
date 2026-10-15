@@ -29,6 +29,21 @@ pub trait Connector {
     async fn connect<'a>(&'a mut self, host: &str, port: u16) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()>;
 }
 
+/// How a server hears from its clients (the HTTP status endpoint, `minimeat-g7r`): embassy-net's `accept` on the
+/// ESP32-C6, an in-memory pipe in the twin. One connection at a time; the halves borrow the listener, so a connection
+/// has ended (and its socket is free again) before the next `accept`.
+#[allow(async_fn_in_trait, reason = "single-threaded embassy executor; no Send bound wanted")]
+pub trait Listener {
+    type Reader<'a>: Read
+    where
+        Self: 'a;
+    type Writer<'a>: Write
+    where
+        Self: 'a;
+    /// Waits for a client and splits its connection. `Err` when the network cannot take one now.
+    async fn accept<'a>(&'a mut self) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()>;
+}
+
 /// Waits between attempts to reach the network or a server: 1, 2, 4, 8, 16, 30, then 60 s, until it works again.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Backoff {

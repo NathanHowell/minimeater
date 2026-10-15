@@ -58,6 +58,8 @@ Error codes:
 
 ## `~/state`
 
+The same object is served by `GET /status` on the device's read-only HTTP endpoint (`docs/icd.md`).
+
 ```json
 {
   "v": 1,

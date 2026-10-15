@@ -61,6 +61,18 @@ pub struct Link {
     down: Signal<M, ()>,
     inject: Channel<M, Inject, 8>,
     log: std::sync::Mutex<Vec<(f64, Seen)>>,
+    http: Http,
+}
+
+/// The status endpoint's end of the network: a client arrives with its whole request (`Action::Http`), the server
+/// answers into a pipe, and the answer is kept once the server is ready for the next one.
+struct Http {
+    to_server: Pipe<M, PIPE>,
+    from_server: Pipe<M, PIPE>,
+    dial: Signal<M, &'static str>,
+    /// The request being served and when it came.
+    current: std::sync::Mutex<Option<(f64, &'static str)>>,
+    done: std::sync::Mutex<Vec<(f64, String, Vec<u8>)>>,
 }
 
 impl Link {
@@ -73,7 +85,25 @@ impl Link {
             down: Signal::new(),
             inject: Channel::new(),
             log: std::sync::Mutex::new(Vec::new()),
+            http: Http {
+                to_server: Pipe::new(),
+                from_server: Pipe::new(),
+                dial: Signal::new(),
+                current: std::sync::Mutex::new(None),
+                done: std::sync::Mutex::new(Vec::new()),
+            },
         }
+    }
+
+    /// A client sends `request` (the raw bytes of a whole HTTP request) to the status endpoint. A client that arrives
+    /// while another is being served replaces it, so scenarios space their requests.
+    pub fn http(&self, request: &'static str) {
+        self.http.dial.signal(request);
+    }
+
+    /// The requests the endpoint served: when, what was sent, and the whole answer.
+    pub fn take_http(&self) -> Vec<(f64, String, Vec<u8>)> {
+        std::mem::take(&mut *self.http.done.lock().unwrap())
     }
 
     /// The broker goes silent and refuses connections (`false`), or is back.
@@ -125,6 +155,35 @@ impl Connector for TwinConn {
         l.b2c.clear();
         l.dial.signal(());
         Ok((&l.b2c, &l.c2b))
+    }
+}
+
+/// The status endpoint's listener: what `minimeater_app::http::run` accepts on.
+pub struct TwinListener(pub &'static Link);
+
+impl minimeater_app::net::Listener for TwinListener {
+    type Reader<'a> = &'static Pipe<M, PIPE>;
+    type Writer<'a> = &'static Pipe<M, PIPE>;
+
+    async fn accept<'a>(&'a mut self) -> Result<(Self::Reader<'a>, Self::Writer<'a>), ()> {
+        let h = &self.0.http;
+        // the last client is done: whatever the server wrote is its answer
+        if let Some((t, req)) = h.current.lock().unwrap().take() {
+            let mut answer = Vec::new();
+            let mut b = [0u8; 256];
+            while let Ok(n) = h.from_server.try_read(&mut b) {
+                answer.extend_from_slice(&b[..n]);
+            }
+            h.done.lock().unwrap().push((t, req.to_string(), answer));
+        }
+        let req = h.dial.wait().await;
+        h.to_server.clear();
+        h.from_server.clear();
+        let _ = h.to_server.try_write(req.as_bytes());
+        *h.current.lock().unwrap() = Some((clock::now() as f64 / clock::TICK_HZ as f64, req));
+        // SAFETY of the lifetime: the link is leaked for the whole run
+        let l: &'static Link = self.0;
+        Ok((&l.http.to_server, &l.http.from_server))
     }
 }
 

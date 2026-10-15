@@ -73,7 +73,7 @@ pub fn init(
     let controller = WifiController::new(wifi, ControllerConfig::default()).expect("wifi controller");
     let mut dhcp = DhcpConfig::default();
     dhcp.hostname = String::try_from(hostname).ok();
-    static RESOURCES: StaticCell<StackResources<8>> = StaticCell::new();
+    static RESOURCES: StaticCell<StackResources<9>> = StaticCell::new();
     let (stack, runner) = embassy_net::new(
         Interface::station(),
         Config::dhcpv4(dhcp),
@@ -415,6 +415,23 @@ impl Connector for Tcp {
         self.socket.abort();
         let _ = self.socket.flush().await;
         self.socket.connect((addr, port)).await.map_err(|_| ())?;
+        let (r, w) = self.socket.split();
+        Ok((Reader(r), Writer(w)))
+    }
+}
+
+impl minimeater_app::net::Listener for Tcp {
+    type Reader<'a> = Reader<'a>;
+    type Writer<'a> = Writer<'a>;
+
+    async fn accept<'a>(&'a mut self) -> Result<(Reader<'a>, Writer<'a>), ()> {
+        if !online() {
+            return Err(());
+        }
+        // the last client is done (or gone): close its connection and listen again on the same socket
+        self.socket.abort();
+        let _ = self.socket.flush().await;
+        self.socket.accept(minimeater_app::http::PORT).await.map_err(|_| ())?;
         let (r, w) = self.socket.split();
         Ok((Reader(r), Writer(w)))
     }

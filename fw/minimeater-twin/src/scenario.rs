@@ -47,6 +47,8 @@ pub enum Action {
         topic: &'static str,
         payload: &'static str,
     },
+    /// A client sends this raw HTTP request to the status endpoint; the answer is in `Report::http`.
+    Http(&'static str),
 }
 
 impl Action {
@@ -66,6 +68,7 @@ impl Action {
             Action::Button(pressed) => w.set_button(pressed),
             Action::Publish(m) => link.inject(m),
             Action::Broker(up) => link.set_up(up),
+            Action::Http(req) => link.http(req),
             Action::Mqtt { id, topic, payload } => {
                 // a message that does not parse is answered at once, as the client would
                 match proto::parse(topic, payload.as_bytes(), false) {

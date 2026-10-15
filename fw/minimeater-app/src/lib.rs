@@ -10,6 +10,7 @@ pub mod drive;
 pub mod drivers;
 pub mod food;
 pub mod hal;
+pub mod http;
 pub mod improv;
 pub mod mdns;
 pub mod mqtt;

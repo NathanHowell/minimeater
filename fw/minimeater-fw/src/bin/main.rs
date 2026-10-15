@@ -123,6 +123,9 @@ async fn main(spawner: Spawner) -> ! {
         ConstStaticCell::new(minimeater_app::otlp::Buffers::new());
     spawner.spawn(mqtt(tcp!(stack), id, bus, MQTT_BUFS.take()).expect("mqtt task"));
     spawner.spawn(otlp(tcp!(stack), id, bus, OTLP_BUFS.take()).expect("otlp task"));
+    static HTTP_BUFS: ConstStaticCell<minimeater_app::http::Buffers> =
+        ConstStaticCell::new(minimeater_app::http::Buffers::new());
+    spawner.spawn(http(tcp!(stack), id, bus, HTTP_BUFS.take()).expect("http task"));
     spawner.spawn(control(io.watchdog, io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
@@ -240,6 +243,17 @@ async fn otlp(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static 
     };
     let heap_free = || Some(esp_alloc::HEAP.free() as u32);
     minimeater_app::otlp::run(&mut tcp, &who, bus, bufs, &net::unix_ns, &net::rssi, &heap_free).await
+}
+
+#[embassy_executor::task]
+async fn http(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static mut minimeater_app::http::Buffers) {
+    let who = Identity {
+        prefix: "minimeater",
+        id,
+        sw: env!("CARGO_PKG_VERSION"),
+        hw: "A",
+    };
+    minimeater_app::http::run(&mut tcp, &who, bus, &net::rssi, bufs).await
 }
 
 /// The `reboot` request (MQTT, Home Assistant's button, the serial REPL): the settings are saved as they change, so
