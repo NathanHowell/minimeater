@@ -27,6 +27,9 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 - Probes in use: ThermoWorks Pro-Series and generic imports (about 100 k at 25 C) and legacy Maverick ET-732 (about 1 M at 25 C).
 - TI ADS122C04 on I2C (same bus as the ambient sensor) with per-jack dividers. There is no K-type input in this revision (ADR 0002, amended).
 - Ambient (outside air) sensor TMP117 on I2C, on the board's underside in a vented well, isolated from the duct air.
+  - It reads a little of the board's heat, so the published `amb` is compensated: air = (raw - k * board) / (1 - k), with the board temperature from the ADC's die and k = 0.1 `[est]` (`ambient::SELF_HEAT`; the bench measures it, `minimeat-bxw`). The correction is bounded to 5 C. The twin's sensor picks up 0.12 of a 35 C board's excess, and the compensated reading lands within 0.5 C of the air (`tests/probes.rs`).
+  - Over-temperature: `board_hot` is raised by the hotter of the ADC die and this sensor (80 C, clearing at 75 C).
+  - Feedforward: the reading sets the airflow map's ambient (rebuilt when it moves 2 C). The suite's `*-blind` scenarios run the same cooks with the sensor dead from the start (the 20 C fallback); the difference was inside the noise, see `docs/feedforward.md`.
 - Accuracy: +/-2 F at ambient and at boiling (`.4.7`).
 
 ## Actuators

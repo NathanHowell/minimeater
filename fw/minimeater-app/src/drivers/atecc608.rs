@@ -227,7 +227,7 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
     pub async fn read_config(&mut self) -> Result<[u8; CONFIG_LEN], Error> {
         self.session(async |s| {
             let mut all = [0u8; CONFIG_LEN];
-            for (block, chunk) in all.chunks_exact_mut(32).enumerate() {
+            for (block, chunk) in all.as_chunks_mut::<32>().0.iter_mut().enumerate() {
                 let mut out = [0u8; 32];
                 let n = s
                     .command(OP_READ, READ_CONFIG_32, (block as u16) << 3, &[], &mut out)
@@ -235,7 +235,7 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
                 if n != 32 {
                     return Err(Error::Crc);
                 }
-                chunk.copy_from_slice(&out);
+                *chunk = out;
             }
             Ok(all)
         })
@@ -245,7 +245,7 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
     /// Writes four bytes of the configuration zone at byte `offset` (a multiple of 4, from 16 on, and not the word that
     /// holds the lock bytes). The chip refuses once the configuration is locked.
     pub async fn write_config(&mut self, offset: usize, word: [u8; 4]) -> Result<(), Error> {
-        if !CONFIG_WRITABLE.contains(&offset) || offset % 4 != 0 || offset == 84 {
+        if !CONFIG_WRITABLE.contains(&offset) || !offset.is_multiple_of(4) || offset == 84 {
             return Err(Error::Status(0x03)); // as the chip would answer a bad address
         }
         self.session(async |s| {

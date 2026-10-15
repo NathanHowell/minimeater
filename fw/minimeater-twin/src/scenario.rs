@@ -119,7 +119,7 @@ const H: f64 = 3600.0;
 
 impl Scenario {
     /// Every scenario of the suite (`.4.16.3`), by name.
-    pub const NAMES: [&'static str; 20] = [
+    pub const NAMES: [&'static str; 23] = [
         "kamado-brisket",
         "kamado-hold",
         "chili-150",
@@ -140,6 +140,9 @@ impl Scenario {
         "stall-notify",
         "stall-wrap",
         "stall-bump",
+        "hot-fast-325-blind",
+        "cold-front-blind",
+        "hot-day-blind",
     ];
 
     pub fn named(name: &str) -> Option<Self> {
@@ -164,6 +167,9 @@ impl Scenario {
             "stall-notify" => Self::stall("stall-notify", StallPolicy::Notify),
             "stall-wrap" => Self::stall("stall-wrap", StallPolicy::Wrap),
             "stall-bump" => Self::stall("stall-bump", StallPolicy::Bump),
+            "hot-fast-325-blind" => Self::blind(Self::hot_fast_325(), "hot-fast-325-blind"),
+            "cold-front-blind" => Self::blind(Self::cold_front(), "cold-front-blind"),
+            "hot-day-blind" => Self::blind(Self::hot_day(), "hot-day-blind"),
             _ => return None,
         })
     }
@@ -434,6 +440,20 @@ impl Scenario {
         sc.faults(2.0 * H + 1200.0, Faults::default());
         sc.holds = vec![(1.5 * H, 2.0 * H), (4.0 * H, 5.0 * H)];
         sc
+    }
+
+    /// `base` with the ambient sensor dead from the start, so the controller plans with the 20C fallback: what the
+    /// outside-air feedforward is worth is the difference between the two runs.
+    fn blind(mut base: Self, name: &'static str) -> Self {
+        base.name = name;
+        base.faults(
+            0.0,
+            Faults {
+                ambient_nack: true,
+                ..Faults::default()
+            },
+        );
+        base
     }
 
     /// The ambient sensor silent for an hour at 2 h.

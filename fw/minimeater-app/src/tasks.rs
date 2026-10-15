@@ -39,6 +39,7 @@ use minimeater_core::model::airflow::{Actuation, AirPath, AirflowMap};
 use minimeater_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
+use crate::ambient::compensate;
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
 use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
@@ -54,7 +55,7 @@ pub(crate) type M = CriticalSectionRawMutex;
 /// (the twin's harness).
 pub const READERS: usize = 3;
 
-/// ADC die temperature that raises `board_hot`, and the temperature it must fall to to clear, C.
+/// Board temperature (the ADC's die, or the ambient sensor on the underside) that raises `board_hot`, and the temperature it must fall to to clear, C.
 const BOARD_HOT_C: (f64, f64) = (80.0, 75.0);
 /// The scanner starts a pass at least this often, ms (ADR 0002: four jacks at 0.4 s each). A pass
 /// on the real ADC takes longer, so it runs back to back there.
@@ -383,11 +384,13 @@ pub async fn control<B: Board>(
         } else {
             warn!("actuator task silent: watchdog not fed");
         }
-        let ambient_c = ambient.read_c().await.ok();
-        bus.fault(FaultCode::Ambient, ambient_c.is_none());
-        let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
+        let raw_c = ambient.read_c().await.ok();
+        bus.fault(FaultCode::Ambient, raw_c.is_none());
         // a scanner that has stopped is an ADC that is not answering
         let snap = bus.snapshot();
+        // the sensor is on the board and reads some of its heat
+        let ambient_c = raw_c.map(|c| compensate(c, snap.die_c));
+        let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
         let sense = if snap.passes == last_pass {
             [Sense::Fault; PROBE_JACKS]
         } else {
@@ -395,7 +398,8 @@ pub async fn control<B: Board>(
         };
         last_pass = snap.passes;
         bus.fault(FaultCode::Adc, sense.iter().all(|s| matches!(s, Sense::Fault)));
-        if let Some(c) = snap.die_c {
+        // the board's temperature is the hotter of the ADC's die and the ambient sensor on the underside
+        if let Some(c) = snap.die_c.into_iter().chain(raw_c).reduce(f64::max) {
             let hot = bus.faults.lock(Cell::get).contains(FaultCode::BoardHot);
             bus.fault(FaultCode::BoardHot, c >= BOARD_HOT_C.0 || (hot && c > BOARD_HOT_C.1));
         }

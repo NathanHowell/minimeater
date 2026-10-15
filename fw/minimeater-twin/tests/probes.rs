@@ -67,6 +67,12 @@ fn jacks_report_their_state_and_the_power_up_check_flags_a_wrong_type() {
     );
     assert!(late.temps[2].is_some_and(|t| (t - 68.0).abs() < 3.0));
     assert!(late.adc_die_c.is_some());
+    // the sensor reads 1.8C high from the 35C board; compensated, the air (20C) is within half a degree
+    assert!(
+        late.ambient_c.is_some_and(|c| (c - 20.0).abs() < 0.5),
+        "{:?}",
+        late.ambient_c
+    );
 
     let rung: Vec<_> = r
         .events

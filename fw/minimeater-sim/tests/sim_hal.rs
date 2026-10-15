@@ -51,7 +51,8 @@ fn survey_reads_the_plant_through_the_app() {
     assert!((probe_f(r.jacks[1], Preset::MaverickEt732) - w.borrow().plant.meats[0].unwrap().core_f()).abs() < 1e-6);
     assert_eq!(r.jacks[2], Ok(Jack::Open));
     assert_eq!(r.jacks[3], Ok(Jack::Short));
-    assert!((r.ambient_c.unwrap() - 20.0).abs() < 1e-9);
+    // the survey is the sensor's own reading: 20C air plus its share of the 35C board's heat
+    assert!((r.ambient_c.unwrap() - 21.8).abs() < 1e-9);
     assert_eq!(r.usb_ma, Some(3000));
 }
 

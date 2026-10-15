@@ -296,13 +296,18 @@ impl ProbeAdc for SimProbes<'_> {
     }
 }
 
+/// What the simulated sensor picks up of the board's excess over the air.
+const SENSOR_SELF_HEAT: f64 = 0.12;
+
 impl AmbientSensor for SimAmbient<'_> {
     async fn read_c(&mut self) -> Result<f64, HalError> {
         let w = self.0.borrow();
         if w.faults.ambient_nack {
             return Err(HalError::Bus);
         }
-        Ok(w.env.ambient.t_k - 273.15)
+        // the board's heat on the sensor, a little more than the firmware assumes (`minimeater_app::ambient::SELF_HEAT`)
+        let air = w.env.ambient.t_k - 273.15;
+        Ok(air + SENSOR_SELF_HEAT * (w.board_c - air))
     }
 }
 

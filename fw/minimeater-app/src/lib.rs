@@ -4,6 +4,7 @@
 #![cfg_attr(not(test), no_std)]
 
 pub mod alarms;
+pub mod ambient;
 pub mod config;
 pub mod drive;
 pub mod drivers;

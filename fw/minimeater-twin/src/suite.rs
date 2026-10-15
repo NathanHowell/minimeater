@@ -149,6 +149,16 @@ impl Expect {
                 forbids: &["fire_low", "fire_out"],
                 ..r
             },
+            // the same cooks with no outside-air reading (the 20C fallback); the fault is the sensor's, and the cook must
+            // still meet the bounds of its sighted twin
+            n if n.ends_with("-blind") => {
+                let sighted = Self::of(n.trim_end_matches("-blind"))?;
+                Expect {
+                    requires: &["fault"],
+                    forbids: &["fire_low", "fire_out"],
+                    ..sighted
+                }
+            }
             _ => return None,
         })
     }

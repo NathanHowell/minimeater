@@ -149,7 +149,7 @@ Error codes:
 
 | Code | Meaning |
 |---|---|
-| `board_hot` | board above 80C: the device keeps running and warns |
+| `board_hot` | board above 80C (the ADC die or the ambient sensor): the device keeps running and warns |
 | `pit_probe` | the selected pit probe isn't `ok` |
 | `fan_stall` | duty above 30 % but tach reads 0 |
 | `adc` | ADS122C04 not responding |
