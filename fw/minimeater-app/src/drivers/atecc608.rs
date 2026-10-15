@@ -23,6 +23,8 @@ const WORD_SLEEP: u8 = 0x01;
 const WORD_COMMAND: u8 = 0x03;
 
 const OP_READ: u8 = 0x02;
+const OP_WRITE: u8 = 0x12;
+const OP_LOCK: u8 = 0x17;
 const OP_NONCE: u8 = 0x16;
 const OP_RANDOM: u8 = 0x1B;
 const OP_INFO: u8 = 0x30;
@@ -37,6 +39,14 @@ const NONCE_PASS_THROUGH: u8 = 0x03;
 const SIGN_EXTERNAL: u8 = 0x80;
 /// Read: configuration zone, 32 bytes.
 const READ_CONFIG_32: u8 = 0x80;
+/// Write: configuration zone, 4 bytes (the zone is bits 1:0 of the mode, 0 for configuration).
+const WRITE_CONFIG_4: u8 = 0x00;
+/// Lock modes with the zone's CRC checked: 0 the configuration zone, 1 the data and OTP zones together.
+const LOCK_CONFIG: u8 = 0x00;
+const LOCK_DATA: u8 = 0x01;
+/// The configuration zone is 128 bytes; bytes 0-15 (serial number, revision) are fixed, and the lock bytes are 86 and 87.
+pub const CONFIG_LEN: usize = 128;
+const CONFIG_WRITABLE: core::ops::Range<usize> = 16..128;
 
 /// A command that has not answered after this long has failed; the slowest (GenKey, Sign) take
 /// under 120 ms.
@@ -209,6 +219,61 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
             let mut out = [0u8; 32];
             let n = s.command(OP_READ, READ_CONFIG_32, block << 3, &[], &mut out).await?;
             (n == 32).then_some(out).ok_or(Error::Crc)
+        })
+        .await
+    }
+
+    /// All 128 bytes of the configuration zone.
+    pub async fn read_config(&mut self) -> Result<[u8; CONFIG_LEN], Error> {
+        self.session(async |s| {
+            let mut all = [0u8; CONFIG_LEN];
+            for (block, chunk) in all.chunks_exact_mut(32).enumerate() {
+                let mut out = [0u8; 32];
+                let n = s
+                    .command(OP_READ, READ_CONFIG_32, (block as u16) << 3, &[], &mut out)
+                    .await?;
+                if n != 32 {
+                    return Err(Error::Crc);
+                }
+                chunk.copy_from_slice(&out);
+            }
+            Ok(all)
+        })
+        .await
+    }
+
+    /// Writes four bytes of the configuration zone at byte `offset` (a multiple of 4, from 16 on, and not the word that
+    /// holds the lock bytes). The chip refuses once the configuration is locked.
+    pub async fn write_config(&mut self, offset: usize, word: [u8; 4]) -> Result<(), Error> {
+        if !CONFIG_WRITABLE.contains(&offset) || offset % 4 != 0 || offset == 84 {
+            return Err(Error::Status(0x03)); // as the chip would answer a bad address
+        }
+        self.session(async |s| {
+            let mut none = [0u8; 0];
+            s.command(OP_WRITE, WRITE_CONFIG_4, (offset / 4) as u16, &word, &mut none)
+                .await
+                .map(drop)
+        })
+        .await
+    }
+
+    /// Locks the configuration zone, one way: `crc` is the CRC-16 of the 128 bytes it must hold ([`crc16`]), and the chip
+    /// refuses if its contents differ. Slot and key configuration cannot be changed afterwards.
+    pub async fn lock_config(&mut self, crc: u16) -> Result<(), Error> {
+        self.lock(LOCK_CONFIG, crc).await
+    }
+
+    /// Locks the data and OTP zones, one way, after the configuration is locked: `crc` is the CRC-16 of their contents
+    /// (slots 0 to 15 in order, then OTP) as written. Keys made by GenKey before this stay; slots can no longer be written
+    /// except as their configuration allows.
+    pub async fn lock_data(&mut self, crc: u16) -> Result<(), Error> {
+        self.lock(LOCK_DATA, crc).await
+    }
+
+    async fn lock(&mut self, mode: u8, crc: u16) -> Result<(), Error> {
+        self.session(async |s| {
+            let mut none = [0u8; 0];
+            s.command(OP_LOCK, mode, crc, &[], &mut none).await.map(drop)
         })
         .await
     }
@@ -445,6 +510,51 @@ mod tests {
         assert_eq!(nonce[6..38], digest);
         assert_eq!(a.i2c.commands[1][2..6], [OP_SIGN, 0x80, 0, 0]);
         assert_eq!(a.i2c.sleeps, 1, "one session for both commands");
+    }
+
+    #[test]
+    fn config_is_read_in_four_blocks_in_one_session() {
+        let blocks: Vec<Vec<u8>> = (0..4u8).map(|b| (0..32).map(|i| b * 32 + i).collect()).collect();
+        let mut a = chip(&[&blocks[0], &blocks[1], &blocks[2], &blocks[3]]);
+        let cfg = block_on(a.read_config()).unwrap();
+        assert_eq!(cfg.to_vec(), (0..128).collect::<Vec<u8>>());
+        let words: Vec<u8> = a.i2c.commands.iter().map(|c| c[4]).collect();
+        assert_eq!(words, [0, 8, 16, 24], "block n is word address n << 3");
+        assert!(a.i2c.commands.iter().all(|c| c[2..4] == [OP_READ, 0x80]));
+        assert_eq!((a.i2c.wakes, a.i2c.sleeps), (1, 1));
+    }
+
+    #[test]
+    fn config_words_go_to_their_word_address() {
+        let mut a = chip(&[&[0x00], &[0x00]]);
+        block_on(a.write_config(20, [0x8F, 0x20, 0xC4, 0x8F])).unwrap();
+        block_on(a.write_config(96, [1, 2, 3, 4])).unwrap();
+        let c = &a.i2c.commands[0];
+        assert_eq!(c[1], 7 + 4);
+        assert_eq!(c[2..6], [OP_WRITE, 0x00, 5, 0], "byte 20 is word 5");
+        assert_eq!(c[6..10], [0x8F, 0x20, 0xC4, 0x8F]);
+        assert_eq!(a.i2c.commands[1][4], 24, "byte 96 is word 24");
+    }
+
+    #[test]
+    fn config_writes_refuse_the_fixed_and_lock_bytes_before_touching_the_bus() {
+        let mut a = chip(&[]);
+        for offset in [0, 12, 15, 18, 84, 128, 200] {
+            assert!(block_on(a.write_config(offset, [0; 4])).is_err(), "{offset}");
+        }
+        assert_eq!(a.i2c.wakes, 0);
+    }
+
+    #[test]
+    fn locks_carry_the_crc_of_what_they_lock() {
+        let mut a = chip(&[&[0x00], &[0x00]]);
+        block_on(a.lock_config(0xBEEF)).unwrap();
+        block_on(a.lock_data(0x1234)).unwrap();
+        assert_eq!(a.i2c.commands[0][2..6], [OP_LOCK, 0x00, 0xEF, 0xBE]);
+        assert_eq!(a.i2c.commands[1][2..6], [OP_LOCK, 0x01, 0x34, 0x12]);
+        // a chip that finds a different CRC says so with its miscompare status, and the lock stays off
+        let mut b = chip(&[&[0x01]]);
+        assert_eq!(block_on(b.lock_config(0)), Err(Error::Status(0x01)));
     }
 
     #[test]

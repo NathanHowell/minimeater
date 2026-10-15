@@ -89,7 +89,7 @@ ci-fw:
     cd fw && cargo test --workspace --exclude minimeater-fw --release
     cd fw && cargo fw-build
 
-# KiCad: ERC and DRC on the project, and the fab outputs, once hw/ has one (`.3.1`); nothing to check before that.
+# KiCad: ERC and DRC on the project. kicad-cli from the PATH, else the kicad container under podman (MINIMEATER_KICAD_IMAGE).
 ci-hw:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -97,8 +97,19 @@ ci-hw:
     if [ -z "$pro" ]; then echo "hw: no KiCad project yet, skipped"; exit 0; fi
     base=${pro%.kicad_pro}
     mkdir -p build/hw
-    kicad-cli sch erc --exit-code-violations --output build/hw/erc.rpt "$base.kicad_sch"
-    kicad-cli pcb drc --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
+    if command -v kicad-cli >/dev/null; then
+        kc() { kicad-cli "$@"; }
+    else
+        image=${MINIMEATER_KICAD_IMAGE:-docker.io/kicad/kicad:10.0}
+        # the container has KiCad's stock libraries but no global library tables: seed them from its templates
+        kc() {
+            podman run --rm --userns=keep-id -v "$PWD":/work:Z -w /work -e HOME=/tmp "$image" sh -c \
+                'd=/tmp/.config/kicad/10.0; mkdir -p $d; cp /usr/share/kicad/template/sym-lib-table /usr/share/kicad/template/fp-lib-table $d/; exec kicad-cli "$@"' kicad-cli "$@"
+        }
+    fi
+    kc sch erc --exit-code-violations --output build/hw/erc.rpt "$base.kicad_sch"
+    # errors only: the stock footprints differ between KiCad versions (lib_footprint_mismatch warnings), and the silk warnings are known
+    kc pcb drc --severity-error --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
 
 # One duct CFD case (OpenFOAM in a container: `container` CLI, opencfd/openfoam-run arm64), e.g. `just cfd open` or
 # `just cfd flap-45 --cfm 3`; the case and its results.json go to build/cfd/<case>.
