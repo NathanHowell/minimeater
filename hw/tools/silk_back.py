@@ -47,7 +47,7 @@ for d in b.GetDrawings():
 for t in b.GetTracks():
     if t.GetClass() == "PCB_VIA":
         obst.append(("via", box(t, 0.15)))
-for hx, hy in ((10.6, 28.7), (43.0, 29.8), (43.0, 49.6)):  # standoff rings
+for hx, hy in ((12.05, 28.5), (43.0, 29.8), (43.0, 49.6)):  # standoff rings
     obst.append(("H ring", (hx - 2.75, hy - 2.75, hx + 2.75, hy + 2.75)))
 obst.append(("antenna keepout", (14.5, 51.25, 32.5, 57.25)))
 EDGE = (0.2, 1.95, 44.3, 53.8)  # board outline less 0.2 mm (corners checked by eye)
@@ -198,8 +198,8 @@ place(q, "QR")
 
 # KK pin names, inboard of each pin (pin 1 is the square pad, nearest the board's rear)
 # (nudged off the pin centre where a via sits beside it)
-for y, s in ((39.95, "GND"), (37.05, "5V"), (34.51, "TACH"), (32.1, "PWM"),
-             (48.45, "GND"), (45.91, "5V"), (43.37, "SIG")):
+for y, s in ((35.95, "GND"), (33.05, "5V"), (30.51, "TACH"), (28.1, "PWM"),
+             (43.85, "GND"), (41.91, "5V"), (39.37, "SIG")):
     text_from(s, 5.6, y, 1.0)
 
 text("USB", 4.2, 4.6, 1.2, 0.18)

@@ -72,12 +72,12 @@ class Pcb:
     standoff_d: float = 5.5  # the pan's columns under the holes
     # three mounting holes, board frame (centre origin, y toward +y): the corners are taken by the connector row and the
     # module, so the screws sit where the layout left room; the connector row is held by the port wall
-    holes: tuple[tuple[float, float], ...] = ((-11.65, 1.7), (20.75, 2.8), (20.75, 22.6))
+    holes: tuple[tuple[float, float], ...] = ((-10.2, 1.5), (20.75, 2.8), (20.75, 22.6))
     axis_z: float = -28.6  # the connector axes' height: the port row, wall and bay, as before the board was turned over
     under_h: float = 6.4  # the tallest thing under the board: the right-angle KK housings, 6.36 (STEP); the jacks are 3.7, the module 3.3
     floor_gap: float = 0.9  # under_h to the pan floor
     over_h: float = 2.5  # the through-hole tails (2 mm) and their solder above the board's back face
-    kk: tuple[tuple[float, float], ...] = ((8.78, 10.6), (18.91, 8.1))  # the fan and servo plugs on the right-angle KK headers at the rear edge: y centre, width (J6 4 pins, J7 3)
+    kk: tuple[tuple[float, float], ...] = ((4.78, 10.6), (14.91, 8.1))  # the fan and servo plugs on the right-angle KK headers at the rear edge: y centre, width (J6 4 pins, J7 3)
     kk_plug_len: float = 9.0  # [est] the plug's housing past the header's front face (the pins go 6.7 into it); the cable leaves along -x, low, under the duct's fan transition
     edge_band: tuple[float, float] = (23.5, 3.7)  # beyond this y the pan floor curves up: only SMT parts (3.7: the tallest) hang under the board there
     corner_r: float = 2.0

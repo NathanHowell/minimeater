@@ -108,7 +108,7 @@ own orientation (rotation 0): pin 1 top left, IN 3/4 lower left, OUT 5 lower rig
 - C41 100 nF from IN to ground right under pins 3/4 (the "high frequency bypass" of the figure); FLT (6) open.
 - Zones were reshaped and the redundant ones removed with KiCad closed through its python API; DRC: no errors.
 
-## U13 INA181A1 servo current sense with R36 shunt, staged at (-25, 40) (minimeat-sp4)
+## U13 INA181A1 servo current sense with R36 shunt, staged at (-25, 40) (minimeat-sp4; placed in 55j, below)
 
 ![U13](u13_isense.png)
 
@@ -255,3 +255,18 @@ What changed from the staged blocks, and how the board is routed. The sections a
   rings on F/B. Fiducials FID1-3 on the board; JLC's tooling holes are on the panel rails (`hw/tools/fab.py`).
 - **Test points (B.Cu):** TP1 VBUS_F, TP2 3V3, TP4 GND at U4; TP3 3V3A at U5; TP6 TX, TP7 RX, TP8 GND just west of
   U1's pins (UART through under-module vias); TP5 EN beside R10.
+- **Servo current sense (minimeat-55j, 2026-10-15):** room was made beside U6 by raising J6 and J7 4.0 mm along the
+  rear edge (R30, R29, C37 and C36 with J7; the enclosure's `Pcb.kk` followed). R28 and R27 stay where they were and J6
+  reaches them by 45 degree stubs, because moving them put FAN_PWM through H1's standoff ring. C35 moved into the
+  pocket between R28/R27 and R16, fed from the VFAN B.Cu run by a via: in the header column it starved J6 pin 1's
+  thermal. C1 (100 uF) moved beside U12's output, C2 up 0.2, VIN_F shortened to clear J6 pin 4 and the edge VBUS_F run
+  extended into it; H1 moved to (12.05, 28.5) to clear J6's back-silk labels (`Pcb.holes` followed) and FID2 to
+  (37.25, 14.25), between J4 and J5. The staged block went in turned 90 degrees from SBOS793H figure 8-11, the same
+  topology: R36 stands vertical against the U6/C10/C11 column (VSERVO pad up, VSERVO_SW pad down), U13 at rotation 0
+  beside it so IN- and IN+ face the shunt with straight, equal 0.6 mm sense lines into the pads' inner halves, power
+  entering the pads from their outer ends. VSERVO climbs a 0.9 mm gap between C36 and C10 into C36's pad (C36's
+  ground via moved into its pad). C43 sits against VS/GND/REF with its own 3V3 and GND vias; OUT escapes under the
+  package body to R37, C44 at R37's far end, and SERVO_ISENSE runs 10 mm on In2 to U1 pin 27 (GPIO2, swapped with
+  ADC_DRDY in minimeat-9jn; DRDY now goes on B.Cu from U8 to pin 6). Done with KiCad closed through its python API;
+  DRC: no errors, nothing unconnected.
+

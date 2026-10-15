@@ -36,7 +36,7 @@ for d in b.GetDrawings():
 for fp in b.GetFootprints():
     for f in (fp.Reference(),):
         if f.IsVisible(): silk.append(f.GetEffectiveShape().BBox())
-holes = ((10.6, 28.7), (43.0, 29.8), (43.0, 49.6))
+holes = ((12.05, 28.5), (43.0, 29.8), (43.0, 49.6))
 existing = [(t(v.GetPosition().x), t(v.GetPosition().y)) for v in b.GetTracks() if v.GetClass() == "PCB_VIA" and v.GetNetCode() == gnd]
 def ok(x, y):
     c = pcbnew.VECTOR2I(mm(x), mm(y))

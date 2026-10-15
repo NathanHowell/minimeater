@@ -57,7 +57,7 @@ for fp in fps:
             else:
                 x0, y0, x1, y1 = bbox(g); mark(gs, x0, y0, x1, y1, 0.15)
 # mounting holes' standoff rings (screw heads / standoff tops on both faces)
-for hx, hy in ((10.6, 28.7), (43.0, 29.8), (43.0, 49.6)):
+for hx, hy in ((12.05, 28.5), (43.0, 29.8), (43.0, 49.6)):
     for side in ("F", "B"): mark(side, hx - 2.75, hy - 2.75, hx + 2.75, hy + 2.75)
 mark("F", 14.5, 51.25, 32.5, 57.25); mark("B", 14.5, 51.25, 32.5, 57.25)
 
