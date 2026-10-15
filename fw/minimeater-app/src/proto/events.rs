@@ -14,6 +14,9 @@ fn head<W: Write>(j: &mut Json<W>, kind: &str) {
 
 /// Writes the `~/event` object for an event the control loop raised.
 pub fn event<W: Write>(j: &mut Json<W>, e: &Event) {
+    if let Event::Boot(reason) = e {
+        return boot(j, *reason, env!("CARGO_PKG_VERSION"));
+    }
     head(j, e.name());
     match e {
         Event::LidOpen { pit_f } | Event::LidClosed { pit_f } => {
@@ -69,6 +72,7 @@ pub fn event<W: Write>(j: &mut Json<W>, e: &Event) {
         Event::Fault(code) | Event::FaultClear(code) => {
             j.key("code").str(code.name());
         }
+        Event::Boot(_) => {}
     }
     j.end_obj();
 }

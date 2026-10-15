@@ -25,6 +25,7 @@ use log::{info, warn};
 use super::packet::{self, Connect, Packet, PublishIn, PublishOut, Will};
 use crate::config::Settings;
 use crate::net::{Connector, Identity};
+use crate::pit::Event;
 use crate::proto::request::{Error, ErrorCode, Request};
 use crate::proto::{self, Device};
 use crate::tasks::{Bus, Reply};
@@ -461,6 +462,10 @@ async fn writer<W: Write>(
     // what happened while the broker was away is old news
     while ctx.events.try_next_message().is_some() {}
     while ctx.replies.try_next_message().is_some() {}
+    // the first session of a boot says why the device started (after the old news is dropped)
+    if let Some(reason) = ctx.bus.boot.lock(Cell::take) {
+        ctx.bus.emit(Event::Boot(reason));
+    }
     if let Some(s) = ctx.status.try_get() {
         publish_state(&mut tx, ctx, &s).await?;
     }

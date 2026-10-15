@@ -221,6 +221,11 @@ fn the_client_publishes_takes_commands_and_survives_the_broker() {
         .collect();
     let kinds: Vec<&str> = events.iter().filter_map(|e| e["event_type"].as_str()).collect();
     assert_eq!(kinds.iter().filter(|k| **k == "rejected").count(), 2, "{kinds:?}");
+    // the session announces the boot once, first
+    assert_eq!(kinds.first(), Some(&"boot"), "{kinds:?}");
+    assert_eq!(kinds.iter().filter(|k| **k == "boot").count(), 1, "{kinds:?}");
+    assert_eq!(events[0]["reason"], "power_on");
+    assert_eq!(events[0]["sw"], env!("CARGO_PKG_VERSION"));
     assert!(
         events
             .iter()

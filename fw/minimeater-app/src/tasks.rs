@@ -45,6 +45,7 @@ use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower, Watchdog};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
+use crate::proto::BootReason;
 use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
 
 pub(crate) type M = CriticalSectionRawMutex;
@@ -183,6 +184,8 @@ pub struct Bus {
     /// `identify` and `reboot` requests, for the LED and the board.
     pub identify: Signal<M, ()>,
     pub reboot: Signal<M, ()>,
+    /// Why the device started, until the MQTT client has announced it (`boot` event). Set by the binary at start-up.
+    pub boot: Mutex<M, Cell<Option<BootReason>>>,
     /// Hardware faults raised by any task, and the fan's last tach reading.
     faults: Mutex<M, Cell<Faults>>,
     fan_rpm: Mutex<M, Cell<Option<f64>>>,
@@ -211,6 +214,7 @@ impl Bus {
             config_rev: Watch::new(),
             identify: Signal::new(),
             reboot: Signal::new(),
+            boot: Mutex::new(Cell::new(None)),
             probes: Mutex::new(Cell::new(Snapshot {
                 passes: 0,
                 sense: [Sense::Pending; PROBE_JACKS],
@@ -268,7 +272,7 @@ impl Bus {
         self.probes.lock(Cell::get)
     }
 
-    fn emit(&self, e: Event) {
+    pub(crate) fn emit(&self, e: Event) {
         self.events.immediate_publisher().publish_immediate(e);
     }
 }

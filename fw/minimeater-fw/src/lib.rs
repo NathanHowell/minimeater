@@ -4,3 +4,4 @@
 pub mod board;
 pub mod console;
 pub mod net;
+pub mod reset;

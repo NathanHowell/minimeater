@@ -29,6 +29,7 @@ use embassy_sync::pubsub::WaitResult;
 use minimeater_app::config::{ConfigStore, Settings};
 use minimeater_app::food::Foods;
 use minimeater_app::pit::{Event, Pit};
+use minimeater_app::proto::BootReason;
 use minimeater_app::tasks::{self, Bus, Status};
 use minimeater_app::ui;
 use minimeater_core::model::airflow::AirPath;
@@ -187,6 +188,7 @@ pub fn run_with(
     assert!(!RAN.swap(true, Ordering::SeqCst), "one twin run per process");
     let world: &'static RefCell<World> = Box::leak(Box::new(RefCell::new(sc.world())));
     let bus: &'static Bus = Box::leak(Box::new(Bus::new()));
+    bus.boot.lock(|c| c.set(Some(BootReason::PowerOn)));
     // the board as the user left it: settings in flash, then a boot
     let (mut store, _) = block_on(ConfigStore::open(io(world).config));
     block_on(store.save(&sc.settings)).expect("settings saved");

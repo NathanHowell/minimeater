@@ -72,6 +72,9 @@ async fn main(spawner: Spawner) -> ! {
     // built at compile time: no copy through main's stack at boot
     static BUS: Bus = Bus::new();
     let bus: &'static Bus = &BUS;
+    let reason = minimeater_fw::reset::boot_reason();
+    info!("boot: {}", reason.name());
+    bus.boot.lock(|c| c.set(Some(reason)));
     static PIT: ConstStaticCell<Pit> = ConstStaticCell::new(Pit::BLANK);
     let pit = PIT.take();
     pit.load(&settings, model, minimeater_core::model::Ambient::DEFAULT);
@@ -257,7 +260,7 @@ async fn reboot(bus: &'static Bus) {
     info!("reboot requested");
     // the reply and the last status go out first
     Timer::after_millis(500).await;
-    esp_hal::system::software_reset()
+    minimeater_fw::reset::reboot()
 }
 
 #[embassy_executor::task]

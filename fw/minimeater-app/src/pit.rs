@@ -31,6 +31,7 @@ use crate::alarms::Limit;
 use crate::config::{ControllerKind, Cook, Lid, Mode, Settings};
 use crate::hal::PROBE_JACKS;
 use crate::probes::Check;
+use crate::proto::BootReason;
 
 /// Control period, s.
 pub const PERIOD_S: f64 = 10.0;
@@ -166,6 +167,8 @@ pub enum Event {
     },
     Fault(FaultCode),
     FaultClear(FaultCode),
+    /// The device started, and why: raised once per boot, when the MQTT session first comes up.
+    Boot(BootReason),
 }
 
 impl Event {
@@ -188,6 +191,7 @@ impl Event {
             Event::SelfCheck { .. } => "selfcheck",
             Event::Fault(_) => "fault",
             Event::FaultClear(_) => "fault_clear",
+            Event::Boot(_) => "boot",
         }
     }
 }
