@@ -31,7 +31,7 @@ FAN_STEP = Path(__file__).parent / "data" / "NF-A6x25.stp"
 
 def fan_step():
     """Noctua's public model of the NF-A6x25 for the exported assembly. Its frame: Y along the axis, 25 deep with the
-    rotor toward y = 25 (the intake, label side) and the motor mount plate at y = 0 (the exhaust); X, Z across, centred.
+    rotor toward y = 25 (the intake) and the motor mount plate, with the label, at y = 0 (the exhaust); X, Z across, centred.
     Turned so the air leaves along +x through the outlet face, like `fan()`. The frame does not tessellate in the
     renderer and the interference checks use the box version."""
     s = Rot(Z=90) * import_step(FAN_STEP)  # (X, Y, Z) -> (-Y, X, Z)
