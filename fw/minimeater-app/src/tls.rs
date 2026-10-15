@@ -628,7 +628,9 @@ mod tests {
         let mut write = vec![0u8; RECORD];
         let config = TlsConfig::new().with_server_name("localhost");
         let mut tls = TlsConnection::new(Duplex::new(&r, &w), &mut read, &mut write);
+        let t0 = std::time::Instant::now();
         block_on(tls.open(TlsContext::new(&config, provider)))?;
+        std::println!("tls handshake (mutual, ECDSA P-256) took {:?} on this host", t0.elapsed());
         block_on(async {
             tls.write(b"GET / HTTP/1.0\r\n\r\n").await?;
             tls.flush().await?;
