@@ -21,7 +21,7 @@ minimeater-core = { path = "../minimeater-core" }
 esp-hal                = { version = "~1.2.2", features = ["esp32c6", "log-04", "unstable"] }
 esp-rtos               = { version = "0.4.0", features = ["embassy", "esp32c6", "log-04", "esp-radio", "esp-alloc"] }
 esp-bootloader-esp-idf = { version = "0.6.0", features = ["esp32c6", "log-04"] }
-esp-backtrace          = { version = "0.20.0", features = ["esp32c6", "panic-handler", "println"] }
+esp-backtrace          = { version = "0.20.0", features = ["esp32c6", "panic-handler", "println", "custom-halt"] }
 esp-println            = { version = "0.18.0", features = ["esp32c6", "log-04"] }
 embassy-executor       = { version = "0.10.0", features = ["log"] }
 embassy-time           = { version = "0.5.0", features = ["log"] }
