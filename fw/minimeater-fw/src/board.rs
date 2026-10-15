@@ -74,7 +74,8 @@ impl Board for Esp {
     type Watchdog = Mwdt;
 }
 
-pub type SecureElement = Atecc608<Bus, Delay>;
+/// The secure element behind the lock the REPL's enrolment task and the TLS signer share.
+pub type SecureElement = minimeater_app::enrol::Shared<Bus, Delay>;
 
 /// Peripherals the board does not wrap, for the runtime and (later) the radio.
 pub struct Rest {
@@ -85,7 +86,7 @@ pub struct Rest {
     /// The radio (`net.rs`).
     pub wifi: WIFI<'static>,
     /// The secure element on the shared I2C bus (ADR 0005); the REPL's `identity` commands reach it (`enrol`).
-    pub secure_element: SecureElement,
+    pub secure_element: &'static SecureElement,
 }
 
 /// Brings up every peripheral. Panics only on start-up bugs (bad static configuration); a missing
@@ -109,7 +110,12 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
     let probes = Ads122c04::new(I2cDevice::new(i2c), ads122c04::ADDRESS, drdy, Delay);
     let ambient = Tmp117::new(I2cDevice::new(i2c), tmp117::ADDRESS);
-    let secure_element = Atecc608::new(I2cDevice::new(i2c), atecc608::ADDRESS, Delay);
+    static SECURE_ELEMENT: StaticCell<SecureElement> = StaticCell::new();
+    let secure_element = &*SECURE_ELEMENT.init(minimeater_app::enrol::share(Atecc608::new(
+        I2cDevice::new(i2c),
+        atecc608::ADDRESS,
+        Delay,
+    )));
 
     static LEDC: StaticCell<Ledc<'static>> = StaticCell::new();
     static FAN_TIMER: StaticCell<timer::Timer<'static, LowSpeed>> = StaticCell::new();

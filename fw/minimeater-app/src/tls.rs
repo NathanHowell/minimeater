@@ -17,6 +17,8 @@
 
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
+use embedded_hal_async::delay::DelayNs;
+use embedded_hal_async::i2c::I2c;
 use embedded_io_07::{ErrorKind as Kind07, ErrorType as ErrorType07};
 use embedded_io_async::{Error as _, ErrorKind as Kind06, Read as Read06, Write as Write06};
 use embedded_io_async_07::{Read as Read07, Write as Write07};
@@ -28,6 +30,8 @@ use sha2::{Digest, Sha256};
 use signature::SignerMut;
 
 use crate::drivers::csr::{Der, ecdsa_sig};
+use crate::drivers::identity::KEY_SLOT;
+use crate::enrol::Shared;
 
 /// Largest server certificate the verifier keeps while the handshake runs (it checks the signature at the end).
 pub const SERVER_CERT: usize = 2048;
@@ -44,6 +48,18 @@ pub trait DigestSigner {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SignFailed;
+
+/// The ATECC608B, shared with the enrolment task ([`crate::enrol::Shared`]). `embedded-tls` signs from inside a poll, so this
+/// takes the lock without waiting (a handshake that finds the chip busy, with the REPL provisioning it, fails and is retried)
+/// and runs the chip's command to the end in place: the executor is blocked for the chip's signing time, about 50 to 100 ms.
+pub struct ChipSigner<'a, I, T>(pub &'a Shared<I, T>);
+
+impl<I: I2c, T: DelayNs> DigestSigner for ChipSigner<'_, I, T> {
+    fn sign(&mut self, digest: &[u8; 32]) -> Result<[u8; 64], SignFailed> {
+        let mut chip = self.0.try_lock().map_err(|_| SignFailed)?;
+        embassy_futures::block_on(chip.sign(KEY_SLOT, digest)).map_err(|_| SignFailed)
+    }
+}
 
 /// The signer `embedded-tls` uses for the client certificate's `CertificateVerify`.
 pub struct DeviceKey<'a, S>(&'a mut S);
@@ -213,14 +229,6 @@ mod tests {
     use crate::drivers::identity::{KEY_SLOT, provision};
     use crate::drivers::mock::{NoDelay, block_on};
 
-    /// The model chip as the TLS signer.
-    struct ChipKey(Atecc608<Chip, NoDelay>);
-    impl DigestSigner for ChipKey {
-        fn sign(&mut self, digest: &[u8; 32]) -> Result<[u8; 64], SignFailed> {
-            block_on(self.0.sign(KEY_SLOT, digest)).map_err(|_| SignFailed)
-        }
-    }
-
     /// A std TCP stream as the connection halves a `Connector` gives (blocking inside the async calls: the test's server
     /// is another process, so a read just waits for it).
     struct Half(TcpStream);
@@ -283,7 +291,7 @@ mod tests {
         dir: PathBuf,
         ca_der: V<u8>,
         client_der: V<u8>,
-        chip: Atecc608<Chip, NoDelay>,
+        chip: Shared<Chip, NoDelay>,
     }
 
     /// A CA, a server certificate for `localhost`, and a client certificate the CA signs for the chip's key, or `None`
@@ -374,7 +382,7 @@ mod tests {
             dir,
             ca_der,
             client_der,
-            chip,
+            chip: Mutex::new(chip),
         })
     }
 
@@ -420,7 +428,7 @@ mod tests {
     }
 
     /// Opens a TLS connection with `provider` to `port`, sends a GET and returns the start of the answer, or the error.
-    fn get(port: u16, provider: Provider<'_, OsRng, ChipKey, NoClock>) -> Result<Str, TlsError> {
+    fn get<S: DigestSigner>(port: u16, provider: Provider<'_, OsRng, S, NoClock>) -> Result<Str, TlsError> {
         let stream = TcpStream::connect(("127.0.0.1", port)).unwrap();
         stream
             .set_read_timeout(Some(std::time::Duration::from_secs(10)))
@@ -451,7 +459,7 @@ mod tests {
     fn the_chip_signs_the_handshake_and_a_server_that_needs_a_client_certificate_lets_it_in() {
         let Some(pki) = pki("ok") else { return };
         let (_server, port) = serve(&pki.dir, true).expect("s_server");
-        let provider = Provider::new(OsRng, &pki.ca_der, ChipKey(pki.chip), &pki.client_der);
+        let provider = Provider::new(OsRng, &pki.ca_der, ChipSigner(&pki.chip), &pki.client_der);
         let answer = get(port, provider).expect("handshake and a request");
         assert!(answer.starts_with("HTTP/1.0 200"), "{answer}");
         let _ = std::fs::remove_dir_all(&pki.dir);
@@ -462,11 +470,12 @@ mod tests {
         let Some(pki) = pki("nokey") else { return };
         let (_server, port) = serve(&pki.dir, true).expect("s_server");
         // a chip that is not the one the certificate is for: its signature does not match the certificate's key
-        let mut other = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
-        block_on(provision(&mut other, true, &mut async |_: &str| {})).unwrap();
+        let mut chip = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
+        block_on(provision(&mut chip, true, &mut async |_: &str| {})).unwrap();
         // (the model makes the same key every time, so give it a different one by making a second)
-        block_on(other.generate_key(KEY_SLOT)).unwrap_or([0; 64]);
-        let provider = Provider::new(OsRng, &pki.ca_der, ChipKey(other), &pki.client_der);
+        block_on(chip.generate_key(KEY_SLOT)).unwrap();
+        let other = Mutex::new(chip);
+        let provider = Provider::new(OsRng, &pki.ca_der, ChipSigner(&other), &pki.client_der);
         assert!(get(port, provider).is_err());
         let _ = std::fs::remove_dir_all(&pki.dir);
     }
@@ -501,7 +510,7 @@ mod tests {
         )
         .unwrap();
         let wrong_ca = openssl(&other, &["x509", "-in", "o.pem", "-outform", "DER"]).unwrap();
-        let provider = Provider::new(OsRng, &wrong_ca, ChipKey(pki.chip), &pki.client_der);
+        let provider = Provider::new(OsRng, &wrong_ca, ChipSigner(&pki.chip), &pki.client_der);
         assert!(get(port, provider).is_err());
         let _ = std::fs::remove_dir_all(&pki.dir);
         let _ = std::fs::remove_dir_all(&other);
@@ -515,7 +524,8 @@ mod tests {
         let key = block_on(provision(&mut chip, true, &mut async |_: &str| {}))
             .unwrap()
             .unwrap();
-        let mut signer = ChipKey(chip);
+        let shared: Shared<Chip, NoDelay> = Mutex::new(chip);
+        let mut signer = ChipSigner(&shared);
         let sig = DeviceKey(&mut signer).try_sign(b"what TLS wants signed").unwrap();
         let sig = Signature::from_der(&sig).expect("DER");
         let mut sec1 = vec![4u8];
@@ -523,5 +533,22 @@ mod tests {
         let vk = VerifyingKey::from_sec1_bytes(&sec1).unwrap();
         let digest: [u8; 32] = Sha256::digest(b"what TLS wants signed").into();
         vk.verify_prehash(&digest, &sig).expect("verifies");
+    }
+
+    #[test]
+    fn a_busy_chip_fails_the_signature_at_once_and_is_signed_again_when_free() {
+        let mut chip = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
+        block_on(provision(&mut chip, true, &mut async |_: &str| {})).unwrap();
+        let shared: Shared<Chip, NoDelay> = Mutex::new(chip);
+        let mut signer = ChipSigner(&shared);
+        {
+            let _enrolling = block_on(shared.lock());
+            assert_eq!(
+                signer.sign(&[1; 32]),
+                Err(SignFailed),
+                "does not wait for the enrolment task"
+            );
+        }
+        assert!(signer.sign(&[1; 32]).is_ok());
     }
 }

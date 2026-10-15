@@ -225,8 +225,8 @@ async fn provisioning(mut port: Port, id: &'static str, bus: &'static Bus) {
 
 /// The secure element, for the REPL's `identity` commands.
 #[embassy_executor::task]
-async fn enrol(mut chip: minimeater_fw::board::SecureElement, id: &'static str, bus: &'static Bus) {
-    minimeater_app::enrol::serve(&mut chip, bus, id).await
+async fn enrol(chip: &'static minimeater_fw::board::SecureElement, id: &'static str, bus: &'static Bus) {
+    minimeater_app::enrol::serve(chip, bus, id).await
 }
 
 #[embassy_executor::task]

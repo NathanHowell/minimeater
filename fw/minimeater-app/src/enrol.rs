@@ -5,6 +5,8 @@
 
 use core::fmt::Write as _;
 
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::mutex::Mutex;
 use embedded_hal_async::delay::DelayNs;
 use embedded_hal_async::i2c::I2c;
 use heapless::{String, Vec};
@@ -34,6 +36,15 @@ pub enum Job {
     CertAdd(Vec<u8, CHUNK>),
     /// Check what was received against the chip's key and write it to the slot.
     CertSave,
+}
+
+/// The secure element, shared by this task and the TLS signer ([`crate::tls::ChipSigner`]): whoever holds the lock has the chip
+/// for its whole job, so two sessions never interleave on the bus.
+pub type Shared<I, T> = Mutex<CriticalSectionRawMutex, Atecc608<I, T>>;
+
+/// Puts the chip behind the lock.
+pub const fn share<I, T>(chip: Atecc608<I, T>) -> Shared<I, T> {
+    Mutex::new(chip)
 }
 
 pub type Line = String<96>;
@@ -120,11 +131,14 @@ async fn csr_job<I: I2c, T: DelayNs>(chip: &mut Atecc608<I, T>, bus: &Bus, cn: &
 }
 
 /// Runs the jobs the REPL sends, for ever. `cn` is the device's name for the request's subject.
-pub async fn serve<I: I2c, T: DelayNs>(chip: &mut Atecc608<I, T>, bus: &Bus, cn: &str) -> ! {
+pub async fn serve<I: I2c, T: DelayNs>(shared: &Shared<I, T>, bus: &Bus, cn: &str) -> ! {
     // the certificate as it arrives, until it is saved
     let mut staged = Der::new();
     loop {
         let job = bus.enrol_job.receive().await;
+        // (a job is a few chip sessions: the TLS signer waits out of the way, or fails its handshake and retries)
+        let mut guard = shared.lock().await;
+        let chip = &mut *guard;
         match job {
             Job::Look | Job::Provision => {
                 let r = identity::provision(chip, job == Job::Provision, &mut async |l: &str| put(bus, l).await).await;
@@ -206,7 +220,7 @@ mod tests {
     };
 
     /// Types `line` at the REPL with a chip task behind the bus (or none).
-    fn type_line(bus: &Bus, chip: Option<&mut Atecc608<Chip, NoDelay>>, line: &str) -> Str {
+    fn type_line(bus: &Bus, chip: Option<&Shared<Chip, NoDelay>>, line: &str) -> Str {
         let mut out = Out(Vec::new());
         let mut replies = bus.replies.subscriber().unwrap();
         let ask = repl::execute(&mut out, line, &WHO, bus, &mut replies);
@@ -223,34 +237,34 @@ mod tests {
     #[test]
     fn the_repl_looks_provisions_and_prints_a_request_through_the_chip_task() {
         let bus = Bus::new();
-        let mut chip = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
+        let chip: Shared<Chip, NoDelay> = Mutex::new(Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay));
         // looking changes nothing
-        let t = type_line(&bus, Some(&mut chip), "identity");
+        let t = type_line(&bus, Some(&chip), "identity");
         assert!(
             t.contains("configuration open, data open") && t.contains("not done"),
             "{t}"
         );
-        assert!(chip.i2c().config == blank());
+        assert!(block_on(chip.lock()).i2c().config == blank());
         // the word that locks is needed
-        let t = type_line(&bus, Some(&mut chip), "identity provision");
+        let t = type_line(&bus, Some(&chip), "identity provision");
         assert!(
-            t.contains("locks the secure element for good") && chip.i2c().config == blank(),
+            t.contains("locks the secure element for good") && block_on(chip.lock()).i2c().config == blank(),
             "{t}"
         );
         // no key, no request
-        let t = type_line(&bus, Some(&mut chip), "identity csr");
+        let t = type_line(&bus, Some(&chip), "identity csr");
         assert!(t.contains("no key yet"), "{t}");
         // locked in
-        let t = type_line(&bus, Some(&mut chip), "identity provision lock");
+        let t = type_line(&bus, Some(&chip), "identity provision lock");
         assert!(t.contains("data zone locked") && t.contains("public key"), "{t}");
         // and now the request
-        let t = type_line(&bus, Some(&mut chip), "identity csr");
+        let t = type_line(&bus, Some(&chip), "identity csr");
         assert!(
             t.contains("-----BEGIN CERTIFICATE REQUEST-----") && t.contains("-----END CERTIFICATE REQUEST-----"),
             "{t}"
         );
         // a second look reads the key again
-        let t = type_line(&bus, Some(&mut chip), "identity");
+        let t = type_line(&bus, Some(&chip), "identity");
         assert!(
             t.contains("configuration locked, data locked") && t.contains("public key"),
             "{t}"
@@ -270,7 +284,7 @@ mod tests {
 
     /// Types `lines` one after another at one REPL with one chip task behind it (what the task has received, as a
     /// certificate arrives, lives as long as the task does), and returns what each printed.
-    fn type_lines(bus: &Bus, chip: &mut Atecc608<Chip, NoDelay>, lines: &[Str]) -> std::vec::Vec<Str> {
+    fn type_lines(bus: &Bus, chip: &Shared<Chip, NoDelay>, lines: &[Str]) -> std::vec::Vec<Str> {
         let mut replies = bus.replies.subscriber().unwrap();
         let typed = async {
             let mut all = std::vec::Vec::new();
@@ -298,36 +312,41 @@ mod tests {
     #[test]
     fn a_certificate_is_loaded_word_by_word_checked_saved_and_printed_back() {
         let bus = Bus::new();
-        let mut chip = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
+        let chip: Shared<Chip, NoDelay> = Mutex::new(Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay));
         // no key, nothing to check a certificate against
-        let t = type_line(&bus, Some(&mut chip), "identity cert save");
+        let t = type_line(&bus, Some(&chip), "identity cert save");
         assert!(t.contains("no key in the chip"), "{t}");
-        type_line(&bus, Some(&mut chip), "identity provision lock");
-        let t = type_line(&bus, Some(&mut chip), "identity cert");
+        type_line(&bus, Some(&chip), "identity provision lock");
+        let t = type_line(&bus, Some(&chip), "identity cert");
         assert!(t.contains("no certificate stored"), "{t}");
-        let key = block_on(chip.public_key(KEY_SLOT)).unwrap();
+        let key = block_on(async { chip.lock().await.public_key(KEY_SLOT).await }).unwrap();
 
         // a certificate for another board is refused, and the slot is untouched
-        let t = type_lines(&bus, &mut chip, &send(&fake(&[9u8; 64], 150)));
+        let t = type_lines(&bus, &chip, &send(&fake(&[9u8; 64], 150)));
         assert!(t.last().unwrap().contains("different key"), "{t:?}");
-        assert_eq!(block_on(cert::load(&mut chip)), Ok(None));
+        assert_eq!(block_on(async { cert::load(&mut *chip.lock().await).await }), Ok(None));
 
         // starting again drops what was received; this one is for the chip
         let der = fake(&key, 250);
         let mut lines = send(&fake(&[9u8; 64], 150));
         lines.pop(); // (not saved)
         lines.extend(send(&der));
-        let t = type_lines(&bus, &mut chip, &lines);
+        let t = type_lines(&bus, &chip, &lines);
         let n = t.len();
         assert!(t[n - 2].contains(&std::format!("{} bytes so far", der.len())), "{t:?}");
         assert!(
             t[n - 1].contains("certificate saved") && t[n - 1].contains("read back equal"),
             "{t:?}"
         );
-        assert_eq!(block_on(cert::load(&mut chip)).unwrap().as_deref(), Some(&der[..]));
+        assert_eq!(
+            block_on(async { cert::load(&mut *chip.lock().await).await })
+                .unwrap()
+                .as_deref(),
+            Some(&der[..])
+        );
 
         // and printed from the chip
-        let t = type_line(&bus, Some(&mut chip), "identity cert");
+        let t = type_line(&bus, Some(&chip), "identity cert");
         assert!(
             t.contains("-----BEGIN CERTIFICATE-----") && t.contains("-----END CERTIFICATE-----"),
             "{t}"
@@ -337,8 +356,8 @@ mod tests {
     #[test]
     fn certificate_words_that_are_wrong_are_refused_where_they_are_typed() {
         let bus = Bus::new();
-        let mut chip = Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay);
-        let t = type_line(&bus, Some(&mut chip), "identity cert add !!!!");
+        let chip: Shared<Chip, NoDelay> = Mutex::new(Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay));
+        let t = type_line(&bus, Some(&chip), "identity cert add !!!!");
         assert!(t.contains("not base64"), "{t}");
         // more than the slot holds: said, and what was received is dropped
         let mut lines = std::vec!["identity cert start".into()];
@@ -347,7 +366,7 @@ mod tests {
                 .into_iter()
                 .map(|w| std::format!("identity cert add {w}")),
         );
-        let t = type_lines(&bus, &mut chip, &lines);
+        let t = type_lines(&bus, &chip, &lines);
         assert!(t.last().unwrap().contains("too long"), "{t:?}");
     }
 
