@@ -8,6 +8,7 @@
 //! - [`Homing`]: the hard-stop homing that finds the servo calibration by itself.
 //! - [`FanCurve`] and [`FanDrive`]: speed fraction to PWM duty, and an optional spin-up kick.
 //! - [`TachWatch`]: a fan that is driven but does not turn is a fault (`fan_stall`).
+//! - [`ServoWatch`]: the servo's current over each move, and a fault when it is wrong (`servo`).
 
 use crate::config::ServoPulses;
 
@@ -494,6 +495,174 @@ impl LoadWatch {
     }
 }
 
+/// Mean current while the servo should be holding still above which it is pushing against something, mA. A servo holds a
+/// light flap on a few tens of mA; pushing past a stop it wants more than the switch's 0.6 A within a few degrees. [est
+/// until the bench, `minimeat-vzg`]
+pub const JAM_MA: u16 = 300;
+/// Peak current below which a real move did not run the motor, mA. [est: the HS-5065MG runs on about 0.2 A]
+pub const OPEN_MA: u16 = 50;
+/// Moves that drew nothing must have taken the pulse over this many us between them (about 3 degrees) before it counts:
+/// the motor would have had to run, where a small move may sit inside the servo's deadband.
+pub const OPEN_SPAN_US: u16 = 30;
+/// Holding samples a move needs before its holding current is judged.
+const HOLD_SAMPLES: u16 = 3;
+/// Moves running that must agree before `servo` is raised, and cleared.
+const BAD_MOVES: u8 = 2;
+const GOOD_MOVES: u8 = 2;
+/// While `servo` is raised the servo is driven again this often, s: the flap is not where it was told, and a flap that
+/// comes free (or a servo plugged back in) only gets there, and clears the fault, on a move. Each retry is one move of
+/// [`HOLD_S`] or so, held to the switch's limit if it is still jammed.
+pub const RETRY_S: f64 = 60.0;
+
+/// The servo's current over one move: from when it is powered until it is switched off again.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MoveMa {
+    pub peak: u16,
+    pub mean: u16,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Move {
+    peak: u16,
+    sum: u32,
+    n: u16,
+    hold_sum: u32,
+    hold_n: u16,
+    lo_us: u16,
+    hi_us: u16,
+    last: u16,
+    last_us: u16,
+}
+
+/// Watches the servo's supply current (`minimeat-y8a`): each move's peak and mean for the status, and the `servo` fault
+/// when a move's current is wrong. While it should be holding still (the pulse unchanged since the step before) a servo
+/// that keeps drawing [`JAM_MA`] is pushing against something; moves whose peaks stay under [`OPEN_MA`] while they take the
+/// pulse over [`OPEN_SPAN_US`] did not run the motor at all (a ramp is many small moves, so the span is over the run of
+/// them). A move that drew current and is not jammed is a good one. It only warns: the actuators carry on, and the load
+/// switch is what cuts a servo that stalls hard.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ServoWatch {
+    now: Option<Move>,
+    last: Option<MoveMa>,
+    bad: u8,
+    good: u8,
+    raised: bool,
+    idle_s: f64,
+    /// The pulse the last move left the servo at, where the next one starts from; `None` when not known.
+    rest_us: Option<u16>,
+    /// The pulses the moves since the last one that drew current have covered.
+    quiet: Option<(u16, u16)>,
+}
+
+impl ServoWatch {
+    /// The last finished move's current.
+    pub fn last(&self) -> Option<MoveMa> {
+        self.last
+    }
+
+    pub fn raised(&self) -> bool {
+        self.raised
+    }
+
+    /// One current sample while the servo is powered, at pulse `pulse_us`; `holding` when the pulse has not changed since
+    /// the step before (the servo should have arrived).
+    pub fn sample(&mut self, ma: u16, pulse_us: u16, holding: bool) {
+        // the span counts from where the last move left the servo
+        let from = self.rest_us.unwrap_or(pulse_us);
+        let m = self.now.get_or_insert(Move {
+            peak: 0,
+            sum: 0,
+            n: 0,
+            hold_sum: 0,
+            hold_n: 0,
+            lo_us: from,
+            hi_us: from,
+            last: 0,
+            last_us: pulse_us,
+        });
+        m.peak = m.peak.max(ma);
+        m.sum += u32::from(ma);
+        m.n = m.n.saturating_add(1);
+        if holding {
+            m.hold_sum += u32::from(ma);
+            m.hold_n = m.hold_n.saturating_add(1);
+        }
+        m.lo_us = m.lo_us.min(pulse_us);
+        m.hi_us = m.hi_us.max(pulse_us);
+        m.last = ma;
+        m.last_us = pulse_us;
+    }
+
+    /// Something else drove the servo (homing, a jog): the move under way is not one, and where it is is not known.
+    pub fn abandon(&mut self) {
+        self.now = None;
+        self.rest_us = None;
+        self.quiet = None;
+    }
+
+    /// The servo was just switched off: the move is over. Returns the new fault state when it changed.
+    pub fn end(&mut self) -> Option<bool> {
+        let m = self.now.take()?;
+        self.rest_us = Some(m.last_us);
+        self.last = Some(MoveMa {
+            peak: m.peak,
+            mean: (m.sum / u32::from(m.n)) as u16,
+        });
+        let jammed = m.hold_n >= HOLD_SAMPLES && m.hold_sum / u32::from(m.hold_n) >= u32::from(JAM_MA);
+        let drew = m.peak >= OPEN_MA;
+        let mut open = false;
+        if drew {
+            self.quiet = None;
+        } else {
+            let (lo, hi) = self
+                .quiet
+                .map_or((m.lo_us, m.hi_us), |(lo, hi)| (lo.min(m.lo_us), hi.max(m.hi_us)));
+            open = hi - lo >= OPEN_SPAN_US;
+            // each further span of quiet travel is another bad move
+            self.quiet = Some(if open { (m.last_us, m.last_us) } else { (lo, hi) });
+        }
+        if jammed || open {
+            self.good = 0;
+            self.bad = self.bad.saturating_add(1);
+            if !self.raised && self.bad >= BAD_MOVES {
+                self.raised = true;
+                return Some(true);
+            }
+        } else if drew {
+            self.bad = 0;
+            self.good = self.good.saturating_add(1);
+            if self.raised && self.good >= GOOD_MOVES {
+                self.raised = false;
+                return Some(false);
+            }
+        }
+        None
+    }
+
+    /// One step of `dt` seconds with the servo off: true when it is time to drive it again while the fault is raised.
+    pub fn retry_due(&mut self, dt: f64) -> bool {
+        if !self.raised {
+            self.idle_s = 0.0;
+            return false;
+        }
+        self.idle_s += dt;
+        let due = self.idle_s >= RETRY_S;
+        if due {
+            self.idle_s = 0.0;
+        }
+        due
+    }
+
+    /// The load switch just latched: the servo is to blame if it was drawing [`JAM_MA`] or more. Returns true when that
+    /// raises the fault now.
+    pub fn blame(&mut self) -> bool {
+        let high = self.now.is_some_and(|m| m.last >= JAM_MA);
+        let raise = high && !self.raised;
+        self.raised |= high;
+        raise
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -831,5 +1000,105 @@ mod tests {
             assert_eq!(t.tick(0.8, None, 3000.0, 1.0), None);
         }
         assert!(!t.stalled());
+    }
+
+    /// Feeds one move: `run` samples moving across `span` us, then `hold` samples holding, all at `ma` running and `hold_ma`
+    /// holding.
+    fn one_move(w: &mut ServoWatch, span: u16, ma: u16, hold_ma: u16) -> Option<bool> {
+        for i in 0..10 {
+            w.sample(ma, 1500 + span * i / 9, false);
+        }
+        for _ in 0..10 {
+            w.sample(hold_ma, 1500 + span, true);
+        }
+        w.end()
+    }
+
+    #[test]
+    fn servo_watch_raises_on_two_bad_moves_and_clears_on_two_good() {
+        let mut w = ServoWatch::default();
+        assert_eq!(w.last(), None);
+        assert_eq!(one_move(&mut w, 100, 200, 20), None);
+        assert_eq!(w.last(), Some(MoveMa { peak: 200, mean: 110 }));
+        // jammed: still pushing once it should hold
+        assert_eq!(one_move(&mut w, 100, 600, 600), None, "one bad move is not enough");
+        assert_eq!(one_move(&mut w, 100, 600, 500), Some(true));
+        assert!(w.raised());
+        assert_eq!(one_move(&mut w, 100, 600, 500), None, "raised once");
+        // raised, it asks for the servo to be driven again every minute
+        let due = (0..180).filter(|_| w.retry_due(1.0)).count();
+        assert_eq!(due, 3);
+        assert_eq!(one_move(&mut w, 100, 200, 20), None);
+        assert_eq!(one_move(&mut w, 100, 200, 20), Some(false));
+        // unplugged: a real move draws nothing
+        assert_eq!(one_move(&mut w, 100, 3, 3), None);
+        assert_eq!(one_move(&mut w, 100, 0, 0), Some(true));
+        assert_eq!(one_move(&mut w, 100, 200, 20), None);
+        assert_eq!(one_move(&mut w, 100, 200, 20), Some(false));
+    }
+
+    #[test]
+    fn small_moves_and_short_ones_are_not_judged_open() {
+        let mut w = ServoWatch::default();
+        assert!((0..120).all(|_| !w.retry_due(1.0)), "no retries without the fault");
+        // 2 degrees with nothing drawn: inside the deadband, and holding at 0 is not a jam
+        for _ in 0..4 {
+            assert_eq!(one_move(&mut w, 20, 5, 5), None);
+        }
+        assert!(!w.raised());
+        // a move switched off before it held: only its span can judge it
+        w.sample(0, 1500, false);
+        w.sample(0, 1600, false);
+        assert_eq!(w.end(), None);
+        // a move in one step is seen at its new pulse only: the span counts from where the last one ended
+        w.sample(0, 1700, false);
+        assert_eq!(w.end(), Some(true));
+        assert_eq!(w.end(), None, "nothing under way");
+    }
+
+    #[test]
+    fn a_ramp_of_small_quiet_moves_adds_up_and_quiet_moves_never_clear() {
+        let mut w = ServoWatch::default();
+        // 5 us a move, nothing drawn: the second 30 us of travel raises it
+        let mut raised_at = None;
+        for i in 0..20u16 {
+            w.sample(0, 1500 + 5 * i, false);
+            for _ in 0..5 {
+                w.sample(0, 1500 + 5 * i, true);
+            }
+            if w.end() == Some(true) {
+                raised_at = Some(i);
+            }
+        }
+        assert_eq!(raised_at, Some(12));
+        // holding still on nothing (unplugged, at rest) is no evidence it is back
+        for _ in 0..5 {
+            assert_eq!(one_move(&mut w, 0, 0, 0), None);
+        }
+        assert!(w.raised());
+        // back and forth inside the deadband never adds up
+        let mut w = ServoWatch::default();
+        for i in 0..40u16 {
+            w.sample(0, 1500 + 4 * (i % 2), true);
+            assert_eq!(w.end(), None);
+        }
+    }
+
+    #[test]
+    fn a_tripped_switch_is_blamed_on_the_servo_only_if_it_was_drawing() {
+        let mut w = ServoWatch::default();
+        assert!(!w.blame(), "not powered");
+        w.sample(20, 1500, true);
+        assert!(!w.blame(), "holding quietly: the fan tripped it");
+        w.sample(600, 1500, true);
+        assert!(w.blame());
+        assert!(w.raised());
+        assert!(!w.blame(), "raised once");
+        // homing or a jog is not a move
+        let mut w = ServoWatch::default();
+        w.sample(600, 1500, true);
+        w.abandon();
+        assert_eq!(w.end(), None);
+        assert_eq!(w.last(), None);
     }
 }

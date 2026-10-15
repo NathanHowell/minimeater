@@ -116,6 +116,9 @@ fn the_request_decodes_with_an_independent_protobuf_implementation() {
     assert!((metric("minimeater.ambient.temperature")[0].1 - 68.0).abs() < 1e-6);
     assert_eq!(metric("minimeater.fan.duty")[0].1, 25.0);
     assert_eq!(metric("minimeater.fan.speed")[0].1, 900.0);
+    let servo = metric("minimeater.servo.current");
+    assert_eq!(servo[0], (vec![("stat".to_string(), "peak".to_string())], 240.0));
+    assert_eq!(servo[1], (vec![("stat".to_string(), "mean".to_string())], 70.0));
     assert_eq!(metric("minimeater.wifi.rssi")[0].1, -61.0);
     assert_eq!(metric("minimeater.uptime")[0].1, 5321.0);
     assert_eq!(metric("minimeater.heap.free")[0].1, 123_456.0);

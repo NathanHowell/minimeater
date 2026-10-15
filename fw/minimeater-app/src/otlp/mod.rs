@@ -138,6 +138,18 @@ pub fn export_request(buf: &mut [u8], who: &Identity, s: &Sample) -> Option<usiz
             if let Some(r) = st.fan_rpm {
                 one(p, "minimeater.fan.speed", "{rpm}", "Fan tachometer", r);
             }
+            if let Some(m) = st.servo_ma {
+                gauge(
+                    p,
+                    "minimeater.servo.current",
+                    "mA",
+                    "Servo current over its last move",
+                    |p| {
+                        point(p, t, f64::from(m.peak), &[("stat", V::S("peak"))]);
+                        point(p, t, f64::from(m.mean), &[("stat", V::S("mean"))]);
+                    },
+                );
+            }
             one(
                 p,
                 "minimeater.lid.open",

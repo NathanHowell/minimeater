@@ -85,6 +85,7 @@ fn status() -> Status {
         alarm_led: false,
         adc_die_c: Some(41.2),
         fan_rpm: Some(0.0),
+        servo_ma: Some(minimeater_app::drive::MoveMa { peak: 212, mean: 64 }),
         faults: Faults::default(),
         autotune: AutotuneInfo {
             exciting: false,
@@ -122,6 +123,7 @@ fn state_reports_faults_alarms_and_missing_values() {
     s.faults = Faults::default();
     s.ambient_c = None;
     s.fan_rpm = None;
+    s.servo_ma = None;
     s.adc_die_c = None;
     s.foods = [None; 4];
     let got = write(|j| proto::state(j, &s, None));
@@ -129,6 +131,7 @@ fn state_reports_faults_alarms_and_missing_values() {
     assert_eq!(got["amb"], Value::Null);
     assert_eq!(got["autotune"], Value::Null, "only while running");
     assert_eq!(got["out"]["rpm"], Value::Null);
+    assert_eq!(got["out"]["servo_ma"], Value::Null, "no move yet");
     assert_eq!(got["diag"], json!({"rssi": null, "board": null}));
     assert_eq!(got["probes"][0]["alarm"], "hi");
     assert_eq!(got["probes"][2]["alarm"], "lo");

@@ -52,6 +52,18 @@ pub fn state<W: Write>(j: &mut Json<W>, s: &Status, rssi: Option<i32>) {
     j.key("flap").num(s.out.flap_pct, 1);
     j.key("fan").num(s.out.act.fan * 100.0, 1);
     j.key("rpm").opt_num(s.fan_rpm.map(libm::round), 0);
+    j.key("servo_ma");
+    match s.servo_ma {
+        Some(m) => {
+            j.begin_obj();
+            j.key("peak").int(i64::from(m.peak));
+            j.key("mean").int(i64::from(m.mean));
+            j.end_obj();
+        }
+        None => {
+            j.null();
+        }
+    }
     j.end_obj();
     j.key("lid").bool(s.out.lid);
     j.key("fire").str(names::fire(s.out.fire));

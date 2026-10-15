@@ -51,6 +51,7 @@ pub fn status(up_s: u64, sp: f64) -> minimeater_app::tasks::Status {
         alarm_led: false,
         adc_die_c: Some(40.0),
         fan_rpm: Some(900.0),
+        servo_ma: Some(minimeater_app::drive::MoveMa { peak: 240, mean: 70 }),
         faults: Faults::default(),
         autotune: AutotuneInfo::default(),
         foods: [

@@ -77,7 +77,7 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
     {"t": null, "st": "open", "alarm": null, "food": null}
   ],
   "tc": null,
-  "out": {"q": 0.82, "flap": 34.0, "fan": 0.0, "rpm": 0},
+  "out": {"q": 0.82, "flap": 34.0, "fan": 0.0, "rpm": 0, "servo_ma": {"peak": 212, "mean": 64}},
   "lid": false,
   "fire": "ok",
   "autotune": {"exciting": false, "accepted": 0, "window": 0.35},
@@ -138,6 +138,7 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
 - `flap`: flap position, 0-100 % of travel.
 - `fan`: fan duty, 0-100 %, averaged over the duty-cycling period.
 - `rpm`: fan tachometer reading.
+- `servo_ma`: the damper servo's supply current over its last move, in mA: `peak` and `mean`, from when the servo is powered until it is switched off again (the move and the hold after it). `null` until the first move since boot. Homing and a bring-up jog are not moves.
 
 **Status fields:**
 - `lid`: `true` while the controller thinks the lid is open. With `lid_detect` on it works this out from the pit probe alone: a fall of 10F at 0.3F/s or faster opens it, within 20-30 s of the lid going up. It closes when the pit turns back up, or after 15 min regardless. Nothing else an egg does falls that fast. A probe pulled out of the pit looks like a lid until the 15 min run out.
@@ -156,7 +157,8 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
 | `fan_stall` | duty above 30 % but tach reads 0 |
 | `adc` | ADS122C04 not responding |
 | `ambient` | TMP117 not responding, or reading outside -30..60C (the sensor or the board next to it is at fault): feedforward falls back to 20C |
-| `load` | a load switch is limiting its current (stalled servo, jammed fan, short): the fan and servo are cut and stay off until reboot; the fault line is shared, so it does not say which |
+| `load` | a load switch is limiting its current (stalled servo, jammed fan, short): the fan and servo are cut and stay off until reboot; the fault line is shared, so it does not say which, but `servo` is raised with it when the servo's current was high as it tripped |
+| `servo` | the damper servo's current is wrong on two moves running: still high once it should be holding still (a jammed flap, a binding linkage, a crank slipped on its spline so the flap meets a stop early), or next to nothing on a move of 3 degrees or more (unplugged, broken, or the current sense dead). The device keeps driving it and warns; it clears after two good moves. A crank that spins free on its shaft draws normal current and is not seen |
 | `supply` | the USB-C source advertises less than 1.5 A (or nothing): the fan and servo are off, probes and alarms keep running |
 
 - `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS122C04 internal sensor). Detailed diagnostics go to OTLP, not here.

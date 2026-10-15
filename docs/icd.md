@@ -17,6 +17,7 @@ Status: draft (2026-10-11), bead `minimeat-seq.1.2`. This is the contract betwee
 | Typical cook draw | about 0.12 A |
 | Worst normal draw | about 0.8 A |
 | Fault | servo stall 0.96-1.2 A, limited to about 0.6 A by a load switch |
+| Servo current | measured across a 0.1 ohm shunt (INA181A1 into an ADC1 pin): homing reads the stall in it; each move's peak and mean are published (`out.servo_ma`), and a servo still drawing 0.3 A once it should hold, or nothing on a move, raises the `servo` fault (`docs/protocol.md`) |
 | Rails | 5 V (VBUS), 3.3 V buck, filtered analog supply for the ADS122C04 |
 
 Rules: the fan and the servo each have a power switch controlled by the MCU; the 5 V loads run only on a 1.5 A or 3 A source; a brownout resets the MCU and the cook resumes from flash.

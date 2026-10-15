@@ -12,6 +12,7 @@ Resource attributes: `service.name` = `minimeater`, `service.instance.id` = the 
 | `minimeater.airflow` | {cfm} | | the commanded airflow; the controller is model-predictive, so there are no P/I/D terms |
 | `minimeater.flap.position`, `minimeater.fan.duty` | % | | |
 | `minimeater.fan.speed` | {rpm} | | |
+| `minimeater.servo.current` | mA | `stat` | the servo's last move: `peak` and `mean` (`out.servo_ma`, docs/protocol.md) |
 | `minimeater.lid.open` | 1 | | |
 | `minimeater.phase`, `minimeater.fire` | 1 | `phase`, `state` | 1 for the current value |
 | `minimeater.food.eta` | s | `probe`, `name` | |

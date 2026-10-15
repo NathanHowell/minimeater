@@ -1,7 +1,8 @@
-//! Fault injection (`.4.16.4`): the damper servo sticks for twenty minutes while the setpoint goes
-//! up. Nothing tells the firmware (there is no position feedback), so the reaction to assert is
-//! that the controller carries on, does not wind up into a runaway, and finds the setpoint once
-//! the flap is free.
+//! Fault injection (`.4.16.4`): the flap sticks for twenty minutes while the setpoint goes up, with
+//! the servo turning freely (a crank slipped round its shaft). Its current is normal and there is no
+//! position feedback, so nothing tells the firmware, and the reaction to assert is that the
+//! controller carries on, does not wind up into a runaway, and finds the setpoint once the flap is
+//! free. A flap jammed against the servo raises `servo` (`fault_servo_jam.rs`).
 
 use minimeater_app::config::Mode;
 use minimeater_app::pit::{Command, Event, Phase};

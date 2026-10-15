@@ -41,7 +41,9 @@ use minimeater_core::units::{c_to_k, k_to_f};
 use crate::alarms::{Alarms, Limit};
 use crate::ambient::{PLAUSIBLE_C, compensate};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, SERVO_US, ServoPulses, Settings, Stop};
-use crate::drive::{FanCurve, FanDrive, HomeFail, Homing, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
+use crate::drive::{
+    FanCurve, FanDrive, HomeFail, Homing, LoadWatch, MoveMa, ServoCal, ServoDrive, ServoWatch, SupplyWatch, TachWatch,
+};
 use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, ServoCurrent, Tach, UsbPower, Watchdog};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
@@ -134,6 +136,8 @@ pub struct Status {
     pub adc_die_c: Option<f64>,
     /// Fan tachometer, rpm.
     pub fan_rpm: Option<f64>,
+    /// The servo's current over its last move (`out.servo_ma`); `None` until the first.
+    pub servo_ma: Option<MoveMa>,
     /// Active faults (`faults`, docs/protocol.md): a bit per [`FaultCode`].
     pub faults: Faults,
     pub autotune: AutotuneInfo,
@@ -233,9 +237,10 @@ pub struct Bus {
     pub enrol_out: Channel<M, crate::enrol::Out, 4>,
     /// Why the device started, until the MQTT client has announced it (`boot` event). Set by the binary at start-up.
     pub boot: Mutex<M, Cell<Option<BootReason>>>,
-    /// Hardware faults raised by any task, and the fan's last tach reading.
+    /// Hardware faults raised by any task, the fan's last tach reading and the servo's last move.
     faults: Mutex<M, Cell<Faults>>,
     fan_rpm: Mutex<M, Cell<Option<f64>>>,
+    servo_ma: Mutex<M, Cell<Option<MoveMa>>>,
     servo: Mutex<M, Cell<ServoCtl>>,
     /// Counts the actuator task's passes, so the control task can tell it from a hung one.
     beat: Mutex<M, Cell<u32>>,
@@ -274,6 +279,7 @@ impl Bus {
             })),
             faults: Mutex::new(Cell::new(Faults(0))),
             fan_rpm: Mutex::new(Cell::new(None)),
+            servo_ma: Mutex::new(Cell::new(None)),
             servo: Mutex::new(Cell::new(ServoCtl {
                 cal: None,
                 jog: None,
@@ -671,6 +677,7 @@ pub async fn control<B: Board>(
             alarm_led: alarms.unacked(),
             adc_die_c: snap.die_c,
             fan_rpm: bus.fan_rpm.lock(Cell::get),
+            servo_ma: bus.servo_ma.lock(Cell::get),
             autotune: AutotuneInfo {
                 exciting: pit.autotune().status().exciting,
                 accepted: pit.autotune().status().accepted,
@@ -803,6 +810,9 @@ async fn home<B: Board>(
     result
 }
 
+/// How often the actuator task reads the servo's current while it is powered.
+const SERVO_SAMPLE: Duration = Duration::from_millis(100);
+
 /// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`
 /// its speed at full duty.
 #[allow(clippy::too_many_arguments)]
@@ -827,6 +837,9 @@ pub async fn actuators<B: Board>(
     let mut fan_drive = FanDrive::new(FanCurve::LINEAR, None);
     let mut watch = TachWatch::default();
     let mut flap = ServoDrive::new(ServoCal::DEFAULT);
+    let mut servo_watch = ServoWatch::default();
+    // the servo's power and pulse as the step before left them, for the watch
+    let (mut was_on, mut was_pulse) = (false, 0u16);
     let mut act = Actuation { damper: 0.0, fan: 0.0 };
     loop {
         bus.beat.lock(|c| c.set(c.get().wrapping_add(1)));
@@ -840,10 +853,16 @@ pub async fn actuators<B: Board>(
         let speed = cycler.tick(act.fan, s_min, DT);
         if load.tick(load_fault.is_low().unwrap_or(false)) {
             bus.fault(FaultCode::Load, true);
+            // the line is shared: the servo's current says whether it was the servo
+            if servo_watch.blame() {
+                bus.fault(FaultCode::Servo, true);
+            }
         }
         // both loads run only on a good source and until a load switch has tripped
         let live = supply.ok() && !load.tripped();
         if live && bus.servo().home == Home::Wanted {
+            servo_watch.abandon();
+            was_on = false;
             let result = home::<B>(
                 &mut fan,
                 &mut fan_power,
@@ -892,18 +911,41 @@ pub async fn actuators<B: Board>(
                 (us, true)
             }
             None => {
+                // the flap is not where it was told while `servo` is raised: drive it there again now and then
+                if !was_on && servo_watch.retry_due(DT) {
+                    flap.forget();
+                }
                 let s = flap.tick(flap_angle_deg(act.damper), DT);
                 (s.pulse_us, s.power)
             }
         };
         servo.set_pulse_us(pulse_us);
-        let _ = if powered && live {
-            power.set_high()
-        } else {
-            power.set_low()
-        };
+        let on = powered && live;
+        let _ = if on { power.set_high() } else { power.set_low() };
 
-        tick.next().await;
+        // a move is the servo powered by the flap law, until it is switched off; a jog is not one
+        if ctl.jog.is_some() {
+            servo_watch.abandon();
+        } else if was_on && !on {
+            if let Some(raised) = servo_watch.end() {
+                bus.fault(FaultCode::Servo, raised);
+            }
+            bus.servo_ma.lock(|c| c.set(servo_watch.last()));
+        }
+        let watched = on && ctl.jog.is_none();
+        let holding = was_on && pulse_us == was_pulse;
+        (was_on, was_pulse) = (watched, pulse_us);
+        if watched {
+            // the current all through the second, while the servo moves and settles
+            loop {
+                match select(tick.next(), Timer::after(SERVO_SAMPLE)).await {
+                    Either::First(()) => break,
+                    Either::Second(()) => servo_watch.sample(servo_current.ma(), pulse_us, holding),
+                }
+            }
+        } else {
+            tick.next().await;
+        }
         // the tach's mean over the second just run
         let rpm = tach.rpm();
         bus.fan_rpm.lock(|c| c.set(rpm));

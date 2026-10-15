@@ -439,7 +439,8 @@ impl Scenario {
         sc
     }
 
-    /// The flap stuck for twenty minutes at 2 h, with a setpoint step up to 300F in the middle of it.
+    /// The flap stuck for twenty minutes at 2 h, with a setpoint step up to 300F in the middle of it. The servo turns freely
+    /// (a crank slipped round its shaft), so its current is normal and nothing tells the firmware.
     fn servo_stuck() -> Self {
         let mut sc = Self::kamado_hold(5.0);
         sc.name = "servo-stuck";

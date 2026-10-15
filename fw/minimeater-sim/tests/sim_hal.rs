@@ -108,6 +108,38 @@ fn servo_current_follows_motion_and_the_stall_and_the_switch_limits_it() {
 }
 
 #[test]
+fn a_jammed_flap_holds_and_the_servo_pushes_against_it_and_an_unplugged_one_draws_nothing() {
+    let w = RefCell::new(world());
+    let mut io = io(&w);
+    fn ma(c: &mut impl ServoCurrent) -> u32 {
+        (0..50).map(|_| u32::from(c.ma())).sum::<u32>() / 50
+    }
+    io.servo.set_pulse_us(1500);
+    io.servo_power.set_high().unwrap();
+    w.borrow_mut().advance(0.5);
+    w.borrow_mut().faults.servo_jam = true;
+    // 10 us from the flap's pulse: pushing, under the limit
+    io.servo.set_pulse_us(1510);
+    assert_eq!(w.borrow().flap_deg, 45.0);
+    assert!((300..=400).contains(&ma(&mut io.servo_current)));
+    io.servo.set_pulse_us(1700);
+    assert_eq!(w.borrow().flap_deg, 45.0, "jammed");
+    assert!((580..=620).contains(&ma(&mut io.servo_current)), "held at the limit");
+    assert!(io.load_fault.is_low().unwrap());
+    // free again: it goes where it is told and settles
+    w.borrow_mut().faults.servo_jam = false;
+    io.servo.set_pulse_us(1600);
+    w.borrow_mut().advance(0.5);
+    assert_eq!(w.borrow().flap_deg, 54.0);
+    assert!(ma(&mut io.servo_current) < 40);
+    w.borrow_mut().faults.servo_unplugged = true;
+    io.servo.set_pulse_us(1200);
+    assert_eq!(w.borrow().flap_deg, 54.0);
+    assert_eq!(ma(&mut io.servo_current), 0);
+    assert!(!io.load_fault.is_low().unwrap());
+}
+
+#[test]
 fn fan_duty_drives_plant_and_tach() {
     let w = RefCell::new(world());
     let mut io = io(&w);

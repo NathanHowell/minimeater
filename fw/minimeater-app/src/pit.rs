@@ -76,6 +76,9 @@ pub enum FaultCode {
     Supply,
     /// A load switch is limiting its current (a stalled servo, a jammed fan, a short): both loads are cut until reboot.
     Load,
+    /// The damper servo's current is wrong on two moves running: high while it holds (jammed) or nothing on a move
+    /// (unplugged). It only warns.
+    Servo,
 }
 
 impl FaultCode {
@@ -89,10 +92,11 @@ impl FaultCode {
             FaultCode::Ambient => "ambient",
             FaultCode::Supply => "supply",
             FaultCode::Load => "load",
+            FaultCode::Servo => "servo",
         }
     }
 
-    pub const ALL: [FaultCode; 7] = [
+    pub const ALL: [FaultCode; 8] = [
         FaultCode::PitProbe,
         FaultCode::BoardHot,
         FaultCode::FanStall,
@@ -100,6 +104,7 @@ impl FaultCode {
         FaultCode::Ambient,
         FaultCode::Supply,
         FaultCode::Load,
+        FaultCode::Servo,
     ];
 }
 

@@ -90,8 +90,13 @@ pub struct Faults {
     pub adc_glitch: f64,
     /// The fan rotor is jammed: it does not turn whatever the duty.
     pub fan_jam: bool,
-    /// The servo ignores its pulse: the flap stays where it is.
+    /// The flap stays where it is but the servo turns freely (a crank slipped round its shaft): its current is normal.
     pub servo_stuck: bool,
+    /// The flap is jammed where it is and the servo pushes against it: its current rises with the distance from the flap's
+    /// pulse as it does past a stop, and the fault line goes low beyond `trip_us`.
+    pub servo_jam: bool,
+    /// The servo is unplugged: it draws nothing and the flap stays where it is.
+    pub servo_unplugged: bool,
     /// The ambient sensor NACKs.
     pub ambient_nack: bool,
     /// C added to the ambient sensor's reading (the board next to it is overheating).
@@ -393,11 +398,16 @@ impl Servo for SimServo<'_> {
 }
 
 impl World {
-    /// How far the commanded pulse is past the nearer hard stop, us (0 inside the travel).
+    /// How far the commanded pulse is past the nearer hard stop, us (0 inside the travel); with the flap jammed, how far it
+    /// is from the flap's pulse.
     fn servo_past_stop_us(&self) -> f64 {
         let m = self.servo;
-        let (lo, hi) = (m.closed_us.min(m.open_us), m.closed_us.max(m.open_us));
         let p = f64::from(self.servo_pulse_us);
+        if self.faults.servo_jam {
+            let flap_us = m.closed_us + (m.open_us - m.closed_us) * self.flap_deg / 90.0;
+            return (p - flap_us).abs();
+        }
+        let (lo, hi) = (m.closed_us.min(m.open_us), m.closed_us.max(m.open_us));
         (lo - p).max(p - hi).max(0.0)
     }
 
@@ -405,7 +415,7 @@ impl World {
     /// wants the switch's limit at `trip_us` past, and is held there.
     pub fn servo_ma(&self) -> f64 {
         let m = self.servo;
-        if !self.servo_powered || self.servo_pulse_us == 0 {
+        if !self.servo_powered || self.servo_pulse_us == 0 || self.faults.servo_unplugged {
             return 0.0;
         }
         let err = self.servo_past_stop_us();
@@ -439,7 +449,10 @@ impl World {
     /// The shared fault line of the two load switches is low: an injected fault, or the powered servo pushed past a hard stop.
     fn load_fault_low(&mut self) -> bool {
         let m = self.servo;
-        let stalled = self.servo_powered && self.servo_pulse_us != 0 && self.servo_past_stop_us() > m.trip_us;
+        let stalled = self.servo_powered
+            && self.servo_pulse_us != 0
+            && !self.faults.servo_unplugged
+            && self.servo_past_stop_us() > m.trip_us;
         if stalled {
             self.stall_reads = self.stall_reads.wrapping_add(1);
             let steady = m.chatter_reads == 0 || self.stall_reads % m.chatter_reads < 3;
@@ -453,7 +466,8 @@ impl World {
     /// A powered servo goes straight to its commanded angle (the 10 s control period dwarfs its
     /// ~0.2 s travel). A pulse outside the mechanical stops leaves the horn at the stop.
     fn move_flap(&mut self) {
-        if self.servo_pulse_us == 0 || self.faults.servo_stuck {
+        let f = self.faults;
+        if self.servo_pulse_us == 0 || f.servo_stuck || f.servo_jam || f.servo_unplugged {
             return;
         }
         let m = self.servo;
