@@ -48,10 +48,14 @@ def export_board(out: Path) -> Path | None:
         subprocess.run([KICAD_PY, "hw/tools/models.py", "hw/minimeater.kicad_pcb", str(tmp)], check=True, capture_output=True)
         subprocess.run(export, check=True, capture_output=True)
     else:  # the repository mounted as the working directory, owned by the caller's user
-        export[export.index(str(step))] = str(step.resolve().relative_to(Path.cwd()))
+        inside = Path("build/mech/pcb.step")  # the container sees only the repository: export there, then copy out
+        inside.parent.mkdir(parents=True, exist_ok=True)
+        export[export.index(str(step))] = str(inside)
         script = f"python3 hw/tools/models.py hw/minimeater.kicad_pcb {tmp} && {' '.join(export)}"
         subprocess.run(["podman", "run", "--rm", "--userns=keep-id", "-v", f"{Path.cwd()}:/work:Z", "-w", "/work", "-e", "HOME=/tmp",
                         IMAGE, "sh", "-c", script], check=True, capture_output=True)
+        if inside.resolve() != step.resolve():
+            shutil.copy(inside, step)
     tmp.unlink()
     return step
 
