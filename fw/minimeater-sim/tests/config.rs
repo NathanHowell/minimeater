@@ -68,6 +68,16 @@ fn cooking() -> Settings {
         user: "minimeater".try_into().unwrap(),
         pass: "pw".try_into().unwrap(),
     });
+    s.mqtt_ca = Some(
+        minimeater_app::config::Ca::from_slice(
+            &[0x30, 0x82, 0x01, 0x00]
+                .iter()
+                .copied()
+                .chain((0..256).map(|i| i as u8))
+                .collect::<Vec<u8>>(),
+        )
+        .unwrap(),
+    );
     s.otlp = Some(minimeater_app::config::Otlp {
         host: "collector.local".try_into().unwrap(),
         port: 4318,
@@ -110,11 +120,15 @@ fn a_forgotten_broker_and_collector_stay_forgotten() {
         let (mut store, _) = ConfigStore::open(io(&w).config).await;
         store.save(&s).await.unwrap();
         s.mqtt = None;
+        s.mqtt_ca = None;
         s.otlp = None;
         store.save(&s).await.unwrap();
     });
     let got = boot(&w);
-    assert_eq!((got.mqtt.clone(), got.otlp.clone()), (None, None));
+    assert_eq!(
+        (got.mqtt.clone(), got.mqtt_ca.clone(), got.otlp.clone()),
+        (None, None, None)
+    );
     assert_eq!(got, s);
 }
 
@@ -325,8 +339,8 @@ fn power_cut_at_any_point_of_a_save_loses_nothing_old() {
             );
             assert!(got.probes[0] == old.probes[0] || got.probes[0] == new.probes[0]);
             assert_eq!(
-                (&got.probes[1..], &got.wifi, &got.mqtt),
-                (&old.probes[1..], &old.wifi, &old.mqtt)
+                (&got.probes[1..], &got.wifi, &got.mqtt, &got.mqtt_ca),
+                (&old.probes[1..], &old.wifi, &old.mqtt, &old.mqtt_ca)
             );
             if finished {
                 assert_eq!(got, new, "budget {budget}");

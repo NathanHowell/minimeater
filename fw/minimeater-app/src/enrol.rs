@@ -370,6 +370,93 @@ mod tests {
         assert!(t.last().unwrap().contains("too long"), "{t:?}");
     }
 
+    /// Types `lines` at the REPL with a stand-in for the control task that answers every request, and returns what each
+    /// printed and the requests that were made.
+    fn type_with_control(bus: &Bus, lines: &[&str]) -> (std::vec::Vec<Str>, std::vec::Vec<crate::proto::Request>) {
+        use crate::tasks::Reply;
+        let mut replies = bus.replies.subscriber().unwrap();
+        let typed = async {
+            let mut all = std::vec::Vec::new();
+            for line in lines {
+                let mut out = Out(Vec::new());
+                repl::execute(&mut out, line, &WHO, bus, &mut replies).await;
+                all.push(Str::from_utf8(out.0).unwrap());
+            }
+            all
+        };
+        let seen = core::cell::RefCell::new(std::vec::Vec::new());
+        let control = async {
+            let publisher = bus.replies.immediate_publisher();
+            loop {
+                let inbound = bus.commands.receive().await;
+                seen.borrow_mut().push(inbound.req);
+                publisher.publish_immediate(Reply {
+                    id: inbound.id,
+                    result: Ok(()),
+                });
+            }
+        };
+        match block_on(select(control, typed)) {
+            embassy_futures::select::Either::Second(all) => (all, seen.into_inner()),
+            embassy_futures::select::Either::First(never) => never,
+        }
+    }
+
+    #[test]
+    fn the_ca_is_collected_in_words_checked_and_made_a_setting() {
+        use crate::proto::Request;
+        let bus = Bus::new();
+        let der = fake(&[3u8; 64], 200);
+        let mut lines: std::vec::Vec<Str> = std::vec!["mqtt ca start".into()];
+        lines.extend(words(&der).into_iter().map(|w| std::format!("mqtt ca add {w}")));
+        lines.push("mqtt ca save".into());
+        lines.push("mqtt ca clear".into());
+        let refs: std::vec::Vec<&str> = lines.iter().map(Str::as_str).collect();
+        let (out, requests) = type_with_control(&bus, &refs);
+        let n = out.len();
+        assert!(out[0].contains("ready"), "{out:?}");
+        assert!(
+            out[n - 3].contains(&std::format!("{} bytes so far", der.len())),
+            "{out:?}"
+        );
+        assert!(out[n - 2].contains("MQTT now uses TLS"), "{out:?}");
+        assert!(out[n - 1].contains("plaintext"), "{out:?}");
+        assert_eq!(requests.len(), 2, "{requests:?}");
+        assert_eq!(requests, [Request::MqttCaSave, Request::MqttCaClear]);
+        // the control task takes the staged bytes while it handles the request; the REPL clears them after
+        assert_eq!(bus.ca_stage.lock(|c| c.borrow().clone()), crate::config::Ca::new());
+        // what was saved is not kept for the next one
+        let (out, requests) = type_with_control(&bus, &["mqtt ca save"]);
+        assert!(
+            out[0].contains("not a DER certificate") && requests.is_empty(),
+            "{out:?}"
+        );
+    }
+
+    #[test]
+    fn a_bad_ca_never_becomes_a_request() {
+        let bus = Bus::new();
+        // a PEM file's text, as base64 words: not a DER sequence
+        let pem = b"-----BEGIN CERTIFICATE-----\nMIIB";
+        let mut lines: std::vec::Vec<Str> = std::vec!["mqtt ca start".into()];
+        lines.extend(words(pem).into_iter().map(|w| std::format!("mqtt ca add {w}")));
+        lines.push("mqtt ca save".into());
+        lines.push("mqtt ca add !!!!".into());
+        let refs: std::vec::Vec<&str> = lines.iter().map(Str::as_str).collect();
+        let (out, requests) = type_with_control(&bus, &refs);
+        let n = out.len();
+        assert!(out[n - 2].contains("not a DER certificate"), "{out:?}");
+        assert!(out[n - 1].contains("not base64"), "{out:?}");
+        assert!(requests.is_empty(), "{requests:?}");
+        // too long: said, and dropped
+        let long = [0x30u8; 500];
+        let mut lines: std::vec::Vec<Str> = std::vec!["mqtt ca start".into()];
+        lines.extend(words(&long).into_iter().map(|w| std::format!("mqtt ca add {w}")));
+        let refs: std::vec::Vec<&str> = lines.iter().map(Str::as_str).collect();
+        let (out, _) = type_with_control(&bus, &refs);
+        assert!(out.last().unwrap().contains("too long"), "{out:?}");
+    }
+
     #[test]
     fn with_no_chip_task_the_repl_gives_up_and_leaves_nothing_queued() {
         let bus = Bus::new();

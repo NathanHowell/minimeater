@@ -187,6 +187,8 @@ pub struct Bus {
     pub reboot: Signal<M, ()>,
     /// The serial REPL's jobs for the task that owns the secure element, and its answers (`enrol`).
     pub enrol_job: Channel<M, crate::enrol::Job, 1>,
+    /// The CA certificate as the REPL receives it (`mqtt ca add`), until `mqtt ca save` makes it the setting.
+    pub ca_stage: Mutex<M, RefCell<crate::config::Ca>>,
     pub enrol_out: Channel<M, crate::enrol::Out, 4>,
     /// Why the device started, until the MQTT client has announced it (`boot` event). Set by the binary at start-up.
     pub boot: Mutex<M, Cell<Option<BootReason>>>,
@@ -219,6 +221,7 @@ impl Bus {
             identify: Signal::new(),
             reboot: Signal::new(),
             enrol_job: Channel::new(),
+            ca_stage: Mutex::new(RefCell::new(crate::config::Ca::new())),
             enrol_out: Channel::new(),
             boot: Mutex::new(Cell::new(None)),
             probes: Mutex::new(Cell::new(Snapshot {
@@ -323,6 +326,19 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
         Request::Mqtt(m) => {
             let changed = settings.mqtt != m;
             settings.mqtt = m;
+            Ok(changed)
+        }
+        Request::MqttCaSave => {
+            let ca = bus.ca_stage.lock(|c| c.borrow().clone());
+            if !crate::drivers::cert::looks_like_certificate(&ca) {
+                return Err(Error::new(ErrorCode::OutOfRange, "not a DER certificate"));
+            }
+            let changed = settings.mqtt_ca.as_ref() != Some(&ca);
+            settings.mqtt_ca = Some(ca);
+            Ok(changed)
+        }
+        Request::MqttCaClear => {
+            let changed = settings.mqtt_ca.take().is_some();
             Ok(changed)
         }
         Request::Otlp(o) => {
@@ -652,5 +668,39 @@ pub async fn slow(bus: &Bus) -> ! {
             }
         };
         bus.done.signal(done);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use minimeater_core::model::Ambient;
+    use minimeater_core::model::airflow::AirPath;
+
+    use super::*;
+
+    #[test]
+    fn the_staged_ca_becomes_the_setting_only_if_it_is_a_certificate() {
+        let bus = Bus::new();
+        let mut settings = Settings::default();
+        let mut pit = Pit::new(&settings, AirPath::default(), Ambient::default());
+        let mut go = |req| apply(req, &mut pit, &mut settings, &bus);
+
+        // nothing staged
+        assert_eq!(go(Request::MqttCaSave).unwrap_err().code, ErrorCode::OutOfRange);
+        // not a certificate
+        bus.ca_stage
+            .lock(|c| c.borrow_mut().extend_from_slice(b"-----BEGIN").unwrap());
+        assert!(go(Request::MqttCaSave).is_err());
+        // a SEQUENCE of the length it says
+        bus.ca_stage.lock(|c| {
+            let mut c = c.borrow_mut();
+            c.clear();
+            c.extend_from_slice(&[0x30, 0x03, 1, 2, 3]).unwrap();
+        });
+        assert_eq!(go(Request::MqttCaSave), Ok(true));
+        assert_eq!(go(Request::MqttCaSave), Ok(false), "the same again changes nothing");
+        assert_eq!(go(Request::MqttCaClear), Ok(true));
+        assert_eq!(go(Request::MqttCaClear), Ok(false));
+        assert_eq!(settings.mqtt_ca, None);
     }
 }

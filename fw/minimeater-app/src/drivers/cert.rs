@@ -58,6 +58,11 @@ fn outer_len_matches(der: &[u8]) -> bool {
     total == der.len()
 }
 
+/// Whether `der` is a DER `SEQUENCE` of exactly the length it says: the shape of a certificate, and nothing more.
+pub fn looks_like_certificate(der: &[u8]) -> bool {
+    outer_len_matches(der)
+}
+
 /// What the slot holds for `der`: the length, the certificate, zeros. `None` if it does not fit.
 pub fn pack(der: &[u8]) -> Option<[u8; SLOT_LEN]> {
     if der.len() > DER_MAX {

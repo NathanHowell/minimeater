@@ -18,7 +18,8 @@ use embassy_time::{Duration, with_timeout};
 use embedded_io_async::Write;
 use heapless::{String, Vec};
 
-use crate::config::{Mode, Mqtt, Otlp, Settings, Wifi};
+use crate::config::{CA_MAX, Mode, Mqtt, Otlp, Settings, Wifi};
+use crate::drivers::cert::looks_like_certificate;
 use crate::enrol::{CHUNK, Job, Out};
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
@@ -75,7 +76,7 @@ pub const CATALOG: &[Spec] = &[
     },
     Spec {
         name: "mqtt",
-        usage: "mqtt set <host> [port] [user] [password] | mqtt clear",
+        usage: "mqtt set <host> [port] [user] [password] | mqtt clear | mqtt ca [start | add <base64> | save | clear]",
         help: "the MQTT broker (port 1883 unless given)",
         subs: &["set", "clear"],
     },
@@ -129,6 +130,7 @@ fn values(words: &[&str], index: usize) -> &'static [&'static str] {
         (Some("otlp"), 3) if words.get(1) == Some(&"set") => &["4318", "4317"],
         (Some("otlp"), 4) if words.get(1) == Some(&"set") => &["30", "60", "300"],
         (Some("identity"), 2) if words.get(1) == Some(&"cert") => &["start", "add", "save"],
+        (Some("mqtt"), 2) if words.get(1) == Some(&"ca") => &["start", "add", "save", "clear"],
         _ => &[],
     }
 }
@@ -480,6 +482,7 @@ pub enum Cmd {
     Config,
     Wifi(Option<Wifi>),
     Mqtt(Option<Mqtt>),
+    MqttCa(CaCmd),
     Otlp(Option<Otlp>),
     Setpoint(f64),
     Identify,
@@ -487,6 +490,17 @@ pub enum Cmd {
     /// `factory-reset`: true once the confirmation word came with it.
     FactoryReset(bool),
     Identity(Enrol),
+}
+
+/// What `mqtt ca` was asked: the pinned CA certificate that turns TLS on for MQTT, sent like the device certificate, as base64
+/// words of 64 characters.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum CaCmd {
+    Show,
+    Start,
+    Add(String<64>),
+    Save,
+    Clear,
 }
 
 /// What `identity` was asked.
@@ -668,6 +682,16 @@ mod grammar {
         alt((
             kw("clear").value(Cmd::Mqtt(None)),
             preceded(
+                kw("ca"),
+                opt(alt((
+                    kw("start").value(CaCmd::Start),
+                    kw("save").value(CaCmd::Save),
+                    kw("clear").value(CaCmd::Clear),
+                    preceded(kw("add"), cut_err(arg_s::<64>)).map(CaCmd::Add),
+                ))),
+            )
+            .map(|c| Cmd::MqttCa(c.unwrap_or(CaCmd::Show))),
+            preceded(
                 kw("set"),
                 (arg_s::<64>, opt_arg(port), opt_arg(text::<32>), opt_arg(text::<64>)),
             )
@@ -770,8 +794,8 @@ pub async fn prompt<I: Write>(io: &mut I) {
 }
 
 /// The settings as `config` shows them: passwords are never printed.
-pub fn config_lines(s: &Settings) -> Vec<String<120>, 6> {
-    let mut out: Vec<String<120>, 6> = Vec::new();
+pub fn config_lines(s: &Settings) -> Vec<String<120>, 7> {
+    let mut out: Vec<String<120>, 7> = Vec::new();
     let mut l: String<120> = String::new();
     let _ = match &s.wifi {
         Some(w) => write!(
@@ -794,6 +818,12 @@ pub fn config_lines(s: &Settings) -> Vec<String<120>, 6> {
             if m.pass.is_empty() { "(none)" } else { "****" }
         ),
         None => write!(l, "mqtt     not set"),
+    };
+    let _ = out.push(l);
+    let mut l: String<120> = String::new();
+    let _ = match &s.mqtt_ca {
+        Some(ca) => write!(l, "tls      on, pinned CA of {} bytes", ca.len()),
+        None => write!(l, "tls      off (plaintext)"),
     };
     let _ = out.push(l);
     let mut l: String<120> = String::new();
@@ -828,6 +858,82 @@ async fn request<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, req
             Err(e) => say(io, format_args!("error: {}", e.detail)).await,
         }
         return;
+    }
+}
+
+/// `mqtt ca ...`: the certificate arrives in words, and `save` makes it the setting.
+async fn mqtt_ca<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: CaCmd) {
+    match c {
+        CaCmd::Show => {
+            let n = bus.config().and_then(|s| s.mqtt_ca.map(|c| c.len()));
+            match n {
+                Some(n) => say(io, format_args!("tls on, pinned CA of {n} bytes")).await,
+                None => {
+                    say(
+                        io,
+                        format_args!("tls off (plaintext); mqtt ca start, add, save turns it on"),
+                    )
+                    .await
+                }
+            }
+        }
+        CaCmd::Start => {
+            bus.ca_stage.lock(|c| c.borrow_mut().clear());
+            say(io, format_args!("ready for the CA certificate")).await
+        }
+        CaCmd::Add(text) => {
+            let mut bytes = [0u8; CHUNK];
+            let Ok(b) = Base64::decode(text.as_bytes(), &mut bytes) else {
+                say(
+                    io,
+                    format_args!("error: that is not base64 (words of 64 characters, no PEM lines)"),
+                )
+                .await;
+                return;
+            };
+            let n = bus.ca_stage.lock(|c| {
+                let mut c = c.borrow_mut();
+                if c.extend_from_slice(b).is_ok() {
+                    Some(c.len())
+                } else {
+                    c.clear();
+                    None
+                }
+            });
+            match n {
+                Some(n) => say(io, format_args!("{n} bytes so far")).await,
+                None => say(io, format_args!("error: too long: at most {CA_MAX} bytes; start again")).await,
+            }
+        }
+        CaCmd::Save => {
+            if !bus.ca_stage.lock(|c| looks_like_certificate(&c.borrow())) {
+                say(
+                    io,
+                    format_args!("error: that is not a DER certificate (mqtt ca start, then add the base64 words)"),
+                )
+                .await;
+                return;
+            }
+            request(
+                io,
+                bus,
+                replies,
+                Request::MqttCaSave,
+                "saved; MQTT now uses TLS (the broker's TLS port is usually 8883)",
+            )
+            .await;
+            bus.ca_stage.lock(|c| c.borrow_mut().clear());
+        }
+        CaCmd::Clear => {
+            request(
+                io,
+                bus,
+                replies,
+                Request::MqttCaClear,
+                "pinned CA forgotten; MQTT is plaintext",
+            )
+            .await
+        }
     }
 }
 
@@ -955,6 +1061,7 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
             let done = if o.is_some() { "saved" } else { "collector forgotten" };
             request(io, bus, replies, Request::Otlp(o), done).await
         }
+        Cmd::MqttCa(c) => mqtt_ca(io, bus, replies, c).await,
         Cmd::Identify => request(io, bus, replies, Request::Identify, "blinking for 10 s").await,
         Cmd::Reboot => request(io, bus, replies, Request::Reboot, "rebooting").await,
         Cmd::FactoryReset(false) => {
@@ -1287,6 +1394,32 @@ mod tests {
         }
         e.show(&live);
         assert!(live.wrap(&long).is_some());
+    }
+
+    #[test]
+    fn mqtt_ca_commands() {
+        assert_eq!(parse("mqtt ca").unwrap(), Cmd::MqttCa(CaCmd::Show));
+        assert_eq!(parse("mqtt ca start").unwrap(), Cmd::MqttCa(CaCmd::Start));
+        assert_eq!(parse("mqtt ca save").unwrap(), Cmd::MqttCa(CaCmd::Save));
+        assert_eq!(parse("mqtt ca clear").unwrap(), Cmd::MqttCa(CaCmd::Clear));
+        let w = "MIIBdTCCARugAwIBAgIUAAAAAAAAAAAAAAAAAAAAAAAAAAAwCgYIKoZIzj0EAwIw";
+        assert_eq!(
+            parse(&format!("mqtt ca add {w}")).unwrap(),
+            Cmd::MqttCa(CaCmd::Add(String::try_from(w).unwrap()))
+        );
+        assert!(parse("mqtt ca add").is_err() && parse("mqtt ca now").is_err());
+        assert_eq!(candidates("mqtt ca ").as_slice(), &["start", "add", "save", "clear"]);
+        // (it still sets a broker)
+        assert!(matches!(parse("mqtt set h").unwrap(), Cmd::Mqtt(Some(_))));
+        // and the settings show whether TLS is on
+        let mut s = Settings::default();
+        assert!(config_lines(&s).iter().any(|l| l.contains("tls      off")));
+        s.mqtt_ca = Some(crate::config::Ca::from_slice(&[0x30, 0x00]).unwrap());
+        assert!(
+            config_lines(&s)
+                .iter()
+                .any(|l| l.contains("tls      on, pinned CA of 2 bytes"))
+        );
     }
 
     #[test]

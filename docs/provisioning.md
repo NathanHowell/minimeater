@@ -78,3 +78,17 @@ datasheet:
 
 The host tests run the whole flow against a model of the chip that follows these rules, and the request it prints is parsed by
 RustCrypto's `x509-cert` and verified by OpenSSL; neither says the chip agrees.
+
+## The broker's CA
+
+MQTT uses TLS exactly when a pinned CA is stored. After the certificate is in slot 8 (step 5), send the CA certificate the same way:
+
+```sh
+{ echo mqtt ca start
+  openssl x509 -in ca.pem -outform DER | base64 -w 64 | sed 's/^/mqtt ca add /'   # macOS: base64 -b 64
+  echo mqtt ca save; } > ca.txt
+```
+
+The CA certificate may be at most 480 bytes. Set the broker's TLS port with `mqtt set <host> 8883 ...`. `mqtt ca clear` goes back to plaintext
+and `config` shows which. The broker's certificate must be signed directly by this CA and name the host the device connects to
+(a DNS name in `subjectAltName`, or the common name); the device checks both. TLS is TLS 1.3 only (`docs/adr/0006-tls-stack.md`).

@@ -17,7 +17,7 @@
 //! endurance with a 24 KB region.
 
 use embedded_storage_async::nor_flash::NorFlash;
-use heapless::String;
+use heapless::{String, Vec};
 use log::warn;
 use minimeater_core::control::{Fopdt, Schedule};
 use minimeater_core::food::Cut;
@@ -36,6 +36,7 @@ mod key {
     pub const WIFI: u16 = 0x0201;
     pub const MQTT: u16 = 0x0202;
     pub const OTLP: u16 = 0x0203;
+    pub const MQTT_CA: u16 = 0x0204;
 }
 
 /// Largest serialized record plus key, word-aligned (a full schedule: 2 + 1 + 8 x 32 = 259).
@@ -44,6 +45,13 @@ const BUF: usize = 512;
 const _: () = assert!(BUF >= 2 + 1 + Schedule::CAPACITY * 4 * 8);
 // the probe records' keys stay below the network ones
 const _: () = assert!(key::PROBE0 as usize + PROBE_JACKS <= key::WIFI as usize);
+
+/// Longest pinned CA certificate (DER) the store holds: a P-256 CA with a short name is 250 to 450 bytes.
+pub const CA_MAX: usize = 480;
+const _: () = assert!(BUF >= 2 + 2 + CA_MAX);
+
+/// The DER certificate of the CA that signs the MQTT broker's certificate (`tls`).
+pub type Ca = Vec<u8, CA_MAX>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -229,6 +237,9 @@ pub struct Settings {
     pub probes: [Probe; PROBE_JACKS],
     pub wifi: Option<Wifi>,
     pub mqtt: Option<Mqtt>,
+    /// The CA the broker's certificate must chain to. MQTT uses TLS (with the device certificate) exactly when this is set;
+    /// without it the connection is plaintext.
+    pub mqtt_ca: Option<Ca>,
     pub otlp: Option<Otlp>,
 }
 
@@ -241,6 +252,7 @@ impl Default for Settings {
             probes: core::array::from_fn(Probe::default_for),
             wifi: None,
             mqtt: None,
+            mqtt_ca: None,
             otlp: None,
         }
     }
@@ -544,6 +556,18 @@ impl Record for Mqtt {
     }
 }
 
+impl Record for Ca {
+    fn encode(&self, w: &mut W) -> Result<(), SerializationError> {
+        w.u16(self.len() as u16)?;
+        w.bytes(self)
+    }
+
+    fn decode(r: &mut R) -> Option<Self> {
+        let len = usize::from(r.u16()?);
+        Ca::from_slice(r.bytes(len)?).ok()
+    }
+}
+
 impl Record for Otlp {
     fn encode(&self, w: &mut W) -> Result<(), SerializationError> {
         w.str(&self.host)?;
@@ -635,6 +659,8 @@ impl<F: NorFlash> ConfigStore<F> {
         s.wifi = self.fetch::<Wifi>(key::WIFI).await?.filter(|w| !w.ssid.is_empty());
         // the same for the broker and the collector: an empty host is "forgotten"
         s.mqtt = self.fetch::<Mqtt>(key::MQTT).await?.filter(|m| !m.host.is_empty());
+        // (an empty certificate is the tombstone)
+        s.mqtt_ca = self.fetch::<Ca>(key::MQTT_CA).await?.filter(|c| !c.is_empty());
         s.otlp = self.fetch::<Otlp>(key::OTLP).await?.filter(|o| !o.host.is_empty());
         Ok(s)
     }
@@ -683,6 +709,10 @@ impl<F: NorFlash> ConfigStore<F> {
             });
             self.store(key::MQTT, m).await?;
             self.saved.mqtt = s.mqtt.clone();
+        }
+        if s.mqtt_ca != self.saved.mqtt_ca {
+            self.store(key::MQTT_CA, s.mqtt_ca.clone().unwrap_or_default()).await?;
+            self.saved.mqtt_ca = s.mqtt_ca.clone();
         }
         if s.otlp != self.saved.otlp {
             let o = s.otlp.clone().unwrap_or(Otlp {

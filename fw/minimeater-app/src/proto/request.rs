@@ -43,6 +43,11 @@ pub enum Request {
     Wifi(Option<Wifi>),
     /// The MQTT broker and the OTLP collector, from the serial REPL (`repl`), `None` to forget them. Not on MQTT either.
     Mqtt(Option<Mqtt>),
+    /// Makes the CA certificate staged on the bus (`Bus::ca_stage`, up to 480 bytes: too big to travel in a request) the one
+    /// the broker's certificate must chain to, which turns TLS on for MQTT.
+    MqttCaSave,
+    /// Forgets the pinned CA: MQTT is plaintext.
+    MqttCaClear,
     Otlp(Option<Otlp>),
     /// Blink the LED for 10 s.
     Identify,
