@@ -120,6 +120,17 @@ async fn status_http(link: &'static net::Link, bufs: &'static mut minimeater_app
 }
 
 #[embassy_executor::task]
+async fn serial(link: &'static net::Link, bus: &'static Bus) {
+    let who = minimeater_app::net::Identity {
+        prefix: "minimeater",
+        id: "mm-twin01",
+        sw: "0.1.0",
+        hw: "A",
+    };
+    minimeater_app::improv::run(&mut net::TwinSerial(link), &mut net::NoStation, &who, bus).await
+}
+
+#[embassy_executor::task]
 async fn broker(link: &'static net::Link) {
     net::broker(link).await
 }
@@ -181,6 +192,8 @@ pub struct Report {
     pub mqtt: Vec<(f64, net::Seen)>,
     /// What the status endpoint was asked and answered ([`Action::Http`]): time, request, the whole response.
     pub http: Vec<(f64, String, Vec<u8>)>,
+    /// What the device wrote to the USB serial port (Improv frames and REPL text): when, and the bytes of each write.
+    pub serial: Vec<(f64, Vec<u8>)>,
     /// What the hardware watchdog saw: armed by the control task, and the longest time it went unfed.
     pub wdt: Wdt,
 }
@@ -252,6 +265,7 @@ pub fn run_with(
     if net_mode == NetMode::Memory {
         let bufs = Box::leak(Box::new(minimeater_app::http::Buffers::new()));
         spawner.spawn(status_http(link, bufs, bus).expect("http"));
+        spawner.spawn(serial(link, bus).expect("serial"));
     }
     if sc.settings.otlp.is_some() && net_mode == NetMode::Real {
         let bufs = Box::leak(Box::new(minimeater_app::otlp::Buffers::new()));
@@ -347,6 +361,7 @@ pub fn run_with(
         if next >= end {
             report.mqtt = link.take_log();
             report.http = link.take_http();
+            report.serial = link.take_serial();
             report.wdt = world.borrow().wdt;
             return report;
         }

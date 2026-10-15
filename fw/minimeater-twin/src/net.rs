@@ -62,6 +62,13 @@ pub struct Link {
     inject: Channel<M, Inject, 8>,
     log: std::sync::Mutex<Vec<(f64, Seen)>>,
     http: Http,
+    serial: Serial,
+}
+
+/// The USB serial port: what a scenario types arrives in `rx`, and everything the device writes is kept with the time.
+struct Serial {
+    rx: Pipe<M, PIPE>,
+    out: std::sync::Mutex<Vec<(f64, Vec<u8>)>>,
 }
 
 /// The status endpoint's end of the network: a client arrives with its whole request (`Action::Http`), the server
@@ -92,7 +99,22 @@ impl Link {
                 current: std::sync::Mutex::new(None),
                 done: std::sync::Mutex::new(Vec::new()),
             },
+            serial: Serial {
+                rx: Pipe::new(),
+                out: std::sync::Mutex::new(Vec::new()),
+            },
         }
+    }
+
+    /// The terminal types `text` at the USB serial port (what the device's REPL and Improv read). Bytes that do not fit the
+    /// port's buffer are lost, as a host that outruns the device's would lose them.
+    pub fn type_serial(&self, text: &'static str) {
+        let _ = self.serial.rx.try_write(text.as_bytes());
+    }
+
+    /// What the device wrote to the serial port: when, and the bytes of each write.
+    pub fn take_serial(&self) -> Vec<(f64, Vec<u8>)> {
+        std::mem::take(&mut *self.serial.out.lock().unwrap())
     }
 
     /// A client sends `request` (the raw bytes of a whole HTTP request) to the status endpoint. A client that arrives
@@ -155,6 +177,44 @@ impl Connector for TwinConn {
         l.b2c.clear();
         l.dial.signal(());
         Ok((&l.b2c, &l.c2b))
+    }
+}
+
+/// The device's end of the USB serial port, for `improv::run`.
+pub struct TwinSerial(pub &'static Link);
+
+impl embedded_io_async::ErrorType for TwinSerial {
+    type Error = core::convert::Infallible;
+}
+
+impl embedded_io_async::Read for TwinSerial {
+    async fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        Ok(self.0.serial.rx.read(buf).await)
+    }
+}
+
+impl embedded_io_async::Write for TwinSerial {
+    async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        let at = clock::now() as f64 / clock::TICK_HZ as f64;
+        self.0.serial.out.lock().unwrap().push((at, buf.to_vec()));
+        Ok(buf.len())
+    }
+}
+
+/// No radio on the twin: Improv's WiFi commands find nothing and join nothing.
+pub struct NoStation;
+
+impl minimeater_app::improv::Station for NoStation {
+    async fn connect(&mut self, _ssid: &str, _pass: &str) -> bool {
+        false
+    }
+
+    async fn scan(&mut self) -> heapless::Vec<minimeater_app::improv::Network, 12> {
+        heapless::Vec::new()
+    }
+
+    fn online(&self) -> bool {
+        false
     }
 }
 
