@@ -69,6 +69,14 @@ pub trait UsbPower {
     fn source_current_ma(&mut self) -> Option<u16>;
 }
 
+/// The hardware watchdog: armed once with a timeout, then fed. A missed feed resets the board, which boots into the
+/// saved cook (`.4.24`). The control task feeds it.
+pub trait Watchdog {
+    /// Arms (and feeds) it: the board resets if `timeout_ms` pass without a [`feed`](Self::feed).
+    fn start(&mut self, timeout_ms: u32);
+    fn feed(&mut self);
+}
+
 /// The board's peripheral types. Embassy tasks cannot be generic, so each binary names its board's
 /// concrete types once and wraps the generic application functions in thin `#[task]`s.
 pub trait Board {
@@ -90,6 +98,7 @@ pub trait Board {
     /// The configuration region only, not the whole flash (`.4.9`).
     type Config: NorFlash;
     type Usb: UsbPower;
+    type Watchdog: Watchdog;
 }
 
 /// Every peripheral of a board, handed to the application at start-up.
@@ -106,6 +115,7 @@ pub struct Io<B: Board> {
     pub button: B::Button,
     pub config: B::Config,
     pub usb: B::Usb,
+    pub watchdog: B::Watchdog,
 }
 
 /// A [`Servo`] on a PWM channel running at `period_us` (20 000 for 50 Hz).

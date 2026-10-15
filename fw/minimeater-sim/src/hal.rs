@@ -15,7 +15,7 @@ use embedded_hal::digital::{ErrorType as PinErrorType, InputPin, OutputPin};
 use embedded_hal::pwm::{ErrorType as PwmErrorType, SetDutyCycle};
 use embedded_hal_async::digital::Wait;
 use embedded_storage_async::nor_flash::{ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash};
-use minimeater_app::hal::{AmbientSensor, Board, HalError, Io, PROBE_JACKS, ProbeAdc, Servo, Tach, UsbPower};
+use minimeater_app::hal::{AmbientSensor, Board, HalError, Io, PROBE_JACKS, ProbeAdc, Servo, Tach, UsbPower, Watchdog};
 use minimeater_core::thermistor::{R_BIAS, Thermistor};
 use minimeater_core::units::f_to_k;
 
@@ -102,6 +102,17 @@ pub struct World {
     /// Fan revolutions since the tach was last read, and the time they took.
     revs: f64,
     revs_s: f64,
+    /// The watchdog: the timeout once armed (s), the time since the last feed, and the longest gap between feeds.
+    pub wdt: Wdt,
+}
+
+/// What the simulated watchdog saw. It does not reset the twin; a run that expires it says so in `barked`.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Wdt {
+    pub timeout_s: Option<f64>,
+    pub since_feed_s: f64,
+    pub longest_gap_s: f64,
+    pub barked: bool,
 }
 
 impl World {
@@ -126,6 +137,7 @@ impl World {
             config: [0xFF; CONFIG_BYTES],
             revs: 0.0,
             revs_s: 0.0,
+            wdt: Wdt::default(),
         }
     }
 
@@ -157,6 +169,11 @@ impl World {
         self.plant.step(dt, act, &self.env);
         self.revs += act.fan * self.plant.path.fan.rpm_max / 60.0 * dt;
         self.revs_s += dt;
+        if let Some(t) = self.wdt.timeout_s {
+            self.wdt.since_feed_s += dt;
+            self.wdt.longest_gap_s = self.wdt.longest_gap_s.max(self.wdt.since_feed_s);
+            self.wdt.barked |= self.wdt.since_feed_s > t;
+        }
     }
 
     pub fn set_button(&mut self, pressed: bool) {
@@ -198,6 +215,7 @@ pub struct SimLed<'a>(Shared<'a>);
 pub struct SimButton<'a>(Shared<'a>);
 pub struct SimConfig<'a>(Shared<'a>);
 pub struct SimUsb<'a>(Shared<'a>);
+pub struct SimWatchdog<'a>(Shared<'a>);
 
 pub struct SimBoard<'a>(core::marker::PhantomData<&'a ()>);
 
@@ -214,6 +232,7 @@ impl<'a> Board for SimBoard<'a> {
     type Button = SimButton<'a>;
     type Config = SimConfig<'a>;
     type Usb = SimUsb<'a>;
+    type Watchdog = SimWatchdog<'a>;
 }
 
 /// The application's view of `world`.
@@ -231,6 +250,7 @@ pub fn io(world: Shared<'_>) -> Io<SimBoard<'_>> {
         button: SimButton(world),
         config: SimConfig(world),
         usb: SimUsb(world),
+        watchdog: SimWatchdog(world),
     }
 }
 
@@ -522,6 +542,20 @@ impl NorFlash for SimConfig<'_> {
             *d &= *s;
         }
         Ok(())
+    }
+}
+
+impl Watchdog for SimWatchdog<'_> {
+    fn start(&mut self, timeout_ms: u32) {
+        let mut w = self.0.borrow_mut();
+        w.wdt = Wdt {
+            timeout_s: Some(f64::from(timeout_ms) * 1e-3),
+            ..Wdt::default()
+        };
+    }
+
+    fn feed(&mut self) {
+        self.0.borrow_mut().wdt.since_feed_s = 0.0;
     }
 }
 

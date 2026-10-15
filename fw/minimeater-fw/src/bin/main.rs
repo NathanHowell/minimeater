@@ -116,7 +116,7 @@ async fn main(spawner: Spawner) -> ! {
         ConstStaticCell::new(minimeater_app::otlp::Buffers::new());
     spawner.spawn(mqtt(tcp!(stack), id, bus, MQTT_BUFS.take()).expect("mqtt task"));
     spawner.spawn(otlp(tcp!(stack), id, bus, OTLP_BUFS.take()).expect("otlp task"));
-    spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control task"));
+    spawner.spawn(control(io.watchdog, io.ambient, store, settings, pit, foods, bus).expect("control task"));
     loop {
         core::future::pending::<()>().await;
     }
@@ -132,6 +132,7 @@ mod run {
 
     #[embassy_executor::task]
     pub async fn control(
+        wdt: <B as Board>::Watchdog,
         ambient: <B as Board>::Ambient,
         store: ConfigStore<<B as Board>::Config>,
         settings: Settings,
@@ -139,7 +140,7 @@ mod run {
         foods: &'static mut Foods,
         bus: &'static Bus,
     ) {
-        tasks::control::<B>(ambient, store, settings, pit, foods, bus).await
+        tasks::control::<B>(wdt, ambient, store, settings, pit, foods, bus).await
     }
 
     #[embassy_executor::task]

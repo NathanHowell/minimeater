@@ -33,7 +33,7 @@ use minimeater_app::tasks::{self, Bus, Status};
 use minimeater_core::model::airflow::AirPath;
 use minimeater_sim::hal::{
     SimAmbient, SimBoard, SimConfig, SimFan, SimFanPower, SimLoadFault, SimProbes, SimServo, SimServoPower, SimTach,
-    SimUsb, World, io,
+    SimUsb, SimWatchdog, Wdt, World, io,
 };
 
 pub use scenario::{Action, Scenario};
@@ -42,6 +42,7 @@ type B = SimBoard<'static>;
 
 #[embassy_executor::task]
 async fn control(
+    wdt: SimWatchdog<'static>,
     ambient: SimAmbient<'static>,
     store: ConfigStore<SimConfig<'static>>,
     settings: Settings,
@@ -49,7 +50,7 @@ async fn control(
     foods: &'static mut Foods,
     bus: &'static Bus,
 ) {
-    tasks::control::<B>(ambient, store, settings, pit, foods, bus).await
+    tasks::control::<B>(wdt, ambient, store, settings, pit, foods, bus).await
 }
 
 #[embassy_executor::task]
@@ -150,6 +151,8 @@ pub struct Report {
     pub configs: Vec<(f64, Settings)>,
     /// What the broker saw the device do (empty without an `mqtt` setting).
     pub mqtt: Vec<(f64, net::Seen)>,
+    /// What the hardware watchdog saw: armed by the control task, and the longest time it went unfed.
+    pub wdt: Wdt,
 }
 
 static RAN: AtomicBool = AtomicBool::new(false);
@@ -183,7 +186,7 @@ pub fn run_with(
 
     let exec: &'static raw::Executor = Box::leak(Box::new(raw::Executor::new(core::ptr::null_mut())));
     let spawner = exec.spawner();
-    spawner.spawn(control(io.ambient, store, settings, pit, foods, bus).expect("control"));
+    spawner.spawn(control(io.watchdog, io.ambient, store, settings, pit, foods, bus).expect("control"));
     spawner.spawn(probes(io.probes, bus).expect("probes"));
     spawner.spawn(
         actuators(
@@ -305,6 +308,7 @@ pub fn run_with(
         clock::set(next);
         if next >= end {
             report.mqtt = link.take_log();
+            report.wdt = world.borrow().wdt;
             return report;
         }
     }

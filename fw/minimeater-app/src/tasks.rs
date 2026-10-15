@@ -12,6 +12,9 @@
 //! - [`probes`]: the ADC round robin, averaging and filtering ([`crate::probes`]), publishing the
 //!   latest [`Snapshot`] on the [`Bus`] for [`control`] to read each period.
 //!
+//! The control task also arms the hardware watchdog (30 s, [`WATCHDOG_MS`]) and feeds it each period and after each
+//! request, while the actuator task is still running: a hang resets the board into the saved cook.
+//!
 //! The servo calibration and fan curve are defaults until the parts are chosen (`.2.9`, `.2.2`).
 
 use core::cell::{Cell, RefCell};
@@ -39,7 +42,7 @@ use crate::alarms::{Alarms, Limit};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
 use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
-use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower};
+use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower, Watchdog};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 use crate::proto::request::{Error, ErrorCode, ProbeChange, Request};
@@ -55,6 +58,9 @@ const BOARD_HOT_C: (f64, f64) = (80.0, 75.0);
 /// The scanner starts a pass at least this often, ms (ADR 0002: four jacks at 0.4 s each). A pass
 /// on the real ADC takes longer, so it runs back to back there.
 const PASS_MS: u64 = 1600;
+/// The hardware watchdog's timeout, ms: three control periods. The control task feeds it once a period and after each
+/// request, and only while the actuator task is still running; a flash write or one solve of a fit is well inside.
+const WATCHDOG_MS: u32 = 30_000;
 
 /// A request and the id its reply will carry.
 #[derive(Clone, Debug)]
@@ -180,6 +186,8 @@ pub struct Bus {
     /// Hardware faults raised by any task, and the fan's last tach reading.
     faults: Mutex<M, Cell<Faults>>,
     fan_rpm: Mutex<M, Cell<Option<f64>>>,
+    /// Counts the actuator task's passes, so the control task can tell it from a hung one.
+    beat: Mutex<M, Cell<u32>>,
     act: Signal<M, Actuation>,
     job: Signal<M, Job>,
     done: Signal<M, Done>,
@@ -211,6 +219,7 @@ impl Bus {
             })),
             faults: Mutex::new(Cell::new(Faults(0))),
             fan_rpm: Mutex::new(Cell::new(None)),
+            beat: Mutex::new(Cell::new(0)),
             act: Signal::new(),
             job: Signal::new(),
             done: Signal::new(),
@@ -335,6 +344,7 @@ pub async fn probes<B: Board>(adc: B::Probes, bus: &Bus) -> ! {
 
 /// The control loop. `pit` and `foods` are large: the caller gives them static storage.
 pub async fn control<B: Board>(
+    mut wdt: B::Watchdog,
     mut ambient: B::Ambient,
     mut store: ConfigStore<B::Config>,
     mut settings: Settings,
@@ -342,6 +352,9 @@ pub async fn control<B: Board>(
     foods: &mut Foods,
     bus: &Bus,
 ) -> ! {
+    // armed here, after the boot's flash reads and the self-survey; a hang from now on resets the board into the saved cook
+    wdt.start(WATCHDOG_MS);
+    let mut beat = 0;
     // the first full scan before the first period
     while bus.snapshot().passes == 0 {
         Timer::after_millis(100).await;
@@ -357,6 +370,15 @@ pub async fn control<B: Board>(
     // `~/config` goes out once at boot and again after every accepted change
     let mut republish = true;
     loop {
+        // fed while the actuators (the fan and the flap) are still being driven; if they hang the board resets and
+        // boots with both off
+        let b = bus.beat.lock(Cell::get);
+        if b != beat {
+            beat = b;
+            wdt.feed();
+        } else {
+            warn!("actuator task silent: watchdog not fed");
+        }
         let ambient_c = ambient.read_c().await.ok();
         bus.fault(FaultCode::Ambient, ambient_c.is_none());
         let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
@@ -469,6 +491,8 @@ pub async fn control<B: Board>(
                 Either::First(()) => break,
                 Either::Second(r) => {
                     handle::<B>(r, pit, &mut settings, &mut store, &mut alarms, &mut check, bus).await;
+                    // the flash write in a request can be slow; the period's feed is not enough after it
+                    wdt.feed();
                 }
             }
         }
@@ -541,6 +565,7 @@ pub async fn actuators<B: Board>(
     let mut flap = ServoDrive::new(ServoCal::DEFAULT);
     let mut act = Actuation { damper: 0.0, fan: 0.0 };
     loop {
+        bus.beat.lock(|c| c.set(c.get().wrapping_add(1)));
         if let Some(a) = bus.act.try_take() {
             act = a;
         }

@@ -459,7 +459,8 @@ impl Scenario {
         v
     }
 
-    pub(crate) fn world(&self) -> World {
+    /// The simulated board and plant this scenario starts from.
+    pub fn world(&self) -> World {
         let plant = match self.start {
             Start::Cold => Plant::cold(self.path, Dynamics::default(), &self.ambient),
             Start::Steady(f) => Plant::steady(self.path, Dynamics::default(), &self.ambient, f, 0.0)

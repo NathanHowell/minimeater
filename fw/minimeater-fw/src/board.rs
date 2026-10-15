@@ -26,11 +26,12 @@ use esp_hal::ledc::channel::{self, ChannelIFace};
 use esp_hal::ledc::timer::{self, TimerIFace};
 use esp_hal::ledc::{LSGlobalClkSource, Ledc, LowSpeed};
 use esp_hal::pcnt::{Pcnt, channel::EdgeMode, unit::Unit};
-use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, USB_DEVICE, WIFI};
-use esp_hal::time::Rate;
+use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, TIMG1, USB_DEVICE, WIFI};
+use esp_hal::time::{Duration, Rate};
+use esp_hal::timer::timg::{MwdtStage, TimerGroup, Wdt};
 use esp_storage::FlashStorage;
 use minimeater_app::drivers::{ads122c04, ads122c04::Ads122c04, tmp117, tmp117::Tmp117, usb_cc};
-use minimeater_app::hal::{Board, FlashRegion, Io, PwmServo, Tach, UsbPower};
+use minimeater_app::hal::{Board, FlashRegion, Io, PwmServo, Tach, UsbPower, Watchdog};
 use static_cell::StaticCell;
 
 /// Configuration region: the `nvs` partition of espflash's default partition table. `.4.13` (OTA)
@@ -68,6 +69,7 @@ impl Board for Esp {
     type Button = Input<'static>;
     type Config = FlashRegion<BlockingAsync<FlashStorage<'static>>>;
     type Usb = CcSense;
+    type Watchdog = Mwdt;
 }
 
 /// Peripherals the board does not wrap, for the runtime and (later) the radio.
@@ -171,6 +173,8 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
             cc1,
             cc2,
         },
+        // TIMG0 is the runtime's; TIMG1's watchdog resets the whole system
+        watchdog: Mwdt(TimerGroup::new(p.TIMG1).wdt),
     };
     let rest = Rest {
         timg0: p.TIMG0,
@@ -179,6 +183,22 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         wifi: p.WIFI,
     };
     (io, rest)
+}
+
+/// The main watchdog of timer group 1: stage 0 resets the system (`Wdt::enable` sets that action).
+pub struct Mwdt(Wdt<TIMG1<'static>>);
+
+impl Watchdog for Mwdt {
+    fn start(&mut self, timeout_ms: u32) {
+        self.0
+            .set_timeout(MwdtStage::Stage0, Duration::from_millis(u64::from(timeout_ms)));
+        self.0.enable();
+        self.0.feed();
+    }
+
+    fn feed(&mut self) {
+        self.0.feed();
+    }
 }
 
 /// Fan tach on a pulse-counter unit: rising edges, glitch-filtered, read and cleared each call.
