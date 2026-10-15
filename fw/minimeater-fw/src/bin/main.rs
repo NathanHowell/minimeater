@@ -7,7 +7,7 @@
 #![deny(clippy::large_stack_frames)]
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Instant, Ticker};
+use embassy_time::{Duration, Instant, Ticker, Timer};
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
@@ -95,6 +95,7 @@ async fn main(spawner: Spawner) -> ! {
         .expect("actuators task"),
     );
     spawner.spawn(slow(bus).expect("slow task"));
+    spawner.spawn(reboot(bus).expect("reboot task"));
     static ID: StaticCell<heapless::String<12>> = StaticCell::new();
     let id: &'static str = ID.init(device_id());
     spawner.spawn(provisioning(port, id, bus).expect("provisioning task"));
@@ -233,6 +234,17 @@ async fn otlp(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static 
     };
     let heap_free = || Some(esp_alloc::HEAP.free() as u32);
     minimeater_app::otlp::run(&mut tcp, &who, bus, bufs, &net::unix_ns, &net::rssi, &heap_free).await
+}
+
+/// The `reboot` request (MQTT, Home Assistant's button, the serial REPL): the settings are saved as they change, so
+/// the board comes back into the cook it was in.
+#[embassy_executor::task]
+async fn reboot(bus: &'static Bus) {
+    bus.reboot.wait().await;
+    info!("reboot requested");
+    // the reply and the last status go out first
+    Timer::after_millis(500).await;
+    esp_hal::system::software_reset()
 }
 
 #[embassy_executor::task]
