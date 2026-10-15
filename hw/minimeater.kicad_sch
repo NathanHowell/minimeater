@@ -10910,6 +10910,13 @@
 		)
 		(uuid "d746ca4f-101a-4cfd-82f7-df3132c106f1")
 	)
+	(wire
+		(pts
+			(xy 226.06 220.98)
+			(xy 226.06 223.52)
+		)
+		(uuid "9c7544fe-6cb9-44a5-ba79-b61a4f5d4bce")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -11084,6 +11091,56 @@
 			(justify left bottom)
 		)
 		(uuid "493b05aa-7f52-4c69-a76e-7e42d5076a1d")
+	)
+	(text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red), after the current-sense shunt R36\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current (servo side of R36).\nHand-soldered; not in the JLC BOM/assembly."
+		(at 330.2 255.27 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "c3e05fdc-ea86-4510-90b9-01f356a5a4a2")
+	)
+	(text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nADC_DRDY | IO2 | probe ADC data-ready, 10k pull-up (ADC1_CH2)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nSERVO_ISENSE | IO6 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH6; MTCK, not a strapping pin)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
+		(at 205.74 378.46 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "eeae86f1-960f-4a92-826f-ed61bbc421a9")
+	)
+	(text "U6, U7 TPS2553: current-limited power switches from VBUS_F.\nU6 -> VSERVO_SW -> R36 -> VSERVO (servo, J7), limit by R5; U7 -> VFAN (blower, J6), limit by R6.\nEN from the MCU, 100k pull-downs (R8, R9) keep both off through boot.\nOpen-drain FAULT shared on LOAD_FAULT (R7). In: C16/C17 100 nF; out: 10 uF + 100 nF."
+		(at 170 192 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "8eebf776-c9ee-4a2a-b58c-26dc7698349f")
+	)
+	(text "U13 INA181A1: servo current\nR36 0.1R, VSERVO_SW -> VSERVO\n(C36 reservoir on servo side).\n2 V/A: 1.2 V at the 0.6 A limit.\nR37/C44 1.6 kHz -> IO6.\nKelvin lines to R36's pads."
+		(at 240.03 203.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "129d07b2-f910-47d2-ad9a-e2acec8068c9")
+	)
+	(text "POWER TREE\nVBUS_RAW (USB-C 5 V, D1 SMF5V0A TVS) -> U12 TPS259531 eFuse (2.04 A, 4.2 V/ms soft start, 5.7 V clamp) -> VBUS_F\nVBUS_F -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO_SW (0.6 A) -> 0.1R shunt R36 -> VSERVO; VFAN (0.52 A)\nSurge: the cable sees only 100 nF at attach; D1 clamps its ringing (~7 V) at the eFuse input (20 V);\nVBUS_F stays under 5.3 V, below the 6 V parts (docs/sim/power.md)."
+		(at 150 136 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+			)
+			(justify left bottom)
+		)
+		(uuid "9231e429-1792-49b4-ac4c-4b8a54b5bdac")
 	)
 	(label "TIP2"
 		(at 111.76 294.64 180)
@@ -11854,6 +11911,16 @@
 			(justify left bottom)
 		)
 		(uuid "a091be63-9bdd-4f84-9eea-bab6af9c2be7")
+	)
+	(label "SERVO_IAMP"
+		(at 226.06 223.52 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "209bebbe-ea1c-4877-a939-955c77f8d36d")
 	)
 	(global_label "3V3"
 		(shape input)
@@ -13241,31 +13308,6 @@
 		)
 		(uuid "4c6d3fd1-7169-4a8d-814b-42f37f5ec483")
 	)
-  (text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red), after the current-sense shunt R36\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current (servo side of R36).\nHand-soldered; not in the JLC BOM/assembly."
-    (at 330.2 255.27 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "c3e05fdc-ea86-4510-90b9-01f356a5a4a2")
-  )
-  (text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nADC_DRDY | IO2 | probe ADC data-ready, 10k pull-up (ADC1_CH2)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nSERVO_ISENSE | IO6 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH6; MTCK, not a strapping pin)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
-    (at 205.74 378.46 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "eeae86f1-960f-4a92-826f-ed61bbc421a9")
-  )
-  (text "U6, U7 TPS2553: current-limited power switches from VBUS_F.\nU6 -> VSERVO_SW -> R36 -> VSERVO (servo, J7), limit by R5; U7 -> VFAN (blower, J6), limit by R6.\nEN from the MCU, 100k pull-downs (R8, R9) keep both off through boot.\nOpen-drain FAULT shared on LOAD_FAULT (R7). In: C16/C17 100 nF; out: 10 uF + 100 nF."
-    (at 170 192 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "8eebf776-c9ee-4a2a-b58c-26dc7698349f")
-  )
-  (text "U13 INA181A1: servo current\nR36 0.1R, VSERVO_SW -> VSERVO\n(C36 reservoir on servo side).\n2 V/A: 1.2 V at the 0.6 A limit.\nR37/C44 1.6 kHz -> IO6.\nKelvin lines to R36's pads."
-    (at 240.03 203.2 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "129d07b2-f910-47d2-ad9a-e2acec8068c9")
-  )
-  (text "POWER TREE\nVBUS_RAW (USB-C 5 V, D1 SMF5V0A TVS) -> U12 TPS259531 eFuse (2.04 A, 4.2 V/ms soft start, 5.7 V clamp) -> VBUS_F\nVBUS_F -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO_SW (0.6 A) -> 0.1R shunt R36 -> VSERVO; VFAN (0.52 A)\nSurge: the cable sees only 100 nF at attach; D1 clamps its ringing (~7 V) at the eFuse input (20 V);\nVBUS_F stays under 5.3 V, below the 6 V parts (docs/sim/power.md)."
-    (at 150 136 0)
-    (effects (font (size 1.8 1.8)) (justify left bottom))
-    (uuid "9231e429-1792-49b4-ac4c-4b8a54b5bdac")
-  )
 	(symbol
 		(lib_id "power:GND")
 		(at 243.84 326.39 0)
