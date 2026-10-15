@@ -39,7 +39,7 @@ use minimeater_core::model::airflow::{Actuation, AirPath, AirflowMap};
 use minimeater_core::units::{c_to_k, k_to_f};
 
 use crate::alarms::{Alarms, Limit};
-use crate::ambient::compensate;
+use crate::ambient::{PLAUSIBLE_C, compensate};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, Settings};
 use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
@@ -387,11 +387,13 @@ pub async fn control<B: Board>(
             warn!("actuator task silent: watchdog not fed");
         }
         let raw_c = ambient.read_c().await.ok();
-        bus.fault(FaultCode::Ambient, raw_c.is_none());
+        // an implausible reading is no reading for the airflow plan; `board_hot` below still sees it
+        let usable = raw_c.filter(|c| PLAUSIBLE_C.contains(c));
+        bus.fault(FaultCode::Ambient, usable.is_none());
         // a scanner that has stopped is an ADC that is not answering
         let snap = bus.snapshot();
         // the sensor is on the board and reads some of its heat
-        let ambient_c = raw_c.map(|c| compensate(c, snap.die_c));
+        let ambient_c = usable.map(|c| compensate(c, snap.die_c));
         let ambient_f = ambient_c.map(|c| k_to_f(c_to_k(c)));
         let sense = if snap.passes == last_pass {
             [Sense::Fault; PROBE_JACKS]

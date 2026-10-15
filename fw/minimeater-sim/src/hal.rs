@@ -66,6 +66,8 @@ pub struct Faults {
     pub servo_stuck: bool,
     /// The ambient sensor NACKs.
     pub ambient_nack: bool,
+    /// C added to the ambient sensor's reading (the board next to it is overheating).
+    pub ambient_offset_c: f64,
     /// A load switch is in current limit: the shared fault line reads low.
     pub load_fault: bool,
     /// Flash erases and writes fail.
@@ -307,7 +309,7 @@ impl AmbientSensor for SimAmbient<'_> {
         }
         // the board's heat on the sensor, a little more than the firmware assumes (`minimeater_app::ambient::SELF_HEAT`)
         let air = w.env.ambient.t_k - 273.15;
-        Ok(air + SENSOR_SELF_HEAT * (w.board_c - air))
+        Ok(air + SENSOR_SELF_HEAT * (w.board_c - air) + w.faults.ambient_offset_c)
     }
 }
 

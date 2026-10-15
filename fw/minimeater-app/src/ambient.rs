@@ -9,6 +9,10 @@ pub const SELF_HEAT: f64 = 0.1;
 /// airflow map plan for another day's weather.
 pub const MAX_CORRECTION_C: f64 = 5.0;
 
+/// The outside air the box is rated for is -10 to 45 C (`docs/icd.md`); a reading beyond these is the sensor's (or the
+/// board's) doing and is not used to plan the airflow.
+pub const PLAUSIBLE_C: core::ops::RangeInclusive<f64> = -30.0..=60.0;
+
 /// The air temperature, C, from the sensor's reading `raw_c` and the board temperature `board_c` (None: the ADC is not
 /// answering, and the sensor's reading stands). raw = air + `SELF_HEAT` * (board - air), solved for the air.
 pub fn compensate(raw_c: f64, board_c: Option<f64>) -> f64 {

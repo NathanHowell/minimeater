@@ -153,7 +153,7 @@ Error codes:
 | `pit_probe` | the selected pit probe has not been `ok` for two control periods (10-20 s): the flap closes and the fan stops until it is back |
 | `fan_stall` | duty above 30 % but tach reads 0 |
 | `adc` | ADS122C04 not responding |
-| `ambient` | TMP117 not responding: feedforward falls back to 20C |
+| `ambient` | TMP117 not responding, or reading outside -30..60C (the sensor or the board next to it is at fault): feedforward falls back to 20C |
 | `load` | a load switch is limiting its current (stalled servo, jammed fan, short): the fan and servo are cut and stay off until reboot; the fault line is shared, so it does not say which |
 | `supply` | the USB-C source advertises less than 1.5 A (or nothing): the fan and servo are off, probes and alarms keep running |
 
