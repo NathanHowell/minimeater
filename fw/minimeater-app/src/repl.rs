@@ -96,6 +96,12 @@ pub const CATALOG: &[Spec] = &[
         help: "restart the board (a cook resumes)",
         subs: &[],
     },
+    Spec {
+        name: "factory-reset",
+        usage: "factory-reset erase",
+        help: "every setting back to its default, then reboot (the word erase confirms)",
+        subs: &[],
+    },
 ];
 
 fn spec(name: &str) -> Option<&'static Spec> {
@@ -396,6 +402,8 @@ pub enum Cmd {
     Setpoint(f64),
     Identify,
     Reboot,
+    /// `factory-reset`: true once the confirmation word came with it.
+    FactoryReset(bool),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -598,6 +606,11 @@ mod grammar {
             "config" => command_args("config", winnow::combinator::empty.value(Cmd::Config)).parse_next(i),
             "identify" => command_args("identify", winnow::combinator::empty.value(Cmd::Identify)).parse_next(i),
             "reboot" => command_args("reboot", winnow::combinator::empty.value(Cmd::Reboot)).parse_next(i),
+            "factory-reset" => command_args(
+                "factory-reset",
+                opt(kw("erase")).map(|w| Cmd::FactoryReset(w.is_some())),
+            )
+            .parse_next(i),
             "setpoint" => command_args("setpoint", setpoint).parse_next(i),
             "wifi" => command_args("wifi", wifi).parse_next(i),
             "mqtt" => command_args("mqtt", mqtt).parse_next(i),
@@ -801,6 +814,14 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
         }
         Cmd::Identify => request(io, bus, replies, Request::Identify, "blinking for 10 s").await,
         Cmd::Reboot => request(io, bus, replies, Request::Reboot, "rebooting").await,
+        Cmd::FactoryReset(false) => {
+            say(
+                io,
+                format_args!("this erases the cook, probe limits, learned schedule, WiFi, MQTT and OTLP; type factory-reset erase to do it"),
+            )
+            .await
+        }
+        Cmd::FactoryReset(true) => request(io, bus, replies, Request::Defaults, "everything reset; rebooting").await,
     }
 }
 
@@ -1065,6 +1086,17 @@ mod tests {
         assert!(parse("status now").is_err());
         assert!(matches!(parse("frobnicate"), Err(ParseError::Unknown(_))));
         assert_eq!(parse("help wifi").unwrap(), Cmd::Help(Some("wifi".try_into().unwrap())));
+    }
+
+    #[test]
+    fn factory_reset_needs_its_confirmation_word() {
+        assert_eq!(parse("factory-reset").unwrap(), Cmd::FactoryReset(false));
+        assert_eq!(parse("factory-reset erase").unwrap(), Cmd::FactoryReset(true));
+        assert!(parse("factory-reset yes").is_err() && parse("factory-reset erase now").is_err());
+        assert!(parse("factory-reset Erase").is_err() && parse("factoryreset erase").is_err());
+        // a Tab never types the word for you
+        assert_eq!(candidates("factory-reset ").len(), 0);
+        assert_eq!(candidates("fac").as_slice(), &["factory-reset"]);
     }
 
     #[test]
