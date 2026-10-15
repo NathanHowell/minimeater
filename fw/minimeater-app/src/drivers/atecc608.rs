@@ -39,6 +39,8 @@ const NONCE_PASS_THROUGH: u8 = 0x03;
 const SIGN_EXTERNAL: u8 = 0x80;
 /// Read: configuration zone, 32 bytes.
 const READ_CONFIG_32: u8 = 0x80;
+/// Read or write 32 bytes of the data zone.
+const DATA_32: u8 = 0x82;
 /// Write: configuration zone, 4 bytes (the zone is bits 1:0 of the mode, 0 for configuration).
 const WRITE_CONFIG_4: u8 = 0x00;
 /// Lock modes with the zone's CRC checked: 0 the configuration zone, 1 the data and OTP zones together.
@@ -91,6 +93,11 @@ pub fn crc16(data: &[u8]) -> u16 {
         }
     }
     crc
+}
+
+/// The address word of 32-byte block `block` in data `slot`: block in bits 11:8, slot in 6:3, word offset 0.
+fn slot_address(slot: u8, block: usize) -> u16 {
+    ((block as u16) << 8) | (u16::from(slot) << 3)
 }
 
 pub struct Atecc608<I, T> {
@@ -294,6 +301,39 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
         self.session(async |s| {
             let mut none = [0u8; 0];
             s.command(OP_LOCK, mode, crc, &[], &mut none).await.map(drop)
+        })
+        .await
+    }
+
+    /// Reads `out.len()` bytes (a multiple of 32) from the start of data `slot`, in the clear: only a slot configured
+    /// for clear reads answers (the certificate slot).
+    pub async fn read_slot(&mut self, slot: u8, out: &mut [u8]) -> Result<(), Error> {
+        self.session(async |s| {
+            for (block, chunk) in out.as_chunks_mut::<32>().0.iter_mut().enumerate() {
+                let mut got = [0u8; 32];
+                let n = s
+                    .command(OP_READ, DATA_32, slot_address(slot, block), &[], &mut got)
+                    .await?;
+                if n != 32 {
+                    return Err(Error::Crc);
+                }
+                chunk.copy_from_slice(&got);
+            }
+            Ok(())
+        })
+        .await
+    }
+
+    /// Writes `data` (a multiple of 32 bytes) to the start of data `slot`, in the clear: only a slot configured for
+    /// clear writes accepts it (the certificate slot, also once the zones are locked).
+    pub async fn write_slot(&mut self, slot: u8, data: &[u8]) -> Result<(), Error> {
+        self.session(async |s| {
+            for (block, chunk) in data.as_chunks::<32>().0.iter().enumerate() {
+                let mut none = [0u8; 0];
+                s.command(OP_WRITE, DATA_32, slot_address(slot, block), chunk, &mut none)
+                    .await?;
+            }
+            Ok(())
         })
         .await
     }

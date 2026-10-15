@@ -24,6 +24,7 @@ libm                   = "0.2.16"
 winnow                 = { version = "0.7.13", default-features = false }
 sha2                   = { version = "0.11", default-features = false }
 pem-rfc7468            = { version = "1.0", default-features = false }
+base64ct               = { version = "1.8", default-features = false }
 
 [dev-dependencies]
 minimeater-core = { path = "../minimeater-core", features = ["std"] }

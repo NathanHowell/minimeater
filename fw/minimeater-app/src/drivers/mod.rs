@@ -3,6 +3,7 @@
 
 pub mod ads122c04;
 pub mod atecc608;
+pub mod cert;
 pub mod csr;
 pub mod identity;
 pub mod tmp117;

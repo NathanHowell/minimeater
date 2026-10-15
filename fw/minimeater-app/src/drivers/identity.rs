@@ -262,6 +262,9 @@ pub(crate) mod tests {
         seen: V<(u8, u8)>,
         /// Silently drop every configuration write (a broken chip).
         drop_writes: bool,
+        /// Data slot 8, which the configuration makes a clear read and write slot.
+        cert: [u8; 416],
+        cert_writes: u32,
         info: [u8; 4],
     }
 
@@ -275,8 +278,19 @@ pub(crate) mod tests {
                 out: VecDeque::new(),
                 seen: V::new(),
                 drop_writes: false,
+                cert: [0; 416],
+                cert_writes: 0,
                 info: [0, 0, 0x60, 0x03],
             }
+        }
+        pub(crate) fn cert_writes(&self) -> u32 {
+            self.cert_writes
+        }
+        /// The slot and byte range a 32-byte data-zone address names; only the certificate slot is modelled.
+        fn data_at(&self, p2: u16) -> Option<usize> {
+            let (slot, block) = (usize::from(p2 >> 3) & 0xF, usize::from(p2 >> 8) & 0xF);
+            // clear read and write: the slot's configuration is the certificate slot's, and the block is inside it
+            (slot == 8 && self.slot_config(8) == 0 && (block + 1) * 32 <= self.cert.len()).then_some(block * 32)
         }
         fn config_locked(&self) -> bool {
             self.config[87] == 0
@@ -293,6 +307,18 @@ pub(crate) mod tests {
             self.seen.push((op, p1));
             match op {
                 0x30 => self.info.to_vec(),
+                0x02 if p1 == 0x82 => match self.data_at(p2) {
+                    Some(at) => self.cert[at..at + 32].to_vec(),
+                    None => vec![0x0F],
+                },
+                0x12 if p1 == 0x82 => match self.data_at(p2) {
+                    Some(at) => {
+                        self.cert[at..at + 32].copy_from_slice(data);
+                        self.cert_writes += 1;
+                        vec![0]
+                    }
+                    None => vec![0x0F],
+                },
                 0x02 => {
                     assert_eq!(p1, 0x80, "only 32-byte configuration reads");
                     let at = usize::from(p2) * 4; // a word address

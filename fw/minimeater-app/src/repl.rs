@@ -10,6 +10,7 @@
 use core::cell::RefCell;
 use core::fmt::{self, Write as _};
 
+use base64ct::{Base64, Encoding as _};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::Subscriber;
@@ -18,7 +19,7 @@ use embedded_io_async::Write;
 use heapless::{String, Vec};
 
 use crate::config::{Mode, Mqtt, Otlp, Settings, Wifi};
-use crate::enrol::{Job, Out};
+use crate::enrol::{CHUNK, Job, Out};
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
 use crate::proto::Request;
@@ -104,9 +105,9 @@ pub const CATALOG: &[Spec] = &[
     },
     Spec {
         name: "identity",
-        usage: "identity | identity csr | identity provision lock",
-        help: "the device key in the secure element: look, print the certificate request, or lock it in (one way)",
-        subs: &["csr", "provision"],
+        usage: "identity | identity csr | identity provision lock | identity cert [start | add <base64> | save]",
+        help: "the device key in the secure element: look, print the certificate request, lock it in (one way), or store the CA's certificate",
+        subs: &["csr", "provision", "cert"],
     },
     Spec {
         name: "factory-reset",
@@ -127,6 +128,7 @@ fn values(words: &[&str], index: usize) -> &'static [&'static str] {
         (Some("mqtt"), 3) if words.get(1) == Some(&"set") => &["1883", "8883"],
         (Some("otlp"), 3) if words.get(1) == Some(&"set") => &["4318", "4317"],
         (Some("otlp"), 4) if words.get(1) == Some(&"set") => &["30", "60", "300"],
+        (Some("identity"), 2) if words.get(1) == Some(&"cert") => &["start", "add", "save"],
         _ => &[],
     }
 }
@@ -330,7 +332,8 @@ impl Editor {
     fn remember(&mut self, line: &str) {
         // a line that sets a credential is not kept
         let first = line.split_ascii_whitespace().next().unwrap_or("");
-        if line.is_empty() || matches!(first, "wifi" | "mqtt") {
+        // (nor a certificate's worth of base64 words, which would push everything else out)
+        if line.is_empty() || matches!(first, "wifi" | "mqtt") || line.starts_with("identity cert add") {
             return;
         }
         if self.history.last().is_some_and(|l| l == line) {
@@ -487,12 +490,23 @@ pub enum Cmd {
 }
 
 /// What `identity` was asked.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Enrol {
     Look,
     Csr,
     /// `provision`: true once `lock` came with it.
     Provision(bool),
+    Cert(Cert),
+}
+
+/// What `identity cert` was asked. The certificate (DER, up to 414 bytes) is too long for one line: it is sent as
+/// base64 words of 64 characters, which `add` appends, and `save` checks and writes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Cert {
+    Show,
+    Start,
+    Add(String<64>),
+    Save,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -608,6 +622,15 @@ mod grammar {
         opt(alt((
             kw("csr").value(Enrol::Csr),
             preceded(kw("provision"), opt(kw("lock"))).map(|w| Enrol::Provision(w.is_some())),
+            preceded(
+                kw("cert"),
+                opt(alt((
+                    kw("start").value(Cert::Start),
+                    kw("save").value(Cert::Save),
+                    preceded(kw("add"), cut_err(arg_s::<64>)).map(Cert::Add),
+                ))),
+            )
+            .map(|c| Enrol::Cert(c.unwrap_or(Cert::Show))),
         )))
         .map(|c| Cmd::Identity(c.unwrap_or(Enrol::Look)))
         .parse_next(i)
@@ -950,6 +973,19 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
                 Enrol::Csr => Job::Csr,
                 Enrol::Provision(_) => Job::Provision,
                 Enrol::Look => Job::Look,
+                Enrol::Cert(Cert::Show) => Job::CertShow,
+                Enrol::Cert(Cert::Start) => Job::CertStart,
+                Enrol::Cert(Cert::Save) => Job::CertSave,
+                Enrol::Cert(Cert::Add(text)) => {
+                    let mut bytes = [0u8; CHUNK];
+                    match Base64::decode(text.as_bytes(), &mut bytes) {
+                        Ok(b) => Job::CertAdd(Vec::from_slice(b).unwrap_or_default()),
+                        Err(_) => {
+                            say(io, format_args!("error: that is not base64 (words of 64 characters, no PEM lines)")).await;
+                            return;
+                        }
+                    }
+                }
             };
             enrol(io, bus, job).await
         }
@@ -1271,7 +1307,29 @@ mod tests {
                 && parse("identity csr lock").is_err()
         );
         // Tab finds the subcommands but never types the word that locks
-        assert_eq!(candidates("identity ").as_slice(), &["csr", "provision"]);
+        assert_eq!(candidates("identity ").as_slice(), &["csr", "provision", "cert"]);
+        assert_eq!(candidates("identity cert ").as_slice(), &["start", "add", "save"]);
+        assert_eq!(parse("identity cert").unwrap(), Cmd::Identity(Enrol::Cert(Cert::Show)));
+        assert_eq!(
+            parse("identity cert start").unwrap(),
+            Cmd::Identity(Enrol::Cert(Cert::Start))
+        );
+        assert_eq!(
+            parse("identity cert save").unwrap(),
+            Cmd::Identity(Enrol::Cert(Cert::Save))
+        );
+        let b64 = "MIIBdTCCARugAwIBAgIUAAAAAAAAAAAAAAAAAAAAAAAAAAAwCgYIKoZIzj0EAwIw";
+        assert_eq!(b64.len(), 64);
+        assert_eq!(
+            parse(&format!("identity cert add {b64}")).unwrap(),
+            Cmd::Identity(Enrol::Cert(Cert::Add(String::try_from(b64).unwrap())))
+        );
+        assert!(parse("identity cert add").is_err(), "add needs its words");
+        assert!(
+            parse(&format!("identity cert add {b64}A")).is_err(),
+            "longer than a chunk"
+        );
+        assert!(parse("identity cert now").is_err());
         assert!(candidates("identity provision ").is_empty());
     }
 

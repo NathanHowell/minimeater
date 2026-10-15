@@ -1,8 +1,8 @@
 # Provisioning the device key (ATECC608B)
 
 ADR 0005 puts the device's private key in an ATECC608B. This is how a blank chip becomes that identity, from the serial REPL
-(`docs/icd.md`). The flow is `minimeater-app::drivers::identity`; the commands are `identity`, `identity provision lock` and
-`identity csr`.
+(`docs/icd.md`). The flow is `minimeater-app::drivers::identity`; the commands are `identity`, `identity provision lock`,
+`identity csr` and `identity cert`.
 
 **The locks are one way.** A chip locked with a wrong configuration cannot be fixed. Do everything below on a spare chip first
 (a socketed or dead-bugged SOIC-8 on a scratch board, or a board you can spare), check the values against the datasheet, and only
@@ -39,8 +39,27 @@ after the key exists.
    openssl x509 -req -in mm-a1b2c3.csr -CA ca.pem -CAkey ca.key -CAcreateserial -days 3650 -out mm-a1b2c3.pem
    ```
 
-   `openssl req -in mm-a1b2c3.csr -verify -noout` checks the request's signature. Writing the certificate into slot 8 comes with the
-   TLS work (`minimeat-seq.5.7`).
+   `openssl req -in mm-a1b2c3.csr -verify -noout` checks the request's signature.
+5. Put the certificate in slot 8. The slot holds 416 bytes: a two-byte length and the DER certificate, so **at most 414 bytes**. A
+   P-256 certificate with a short subject, the CA's short name and the usual two or three extensions is about 350 to 400, so keep
+   the CA's subject and any extensions short (`openssl x509 -in mm-a1b2c3.pem -outform DER | wc -c` says). A REPL line is 160
+   characters, so the certificate goes in as base64 words of 64 characters (48 bytes), then a save:
+
+   ```sh
+   { echo identity cert start
+     openssl x509 -in mm-a1b2c3.pem -outform DER | base64 -w 64 | sed 's/^/identity cert add /'   # macOS: base64 -b 64
+     echo identity cert save; } > mm-a1b2c3.cert.txt
+   ```
+
+   Paste the file into the terminal, or send it with `cat mm-a1b2c3.cert.txt > /dev/ttyACM0`. `save` checks that the bytes are a
+   DER `SEQUENCE` of the length they claim and that they carry *this chip's* public key (a certificate for another board is refused
+   with the slot untouched, so is the PEM text), writes the slot, reads it back and compares. `identity cert start` throws away
+   what was received; `identity cert` prints the stored certificate as PEM, which `openssl verify -CAfile ca.pem` accepts if the
+   chain is good. The host tests run this against OpenSSL: a CA signs the chip's request, the certificate goes in and comes back,
+   and `openssl verify` says OK.
+
+   The slot is clear read and write, and a check on the board is not a check of the CA's signature: the broker (or `openssl
+   verify`) does that. Anyone with the cable can replace the certificate, but not the key.
 
 ## Check before the first lock
 
@@ -51,7 +70,8 @@ datasheet:
 - the bit meanings in `0x2081` and `0x0033` (ReadKey bit 0 = external signatures, IsSecret, WriteConfig bit 13 = `GenKey`, KeyType
   P-256, Private, PubInfo) and `0x001C` for a data slot;
 - that `GenKey` is allowed in slot 0 after the data zone is locked (so a spare can be re-keyed) or not, as wanted;
-- that a 32-byte clear write to slot 8 is accepted after the data lock;
+- that a 32-byte clear write to slot 8 is accepted after the data lock, and that the block address (block in bits 11:8, slot in
+  bits 6:3) reaches all 13 blocks (`identity cert save`, then `identity cert` showing it back, is the proof);
 - that the lock command modes (`0x00` with CRC, `0x81` data without) are the ones the datasheet gives;
 - that the I2C wake pulse (a write to address 0 at 100 kHz) really wakes the chip on the ESP32-C6's I2C (`identity` getting an
   answer is the proof; if it never does, the pulse is too short).
