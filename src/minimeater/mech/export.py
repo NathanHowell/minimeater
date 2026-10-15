@@ -19,7 +19,7 @@ from .printing import ALL, print_pose
 BUILDS = 5  # the first run: five units
 
 PRINT_NOTES = {
-    "duct": "airway, fan flange, servo shelf, O-ring socket with a 10 mm extension whose 8-lobe bore grips the tube: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
+    "duct": "airway, fan flange, a hollow tail cone on three airfoil struts in the airway (open toward the fan: let the powder out), servo shelf, O-ring socket with a 10 mm extension whose 8-lobe bore grips the tube: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
     "hood": "upper shell; print nose up on the rear face, as exported",
     "pan": "lower shell with the port bay and the board standoffs; print nose up on the rear face, as exported",
 }

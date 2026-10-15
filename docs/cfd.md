@@ -11,7 +11,7 @@ OpenFOAM v2606 (`opencfd/openfoam-run:2606`, arm64, in Apple's `container`; no b
 `build/cfd/<case>/results.json`. Named cases: `open`, `open-swirl`, `flap-30`, `flap-45`, `flap-60`.
 
 - **Geometry** (`geometry.py`): the fan's outlet annulus (5 mm of the frame's Ø58 bore around the Ø26.5 hub), the
-  27 mm cone, the Ø32 bore with the flap and its rod at the case's angle, the 5 mm neck from it to the tube's bore at the socket's
+  27 mm cone with the tail cone and its three struts (`HubCone`, subtracted solid), the Ø32 bore with the flap and its rod at the case's angle, the 5 mm neck from it to the tube's bore at the socket's
   shoulder, and 12 diameters of the Ø30.83 tube (the results below were run on the Ø31.6 tube assumed before
   the calipers, a 0.2 mm step and no neck). Patches: inlet, outlet, duct, tube, flap. The fan's blades and struts
   are not modelled; the inlet can swirl (solid-body rotation at `--rpm`).

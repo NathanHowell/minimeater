@@ -23,7 +23,9 @@ from build123d import (
     Rot,
     Wire,
     extrude,
+    loft,
     make_face,
+    revolve,
 )
 
 from . import geom as G
@@ -204,9 +206,72 @@ def stop_posts():
     return open_post + closed_post
 
 
+def hub_profile(t):
+    """The tail cone's radius at t = 0 (the fan's plate) .. 1 (the tip)."""
+    h = P.hub_cone
+    return P.fan.hub_d / 2 * (1 - t**h.exponent)
+
+
+def strut_section(n=24):
+    """A strut's section in its own plane, (along the flow from the leading edge, across it): NACA 4-digit thickness
+    `strut_t` on `strut_chord`, cut where it thins to `strut_te` and closed with a half round of that diameter."""
+    h = P.hub_cone
+    c, tau = h.strut_chord, h.strut_t / h.strut_chord
+
+    def half(s):
+        u = s / c
+        return 5 * tau * c * (0.2969 * math.sqrt(u) - 0.1260 * u - 0.3516 * u**2 + 0.2843 * u**3 - 0.1015 * u**4)
+
+    lo, hi = 0.3 * c, c  # past the thickest point the half-thickness falls: find where it is te / 2
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if half(mid) > h.strut_te / 2 else (lo, mid)
+    cut = lo
+    ss = [cut * (1 - math.cos(math.pi * i / (2 * n))) for i in range(n + 1)]  # dense at the nose
+    upper = [(s, half(s)) for s in ss]
+    rt = h.strut_te / 2
+    arc = [(cut + rt * math.sin(math.pi * j / 12), rt * math.cos(math.pi * j / 12)) for j in range(1, 12)]
+    return upper + arc + [(s, -y) for s, y in reversed(upper)][:-1]
+
+
+def hub_cone(solid=False):
+    """The tail cone on the fan's motor plate and its struts from the contraction's wall: printed with the duct.
+    Hollow and open toward the fan unless `solid` (the CFD's air volume wants the outside only)."""
+    h, x0, n = P.hub_cone, g.fan_face_x, 80
+    outer = [(x0 + h.length * i / n, hub_profile(i / n)) for i in range(n + 1)]
+    outer = [p for p in outer if p[1] >= 0.3]  # the point ends in a 0.6 mm flat: a surface that closes on the axis meshes open
+    body = revolve(make_face(Plane.XZ * Polyline((x0, 0.0), *outer, (outer[-1][0], 0.0), close=True)), Axis.X, 360)
+    if not solid:
+        # the inside: the outer profile offset `wall` along its normal, closed on the axis where it runs out
+        inner = []
+        for i in range(n):
+            (xa, ra), (xb, rb) = outer[i], outer[i + 1]
+            d = math.hypot(xb - xa, rb - ra)
+            x, r = xa + h.wall * (rb - ra) / d, ra - h.wall * (xb - xa) / d  # back along the outward normal
+            if r < 0.6:
+                break
+            inner.append((x, r))
+        void = revolve(make_face(Plane.XZ * Polyline((x0 - 0.01, 0.0), (x0 - 0.01, inner[0][1]), *inner, (inner[-1][0], 0.0), close=True)), Axis.X, 360)  # a flat end, as the outside
+        body -= void
+    # the struts: the airfoil swept along a radius at 44 deg, from inside the cone's shell out into the contraction's wall
+    k = P.layout.slope
+    sec = strut_section()
+
+    def at(r):
+        return Plane(origin=(x0 + h.strut_x0 + r * k, 0.0, r), x_dir=(1, 0, 0), z_dir=(0, 0, 1)) * Polyline(*sec, close=True)
+
+    plate = loft([make_face(at(1.0)), make_face(at(P.fan.aperture_d / 2 + 2.0))], ruled=True)
+    wall = xcone(P.fan.aperture_d / 2 + 0.5, g.bore_r + 0.5, x0, g.straight_x0) + xcyl(g.bore_r + 0.5, g.straight_x0 - 0.01, g.straight_x0 + 10.0)
+    for i in range(h.struts):
+        strut = Rot(h.strut_clock + 360 * i / h.struts, 0, 0) * plate & wall
+        body += strut if solid else strut - void  # from the cone's shell out, not across the cup
+    return body
+
+
 def duct():
-    """Fan flange, contraction cone, the straight bore with the flap station, the servo shelf and the socket
-    onto the intake tube, with its drip collar and its extension toward the egg, whose lobed bore grips the tube."""
+    """Fan flange, contraction cone with the tail cone on its struts, the straight bore with the flap station, the servo
+    shelf and the socket onto the intake tube, with its drip collar and its extension toward the egg, whose lobed bore
+    grips the tube."""
     c = P.coupling
     br, dr, w = g.bore_r, g.duct_r, g.flange_w
     xf = g.flap_x
@@ -237,6 +302,7 @@ def duct():
     body -= xcyl(sock_r(), g.socket_x0 - 0.5, g.socket_x0 + 0.01) - xcyl(P.tube.od / 2 - c.seat_relief, g.socket_x0 - 1, g.socket_x0 + 1)  # the seat's corner relief
     body -= xcyl(groove_r(), c.oring_x - 1.6, c.oring_x + 1.6)
     body -= zcyl(1.7, -dr + 1.2, dr + 1.0, xf, 0.0)  # shaft bore, blind at the bottom: a 1.2 mm skin
+    body += hub_cone()  # in the airway, after it is cut
     for sy in (-1, 1):
         for sz in (-1, 1):
             body -= xcyl(1.3, g.fan_face_x - 0.1, g.fan_face_x + 9.0, sy * P.fan.hole_pitch / 2, sz * P.fan.hole_pitch / 2)

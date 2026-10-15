@@ -1,5 +1,7 @@
 """The chassis builds, its parts fit with no interference through the flap's travel, and they print without support."""
 
+import math
+
 import pytest
 
 from minimeater.mech import analysis, assembly as A, mock
@@ -293,3 +295,37 @@ def test_the_airway_runs_flush_into_the_tube():
     assert solid(x0 - 0.1, (t.id + t.od) / 4)  # the shoulder under the tube's wall
     assert not solid(x0 - 0.2, t.od / 2 - 0.1)  # the relief at its outer corner
     assert not solid(x0 - P.coupling.neck_len - 0.1, P.damper.bore_d / 2 - 0.05)  # the full bore before the neck
+
+
+def test_the_tail_cone_fills_the_fan_hub_and_the_area_falls():
+    """The tail cone stands on the fan's motor plate (flush with the outlet face, the plate's Ø26.5) and closes at the bore's
+    start: the annulus' area falls all the way from the fan to the bore, so the flow accelerates and stays attached. It is
+    hollow, open toward the fan, and held by its struts in one solid with the duct."""
+    from build123d import Vector
+
+    from minimeater.mech.parts import hub_cone, hub_profile
+
+    h, x0 = P.hub_cone, G.g.fan_face_x
+    assert hub_profile(0.0) == pytest.approx(P.fan.hub_d / 2) and hub_profile(1.0) == 0.0
+    wall = lambda x: P.fan.aperture_d / 2 + (G.g.bore_r - P.fan.aperture_d / 2) * min((x - x0) / P.cone_len, 1.0)
+    area = [math.pi * (wall(x0 + h.length * i / 50) ** 2 - hub_profile(i / 50) ** 2) for i in range(51)]
+    assert all(b < a for a, b in zip(area, area[1:]))
+    assert area[-1] == pytest.approx(math.pi * G.g.bore_r**2, rel=1e-6)
+    duct = A.printed()["duct"]
+    assert duct.is_valid and len(duct.solids()) == 1
+    assert not duct.is_inside(Vector(x0 + 1.0, 0.0, 0.0))  # the cup is open toward the fan
+    assert duct.is_inside(Vector(x0 + 1.0, 0.0, P.fan.hub_d / 2 - h.wall / 2))  # its wall
+    assert hub_cone(solid=True).volume > hub_cone().volume
+
+
+def test_the_struts_are_airfoils_no_thinner_than_the_printer_allows():
+    """A round-nosed NACA section `strut_t` thick, cut at `strut_te` and closed round: nothing under the thin-wall limit."""
+    from minimeater.mech.parts import strut_section
+
+    h = P.hub_cone
+    sec = strut_section()
+    ys = [y for _, y in sec]
+    assert 2 * max(ys) == pytest.approx(h.strut_t, abs=0.01) and min(ys) == pytest.approx(-max(ys))
+    tail = [y for s, y in sec if s > max(s for s, _ in sec) - h.strut_te]
+    assert 2 * max(tail) >= h.strut_te - 1e-6  # the round tail is the cut's full thickness
+    assert max(s for s, _ in sec) < h.strut_chord  # the cut leaves the chord's thin end off
