@@ -41,7 +41,7 @@ The device controls a fire, and on a plain-TCP LAN broker anyone on the network 
    - Manual mode cannot exceed the actuator limits.
 2. **Losing the network or broker changes nothing.** The cook continues at the last setpoint, with local LED alarms, and the device reconnects in the background. It never turns off, and never jumps to a default setpoint, because of a comms fault. Settings persist in flash (`.4.9`), so a reboot resumes the cook.
 3. **Retained commands are ignored.** A command delivered with the retain flag set (one somebody accidentally published retained) is dropped. Otherwise a reboot would re-apply an old setpoint or mode. Device state and discovery are retained; commands never are.
-4. **Authentication:** the broker username and password are stored in flash and provisioned over USB (`.4.10`). TLS (`esp-mbedtls`, on port 8883) is deferred (`.5.5`). Most HA Mosquitto installs are LAN-only plaintext, and items 1-3 bound the worst case.
+4. **Authentication:** the broker username and password are stored in flash and provisioned over USB (`.4.10`). TLS was deferred; it is now optional and uses `embedded-tls`, not `esp-mbedtls` (ADR 0006, `.5.5`): a stored CA turns it on, with the device certificate as the client certificate. Most HA Mosquitto installs are LAN-only plaintext, and items 1-3 bound the worst case.
 
 ### Telemetry is separate
 

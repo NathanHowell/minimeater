@@ -18,6 +18,10 @@ mqtt-interop:
     sleep 2
     ip=$(container ls | awk '/mm-mosq/ {split($6, a, "/"); print a[1]}'); cd fw/mqtt-interop && MQTT_BROKER=$ip:1883 cargo test --release --test broker -- --ignored --nocapture; r=$?; container rm -f mm-mosq >/dev/null 2>&1; exit $r
 
+# The MQTT client over TLS with a client certificate (ADR 0006) against a small TLS 1.3 MQTT peer that requires one. Needs openssl and uv.
+tls-interop:
+    cd fw/mqtt-interop && cargo test --release --test tls
+
 # Has Home Assistant's own MQTT discovery code validate the device-discovery message the firmware publishes.
 ha-discovery-check:
     mkdir -p fw/target/tmp

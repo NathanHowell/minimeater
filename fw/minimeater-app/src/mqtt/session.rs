@@ -15,20 +15,23 @@ use core::fmt::Write as _;
 use embassy_futures::select::{Either, Either6, select, select6};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::channel::Channel;
+use embassy_sync::mutex::Mutex;
 use embassy_sync::pubsub::WaitResult;
 use embassy_sync::signal::Signal;
 use embassy_time::{Duration, Instant, Ticker, Timer, with_timeout};
 use embedded_io_async::{Read, Write};
+use embedded_tls::{TlsConfig, TlsConnection, TlsContext};
 use heapless::{String, Vec};
 use log::{info, warn};
 
 use super::packet::{self, Connect, Packet, PublishIn, PublishOut, Will};
-use crate::config::Settings;
+use crate::config::{Mqtt, Settings};
 use crate::net::{Connector, Identity};
 use crate::pit::Event;
 use crate::proto::request::{Error, ErrorCode, Request};
 use crate::proto::{self, Device};
 use crate::tasks::{Bus, Reply};
+use crate::tls::{Bridge, Duplex, Secure};
 
 /// The largest payload the session publishes (the discovery message is about 16 KB).
 pub const PAYLOAD: usize = 20 * 1024;
@@ -66,6 +69,8 @@ const PING_S: u64 = 10;
 const DEAD_S: u64 = 25;
 const ACK_TIMEOUT_S: u64 = 5;
 const CONNECT_TIMEOUT_S: u64 = 10;
+/// The TLS handshake is software P-256 on the target: give it time.
+const HANDSHAKE_TIMEOUT_S: u64 = 30;
 const BACKOFF_MAX_S: u64 = 60;
 /// Requests from MQTT carry ids in this range, so they can be told from the twin's.
 const ID_BASE: u16 = 0x1000;
@@ -80,6 +85,7 @@ enum Fail {
     Refused(u8),
     Disconnected,
     Full,
+    Tls,
 }
 
 #[allow(clippy::large_enum_variant, reason = "a few slots in a channel, no alloc")]
@@ -140,8 +146,9 @@ impl Shared {
 
 /// Runs the MQTT session forever: connect, serve until it fails, back off, repeat. While the
 /// settings hold no broker it waits for some.
-pub async fn run<C: Connector>(
+pub async fn run<C: Connector, X: Secure>(
     conn: &mut C,
+    tls: &mut X,
     who: &Identity<'_>,
     bus: &Bus,
     bufs: &mut Buffers,
@@ -153,7 +160,7 @@ pub async fn run<C: Connector>(
     let mut config_rev = bus.config_rev.receiver().expect("a bus reader slot for MQTT");
     let mut backoff = 1;
     loop {
-        let Some(mqtt) = bus.config().and_then(|c| c.mqtt) else {
+        let Some((mqtt, ca)) = bus.config().and_then(|c| c.mqtt.map(|m| (m, c.mqtt_ca))) else {
             Timer::after_secs(5).await;
             continue;
         };
@@ -167,7 +174,7 @@ pub async fn run<C: Connector>(
             config_rev: &mut config_rev,
             rssi,
         };
-        let r = serve(conn, &mut ctx, bufs, &mqtt.host, mqtt.port, &mqtt.user, &mqtt.pass).await;
+        let r = serve(conn, tls, &mut ctx, bufs, &mqtt, ca.as_deref()).await;
         warn!("mqtt: connection ended: {:?}", r.err());
         if started.elapsed() > Duration::from_secs(60) {
             backoff = 1;
@@ -201,19 +208,53 @@ fn topic(who: &Identity, tail: &str) -> String<96> {
     t
 }
 
-async fn serve<C: Connector>(
+/// Connects, and when a CA is pinned runs TLS over the connection (a handshake that proves the broker is the one `ca` signed
+/// and presents the device's own certificate), then the session proper.
+async fn serve<C: Connector, X: Secure>(
     conn: &mut C,
+    tls: &mut X,
     ctx: &mut Ctx<'_, '_>,
     bufs: &mut Buffers,
-    host: &str,
-    port: u16,
-    user: &str,
-    pass: &str,
+    mqtt: &Mqtt,
+    ca: Option<&[u8]>,
 ) -> Result<(), Fail> {
-    let (mut r, mut w) = with_timeout(Duration::from_secs(CONNECT_TIMEOUT_S), conn.connect(host, port))
-        .await
-        .map_err(|_| Fail::Timeout)?
-        .map_err(|()| Fail::Io)?;
+    let (r, w) = with_timeout(
+        Duration::from_secs(CONNECT_TIMEOUT_S),
+        conn.connect(&mqtt.host, mqtt.port),
+    )
+    .await
+    .map_err(|_| Fail::Timeout)?
+    .map_err(|()| Fail::Io)?;
+    let Some(ca) = ca else {
+        return converse(r, w, ctx, bufs, mqtt).await;
+    };
+    let prepared = tls.prepare(ca).await.ok_or(Fail::Tls)?;
+    let (r, w) = (Mutex::<NoopRawMutex, _>::new(r), Mutex::<NoopRawMutex, _>::new(w));
+    let config = TlsConfig::new().with_server_name(&mqtt.host);
+    let mut secure = TlsConnection::new(Duplex::new(&r, &w), prepared.read, prepared.write);
+    with_timeout(
+        Duration::from_secs(HANDSHAKE_TIMEOUT_S),
+        secure.open(TlsContext::new(&config, prepared.provider)),
+    )
+    .await
+    .map_err(|_| Fail::Timeout)?
+    .map_err(|e| {
+        warn!("mqtt: TLS handshake failed: {e:?}");
+        Fail::Tls
+    })?;
+    info!("mqtt: TLS to {}:{} up", mqtt.host, mqtt.port);
+    let (tr, tw) = secure.split();
+    converse(Bridge(tr), Bridge(tw), ctx, bufs, mqtt).await
+}
+
+async fn converse<R: Read, W: Write>(
+    mut r: R,
+    mut w: W,
+    ctx: &mut Ctx<'_, '_>,
+    bufs: &mut Buffers,
+    mqtt: &Mqtt,
+) -> Result<(), Fail> {
+    let (host, port, user, pass) = (&*mqtt.host, mqtt.port, &*mqtt.user, &*mqtt.pass);
     let Buffers { tx, rx, payload } = bufs;
 
     let status_topic = topic(ctx.who, "status");

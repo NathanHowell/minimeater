@@ -1745,6 +1745,7 @@ dependencies = [
  "minimeater-app",
  "minimeater-core",
  "nb 1.1.0",
+ "rand_core 0.6.4",
  "static_cell",
 ]
 

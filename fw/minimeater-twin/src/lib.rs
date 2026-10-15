@@ -102,7 +102,10 @@ async fn mqtt(mut conn: net::AnyConn, bus: &'static Bus, bufs: &'static mut mini
         sw: "0.1.0",
         hw: "A",
     };
-    minimeater_app::mqtt::run(&mut conn, &who, bus, bufs, &|| Some(-60)).await
+    minimeater_app::mqtt::run(&mut conn, &mut minimeater_app::tls::Plain, &who, bus, bufs, &|| {
+        Some(-60)
+    })
+    .await
 }
 
 #[embassy_executor::task]

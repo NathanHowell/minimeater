@@ -27,6 +27,7 @@ pem-rfc7468            = { version = "1.0", default-features = false }
 base64ct               = { version = "1.8", default-features = false }
 embedded-tls            = { version = "0.19", default-features = false, features = ["rustpki"] }
 signature              = { version = "2", default-features = false }
+rand_core              = { version = "0.6", default-features = false }
 embedded-io-07         = { package = "embedded-io", version = "0.7", default-features = false }
 embedded-io-async-07   = { package = "embedded-io-async", version = "0.7", default-features = false }
 

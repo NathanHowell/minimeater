@@ -169,7 +169,10 @@ fn start_device(bus: &'static Bus) -> tokio::task::JoinHandle<()> {
             sw: "0.1.0",
             hw: "A",
         };
-        run(&mut Tcp, &who, bus, bufs, &|| Some(-55)).await
+        run(&mut Tcp, &mut minimeater_app::tls::Plain, &who, bus, bufs, &|| {
+            Some(-55)
+        })
+        .await
     })
 }
 

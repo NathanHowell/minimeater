@@ -75,6 +75,9 @@ impl Board for Esp {
 }
 
 /// The secure element behind the lock the REPL's enrolment task and the TLS signer share.
+/// The I2C bus handle the secure element and the sensors share.
+pub type ChipBus = Bus;
+
 pub type SecureElement = minimeater_app::enrol::Shared<Bus, Delay>;
 
 /// Peripherals the board does not wrap, for the runtime and (later) the radio.

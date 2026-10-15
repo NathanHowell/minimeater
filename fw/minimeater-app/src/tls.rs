@@ -24,8 +24,9 @@ use embedded_io_async::{Error as _, ErrorKind as Kind06, Read as Read06, Write a
 use embedded_io_async_07::{Read as Read07, Write as Write07};
 use embedded_tls::pki::CertVerifier;
 use embedded_tls::{
-    Aes128GcmSha256, Certificate, CryptoProvider, CryptoRngCore, SignatureScheme, TlsClock, TlsError, TlsVerifier,
+    Aes128GcmSha256, Certificate, CryptoProvider, CryptoRngCore, SignatureScheme, TlsError, TlsVerifier,
 };
+pub use embedded_tls::{NoClock, TlsClock};
 use sha2::{Digest, Sha256};
 use signature::SignerMut;
 
@@ -114,6 +115,122 @@ impl<R: CryptoRngCore, S: DigestSigner, C: TlsClock> CryptoProvider for Provider
 
     fn client_cert(&mut self) -> Option<Certificate<impl AsRef<[u8]>>> {
         Some(Certificate::X509(self.cert))
+    }
+}
+
+// ----------------------------------------------------------------------------- one connection
+
+/// What one TLS connection needs, borrowed from the [`Secure`] it comes from.
+pub struct Prepared<'a, P> {
+    /// Record buffers: [`RECORD`] bytes each.
+    pub read: &'a mut [u8],
+    pub write: &'a mut [u8],
+    pub provider: P,
+}
+
+/// Where a session gets TLS: the device's key, certificate and randomness. A session that finds a pinned CA in the settings asks
+/// this for a connection's worth; [`Plain`] never has any (a build or a test without TLS), and a session then fails its connect
+/// rather than fall back to plaintext.
+#[allow(async_fn_in_trait, reason = "single-threaded embassy executor; no Send bound wanted")]
+pub trait Secure {
+    type Provider<'a>: CryptoProvider<CipherSuite = Aes128GcmSha256, Signature = Der>
+    where
+        Self: 'a;
+
+    /// The buffers and provider for a connection whose server must chain to `ca` (DER); `None` if the device has no
+    /// certificate to present.
+    async fn prepare<'a>(&'a mut self, ca: &'a [u8]) -> Option<Prepared<'a, Self::Provider<'a>>>;
+}
+
+/// The device's TLS: random numbers from `Rng`, time from `Clock`, the key in the secure element behind `chip`, the certificate
+/// read from the chip's slot for each connection, and two static record buffers.
+pub struct Client<'a, Rng, Clock, I, T> {
+    rng: Rng,
+    chip: &'a Shared<I, T>,
+    read: &'a mut [u8; RECORD],
+    write: &'a mut [u8; RECORD],
+    cert: crate::drivers::cert::Der,
+    _clock: core::marker::PhantomData<Clock>,
+}
+
+impl<'a, Rng, Clock, I, T> Client<'a, Rng, Clock, I, T> {
+    pub fn new(rng: Rng, chip: &'a Shared<I, T>, read: &'a mut [u8; RECORD], write: &'a mut [u8; RECORD]) -> Self {
+        Self {
+            rng,
+            chip,
+            read,
+            write,
+            cert: crate::drivers::cert::Der::new(),
+            _clock: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<Rng: CryptoRngCore, Clock: TlsClock, I: I2c, T: DelayNs> Secure for Client<'_, Rng, Clock, I, T> {
+    type Provider<'a>
+        = Provider<'a, &'a mut Rng, ChipSigner<'a, I, T>, Clock>
+    where
+        Self: 'a;
+
+    async fn prepare<'a>(&'a mut self, ca: &'a [u8]) -> Option<Prepared<'a, Self::Provider<'a>>> {
+        let Self {
+            rng,
+            chip,
+            read,
+            write,
+            cert,
+            ..
+        } = self;
+        // (a short hold: the signature later takes the lock again, without waiting)
+        *cert = crate::drivers::cert::load(&mut *chip.lock().await).await.ok()??;
+        Some(Prepared {
+            read: &mut read[..],
+            write: &mut write[..],
+            provider: Provider::new(rng, ca, ChipSigner(chip), cert),
+        })
+    }
+}
+
+/// No TLS: for builds and tests that only speak plaintext.
+pub struct Plain;
+
+/// The provider of [`Plain`], which nothing ever makes.
+pub struct Never(core::convert::Infallible);
+
+struct NoRng(core::convert::Infallible);
+
+impl rand_core::RngCore for NoRng {
+    fn next_u32(&mut self) -> u32 {
+        match self.0 {}
+    }
+    fn next_u64(&mut self) -> u64 {
+        match self.0 {}
+    }
+    fn fill_bytes(&mut self, _: &mut [u8]) {
+        match self.0 {}
+    }
+    fn try_fill_bytes(&mut self, _: &mut [u8]) -> Result<(), rand_core::Error> {
+        match self.0 {}
+    }
+}
+impl rand_core::CryptoRng for NoRng {}
+
+impl CryptoProvider for Never {
+    type CipherSuite = Aes128GcmSha256;
+    type Signature = Der;
+
+    fn rng(&mut self) -> impl CryptoRngCore {
+        match self.0 {}
+        #[allow(unreachable_code)]
+        NoRng(self.0)
+    }
+}
+
+impl Secure for Plain {
+    type Provider<'a> = Never;
+
+    async fn prepare<'a>(&'a mut self, _ca: &'a [u8]) -> Option<Prepared<'a, Never>> {
+        None
     }
 }
 
@@ -206,6 +323,70 @@ impl<R, W: Write06> Write07 for Duplex<'_, R, W> {
     }
 }
 
+fn kind_back(k: Kind07) -> Kind06 {
+    match k {
+        Kind07::NotFound => Kind06::NotFound,
+        Kind07::PermissionDenied => Kind06::PermissionDenied,
+        Kind07::ConnectionRefused => Kind06::ConnectionRefused,
+        Kind07::ConnectionReset => Kind06::ConnectionReset,
+        Kind07::ConnectionAborted => Kind06::ConnectionAborted,
+        Kind07::NotConnected => Kind06::NotConnected,
+        Kind07::AddrInUse => Kind06::AddrInUse,
+        Kind07::AddrNotAvailable => Kind06::AddrNotAvailable,
+        Kind07::BrokenPipe => Kind06::BrokenPipe,
+        Kind07::AlreadyExists => Kind06::AlreadyExists,
+        Kind07::InvalidInput => Kind06::InvalidInput,
+        Kind07::InvalidData => Kind06::InvalidData,
+        Kind07::TimedOut => Kind06::TimedOut,
+        Kind07::Interrupted => Kind06::Interrupted,
+        Kind07::Unsupported => Kind06::Unsupported,
+        Kind07::OutOfMemory => Kind06::OutOfMemory,
+        Kind07::WriteZero => Kind06::WriteZero,
+        _ => Kind06::Other,
+    }
+}
+
+/// An `embedded-io-async` 0.7 reader or writer (a TLS half) as the 0.6 one the sessions use.
+pub struct Bridge<T>(pub T);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BridgeError(Kind06);
+
+impl embedded_io_async::Error for BridgeError {
+    fn kind(&self) -> Kind06 {
+        self.0
+    }
+}
+
+impl<T: ErrorType07> embedded_io_async::ErrorType for Bridge<T> {
+    type Error = BridgeError;
+}
+
+impl<T: Read07> Read06 for Bridge<T> {
+    async fn read(&mut self, buf: &mut [u8]) -> Result<usize, BridgeError> {
+        self.0
+            .read(buf)
+            .await
+            .map_err(|e| BridgeError(kind_back(embedded_io_07::Error::kind(&e))))
+    }
+}
+
+impl<T: Write07> Write06 for Bridge<T> {
+    async fn write(&mut self, buf: &[u8]) -> Result<usize, BridgeError> {
+        self.0
+            .write(buf)
+            .await
+            .map_err(|e| BridgeError(kind_back(embedded_io_07::Error::kind(&e))))
+    }
+
+    async fn flush(&mut self) -> Result<(), BridgeError> {
+        self.0
+            .flush()
+            .await
+            .map_err(|e| BridgeError(kind_back(embedded_io_07::Error::kind(&e))))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -218,7 +399,7 @@ mod tests {
     use std::vec::Vec as V;
 
     use embedded_io_async::ErrorType as ErrorType06;
-    use embedded_tls::{NoClock, TlsConfig, TlsConnection, TlsContext};
+    use embedded_tls::{TlsConfig, TlsConnection, TlsContext};
     use rand_core::OsRng;
 
     use super::*;

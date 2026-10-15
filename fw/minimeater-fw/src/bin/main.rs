@@ -122,7 +122,18 @@ async fn main(spawner: Spawner) -> ! {
         ConstStaticCell::new(minimeater_app::mqtt::Buffers::new());
     static OTLP_BUFS: ConstStaticCell<minimeater_app::otlp::Buffers> =
         ConstStaticCell::new(minimeater_app::otlp::Buffers::new());
-    spawner.spawn(mqtt(tcp!(stack), id, bus, MQTT_BUFS.take()).expect("mqtt task"));
+    // TLS for MQTT when a CA is pinned (`mqtt ca`): the device key in the secure element, two record buffers
+    static TLS_READ: ConstStaticCell<[u8; minimeater_app::tls::RECORD]> =
+        ConstStaticCell::new([0; minimeater_app::tls::RECORD]);
+    static TLS_WRITE: ConstStaticCell<[u8; minimeater_app::tls::RECORD]> =
+        ConstStaticCell::new([0; minimeater_app::tls::RECORD]);
+    let tls = minimeater_fw::tls::Client::new(
+        minimeater_fw::tls::DeviceRng,
+        rest.secure_element,
+        TLS_READ.take(),
+        TLS_WRITE.take(),
+    );
+    spawner.spawn(mqtt(tcp!(stack), tls, id, bus, MQTT_BUFS.take()).expect("mqtt task"));
     spawner.spawn(otlp(tcp!(stack), id, bus, OTLP_BUFS.take()).expect("otlp task"));
     static HTTP_BUFS: ConstStaticCell<minimeater_app::http::Buffers> =
         ConstStaticCell::new(minimeater_app::http::Buffers::new());
@@ -230,14 +241,20 @@ async fn enrol(chip: &'static minimeater_fw::board::SecureElement, id: &'static 
 }
 
 #[embassy_executor::task]
-async fn mqtt(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static mut minimeater_app::mqtt::Buffers) {
+async fn mqtt(
+    mut tcp: Tcp,
+    mut tls: minimeater_fw::tls::Client,
+    id: &'static str,
+    bus: &'static Bus,
+    bufs: &'static mut minimeater_app::mqtt::Buffers,
+) {
     let who = Identity {
         prefix: "minimeater",
         id,
         sw: env!("CARGO_PKG_VERSION"),
         hw: "A",
     };
-    minimeater_app::mqtt::run(&mut tcp, &who, bus, bufs, &net::rssi).await
+    minimeater_app::mqtt::run(&mut tcp, &mut tls, &who, bus, bufs, &net::rssi).await
 }
 
 #[embassy_executor::task]

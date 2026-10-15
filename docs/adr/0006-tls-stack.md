@@ -31,7 +31,8 @@ C3 and S3 only; nothing found shows an opaque-key callback.
   using a `try_lock` of the shared bus (`minimeat-b5w`).
 - **CPU cost:** the key exchange and the certificate checks are software P-256 on the C6 and block the executor while they run.
   `minimeat-cqv` measures it on a board; if the stall is too long TLS moves to a lower-priority executor than the control loop.
-- **Memory:** two 16,640-byte record buffers per connection and 2 KiB for the server certificate; one TLS connection at a time.
+- **Memory:** two 16,640-byte record buffers (static, shared by connections one at a time) and 2 KiB for the server certificate in the verifier. Wiring it into the MQTT task grew the firmware by about 129 KB of flash (text 796 to 925 KB) and 37 KB of RAM (`.bss` 214 to 250 KB; the stack region left over fell from 128 to 91 KB).
 - **io versions:** `embedded-tls` uses `embedded-io-async` 0.7, the rest of the app 0.6; `tls::Duplex` and its error bridge
   join them. Move the app to 0.7 when the HAL crates do and drop the bridge.
-- **Certificate dates** need a clock (`minimeat-n1q`); the verifier takes one as a type parameter.
+- **Certificate dates** use the SNTP wall clock (`net::DeviceClock`). Until SNTP has answered there is no time and the validity dates are not checked; the CA signature, the key proof and the host name still are. A private CA's certificates last years, so a wrong clock failing a good certificate is the bigger risk.
+- **Wiring:** the MQTT session opens TLS exactly when a pinned CA is stored (`mqtt ca`, `docs/provisioning.md`), with the device certificate as the client certificate. A session with a CA and no certificate in the chip, or a failed handshake, does not fall back to plaintext: it backs off and retries. `just tls-interop` runs the session against a TLS 1.3 MQTT peer that requires the client certificate.
