@@ -6,9 +6,10 @@ below, MISSING when the C-number is not listed, and flags assembled lines with n
 
 import csv
 import json
+import os
+import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 URL = "https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList"
@@ -25,14 +26,25 @@ def search(keyword: str, size: int = 30) -> list[dict]:
     return sorted(items, key=lambda i: -(i.get("stockCount") or 0))
 
 
+def kicad_cli(root: Path, *args: str) -> None:
+    """kicad-cli from the PATH, else from the kicad container under podman (MINIMEATER_KICAD_IMAGE); paths are relative
+    to the repository root."""
+    if shutil.which("kicad-cli"):
+        subprocess.run(["kicad-cli", *args], check=True, capture_output=True, cwd=root)
+        return
+    image = os.environ.get("MINIMEATER_KICAD_IMAGE", "docker.io/kicad/kicad:10.0")
+    subprocess.run(["podman", "run", "--rm", "--userns=keep-id", "-v", f"{root}:/work:Z", "-w", "/work", "-e", "HOME=/tmp",
+                    image, "kicad-cli", *args], check=True, capture_output=True)
+
+
 def check_bom(boards: int) -> int:
-    sch = Path(__file__).resolve().parent.parent / "hw" / "minimeater.kicad_sch"
-    with tempfile.TemporaryDirectory() as d:
-        out = Path(d) / "bom.csv"
-        subprocess.run(["kicad-cli", "sch", "export", "bom", "--fields", "Reference,Value,LCSC,MPN", "--labels", "Refs,Value,LCSC,MPN",
-                        "--group-by", "Value,LCSC", "--exclude-dnp", "--ref-range-delimiter", "", "-o", str(out), str(sch)],
-                       check=True, capture_output=True)
-        rows = [r for r in csv.DictReader(out.open()) if r["LCSC"].strip().startswith("C")]
+    root = Path(__file__).resolve().parent.parent
+    out = root / "build" / "hw" / "bom.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    kicad_cli(root, "sch", "export", "bom", "--fields", "Reference,Value,LCSC,MPN", "--labels", "Refs,Value,LCSC,MPN",
+              "--group-by", "Value,LCSC", "--exclude-dnp", "--ref-range-delimiter", "", "-o", str(out.relative_to(root)),
+              "hw/minimeater.kicad_sch")
+    rows = [r for r in csv.DictReader(out.open()) if r["LCSC"].strip().startswith("C")]
     bad = 0
     for r in rows:
         code, need = r["LCSC"].strip(), len(r["Refs"].split(",")) * boards
