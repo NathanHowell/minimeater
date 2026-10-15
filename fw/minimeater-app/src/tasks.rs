@@ -333,6 +333,8 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             bus.reboot.signal(());
             Ok(false)
         }
+        // `handle` does this one: it needs the store
+        Request::Defaults => Ok(false),
     }
 }
 
@@ -525,6 +527,20 @@ async fn handle<B: Board>(
         Request::Pit(Command::AlarmAck) => {
             alarms.ack();
             Ok(false)
+        }
+        Request::Defaults => {
+            *settings = Settings::default();
+            pit.reset(settings);
+            // saved here, not left to the next period: the reboot is half a second away
+            let saved = store.save(settings).await;
+            bus.publish_config(settings);
+            // without the save a reboot would bring the old settings back: stay up on the defaults and say so
+            if saved.is_ok() {
+                bus.reboot.signal(());
+            }
+            saved
+                .map(|()| false)
+                .map_err(|_| Error::new(ErrorCode::NotAllowed, "could not save"))
         }
         req => apply(req, pit, settings, bus),
     };

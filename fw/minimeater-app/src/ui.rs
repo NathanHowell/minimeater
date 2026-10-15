@@ -3,7 +3,8 @@
 //! The LED shows the most urgent of: an `identify` request (fast blink for 10 s), alarms nobody has acknowledged (2 Hz),
 //! a fault (1 Hz), a cook in progress (a short flash every 3 s, so it is seen to be alive) or nothing. The button
 //! acknowledges the alarms on a short press and, held for 10 s, clears the saved WiFi network so that the box can be
-//! provisioned again.
+//! provisioned again; held for 30 s it resets every setting to its default and reboots. The LED blinks (as for
+//! `identify`) at 10 s and again at 30 s.
 
 use embassy_futures::select::{Either, select};
 use embassy_time::{Duration, Instant, Timer};
@@ -19,6 +20,8 @@ use crate::tasks::Bus;
 pub const IDENTIFY_MS: u64 = 10_000;
 /// A press this long clears the WiFi network, ms.
 pub const LONG_PRESS_MS: u64 = 10_000;
+/// A press this long resets every setting to its default, ms.
+pub const RESET_PRESS_MS: u64 = 30_000;
 /// A closure shorter than this is contact bounce, ms.
 const DEBOUNCE_MS: u64 = 30;
 /// The LED is re-evaluated at least this often, ms: how late it follows a change of status.
@@ -103,7 +106,7 @@ pub async fn led<L: OutputPin>(mut led: L, bus: &Bus) -> ! {
 }
 
 /// Watches the button (low while pressed): a short press acknowledges the alarms, a press held for [`LONG_PRESS_MS`]
-/// clears the WiFi network.
+/// clears the WiFi network, and one held for [`RESET_PRESS_MS`] resets every setting.
 pub async fn button<P: InputPin + Wait>(mut pin: P, bus: &Bus) -> ! {
     loop {
         let _ = pin.wait_for_low().await;
@@ -116,8 +119,16 @@ pub async fn button<P: InputPin + Wait>(mut pin: P, bus: &Bus) -> ! {
                 bus.send(REQUEST_ID, Request::Pit(Command::AlarmAck));
             }
             Either::Second(()) => {
+                // the LED blinks at each step, so that the user knows where to let go
                 bus.send(REQUEST_ID, Request::Wifi(None));
-                let _ = pin.wait_for_high().await;
+                bus.identify.signal(());
+                if let Either::Second(()) =
+                    select(pin.wait_for_high(), Timer::after_millis(RESET_PRESS_MS - LONG_PRESS_MS)).await
+                {
+                    bus.send(REQUEST_ID, Request::Defaults);
+                    bus.identify.signal(());
+                    let _ = pin.wait_for_high().await;
+                }
             }
         }
         Timer::after_millis(DEBOUNCE_MS).await;

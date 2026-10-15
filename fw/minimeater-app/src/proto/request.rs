@@ -47,6 +47,9 @@ pub enum Request {
     /// Blink the LED for 10 s.
     Identify,
     Reboot,
+    /// Every setting back to its default (cook, probes, learned schedule, WiFi, MQTT, OTLP), saved, and a reboot. Not on
+    /// MQTT: the button's 30 s press.
+    Defaults,
 }
 
 impl From<Command> for Request {

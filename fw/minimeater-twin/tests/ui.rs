@@ -1,8 +1,8 @@
 //! The status LED and the button (`.4.30`) on the twin, in one run (the twin runs once per process): `identify` blinks
 //! for 10 s, an alarm blinks until a short press of the button acknowledges it (the alarm itself stays reported), and
-//! a press held for 10 s clears the saved WiFi network.
+//! a press held for 10 s clears the saved WiFi network and nothing else, and one held for 30 s resets every setting.
 
-use minimeater_app::config::Wifi;
+use minimeater_app::config::{Mode, Settings, Wifi};
 use minimeater_twin::{Action, Opts, Scenario, run};
 
 fn edges(r: &minimeater_twin::Report, from: f64, to: f64) -> u32 {
@@ -39,6 +39,8 @@ fn the_led_blinks_for_identify_and_alarms_and_the_button_acknowledges_and_clears
         (1800.2, Action::Button(false)),
         (2400.0, Action::Button(true)),
         (2411.0, Action::Button(false)),
+        (3000.0, Action::Button(true)),
+        (3031.0, Action::Button(false)),
     ]);
     let r = run(sc, &Opts { speed: None }, |_, _| {});
 
@@ -71,7 +73,7 @@ fn the_led_blinks_for_identify_and_alarms_and_the_button_acknowledges_and_clears
     assert!(
         r.samples
             .iter()
-            .filter(|s| s.t_s > 1815.0)
+            .filter(|s| s.t_s > 1815.0 && s.t_s < 3000.0)
             .all(|s| s.status.alarms[0].is_some()),
         "the alarm is still reported after the acknowledgement"
     );
@@ -80,6 +82,13 @@ fn the_led_blinks_for_identify_and_alarms_and_the_button_acknowledges_and_clears
     // the long press clears the network, and only that
     let (_, before) = r.configs.iter().rev().find(|(t, _)| *t < 2400.0).unwrap();
     assert!(before.wifi.is_some());
-    let (_, after) = r.configs.last().unwrap();
+    let (_, after) = r.configs.iter().rev().find(|(t, _)| *t < 3000.0).unwrap();
     assert!(after.wifi.is_none(), "wifi cleared by the long press");
+    assert_eq!(after.probes[0].hi_f, Some(200.0), "and nothing else");
+    assert_ne!(after.cook.mode, Mode::Off);
+
+    // 30 s: everything, as the first boot has it
+    let (t, reset) = r.configs.last().unwrap();
+    assert!((3030.0..3040.0).contains(t), "reset at {t}");
+    assert_eq!(*reset, Settings::default());
 }

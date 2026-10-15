@@ -325,6 +325,15 @@ impl Pit {
         self.out.ref_f = s.cook.sp_f;
     }
 
+    /// Back to the defaults in `s` mid-run (the factory reset): the cook is off, the learned schedule gone, and the
+    /// controller starts from scratch whenever a cook next begins.
+    pub fn reset(&mut self, s: &Settings) {
+        let (path, ambient) = (self.path, self.ambient);
+        self.load(s, path, ambient);
+        self.learn.stop();
+        self.fresh = true;
+    }
+
     /// Finishes [`Self::load`] in place: starts the learner if the cook asks for it and builds the airflow map.
     pub fn boot(&mut self, s: &Settings) {
         if s.cook.autotune && s.cook.mode == Mode::Run {

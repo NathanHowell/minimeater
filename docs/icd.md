@@ -50,7 +50,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 
 - One status LED (not on GPIO8 or GPIO9) and one button on GPIO9, which doubles as BOOT. Their positions on the shell are an enclosure decision.
   - LED (`minimeater-app::ui`), most urgent first: `identify` blinks at 5 Hz for 10 s; alarms nobody has acknowledged blink at 2 Hz; a fault blinks at 1 Hz; a cook in progress flashes briefly every 3 s; otherwise off.
-  - Button: a short press acknowledges the alarms (`alarm_ack`); a press held for 10 s clears the saved WiFi network so the box can be provisioned again. A full reset to defaults is not on the button yet.
+  - Button: a short press acknowledges the alarms (`alarm_ack`); a press held for 10 s clears the saved WiFi network so the box can be provisioned again. Held for 30 s it resets every setting (cook, probes, the learned schedule, WiFi, MQTT and OTLP) to its default, saves, and reboots; the LED blinks at 10 s (WiFi cleared; let go here to keep the rest) and again at 30 s. The learned model goes with the rest: the factory state is the nominal schedule.
 - UART0 is test pads only.
 
 ## Mechanical envelope (`docs/mech.md`)
