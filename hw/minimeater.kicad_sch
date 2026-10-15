@@ -13246,11 +13246,6 @@
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid "c3e05fdc-ea86-4510-90b9-01f356a5a4a2")
   )
-  (text "POWER TREE\nVBUS (5 V, 1.1 A PTC F1) -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO_SW (0.6 A) -> 0.1R shunt R36 -> VSERVO; VFAN (0.52 A)\nNOTE: SMF5.0A clamps ~9.2 V peak but TLV62569 abs max is 6 V;\nthe PTC and 100uF bulk absorb surge energy. Accepted risk."
-    (at 150 125 0)
-    (effects (font (size 1.8 1.8)) (justify left bottom))
-    (uuid "ff2160c5-7bb5-423f-8ae8-5c17a3666f5f")
-  )
   (text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nADC_DRDY | IO2 | probe ADC data-ready, 10k pull-up (ADC1_CH2)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nSERVO_ISENSE | IO6 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH6; MTCK, not a strapping pin)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
     (at 205.74 378.46 0)
     (effects (font (size 1.27 1.27)) (justify left top))
@@ -13265,6 +13260,11 @@
     (at 240.03 203.2 0)
     (effects (font (size 1.27 1.27)) (justify left top))
     (uuid "129d07b2-f910-47d2-ad9a-e2acec8068c9")
+  )
+  (text "POWER TREE\nVBUS_RAW (USB-C 5 V, D1 SMF5V0A TVS) -> U12 TPS259531 eFuse (2.04 A, 4.2 V/ms soft start, 5.7 V clamp) -> VBUS_F\nVBUS_F -> TLV62569 buck: 3V3, 2 A for MCU\nVBUS_F -> ferrite FB1 -> TLV75533 LDO: 3V3A for ADC\nVBUS_F -> 2x TPS2553: VSERVO_SW (0.6 A) -> 0.1R shunt R36 -> VSERVO; VFAN (0.52 A)\nSurge: the cable sees only 100 nF at attach; D1 clamps its ringing (~7 V) at the eFuse input (20 V);\nVBUS_F stays under 5.3 V, below the 6 V parts (docs/sim/power.md)."
+    (at 150 136 0)
+    (effects (font (size 1.8 1.8)) (justify left bottom))
+    (uuid "9231e429-1792-49b4-ac4c-4b8a54b5bdac")
   )
 	(symbol
 		(lib_id "power:GND")
