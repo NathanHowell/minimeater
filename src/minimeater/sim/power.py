@@ -77,7 +77,8 @@ wrdata i.dat ic itvs
     t = i[:, 0]
     early = t <= 100e-6  # what the host sees at attach, before any soft start has begun
     return {"vbus_f_peak": float(v[:, 1].max()), "vbus_raw_peak": float(v[:, 3].max()), "i_peak": float(i[:, 1].max()),
-            "tvs_peak": float(i[:, 3].max()), "charge": float(np.trapezoid(i[:, 1], t)),
+            "tvs_peak": float(i[:, 3].max()), "tvs_energy": float(np.trapezoid(v[:, 3] * np.maximum(i[:, 3], 0), t)),
+            "charge": float(np.trapezoid(i[:, 1], t)),
             "charge_100us": float(np.trapezoid(i[early, 1], t[early])),
             "i_peak_after_100us": float(i[~early, 1].max()) if (~early).any() else 0.0}
 

@@ -84,3 +84,12 @@ def test_efuse_holds_vbus_f_under_the_6v_parts_and_limits_attach_charge():
             assert h["vbus_raw_peak"] < 10.0  # the eFuse's input is rated 20 V; D1 clamps it near 7
             assert h["charge_100us"] < 10e-6
             assert h["i_peak_after_100us"] < 1.0  # the soft start's charging current
+
+
+def test_hot_plug_leaves_the_tvs_far_under_its_rating():
+    from minimeater.sim import power as W
+
+    for caps in ("nominal", "derated"):
+        h = W.hotplug(W.HotPlug(2e-6, 0.05, caps))
+        assert h["tvs_peak"] < 21.7  # SMF5.0A pulse current
+        assert h["tvs_energy"] < 1e-3  # J
