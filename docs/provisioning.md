@@ -92,3 +92,32 @@ MQTT uses TLS exactly when a pinned CA is stored. After the certificate is in sl
 The CA certificate may be at most 480 bytes. Set the broker's TLS port with `mqtt set <host> 8883 ...`. `mqtt ca clear` goes back to plaintext
 and `config` shows which. The broker's certificate must be signed directly by this CA and name the host the device connects to
 (a DNS name in `subjectAltName`, or the common name); the device checks both. TLS is TLS 1.3 only (`docs/adr/0006-tls-stack.md`).
+
+## The private CA and the broker
+
+For five boards a few `openssl` lines are the CA. Once:
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out ca.key
+openssl req -x509 -new -key ca.key -subj "/CN=minimeater ca" -days 3650 -out ca.pem
+```
+
+Keep the names short: the CA certificate has to fit the 480 bytes `mqtt ca` takes, and each device certificate the 414 bytes of slot 8.
+Each board: sign the request `identity csr` printed (step 4 above), load the certificate (step 5) and the CA (previous section).
+
+The broker needs its own certificate from the same CA, with the name the device connects to as a DNS `subjectAltName` (an IP address
+does not match; use a name), and a listener that asks for the device's:
+
+```
+listener 8883
+cafile ca.pem
+certfile broker.pem
+keyfile broker.key
+require_certificate true
+use_identity_as_username true
+tls_version tlsv1.3
+acl_file acl
+```
+
+With `use_identity_as_username` the certificate's common name (`mm-` and the MAC) is the user name, so an ACL can confine a device to its
+own topics: `pattern readwrite minimeater/%u/#`. `just mosquitto-tls` runs exactly this against the firmware's session.
