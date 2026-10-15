@@ -1,11 +1,12 @@
 //! Homing against a servo whose stall makes the fault line come and go (`minimeat-xdn`): the TPS2553 in current limit
 //! pulls the servo's supply down to about the limit times the motor's resistance, which can reset a digital servo's logic,
 //! and the line is then low for a few reads in every few steps. Counting the steps the line was seen low in a window finds
-//! the stops all the same, if a little further in.
+//! the stops all the same, if a little further in. The current sense is switched off here (`servo_sense_down`): with it
+//! the stall is seen in the current before the switch limits, and the line is not needed.
 
 use minimeater_app::config::Mode;
-use minimeater_sim::hal::ServoMech;
-use minimeater_twin::{Opts, Scenario, run};
+use minimeater_sim::hal::{Faults, ServoMech};
+use minimeater_twin::{Action, Opts, Scenario, run};
 
 #[test]
 fn a_chattering_fault_line_still_homes() {
@@ -21,6 +22,13 @@ fn a_chattering_fault_line_still_homes() {
     sc.settings.servo = None;
     sc.settings.cook.mode = Mode::Off;
     sc.actions.clear();
+    sc.actions.push((
+        0.0,
+        Action::Faults(Faults {
+            servo_sense_down: true,
+            ..Faults::default()
+        }),
+    ));
     let r = run(sc, &Opts { speed: None }, |_, _| {});
     let (when, found) = r
         .configs

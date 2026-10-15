@@ -35,7 +35,7 @@ use minimeater_app::ui;
 use minimeater_core::model::airflow::AirPath;
 use minimeater_sim::hal::{
     SimAmbient, SimBoard, SimButton, SimConfig, SimFan, SimFanPower, SimLed, SimLoadFault, SimProbes, SimServo,
-    SimServoPower, SimTach, SimUsb, SimWatchdog, Wdt, World, io,
+    SimServoCurrent, SimServoPower, SimTach, SimUsb, SimWatchdog, Wdt, World, io,
 };
 
 pub use scenario::{Action, Scenario};
@@ -68,12 +68,26 @@ async fn actuators(
     power: SimServoPower<'static>,
     fan_power: SimFanPower<'static>,
     load_fault: SimLoadFault<'static>,
+    servo_current: SimServoCurrent<'static>,
     usb: SimUsb<'static>,
     s_min: f64,
     rpm_max: f64,
     bus: &'static Bus,
 ) {
-    tasks::actuators::<B>(fan, tach, servo, power, fan_power, load_fault, usb, s_min, rpm_max, bus).await
+    tasks::actuators::<B>(
+        fan,
+        tach,
+        servo,
+        power,
+        fan_power,
+        load_fault,
+        servo_current,
+        usb,
+        s_min,
+        rpm_max,
+        bus,
+    )
+    .await
 }
 
 #[embassy_executor::task]
@@ -240,6 +254,7 @@ pub fn run_with(
             io.servo_power,
             io.fan_power,
             io.load_fault,
+            io.servo_current,
             io.usb,
             model.fan.s_min(),
             model.fan.rpm_max,

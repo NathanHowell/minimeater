@@ -5,7 +5,7 @@
 //! Standard traits are used where they fit: `embedded-hal` PWM for the fan, GPIO for the LED, the servo
 //! power gate and the button (`embedded-hal-async` `Wait` for presses), and `embedded-storage-async`
 //! `NorFlash` for the configuration region. Project traits cover what has no standard shape: a
-//! ratiometric probe ADC, an ambient sensor, a tach, a servo by pulse width and the USB-C source.
+//! ratiometric probe ADC, an ambient sensor, a tach, a servo by pulse width, its supply current and the USB-C source.
 //!
 //! Time is not a trait: application code uses `embassy-time`, whose driver is the esp-rtos timer on
 //! the target and the twin's (possibly faster-than-real-time) driver on the host.
@@ -63,6 +63,12 @@ pub trait Servo {
     fn set_pulse_us(&mut self, us: u16);
 }
 
+/// The damper servo's supply current, across the shunt in its supply (ADR 0004: R36 and U13 into an ADC1 pin).
+pub trait ServoCurrent {
+    /// Current now, mA, averaged over a few conversions; 0 while the servo is unpowered.
+    fn ma(&mut self) -> u16;
+}
+
 /// What the USB-C source advertises on CC (ADR 0001: CC1/CC2 sensed on ADC1 pins).
 pub trait UsbPower {
     /// Advertised current, mA (500/900 USB default, 1500, 3000); `None` if no source is detected.
@@ -92,6 +98,7 @@ pub trait Board {
     type FanPower: OutputPin;
     /// The load switches' shared open-drain fault line: low while one of them is limiting its current.
     type LoadFault: InputPin;
+    type ServoCurrent: ServoCurrent;
     type Led: OutputPin;
     /// The user button (GPIO9/BOOT on the target, ADR 0001): low while pressed.
     type Button: InputPin + Wait;
@@ -111,6 +118,7 @@ pub struct Io<B: Board> {
     pub servo_power: B::ServoPower,
     pub fan_power: B::FanPower,
     pub load_fault: B::LoadFault,
+    pub servo_current: B::ServoCurrent,
     pub led: B::Led,
     pub button: B::Button,
     pub config: B::Config,

@@ -43,7 +43,7 @@ use crate::ambient::{PLAUSIBLE_C, compensate};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, SERVO_US, ServoPulses, Settings, Stop};
 use crate::drive::{FanCurve, FanDrive, HomeFail, Homing, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
-use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower, Watchdog};
+use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, ServoCurrent, Tach, UsbPower, Watchdog};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
 use crate::probes::{self, ProbeSt, Reading, Scanner, Sense, Snapshot};
 use crate::proto::BootReason;
@@ -758,7 +758,8 @@ async fn handle<B: Board>(
 const HOME_ID: u16 = 0xFF12;
 
 /// One homing run (`drive::Homing`, `minimeat-xdn`): the fan is held off so that the shared fault line is the servo's, the
-/// servo is swept into each stop, and the stall is read on the line. The load watch stays out of it; the caller takes it back.
+/// servo is swept into each stop, and the stall is read on the line and in the servo's current. The load watch stays out
+/// of it; the caller takes it back.
 #[allow(clippy::too_many_arguments)]
 async fn home<B: Board>(
     fan: &mut B::Fan,
@@ -766,6 +767,7 @@ async fn home<B: Board>(
     servo: &mut B::Servo,
     power: &mut B::ServoPower,
     load_fault: &mut B::LoadFault,
+    current: &mut B::ServoCurrent,
     usb: &mut B::Usb,
     bus: &Bus,
 ) -> Result<ServoPulses, HomeFail> {
@@ -783,13 +785,14 @@ async fn home<B: Board>(
         if bus.servo().home == Home::Cancel || !source_ok {
             break Err(HomeFail::Cancelled);
         }
-        // the line is read all through the step, and shows the pulse set the step before
-        let mut lows = 0;
+        // the line and the current are read all through the step, and show the pulse set the step before
+        let (mut lows, mut ma) = (0, 0u32);
         for _ in 0..Homing::SAMPLES {
             lows += u8::from(load_fault.is_low().unwrap_or(false));
+            ma += u32::from(current.ma());
             Timer::after(sample).await;
         }
-        let (out, done) = homing.tick(lows);
+        let (out, done) = homing.tick(lows, (ma / u32::from(Homing::SAMPLES)) as u16);
         servo.set_pulse_us(out.pulse_us);
         let _ = if out.power { power.set_high() } else { power.set_low() };
         if let Some(r) = done {
@@ -810,6 +813,7 @@ pub async fn actuators<B: Board>(
     mut power: B::ServoPower,
     mut fan_power: B::FanPower,
     mut load_fault: B::LoadFault,
+    mut servo_current: B::ServoCurrent,
     mut usb: B::Usb,
     s_min: f64,
     rpm_max: f64,
@@ -846,6 +850,7 @@ pub async fn actuators<B: Board>(
                 &mut servo,
                 &mut power,
                 &mut load_fault,
+                &mut servo_current,
                 &mut usb,
                 bus,
             )

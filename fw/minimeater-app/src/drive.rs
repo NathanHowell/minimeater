@@ -114,7 +114,8 @@ pub enum HomeFail {
     NoStopLow,
     /// The same toward the higher pulses.
     NoStopHigh,
-    /// The fault line was already low with the servo at rest: something else is wrong, and a stall could not be told.
+    /// The fault line was already low, or the current already high, with the servo at rest: something else is wrong, and
+    /// a stall could not be told.
     FaultAtRest,
     /// The two stops are not a flap's travel apart (too close, or out of range).
     Span,
@@ -123,8 +124,10 @@ pub enum HomeFail {
 }
 
 /// Homing (`minimeat-xdn`): the servo is swept slowly toward each end until the crank's lug meets a printed post and
-/// the servo stalls; the load switch's current limit asserts the shared fault line, which is the stall signal. The
-/// stalled pulses (less the lead the servo needs to build the tripping current) are the stops, and become the
+/// the servo stalls. The stall is seen two ways (`minimeat-sul`): its supply current, across the shunt, passes
+/// [`Homing::STALL_MA`] before the load switch limits, and once it would pass the switch's limit the shared fault line
+/// asserts. Either counts, so a broken current sense still homes on the line. The stalled pulses (less the lead the
+/// servo needs to build that current, shorter for the current than for the line) are the stops, and become the
 /// calibration the manual jog procedure otherwise makes (`minimeat-bkz`). The lower stop is taken to be closed, so a servo
 /// mounted the other way round is calibrated by hand. Pure: [`Homing::tick`] is stepped every [`Homing::DT`] seconds by
 /// the actuator task, which holds the fan off (so the fault line is the servo's) and keeps the load watch out of it.
@@ -133,10 +136,15 @@ pub struct Homing {
     phase: HomePhase,
     pulse_us: f64,
     t_s: f64,
-    /// One bit per recent step, set when the fault line was seen low in it, newest lowest.
+    /// One bit per recent step, set when the stall was seen in it (line low or current high), newest lowest.
     active: u8,
+    /// The same, for the steps in which the current saw it.
+    by_current: u8,
     lo_us: f64,
     hi_us: f64,
+    /// The lead taken off each stop: [`Homing::LEAD_CURRENT_US`] when the current saw that stall, else [`Homing::LEAD_US`].
+    lo_lead_us: f64,
+    hi_lead_us: f64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -159,9 +167,15 @@ impl Homing {
     /// Sweep speed, us per second (about 9 degrees per second): slow enough that the servo follows the pulse and the
     /// stall is found within a few degrees. [est until the bench: `minimeat-xdn`]
     pub const RATE_US_S: f64 = 100.0;
-    /// Pulse past the real stop at which a stall is seen: the error the servo needs to draw the tripping current plus the
-    /// two reads and the ramp during them. [est until the bench: `minimeat-xdn`]
+    /// Pulse past the real stop at which a stall is seen on the fault line: the error the servo needs to draw the switch's
+    /// limit plus the two reads and the ramp during them. [est until the bench: `minimeat-xdn`]
     pub const LEAD_US: f64 = 60.0;
+    /// Mean servo current over a step at or above which the step counts as stalled, mA: about twice the running current
+    /// (0.2 A) and under the load switch's 0.6 A limit, so the stall is seen before the switch limits. [est until the bench]
+    pub const STALL_MA: u16 = 450;
+    /// The lead when the current saw the stall: it crosses [`Self::STALL_MA`] at a smaller error than the switch trips at.
+    /// [est until the bench]
+    pub const LEAD_CURRENT_US: f64 = 40.0;
     /// How many times the line is read in a step; the task spreads them evenly. The switch holds the line a deglitch (5 to 10 ms)
     /// after the overload ends as well as before it starts, so a fault of any kind is seen by reads 10 ms apart.
     pub const SAMPLES: u8 = 10;
@@ -189,18 +203,31 @@ impl Homing {
             pulse_us: Self::START_US,
             t_s: 0.0,
             active: 0,
+            by_current: 0,
             lo_us: 0.0,
             hi_us: 0.0,
+            lo_lead_us: Self::LEAD_US,
+            hi_lead_us: Self::LEAD_US,
         }
     }
 
     /// One step: what to put on the servo, and the result once there is one (after which the servo is off). `lows`
-    /// is how many of the step's [`Self::SAMPLES`] reads found the shared fault line asserted.
-    pub fn tick(&mut self, lows: u8) -> (ServoOut, Option<Result<ServoPulses, HomeFail>>) {
+    /// is how many of the step's [`Self::SAMPLES`] reads found the shared fault line asserted, `ma` the servo's mean
+    /// current over them (0 if it is not sensed).
+    pub fn tick(&mut self, lows: u8, ma: u16) -> (ServoOut, Option<Result<ServoPulses, HomeFail>>) {
         self.t_s += Self::DT;
-        let seen = lows > 0 && self.t_s > Self::BLANK_S;
-        self.active = ((self.active << 1) | u8::from(seen)) & ((1 << Self::WINDOW) - 1);
+        let awake = self.t_s > Self::BLANK_S;
+        let current = awake && ma >= Self::STALL_MA;
+        let seen = (awake && lows > 0) || current;
+        let mask = (1 << Self::WINDOW) - 1;
+        self.active = ((self.active << 1) | u8::from(seen)) & mask;
+        self.by_current = ((self.by_current << 1) | u8::from(current)) & mask;
         let stalled = self.active.count_ones() >= Self::STALL_STEPS;
+        let lead = if self.by_current != 0 {
+            Self::LEAD_CURRENT_US
+        } else {
+            Self::LEAD_US
+        };
         let mut result = None;
         match self.phase {
             HomePhase::Settle => {
@@ -210,15 +237,18 @@ impl Homing {
                     self.phase = HomePhase::Low;
                     self.t_s = 0.0;
                     self.active = 0;
+                    self.by_current = 0;
                 }
             }
             HomePhase::Low => {
                 self.pulse_us -= Self::RATE_US_S * Self::DT;
                 if stalled {
                     self.lo_us = self.pulse_us;
+                    self.lo_lead_us = lead;
                     self.phase = HomePhase::RestLow;
                     self.t_s = 0.0;
                     self.active = 0;
+                    self.by_current = 0;
                 } else if self.pulse_us <= Self::LIMIT_US.0 {
                     result = Some(Err(HomeFail::NoStopLow));
                 }
@@ -228,15 +258,18 @@ impl Homing {
                     self.phase = HomePhase::High;
                     self.t_s = 0.0;
                     self.active = 0;
+                    self.by_current = 0;
                 }
             }
             HomePhase::High => {
                 self.pulse_us += Self::RATE_US_S * Self::DT;
                 if stalled {
                     self.hi_us = self.pulse_us;
+                    self.hi_lead_us = lead;
                     self.phase = HomePhase::RestHigh;
                     self.t_s = 0.0;
                     self.active = 0;
+                    self.by_current = 0;
                 } else if self.pulse_us >= Self::LIMIT_US.1 {
                     result = Some(Err(HomeFail::NoStopHigh));
                 }
@@ -244,8 +277,8 @@ impl Homing {
             HomePhase::RestHigh => {
                 if self.t_s >= Self::REST_S {
                     let p = ServoPulses {
-                        closed_us: (self.lo_us + Self::LEAD_US + 0.5) as u16,
-                        open_us: (self.hi_us - Self::LEAD_US + 0.5) as u16,
+                        closed_us: (self.lo_us + self.lo_lead_us + 0.5) as u16,
+                        open_us: (self.hi_us - self.hi_lead_us + 0.5) as u16,
                     };
                     result = Some(if p.valid() && p.closed_us.abs_diff(p.open_us) <= Self::SPAN_MAX_US {
                         Ok(p)
@@ -474,7 +507,7 @@ mod tests {
         loop {
             t += Homing::DT;
             assert!(t < 120.0, "homing never ended");
-            let (out, done) = h.tick(if line { Homing::SAMPLES } else { 0 });
+            let (out, done) = h.tick(if line { Homing::SAMPLES } else { 0 }, 0);
             if let Some(r) = done {
                 assert!(!out.power, "the servo is off when it ends");
                 return (r, t);
@@ -482,6 +515,52 @@ mod tests {
             let p = f64::from(out.pulse_us);
             line = out.power && (p < lo - trip || p > hi + trip);
         }
+    }
+
+    /// The same servo, also sensed: 200 mA running, rising with the error past a stop toward 1.1 A stalled, held at the
+    /// switch's 0.6 A limit (where the line goes low, `trip` us past the stop). `sense` false: the current reads 0.
+    fn home_sensed(lo: f64, hi: f64, trip: f64, sense: bool) -> Result<ServoPulses, HomeFail> {
+        let mut h = Homing::new();
+        let (mut line, mut ma) = (false, 0u16);
+        for _ in 0..1200 {
+            let (out, done) = h.tick(if line { Homing::SAMPLES } else { 0 }, if sense { ma } else { 0 });
+            if let Some(r) = done {
+                return r;
+            }
+            let p = f64::from(out.pulse_us);
+            let err = (lo - p).max(p - hi).max(0.0);
+            // the error at which the wanted current reaches the limit is `trip`
+            let wanted = 200.0 + 900.0 * (err * (600.0 - 200.0) / (900.0 * trip)).min(1.0);
+            line = out.power && err > trip;
+            ma = if out.power { wanted.min(600.0) as u16 } else { 0 };
+        }
+        panic!("homing never ended");
+    }
+
+    #[test]
+    fn the_current_sees_the_stall_first_and_homes_as_well_as_the_line() {
+        for (lo, hi) in [(1000.0, 2000.0), (1130.0, 1870.0), (900.0, 2100.0)] {
+            for sense in [true, false] {
+                let p = home_sensed(lo, hi, 30.0, sense).unwrap_or_else(|e| panic!("{lo}..{hi} sense {sense}: {e:?}"));
+                assert!(
+                    (f64::from(p.closed_us) - lo).abs() <= 15.0 && (f64::from(p.open_us) - hi).abs() <= 15.0,
+                    "{lo}..{hi} sense {sense}: found {p:?}"
+                );
+            }
+        }
+        // a servo held high at rest (jammed in the middle) is not homed
+        let mut h = Homing::new();
+        let r = (0..40).find_map(|_| h.tick(0, 700).1).unwrap();
+        assert_eq!(r, Err(HomeFail::FaultAtRest));
+        // the start-up surge in the first half second is not read
+        let mut h = Homing::new();
+        for _ in 0..4 {
+            assert!(h.tick(0, 900).1.is_none());
+        }
+        assert!(
+            (0..20).all(|_| h.tick(0, 200).1.is_none()),
+            "running current after the surge is not a stall"
+        );
     }
 
     #[test]
@@ -502,7 +581,7 @@ mod tests {
     fn a_servo_that_never_stalls_finds_no_stop_and_the_other_failures_are_named() {
         // the line never asserts (no posts, or a switch that does not trip): the low sweep runs out
         let mut h = Homing::new();
-        let r = (0..2000).find_map(|_| h.tick(0).1).unwrap();
+        let r = (0..2000).find_map(|_| h.tick(0, 0).1).unwrap();
         assert_eq!(r, Err(HomeFail::NoStopLow));
         // a stop below but none above
         assert_eq!(home_against(1000.0, 3000.0, 30.0).0, Err(HomeFail::NoStopHigh));
@@ -512,7 +591,7 @@ mod tests {
         assert_eq!(home_against(1450.0, 1550.0, 30.0).0, Err(HomeFail::Span));
         // already low at rest: not a stall
         let mut h = Homing::new();
-        let r = (0..40).find_map(|_| h.tick(Homing::SAMPLES).1).unwrap();
+        let r = (0..40).find_map(|_| h.tick(Homing::SAMPLES, 0).1).unwrap();
         assert_eq!(r, Err(HomeFail::FaultAtRest));
     }
 
@@ -521,13 +600,13 @@ mod tests {
         let mut h = Homing::new();
         // a start-up pulse on the line in the first half second
         for _ in 0..4 {
-            assert!(h.tick(Homing::SAMPLES).1.is_none());
+            assert!(h.tick(Homing::SAMPLES, 0).1.is_none());
         }
         // a single low read in the sweep is a blip
         let mut seen = 0;
         let mut r = None;
         for i in 0..3000 {
-            let (out, done) = h.tick(u8::from(i == 40));
+            let (out, done) = h.tick(u8::from(i == 40), 0);
             if let Some(d) = done {
                 r = Some(d);
                 break;
@@ -561,7 +640,7 @@ mod tests {
                         lows = 3;
                     }
                 }
-                let (_, done) = h.tick(lows);
+                let (_, done) = h.tick(lows, 0);
                 if let Some(r) = done {
                     break r;
                 }
@@ -581,7 +660,7 @@ mod tests {
         let mut off_run = 0;
         let mut longest = 0;
         loop {
-            let (out, done) = h.tick(if line { Homing::SAMPLES } else { 0 });
+            let (out, done) = h.tick(if line { Homing::SAMPLES } else { 0 }, 0);
             let p = f64::from(out.pulse_us);
             line = out.power && !(1000.0 - 30.0..=2000.0 + 30.0).contains(&p);
             off_run = if out.power { 0 } else { off_run + 1 };

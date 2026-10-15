@@ -6,6 +6,7 @@ pub mod atecc608;
 pub mod cert;
 pub mod csr;
 pub mod identity;
+pub mod servo_sense;
 pub mod tmp117;
 pub mod usb_cc;
 

@@ -11,11 +11,14 @@
 //! | button (BOOT) | 9 | | servo PWM / power enable | 20 / 21 |
 //! | status LED | 10 | | fan power enable (TPS2553) | 11 |
 //! | load-switch fault (open drain, shared) | 3 | | spare (no-connect) | 4 / 5 / 7 / 15 |
-//! | servo current sense (INA181, ADC1; not read yet, minimeat-sul) | 2 | | | |
+//! | servo current sense (INA181 across the shunt, ADC1) | 2 | | | |
 //! | UART0 TX / RX (test pads) | 16 / 17 | | USB D- / D+ | 12 / 13 |
+
+use core::cell::RefCell;
 
 use embassy_embedded_hal::adapter::BlockingAsync;
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+use embassy_sync::blocking_mutex::Mutex as BlockingMutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::mutex::Mutex;
 use embassy_time::{Delay, Instant};
@@ -27,14 +30,14 @@ use esp_hal::ledc::channel::{self, ChannelIFace};
 use esp_hal::ledc::timer::{self, TimerIFace};
 use esp_hal::ledc::{LSGlobalClkSource, Ledc, LowSpeed};
 use esp_hal::pcnt::{Pcnt, channel::EdgeMode, unit::Unit};
-use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG0, TIMG1, USB_DEVICE, WIFI};
+use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, GPIO2, Peripherals, TIMG0, TIMG1, USB_DEVICE, WIFI};
 use esp_hal::time::{Duration, Rate};
 use esp_hal::timer::timg::{MwdtStage, TimerGroup, Wdt};
 use esp_storage::FlashStorage;
 use minimeater_app::drivers::{
-    ads122c04, ads122c04::Ads122c04, atecc608, atecc608::Atecc608, tmp117, tmp117::Tmp117, usb_cc,
+    ads122c04, ads122c04::Ads122c04, atecc608, atecc608::Atecc608, servo_sense, tmp117, tmp117::Tmp117, usb_cc,
 };
-use minimeater_app::hal::{Board, FlashRegion, Io, PwmServo, Tach, UsbPower, Watchdog};
+use minimeater_app::hal::{Board, FlashRegion, Io, PwmServo, ServoCurrent, Tach, UsbPower, Watchdog};
 use static_cell::StaticCell;
 
 /// Configuration region: the `nvs` partition of espflash's default partition table. `.4.13` (OTA)
@@ -68,6 +71,7 @@ impl Board for Esp {
     type ServoPower = Output<'static>;
     type FanPower = Output<'static>;
     type LoadFault = Input<'static>;
+    type ServoCurrent = ServoSense;
     type Led = Output<'static>;
     type Button = Input<'static>;
     type Config = FlashRegion<BlockingAsync<FlashStorage<'static>>>;
@@ -168,9 +172,14 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     unit.clear();
     unit.resume();
 
+    // ADC1 reads the CC pins and the servo current: one converter, shared by the two readers (both in the actuator task)
     let mut adc_cfg = AdcConfig::new();
     let cc1 = adc_cfg.enable_pin_with_cal::<_, AdcCalCurve<ADC1<'static>>>(p.GPIO0, Attenuation::_11dB);
     let cc2 = adc_cfg.enable_pin_with_cal::<_, AdcCalCurve<ADC1<'static>>>(p.GPIO1, Attenuation::_11dB);
+    // 0 to 1.8 V (0.9 A) from the INA181; 11 dB reads to about 3.1 V
+    let isense = adc_cfg.enable_pin_with_cal::<_, AdcCalCurve<ADC1<'static>>>(p.GPIO2, Attenuation::_11dB);
+    static ADC: StaticCell<SharedAdc> = StaticCell::new();
+    let adc = &*ADC.init(BlockingMutex::new(RefCell::new(Adc::new(p.ADC1, adc_cfg))));
 
     let io = Io {
         probes,
@@ -182,14 +191,11 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         fan_power: Output::new(p.GPIO11, Level::Low, out),
         // the shared open-drain fault line has its own pull-up on the board
         load_fault: Input::new(p.GPIO3, InputConfig::default().with_pull(Pull::None)),
+        servo_current: ServoSense { adc, pin: isense },
         led: Output::new(p.GPIO10, Level::Low, out),
         button: Input::new(p.GPIO9, InputConfig::default().with_pull(Pull::Up)),
         config: FlashRegion::new::<CONFIG_OFFSET, CONFIG_LEN>(BlockingAsync::new(FlashStorage::new(p.FLASH))),
-        usb: CcSense {
-            adc: Adc::new(p.ADC1, adc_cfg),
-            cc1,
-            cc2,
-        },
+        usb: CcSense { adc, cc1, cc2 },
         // TIMG0 is the runtime's; TIMG1's watchdog resets the whole system
         watchdog: Mwdt(TimerGroup::new(p.TIMG1).wdt),
     };
@@ -237,18 +243,43 @@ impl Tach for PcntTach {
 }
 
 type CcPin<P> = AdcPin<P, ADC1<'static>, AdcCalCurve<ADC1<'static>>>;
+type SharedAdc = BlockingMutex<CriticalSectionRawMutex, RefCell<Adc<'static, ADC1<'static>, esp_hal::Blocking>>>;
+
+/// One calibrated conversion, mV (0 if the converter fails, which it does not once configured).
+fn read_mv<P: esp_hal::analog::adc::AdcChannel>(adc: &SharedAdc, pin: &mut CcPin<P>) -> u16 {
+    adc.lock(|a| nb::block!(a.borrow_mut().read_oneshot(pin)).unwrap_or(0))
+}
 
 /// CC1/CC2 voltages across the 5.1k Rd pull-downs.
 pub struct CcSense {
-    adc: Adc<'static, ADC1<'static>, esp_hal::Blocking>,
+    adc: &'static SharedAdc,
     cc1: CcPin<GPIO0<'static>>,
     cc2: CcPin<GPIO1<'static>>,
 }
 
 impl UsbPower for CcSense {
     fn source_current_ma(&mut self) -> Option<u16> {
-        let cc1 = nb::block!(self.adc.read_oneshot(&mut self.cc1)).unwrap_or(0);
-        let cc2 = nb::block!(self.adc.read_oneshot(&mut self.cc2)).unwrap_or(0);
+        let cc1 = read_mv(self.adc, &mut self.cc1);
+        let cc2 = read_mv(self.adc, &mut self.cc2);
         usb_cc::source_current_ma(cc1, cc2)
+    }
+}
+
+/// Conversions averaged per servo current reading: the amplifier's 1.6 kHz filter leaves the servo's 50 Hz pulse
+/// current on it, so one conversion is a sample of a ripple, not the mean.
+const ISENSE_READS: u32 = 8;
+
+/// The servo's supply current: the INA181's output across the shunt (2 mV per mA).
+pub struct ServoSense {
+    adc: &'static SharedAdc,
+    pin: CcPin<GPIO2<'static>>,
+}
+
+impl ServoCurrent for ServoSense {
+    fn ma(&mut self) -> u16 {
+        let sum: u32 = (0..ISENSE_READS)
+            .map(|_| u32::from(read_mv(self.adc, &mut self.pin)))
+            .sum();
+        servo_sense::ma_from_mv((sum / ISENSE_READS) as u16)
     }
 }

@@ -15,7 +15,9 @@ use embedded_hal::digital::{ErrorType as PinErrorType, InputPin, OutputPin};
 use embedded_hal::pwm::{ErrorType as PwmErrorType, SetDutyCycle};
 use embedded_hal_async::digital::Wait;
 use embedded_storage_async::nor_flash::{ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash};
-use minimeater_app::hal::{AmbientSensor, Board, HalError, Io, PROBE_JACKS, ProbeAdc, Servo, Tach, UsbPower, Watchdog};
+use minimeater_app::hal::{
+    AmbientSensor, Board, HalError, Io, PROBE_JACKS, ProbeAdc, Servo, ServoCurrent, Tach, UsbPower, Watchdog,
+};
 use minimeater_core::thermistor::{R_BIAS, Thermistor};
 use minimeater_core::units::f_to_k;
 
@@ -34,17 +36,25 @@ pub enum Wiring {
     Short,
 }
 
-/// The damper servo's mechanics: pulse width at the flap's closed and fully open (90 degree) stops.
+/// The damper servo's mechanics and supply current: pulse width at the flap's closed and fully open (90 degree) stops.
+/// Past a stop the servo pushes against it with a current that rises with the error, toward its stall current, and the
+/// load switch holds it at its limit; the switch's fault line goes low once the servo wants more than that.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ServoMech {
     pub closed_us: f64,
     pub open_us: f64,
-    /// How far past a stop the pulse must be before the servo, stalled against it, draws more than the load switch's limit
+    /// How far past a stop the pulse must be before the servo, stalled against it, wants more than the load switch's limit
     /// and the shared fault line goes low, us.
     pub trip_us: f64,
     /// 0: the line stays low for as long as the servo is stalled. Otherwise it is low on three reads in every this many while stalled,
     /// as when the current limit pulls the servo's supply down and the servo resets and restarts.
     pub chatter_reads: u32,
+    /// Supply current while it moves, holding still, and fully stalled; the load switch's limit, mA. [est: the HS-5065MG's
+    /// listing gives 0.22 A running and 1.2 A stalled; the TPS2553 at R5 = 43.2k limits at about 0.6 A]
+    pub run_ma: f64,
+    pub hold_ma: f64,
+    pub stall_ma: f64,
+    pub limit_ma: f64,
 }
 
 impl Default for ServoMech {
@@ -54,9 +64,19 @@ impl Default for ServoMech {
             open_us: 2000.0,
             trip_us: 30.0,
             chatter_reads: 0,
+            run_ma: 200.0,
+            hold_ma: 20.0,
+            stall_ma: 1100.0,
+            limit_ma: 600.0,
         }
     }
 }
+
+/// A servo draws its running current this long after a new pulse or a power-up, s (its travel at the homing sweep's or
+/// the slew's pace is longer, but each step is a new pulse).
+const SERVO_MOVE_S: f64 = 0.3;
+/// Noise on the current reading, rms mA (the amplifier, the ADC and the servo's pulse current after averaging).
+const SERVO_NOISE_MA: f64 = 5.0;
 
 /// Injected hardware faults (`.4.16.4`): a scenario sets the whole state at once, and the sim
 /// peripherals misbehave accordingly.
@@ -78,6 +98,8 @@ pub struct Faults {
     pub ambient_offset_c: f64,
     /// A load switch is in current limit: the shared fault line reads low.
     pub load_fault: bool,
+    /// The servo current sense reads 0 (an amplifier missing or dead): homing falls back to the fault line.
+    pub servo_sense_down: bool,
     /// Flash erases and writes fail.
     pub flash_fail: bool,
 }
@@ -98,6 +120,8 @@ pub struct World {
     pub fan_powered: bool,
     servo_pulse_us: u16,
     stall_reads: u32,
+    /// Time left drawing the running current after the last new pulse, s.
+    servo_move_s: f64,
     /// Fan PWM duty, 0..1. The fan runs at speed = duty and stalls below its minimum speed. [est]
     pub fan_duty: f64,
     pub faults: Faults,
@@ -140,6 +164,7 @@ impl World {
             fan_powered: false,
             servo_pulse_us: 0,
             stall_reads: 0,
+            servo_move_s: 0.0,
             fan_duty: 0.0,
             faults: Faults::default(),
             rng: Rng::new(0x5EED),
@@ -183,6 +208,7 @@ impl World {
         };
         self.plant.step(dt, act, &self.env);
         self.revs += act.fan * self.plant.path.fan.rpm_max / 60.0 * dt;
+        self.servo_move_s = (self.servo_move_s - dt).max(0.0);
         self.revs_s += dt;
         if let Some(t) = self.wdt.timeout_s {
             self.wdt.since_feed_s += dt;
@@ -231,6 +257,7 @@ pub struct SimServo<'a>(Shared<'a>);
 pub struct SimServoPower<'a>(Shared<'a>);
 pub struct SimFanPower<'a>(Shared<'a>);
 pub struct SimLoadFault<'a>(Shared<'a>);
+pub struct SimServoCurrent<'a>(Shared<'a>);
 pub struct SimLed<'a>(Shared<'a>);
 pub struct SimButton<'a>(Shared<'a>);
 pub struct SimConfig<'a>(Shared<'a>);
@@ -248,6 +275,7 @@ impl<'a> Board for SimBoard<'a> {
     type ServoPower = SimServoPower<'a>;
     type FanPower = SimFanPower<'a>;
     type LoadFault = SimLoadFault<'a>;
+    type ServoCurrent = SimServoCurrent<'a>;
     type Led = SimLed<'a>;
     type Button = SimButton<'a>;
     type Config = SimConfig<'a>;
@@ -266,6 +294,7 @@ pub fn io(world: Shared<'_>) -> Io<SimBoard<'_>> {
         servo_power: SimServoPower(world),
         fan_power: SimFanPower(world),
         load_fault: SimLoadFault(world),
+        servo_current: SimServoCurrent(world),
         led: SimLed(world),
         button: SimButton(world),
         config: SimConfig(world),
@@ -353,6 +382,9 @@ impl Tach for SimTach<'_> {
 impl Servo for SimServo<'_> {
     fn set_pulse_us(&mut self, us: u16) {
         let mut w = self.0.borrow_mut();
+        if w.servo_powered && us != w.servo_pulse_us {
+            w.servo_move_s = SERVO_MOVE_S;
+        }
         w.servo_pulse_us = us;
         if w.servo_powered {
             w.move_flap();
@@ -361,12 +393,53 @@ impl Servo for SimServo<'_> {
 }
 
 impl World {
-    /// The shared fault line of the two load switches is low: an injected fault, or the powered servo pushed past a hard stop.
-    fn load_fault_low(&mut self) -> bool {
+    /// How far the commanded pulse is past the nearer hard stop, us (0 inside the travel).
+    fn servo_past_stop_us(&self) -> f64 {
         let m = self.servo;
         let (lo, hi) = (m.closed_us.min(m.open_us), m.closed_us.max(m.open_us));
         let p = f64::from(self.servo_pulse_us);
-        let stalled = self.servo_powered && self.servo_pulse_us != 0 && (p < lo - m.trip_us || p > hi + m.trip_us);
+        (lo - p).max(p - hi).max(0.0)
+    }
+
+    /// The servo's supply current, mA, before noise: nothing unpowered; past a stop it rises with the error so that it
+    /// wants the switch's limit at `trip_us` past, and is held there.
+    pub fn servo_ma(&self) -> f64 {
+        let m = self.servo;
+        if !self.servo_powered || self.servo_pulse_us == 0 {
+            return 0.0;
+        }
+        let err = self.servo_past_stop_us();
+        if err > 0.0 {
+            let span = m.stall_ma - m.run_ma;
+            let wanted = m.run_ma + span * (err * (m.limit_ma - m.run_ma) / (span * m.trip_us)).min(1.0);
+            wanted.min(m.limit_ma)
+        } else if self.servo_move_s > 0.0 {
+            m.run_ma
+        } else {
+            m.hold_ma
+        }
+    }
+}
+
+impl ServoCurrent for SimServoCurrent<'_> {
+    fn ma(&mut self) -> u16 {
+        let mut w = self.0.borrow_mut();
+        if w.faults.servo_sense_down {
+            return 0;
+        }
+        let ma = w.servo_ma();
+        if ma <= 0.0 {
+            return 0;
+        }
+        (ma + SERVO_NOISE_MA * w.rng.normal()).max(0.0) as u16
+    }
+}
+
+impl World {
+    /// The shared fault line of the two load switches is low: an injected fault, or the powered servo pushed past a hard stop.
+    fn load_fault_low(&mut self) -> bool {
+        let m = self.servo;
+        let stalled = self.servo_powered && self.servo_pulse_us != 0 && self.servo_past_stop_us() > m.trip_us;
         if stalled {
             self.stall_reads = self.stall_reads.wrapping_add(1);
             let steady = m.chatter_reads == 0 || self.stall_reads % m.chatter_reads < 3;
@@ -401,6 +474,9 @@ impl OutputPin for SimServoPower<'_> {
 
     fn set_high(&mut self) -> Result<(), Infallible> {
         let mut w = self.0.borrow_mut();
+        if !w.servo_powered {
+            w.servo_move_s = SERVO_MOVE_S;
+        }
         w.servo_powered = true;
         w.move_flap();
         Ok(())

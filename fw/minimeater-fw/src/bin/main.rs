@@ -91,6 +91,7 @@ async fn main(spawner: Spawner) -> ! {
             io.servo_power,
             io.fan_power,
             io.load_fault,
+            io.servo_current,
             io.usb,
             model.fan.s_min(),
             model.fan.rpm_max,
@@ -178,12 +179,26 @@ mod run {
         power: <B as Board>::ServoPower,
         fan_power: <B as Board>::FanPower,
         load_fault: <B as Board>::LoadFault,
+        servo_current: <B as Board>::ServoCurrent,
         usb: <B as Board>::Usb,
         s_min: f64,
         rpm_max: f64,
         bus: &'static Bus,
     ) {
-        tasks::actuators::<B>(fan, tach, servo, power, fan_power, load_fault, usb, s_min, rpm_max, bus).await
+        tasks::actuators::<B>(
+            fan,
+            tach,
+            servo,
+            power,
+            fan_power,
+            load_fault,
+            servo_current,
+            usb,
+            s_min,
+            rpm_max,
+            bus,
+        )
+        .await
     }
 
     // The fits (autotune, airflow map) take long: they belong on a low-priority executor once a target

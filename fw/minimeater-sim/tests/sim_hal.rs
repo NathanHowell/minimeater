@@ -5,10 +5,10 @@
 use core::cell::RefCell;
 
 use embassy_futures::block_on;
-use embedded_hal::digital::OutputPin;
+use embedded_hal::digital::{InputPin, OutputPin};
 use embedded_hal::pwm::SetDutyCycle;
 use embedded_storage_async::nor_flash::{NorFlash, ReadNorFlash};
-use minimeater_app::hal::{FlashRegion, HalError, Servo, Tach};
+use minimeater_app::hal::{FlashRegion, HalError, Servo, ServoCurrent, Tach};
 use minimeater_app::selftest::survey;
 use minimeater_core::model::airflow::AirPath;
 use minimeater_core::model::{Ambient, top_vent};
@@ -70,6 +70,41 @@ fn servo_moves_flap_only_while_powered() {
     io.servo.set_pulse_us(1000);
     assert_eq!(w.borrow().flap_deg, 45.0, "gear friction holds the flap");
     assert!((w.borrow().damper() - (1.0 - 45f64.to_radians().cos())).abs() < 1e-12);
+}
+
+#[test]
+fn servo_current_follows_motion_and_the_stall_and_the_switch_limits_it() {
+    let w = RefCell::new(world());
+    let mut io = io(&w);
+    // the mean of 50 reads, as the firmware averages them
+    fn ma(c: &mut impl ServoCurrent) -> u32 {
+        (0..50).map(|_| u32::from(c.ma())).sum::<u32>() / 50
+    }
+    io.servo.set_pulse_us(1500);
+    assert_eq!(ma(&mut io.servo_current), 0, "nothing while unpowered");
+    io.servo_power.set_high().unwrap();
+    assert!(
+        (180..=220).contains(&ma(&mut io.servo_current)),
+        "running after power-up"
+    );
+    w.borrow_mut().advance(0.5);
+    assert!(ma(&mut io.servo_current) < 40, "holding once still");
+    // past the closed stop (1000 us): the current rises with the error, and the fault line goes low where the servo
+    // wants more than the switch's limit (30 us past), which holds it there
+    io.servo.set_pulse_us(990);
+    let small = ma(&mut io.servo_current);
+    assert!((300..=400).contains(&small), "10 us past: {small}");
+    io.servo.set_pulse_us(975);
+    assert!(!io.load_fault.is_low().unwrap(), "25 us past: under the limit");
+    io.servo.set_pulse_us(900);
+    assert!(
+        (580..=620).contains(&ma(&mut io.servo_current)),
+        "held at the 0.6 A limit"
+    );
+    assert!(io.load_fault.is_low().unwrap(), "the line is low");
+    // a dead sense reads nothing, whatever the servo does
+    w.borrow_mut().faults.servo_sense_down = true;
+    assert_eq!(ma(&mut io.servo_current), 0);
 }
 
 #[test]
