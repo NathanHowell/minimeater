@@ -773,7 +773,7 @@ async fn home<B: Board>(
     let _ = fan_power.set_low();
     bus.servo_with(|s| s.home = Home::Running);
     let mut homing = Homing::new();
-    let mut tick = Ticker::every(Duration::from_millis((Homing::DT * 1000.0) as u64));
+    let sample = Duration::from_millis((Homing::DT * 1000.0) as u64 / u64::from(Homing::SAMPLES));
     let result = loop {
         // the control task's watchdog feed waits on this, and a run takes most of 30 s
         bus.beat.lock(|c| c.set(c.get().wrapping_add(1)));
@@ -783,14 +783,18 @@ async fn home<B: Board>(
         if bus.servo().home == Home::Cancel || !source_ok {
             break Err(HomeFail::Cancelled);
         }
-        // the line shows the pulse set the step before
-        let (out, done) = homing.tick(load_fault.is_low().unwrap_or(false));
+        // the line is read all through the step, and shows the pulse set the step before
+        let mut lows = 0;
+        for _ in 0..Homing::SAMPLES {
+            lows += u8::from(load_fault.is_low().unwrap_or(false));
+            Timer::after(sample).await;
+        }
+        let (out, done) = homing.tick(lows);
         servo.set_pulse_us(out.pulse_us);
         let _ = if out.power { power.set_high() } else { power.set_low() };
         if let Some(r) = done {
             break r;
         }
-        tick.next().await;
     };
     let _ = power.set_low();
     result

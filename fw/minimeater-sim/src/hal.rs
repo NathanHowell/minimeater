@@ -42,6 +42,9 @@ pub struct ServoMech {
     /// How far past a stop the pulse must be before the servo, stalled against it, draws more than the load switch's limit
     /// and the shared fault line goes low, us.
     pub trip_us: f64,
+    /// 0: the line stays low for as long as the servo is stalled. Otherwise it is low on three reads in every this many while stalled,
+    /// as when the current limit pulls the servo's supply down and the servo resets and restarts.
+    pub chatter_reads: u32,
 }
 
 impl Default for ServoMech {
@@ -50,6 +53,7 @@ impl Default for ServoMech {
             closed_us: 1000.0,
             open_us: 2000.0,
             trip_us: 30.0,
+            chatter_reads: 0,
         }
     }
 }
@@ -93,6 +97,7 @@ pub struct World {
     /// The fan's load switch is on; without it the rotor does not turn whatever the duty.
     pub fan_powered: bool,
     servo_pulse_us: u16,
+    stall_reads: u32,
     /// Fan PWM duty, 0..1. The fan runs at speed = duty and stalls below its minimum speed. [est]
     pub fan_duty: f64,
     pub faults: Faults,
@@ -134,6 +139,7 @@ impl World {
             servo_powered: false,
             fan_powered: false,
             servo_pulse_us: 0,
+            stall_reads: 0,
             fan_duty: 0.0,
             faults: Faults::default(),
             rng: Rng::new(0x5EED),
@@ -356,12 +362,17 @@ impl Servo for SimServo<'_> {
 
 impl World {
     /// The shared fault line of the two load switches is low: an injected fault, or the powered servo pushed past a hard stop.
-    fn load_fault_low(&self) -> bool {
+    fn load_fault_low(&mut self) -> bool {
         let m = self.servo;
         let (lo, hi) = (m.closed_us.min(m.open_us), m.closed_us.max(m.open_us));
         let p = f64::from(self.servo_pulse_us);
         let stalled = self.servo_powered && self.servo_pulse_us != 0 && (p < lo - m.trip_us || p > hi + m.trip_us);
-        self.faults.load_fault || stalled
+        if stalled {
+            self.stall_reads = self.stall_reads.wrapping_add(1);
+            let steady = m.chatter_reads == 0 || self.stall_reads % m.chatter_reads < 3;
+            return self.faults.load_fault || steady;
+        }
+        self.faults.load_fault
     }
 }
 
@@ -418,11 +429,11 @@ impl PinErrorType for SimLoadFault<'_> {
 
 impl InputPin for SimLoadFault<'_> {
     fn is_high(&mut self) -> Result<bool, Infallible> {
-        Ok(!self.0.borrow().load_fault_low())
+        Ok(!self.0.borrow_mut().load_fault_low())
     }
 
     fn is_low(&mut self) -> Result<bool, Infallible> {
-        Ok(self.0.borrow().load_fault_low())
+        Ok(self.0.borrow_mut().load_fault_low())
     }
 }
 
