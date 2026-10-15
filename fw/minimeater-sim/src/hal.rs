@@ -92,6 +92,8 @@ pub struct World {
     pub faults: Faults,
     rng: Rng,
     pub led: bool,
+    /// How many times the LED has changed state.
+    pub led_edges: u32,
     button_pressed: bool,
     button_waker: Option<Waker>,
     pub usb_ma: Option<u16>,
@@ -130,6 +132,7 @@ impl World {
             faults: Faults::default(),
             rng: Rng::new(0x5EED),
             led: false,
+            led_edges: 0,
             button_pressed: false,
             button_waker: None,
             usb_ma: Some(3000),
@@ -174,6 +177,11 @@ impl World {
             self.wdt.longest_gap_s = self.wdt.longest_gap_s.max(self.wdt.since_feed_s);
             self.wdt.barked |= self.wdt.since_feed_s > t;
         }
+    }
+
+    fn set_led(&mut self, on: bool) {
+        self.led_edges += u32::from(self.led != on);
+        self.led = on;
     }
 
     pub fn set_button(&mut self, pressed: bool) {
@@ -402,12 +410,12 @@ impl PinErrorType for SimLed<'_> {
 
 impl OutputPin for SimLed<'_> {
     fn set_low(&mut self) -> Result<(), Infallible> {
-        self.0.borrow_mut().led = false;
+        self.0.borrow_mut().set_led(false);
         Ok(())
     }
 
     fn set_high(&mut self) -> Result<(), Infallible> {
-        self.0.borrow_mut().led = true;
+        self.0.borrow_mut().set_led(true);
         Ok(())
     }
 }

@@ -30,10 +30,11 @@ use minimeater_app::config::{ConfigStore, Settings};
 use minimeater_app::food::Foods;
 use minimeater_app::pit::{Event, Pit};
 use minimeater_app::tasks::{self, Bus, Status};
+use minimeater_app::ui;
 use minimeater_core::model::airflow::AirPath;
 use minimeater_sim::hal::{
-    SimAmbient, SimBoard, SimConfig, SimFan, SimFanPower, SimLoadFault, SimProbes, SimServo, SimServoPower, SimTach,
-    SimUsb, SimWatchdog, Wdt, World, io,
+    SimAmbient, SimBoard, SimButton, SimConfig, SimFan, SimFanPower, SimLed, SimLoadFault, SimProbes, SimServo,
+    SimServoPower, SimTach, SimUsb, SimWatchdog, Wdt, World, io,
 };
 
 pub use scenario::{Action, Scenario};
@@ -109,6 +110,16 @@ async fn broker(link: &'static net::Link) {
 }
 
 #[embassy_executor::task]
+async fn status_led(led: SimLed<'static>, bus: &'static Bus) {
+    ui::led(led, bus).await
+}
+
+#[embassy_executor::task]
+async fn user_button(pin: SimButton<'static>, bus: &'static Bus) {
+    ui::button(pin, bus).await
+}
+
+#[embassy_executor::task]
 async fn slow(bus: &'static Bus) {
     tasks::slow(bus).await
 }
@@ -138,6 +149,8 @@ pub struct Sample {
     pub cores_f: [Option<f64>; 3],
     /// The flap's physical angle from closed, degrees.
     pub flap_deg: f64,
+    /// How many times the status LED has changed state since the start.
+    pub led_edges: u32,
 }
 
 /// Everything a run produced.
@@ -204,6 +217,8 @@ pub fn run_with(
         .expect("actuators"),
     );
     spawner.spawn(slow(bus).expect("slow"));
+    spawner.spawn(status_led(io.led, bus).expect("led"));
+    spawner.spawn(user_button(io.button, bus).expect("button"));
     let link: &'static net::Link = Box::leak(Box::new(net::Link::new()));
     if sc.settings.mqtt.is_some() {
         let bufs = Box::leak(Box::new(minimeater_app::mqtt::Buffers::new()));
@@ -265,6 +280,7 @@ pub fn run_with(
                     pit_f: w.plant.pit_probe_f(),
                     cores_f: core::array::from_fn(|i| w.plant.meats[i].map(|m| m.core_f())),
                     flap_deg: w.flap_deg,
+                    led_edges: w.led_edges,
                 };
                 drop(w);
                 watch(&s, &new_events);

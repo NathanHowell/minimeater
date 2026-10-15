@@ -20,6 +20,7 @@ use minimeater_app::net::Identity;
 use minimeater_app::pit::Pit;
 use minimeater_app::selftest;
 use minimeater_app::tasks::{self, Bus};
+use minimeater_app::ui;
 use minimeater_core::model::airflow::AirPath;
 use minimeater_fw::board::{self, Esp};
 use minimeater_fw::console::{self, Port};
@@ -95,6 +96,8 @@ async fn main(spawner: Spawner) -> ! {
         .expect("actuators task"),
     );
     spawner.spawn(slow(bus).expect("slow task"));
+    spawner.spawn(status_led(io.led, bus).expect("led task"));
+    spawner.spawn(user_button(io.button, bus).expect("button task"));
     spawner.spawn(reboot(bus).expect("reboot task"));
     static ID: StaticCell<heapless::String<12>> = StaticCell::new();
     let id: &'static str = ID.init(device_id());
@@ -238,6 +241,16 @@ async fn otlp(mut tcp: Tcp, id: &'static str, bus: &'static Bus, bufs: &'static 
 
 /// The `reboot` request (MQTT, Home Assistant's button, the serial REPL): the settings are saved as they change, so
 /// the board comes back into the cook it was in.
+#[embassy_executor::task]
+async fn status_led(led: <B as Board>::Led, bus: &'static Bus) {
+    ui::led(led, bus).await
+}
+
+#[embassy_executor::task]
+async fn user_button(pin: <B as Board>::Button, bus: &'static Bus) {
+    ui::button(pin, bus).await
+}
+
 #[embassy_executor::task]
 async fn reboot(bus: &'static Bus) {
     bus.reboot.wait().await;

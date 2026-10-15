@@ -22,3 +22,4 @@ pub mod selftest;
 pub mod serial;
 pub mod sntp;
 pub mod tasks;
+pub mod ui;

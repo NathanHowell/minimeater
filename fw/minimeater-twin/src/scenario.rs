@@ -34,6 +34,8 @@ pub enum Action {
     Faults(Faults),
     /// The broker delivers a message to the device (it must have an `mqtt` setting to be connected).
     Publish(net::Inject),
+    /// The user's finger on the button (`true`) or off it.
+    Button(bool),
     /// The USB-C source's advertised current from now on (`None`: nothing detected).
     Usb(Option<u16>),
     /// The broker goes silent and refuses connections (`false`), or comes back.
@@ -61,6 +63,7 @@ impl Action {
             Action::Wire { jack, wiring } => w.jacks[jack] = wiring,
             Action::Faults(f) => w.faults = f,
             Action::Usb(ma) => w.usb_ma = ma,
+            Action::Button(pressed) => w.set_button(pressed),
             Action::Publish(m) => link.inject(m),
             Action::Broker(up) => link.set_up(up),
             Action::Mqtt { id, topic, payload } => {
