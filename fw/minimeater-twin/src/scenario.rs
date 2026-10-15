@@ -1,6 +1,6 @@
 //! Twin scenarios: the board and egg at power-on, the settings in flash, and what happens when.
 
-use minimeater_app::config::{Mode, Settings, StallPolicy};
+use minimeater_app::config::{Mode, ServoPulses, Settings, StallPolicy};
 use minimeater_app::pit::Command;
 use minimeater_app::proto;
 
@@ -188,6 +188,11 @@ impl Scenario {
         let mut settings = Settings::default();
         settings.cook.mode = Mode::Off;
         settings.probes[0].name = "Pit".try_into().unwrap();
+        // a calibrated unit (the sim's servo is the nominal one): a bare one would home itself at power-on
+        settings.servo = Some(ServoPulses {
+            closed_us: 1000,
+            open_us: 2000,
+        });
         Self {
             name,
             path: AirPath::default(),

@@ -59,6 +59,11 @@ pub enum Request {
     ServoClear,
     /// Ends the jog without saving; the marks are dropped.
     ServoDone,
+    /// Finds the servo calibration by driving it into the two hard stops (`drive::Homing`): from the serial REPL, and by the firmware
+    /// itself at boot when no calibration is stored. Refused while a cook is running; a cook that starts ends it.
+    ServoHome,
+    /// The actuator task's answer to a homing run, which saves the calibration it found. Sent by the task, not by a client.
+    ServoHomed(Result<crate::config::ServoPulses, crate::drive::HomeFail>),
     Otlp(Option<Otlp>),
     /// Blink the LED for 10 s.
     Identify,

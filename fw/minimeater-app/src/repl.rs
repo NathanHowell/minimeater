@@ -14,17 +14,18 @@ use base64ct::{Base64, Encoding as _};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::Subscriber;
-use embassy_time::{Duration, with_timeout};
+use embassy_time::{Duration, Timer, with_timeout};
 use embedded_io_async::Write;
 use heapless::{String, Vec};
 
 use crate::config::{CA_MAX, Mode, Mqtt, Otlp, SERVO_US, Settings, Stop, Wifi};
+use crate::drive::HomeFail;
 use crate::drivers::cert::looks_like_certificate;
 use crate::enrol::{CHUNK, Job, Out};
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
 use crate::proto::Request;
-use crate::tasks::{Bus, READERS, Reply};
+use crate::tasks::{Bus, Home, READERS, Reply};
 
 pub const PROMPT: &str = "minimeater> ";
 /// Longest line, characters.
@@ -34,6 +35,8 @@ const REQUEST_ID: u16 = 0xFF11;
 /// Lines kept for the up arrow.
 const HISTORY: usize = 4;
 const BEL: u8 = 0x07;
+/// How long `servo home` waits for the run, which sweeps both ways at about 9 degrees a second.
+const HOME_TIMEOUT: Duration = Duration::from_secs(90);
 /// How long a step of an `identity` job may take (a key takes the chip under a second).
 const ENROL_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -106,9 +109,9 @@ pub const CATALOG: &[Spec] = &[
     },
     Spec {
         name: "servo",
-        usage: "servo | servo jog <us> | servo jog +<n> | servo jog -<n> | servo mark closed | servo mark open | servo save | servo done | servo clear",
-        help: "calibrate the damper servo: hold a pulse width (500 to 2500 us), mark the closed and open stops, save",
-        subs: &["jog", "mark", "save", "done", "clear"],
+        usage: "servo | servo home | servo jog <us> | servo jog +<n> | servo jog -<n> | servo mark closed | servo mark open | servo save | servo done | servo clear",
+        help: "calibrate the damper servo: find the stops by itself (home), or hold a pulse width (500 to 2500 us), mark the closed and open stops, save",
+        subs: &["home", "jog", "mark", "save", "done", "clear"],
     },
     Spec {
         name: "identity",
@@ -517,6 +520,7 @@ pub enum ServoCmd {
     Show,
     Jog(Jog),
     Mark(Stop),
+    Home,
     Save,
     Done,
     Clear,
@@ -685,6 +689,7 @@ mod grammar {
                 cut_err(alt((kw("closed").value(Stop::Closed), kw("open").value(Stop::Open)))),
             )
             .map(ServoCmd::Mark),
+            kw("home").value(ServoCmd::Home),
             kw("save").value(ServoCmd::Save),
             kw("done").value(ServoCmd::Done),
             kw("clear").value(ServoCmd::Clear),
@@ -1006,6 +1011,17 @@ async fn mqtt_ca<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: 
     }
 }
 
+/// What a failed homing run says.
+fn why_home(e: HomeFail) -> &'static str {
+    match e {
+        HomeFail::NoStopLow => "no stop found toward the low pulses (are the posts and the lug fitted?)",
+        HomeFail::NoStopHigh => "no stop found toward the high pulses (are the posts and the lug fitted?)",
+        HomeFail::FaultAtRest => "the load switches' fault line is low with the servo at rest",
+        HomeFail::Span => "the two stops are not the flap's travel apart (servo jog and mark, then)",
+        HomeFail::Cancelled => "stopped: a cook started or the USB supply went away",
+    }
+}
+
 /// `servo ...`: hold a pulse, mark the stops, save. The jog is applied by the actuator task within a second.
 async fn servo<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: ServoCmd) {
     let ctl = bus.servo();
@@ -1026,6 +1042,12 @@ async fn servo<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: Se
                     )
                     .await
                 }
+            }
+            if ctl.home != Home::Idle {
+                say(io, format_args!("homing against the stops")).await;
+            }
+            if let Some(Err(e)) = ctl.last_home {
+                say(io, format_args!("the last homing failed: {}", why_home(e))).await;
             }
             match ctl.jog {
                 Some(us) => say(io, format_args!("holding {us} us (servo done lets go)")).await,
@@ -1048,6 +1070,35 @@ async fn servo<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, c: Se
                     ),
                 )
                 .await;
+            }
+        }
+        ServoCmd::Home => {
+            request(
+                io,
+                bus,
+                replies,
+                Request::ServoHome,
+                "homing against the stops, about 30 s",
+            )
+            .await;
+            // the answer comes when the actuator task has finished and the control task has saved it
+            let waited = with_timeout(HOME_TIMEOUT, async {
+                while bus.servo().home != Home::Idle {
+                    Timer::after_millis(250).await;
+                }
+            })
+            .await;
+            match (waited, bus.servo().last_home) {
+                (_, Some(Ok(p))) => {
+                    say(
+                        io,
+                        format_args!("homed and saved: closed {} us, open {} us", p.closed_us, p.open_us),
+                    )
+                    .await
+                }
+                (_, Some(Err(e))) => say(io, format_args!("homing failed: {}", why_home(e))).await,
+                (Err(_), None) => say(io, format_args!("still homing; servo shows where it is")).await,
+                (Ok(()), None) => {}
             }
         }
         ServoCmd::Jog(j) => {
@@ -1573,6 +1624,7 @@ mod tests {
         assert_eq!(servo("servo save"), Cmd::Servo(ServoCmd::Save));
         assert_eq!(servo("servo done"), Cmd::Servo(ServoCmd::Done));
         assert_eq!(servo("servo clear"), Cmd::Servo(ServoCmd::Clear));
+        assert_eq!(servo("servo home"), Cmd::Servo(ServoCmd::Home));
         // a pulse outside what any hobby servo takes is refused before it reaches the servo
         for bad in [
             "servo jog",

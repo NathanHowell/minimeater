@@ -14,6 +14,7 @@ fn the_saved_calibration_is_used_from_boot_and_clearing_it_goes_back() {
     sc.servo = ServoMech {
         closed_us: 1900.0,
         open_us: 1100.0,
+        ..ServoMech::default()
     };
     sc.settings.servo = Some(ServoPulses {
         closed_us: 1900,

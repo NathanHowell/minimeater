@@ -20,6 +20,7 @@ fn the_console_finds_the_stops_and_the_flap_then_uses_them() {
     sc.servo = ServoMech {
         closed_us: 1130.0,
         open_us: 1870.0,
+        ..ServoMech::default()
     };
     // no cook yet: the bring-up happens on a bench
     sc.actions.clear();
@@ -57,7 +58,11 @@ fn the_console_finds_the_stops_and_the_flap_then_uses_them() {
         r.samples.iter().rev().find(|s| s.t_s <= t).unwrap().flap_deg
     };
 
-    assert!(said(60.0, 70.0).contains("not calibrated"), "{:?}", said(60.0, 70.0));
+    assert!(
+        said(60.0, 70.0).contains("calibrated: closed 1000 us, open 2000 us"),
+        "{:?}",
+        said(60.0, 70.0)
+    );
     assert!(
         said(70.0, 80.0).contains("jog the servo there first"),
         "{:?}",

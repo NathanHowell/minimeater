@@ -41,7 +41,7 @@ use minimeater_core::units::{c_to_k, k_to_f};
 use crate::alarms::{Alarms, Limit};
 use crate::ambient::{PLAUSIBLE_C, compensate};
 use crate::config::{ConfigStore, Cook, Mode, ProbeKind, SERVO_US, ServoPulses, Settings, Stop};
-use crate::drive::{FanCurve, FanDrive, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
+use crate::drive::{FanCurve, FanDrive, HomeFail, Homing, LoadWatch, ServoCal, ServoDrive, SupplyWatch, TachWatch};
 use crate::food::{Foods, StallResponder};
 use crate::hal::{AmbientSensor, Board, PROBE_JACKS, Servo, Tach, UsbPower, Watchdog};
 use crate::pit::{Command, Event, FaultCode, Output, PERIOD_S, Phase, Pit, Reject};
@@ -173,6 +173,35 @@ pub struct ServoCtl {
     /// The pulses marked so far this bring-up.
     pub closed_mark: Option<u16>,
     pub open_mark: Option<u16>,
+    /// Where the hard-stop homing is.
+    pub home: Home,
+    /// How the last homing run ended; cleared when one is asked for.
+    pub last_home: Option<Result<ServoPulses, HomeFail>>,
+}
+
+/// The hard-stop homing run (`drive::Homing`), from the request to the actuator task finishing it.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Home {
+    #[default]
+    Idle,
+    /// Asked for; the actuator task starts it when the supply is good.
+    Wanted,
+    Running,
+    /// Told to stop: a cook has started.
+    Cancel,
+}
+
+impl ServoCtl {
+    /// The bring-up state after a save, a clear or a let-go: the calibration given, no jog and no marks. The homing run is not
+    /// part of it.
+    fn reset(&mut self, cal: Option<ServoPulses>) {
+        *self = ServoCtl {
+            cal,
+            home: self.home,
+            last_home: self.last_home,
+            ..ServoCtl::default()
+        };
+    }
 }
 
 /// Everything the tasks exchange. One static instance per board.
@@ -250,6 +279,8 @@ impl Bus {
                 jog: None,
                 closed_mark: None,
                 open_mark: None,
+                home: Home::Idle,
+                last_home: None,
             })),
             beat: Mutex::new(Cell::new(0)),
             act: Signal::new(),
@@ -277,6 +308,18 @@ impl Bus {
         self.config.lock(|c| *c.borrow_mut() = Some(settings.clone()));
         let rev = self.config_rev.try_get().unwrap_or(0).wrapping_add(1);
         self.config_rev.sender().send(rev);
+    }
+
+    /// A cook has started: a jog is let go, and a homing run that has begun is told to stop (one still waiting is dropped).
+    fn end_bench(&self) {
+        self.servo_with(|s| {
+            s.jog = None;
+            s.home = match s.home {
+                Home::Running => Home::Cancel,
+                Home::Wanted => Home::Idle,
+                h => h,
+            };
+        });
     }
 
     /// The servo calibration and jog as they are now.
@@ -326,6 +369,9 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
                 Reject::OutOfRange => Error::new(ErrorCode::OutOfRange, "out of range"),
                 Reject::NotAllowed => Error::new(ErrorCode::NotAllowed, "not allowed in this mode"),
             })?;
+            if pit.cook().mode != Mode::Off {
+                bus.end_bench();
+            }
             Ok(!matches!(c, Command::Autotune | Command::AutotuneStop))
         }
         Request::Probe { n, change } => {
@@ -412,27 +458,46 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
             }
             let changed = settings.servo != Some(pulses);
             settings.servo = Some(pulses);
-            bus.servo_with(|s| {
-                *s = ServoCtl {
-                    cal: Some(pulses),
-                    ..ServoCtl::default()
-                }
-            });
+            bus.servo_with(|s| s.reset(Some(pulses)));
             Ok(changed)
         }
         Request::ServoClear => {
             let changed = settings.servo.take().is_some();
-            bus.servo_with(|s| *s = ServoCtl::default());
+            bus.servo_with(|s| s.reset(None));
             Ok(changed)
         }
         Request::ServoDone => {
+            bus.servo_with(|s| s.reset(s.cal));
+            Ok(false)
+        }
+        Request::ServoHome => {
+            if pit.cook().mode != Mode::Off {
+                return Err(Error::new(ErrorCode::NotAllowed, "not while a cook is running"));
+            }
+            if bus.servo().home != Home::Idle {
+                return Err(Error::new(ErrorCode::NotAllowed, "already homing"));
+            }
             bus.servo_with(|s| {
-                *s = ServoCtl {
-                    cal: s.cal,
-                    ..ServoCtl::default()
-                }
+                s.reset(s.cal);
+                s.home = Home::Wanted;
+                s.last_home = None;
             });
             Ok(false)
+        }
+        Request::ServoHomed(result) => {
+            bus.servo_with(|s| {
+                s.home = Home::Idle;
+                s.last_home = Some(result);
+            });
+            match result {
+                Ok(p) => {
+                    let changed = settings.servo != Some(p);
+                    settings.servo = Some(p);
+                    bus.servo_with(|s| s.cal = Some(p));
+                    Ok(changed)
+                }
+                Err(_) => Ok(false),
+            }
         }
         Request::Identify => {
             bus.identify.signal(());
@@ -471,7 +536,15 @@ pub async fn control<B: Board>(
     // armed here, after the boot's flash reads and the self-survey; a hang from now on resets the board into the saved cook
     wdt.start(WATCHDOG_MS);
     let mut beat = 0;
-    bus.servo_with(|s| s.cal = settings.servo);
+    // a unit with no calibration (new, or a record that failed its check) finds it against the hard stops; one that is resuming
+    // a cook after a power cut is not the time to move the flap
+    let home = settings.servo.is_none() && settings.cook.mode == Mode::Off;
+    bus.servo_with(|s| {
+        s.cal = settings.servo;
+        if home {
+            s.home = Home::Wanted;
+        }
+    });
     // the first full scan before the first period
     while bus.snapshot().passes == 0 {
         Timer::after_millis(100).await;
@@ -542,7 +615,7 @@ pub async fn control<B: Board>(
         };
         // a jog left on when a cook starts would hold the flap shut on it
         if pit.cook().mode != Mode::Off {
-            bus.servo_with(|s| s.jog = None);
+            bus.end_bench();
         }
         let jack = settings.cook.pit_probe as usize;
         let (out, events) = pit.step(temps[jack], amb, PERIOD_S);
@@ -647,7 +720,7 @@ async fn handle<B: Board>(
         Request::Defaults => {
             *settings = Settings::default();
             pit.reset(settings);
-            bus.servo_with(|s| *s = ServoCtl::default());
+            bus.servo_with(|s| s.reset(None));
             // saved here, not left to the next period: the reboot is half a second away
             let saved = store.save(settings).await;
             bus.publish_config(settings);
@@ -679,6 +752,48 @@ async fn handle<B: Board>(
     bus.replies
         .immediate_publisher()
         .publish_immediate(Reply { id, result });
+}
+
+/// The id the actuator task's own requests carry (`Request::ServoHomed`); Improv uses 0xFF10 and the REPL 0xFF11.
+const HOME_ID: u16 = 0xFF12;
+
+/// One homing run (`drive::Homing`, `minimeat-xdn`): the fan is held off so that the shared fault line is the servo's, the
+/// servo is swept into each stop, and the stall is read on the line. The load watch stays out of it; the caller takes it back.
+#[allow(clippy::too_many_arguments)]
+async fn home<B: Board>(
+    fan: &mut B::Fan,
+    fan_power: &mut B::FanPower,
+    servo: &mut B::Servo,
+    power: &mut B::ServoPower,
+    load_fault: &mut B::LoadFault,
+    usb: &mut B::Usb,
+    bus: &Bus,
+) -> Result<ServoPulses, HomeFail> {
+    let _ = fan.set_duty_cycle(0);
+    let _ = fan_power.set_low();
+    bus.servo_with(|s| s.home = Home::Running);
+    let mut homing = Homing::new();
+    let mut tick = Ticker::every(Duration::from_millis((Homing::DT * 1000.0) as u64));
+    let result = loop {
+        // the control task's watchdog feed waits on this, and a run takes most of 30 s
+        bus.beat.lock(|c| c.set(c.get().wrapping_add(1)));
+        let source_ok = usb
+            .source_current_ma()
+            .is_some_and(|ma| ma >= crate::drive::SUPPLY_MIN_MA);
+        if bus.servo().home == Home::Cancel || !source_ok {
+            break Err(HomeFail::Cancelled);
+        }
+        // the line shows the pulse set the step before
+        let (out, done) = homing.tick(load_fault.is_low().unwrap_or(false));
+        servo.set_pulse_us(out.pulse_us);
+        let _ = if out.power { power.set_high() } else { power.set_low() };
+        if let Some(r) = done {
+            break r;
+        }
+        tick.next().await;
+    };
+    let _ = power.set_low();
+    result
 }
 
 /// The actuators, every second: `s_min` is the fan's minimum continuous speed fraction and `rpm_max`
@@ -720,6 +835,29 @@ pub async fn actuators<B: Board>(
         }
         // both loads run only on a good source and until a load switch has tripped
         let live = supply.ok() && !load.tripped();
+        if live && bus.servo().home == Home::Wanted {
+            let result = home::<B>(
+                &mut fan,
+                &mut fan_power,
+                &mut servo,
+                &mut power,
+                &mut load_fault,
+                &mut usb,
+                bus,
+            )
+            .await;
+            // the control task saves what it found
+            bus.commands
+                .send(Inbound {
+                    id: HOME_ID,
+                    req: Request::ServoHomed(result),
+                })
+                .await;
+            // the second-long steps resume from now, and the flap is driven to where the controller wants it
+            tick = Ticker::every(Duration::from_secs(1));
+            flap.forget();
+            continue;
+        }
         let duty = if live { fan_drive.duty(speed) } else { 0.0 };
         // the duty first, then the power; power off first when the duty is zero: 0 % really stops the fan
         let _ = if duty > 0.0 {

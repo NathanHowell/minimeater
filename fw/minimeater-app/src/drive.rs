@@ -5,8 +5,11 @@
 //! - [`ServoDrive`]: angle to pulse width through the calibration (either direction), a slew limit
 //!   so the damper is not slammed, and the power gate: the servo is powered only while it moves and
 //!   for [`HOLD_S`] after, which stops hold current and jitter.
+//! - [`Homing`]: the hard-stop homing that finds the servo calibration by itself.
 //! - [`FanCurve`] and [`FanDrive`]: speed fraction to PWM duty, and an optional spin-up kick.
 //! - [`TachWatch`]: a fan that is driven but does not turn is a fault (`fan_stall`).
+
+use crate::config::ServoPulses;
 
 /// The servo stays powered this long after its last move, s.
 pub const HOLD_S: f64 = 2.0;
@@ -101,6 +104,164 @@ impl ServoDrive {
             pulse_us: self.cal.pulse_us(next),
             power: self.still_s < HOLD_S,
         }
+    }
+}
+
+/// Why a homing run found no calibration.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HomeFail {
+    /// The sweep toward the lower pulses reached its limit without the servo stalling: no stop there.
+    NoStopLow,
+    /// The same toward the higher pulses.
+    NoStopHigh,
+    /// The fault line was already low with the servo at rest: something else is wrong, and a stall could not be told.
+    FaultAtRest,
+    /// The two stops are not a flap's travel apart (too close, or out of range).
+    Span,
+    /// A cook started, or the supply or a load switch went away, before it finished.
+    Cancelled,
+}
+
+/// Homing (`minimeat-xdn`): the servo is swept slowly toward each end until the crank's lug meets a printed post and
+/// the servo stalls; the load switch's current limit asserts the shared fault line, which is the stall signal. The
+/// stalled pulses (less the lead the servo needs to build the tripping current) are the stops, and become the
+/// calibration the manual jog procedure otherwise makes (`minimeat-bkz`). The lower stop is taken to be closed, so a servo
+/// mounted the other way round is calibrated by hand. Pure: [`Homing::tick`] is stepped every [`Homing::DT`] seconds by
+/// the actuator task, which holds the fan off (so the fault line is the servo's) and keeps the load watch out of it.
+#[derive(Clone, Copy, Debug)]
+pub struct Homing {
+    phase: HomePhase,
+    pulse_us: f64,
+    t_s: f64,
+    low_reads: u8,
+    lo_us: f64,
+    hi_us: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum HomePhase {
+    Settle,
+    Low,
+    RestLow,
+    High,
+    RestHigh,
+    Done,
+}
+
+impl Homing {
+    /// Step of the state machine, s. The fault switch asserts after about 8 ms, so it is seen within one step.
+    pub const DT: f64 = 0.1;
+    /// Where it starts, us: the middle of what a hobby servo takes, which the servo reaches from anywhere.
+    pub const START_US: f64 = 1500.0;
+    /// The furthest it will sweep either way, us.
+    pub const LIMIT_US: (f64, f64) = (700.0, 2300.0);
+    /// Sweep speed, us per second (about 9 degrees per second): slow enough that the servo follows the pulse and the
+    /// stall is found within a few degrees. [est until the bench: `minimeat-xdn`]
+    pub const RATE_US_S: f64 = 100.0;
+    /// Pulse past the real stop at which a stall is seen: the error the servo needs to draw the tripping current plus the
+    /// two reads and the ramp during them. [est until the bench: `minimeat-xdn`]
+    pub const LEAD_US: f64 = 60.0;
+    /// Consecutive reads of the fault line low that count as a stall.
+    const STALL_READS: u8 = 2;
+    /// The widest travel that can be the two posts, us: about 120 degrees on a typical servo. More is the servo's own end
+    /// stops, which means the posts are absent or the linkage is not engaged. [est until the bench]
+    pub const SPAN_MAX_US: u16 = 1300;
+    /// After a power-up the line is not read this long (the start-up current), s.
+    const BLANK_S: f64 = 0.5;
+    const SETTLE_S: f64 = 1.5;
+    /// Unpowered after a stall, so the switch lets go before the next sweep, s.
+    const REST_S: f64 = 1.0;
+
+    pub fn new() -> Self {
+        Self {
+            phase: HomePhase::Settle,
+            pulse_us: Self::START_US,
+            t_s: 0.0,
+            low_reads: 0,
+            lo_us: 0.0,
+            hi_us: 0.0,
+        }
+    }
+
+    /// One step: what to put on the servo, and the result once there is one (after which the servo is off). `fault_low`
+    /// is the shared fault line, asserted.
+    pub fn tick(&mut self, fault_low: bool) -> (ServoOut, Option<Result<ServoPulses, HomeFail>>) {
+        self.t_s += Self::DT;
+        let reads = if fault_low && self.t_s > Self::BLANK_S {
+            self.low_reads + 1
+        } else {
+            0
+        };
+        self.low_reads = reads;
+        let stalled = reads >= Self::STALL_READS;
+        let mut result = None;
+        match self.phase {
+            HomePhase::Settle => {
+                if stalled {
+                    result = Some(Err(HomeFail::FaultAtRest));
+                } else if self.t_s >= Self::SETTLE_S {
+                    self.phase = HomePhase::Low;
+                    self.t_s = 0.0;
+                }
+            }
+            HomePhase::Low => {
+                self.pulse_us -= Self::RATE_US_S * Self::DT;
+                if stalled {
+                    self.lo_us = self.pulse_us;
+                    self.phase = HomePhase::RestLow;
+                    self.t_s = 0.0;
+                } else if self.pulse_us <= Self::LIMIT_US.0 {
+                    result = Some(Err(HomeFail::NoStopLow));
+                }
+            }
+            HomePhase::RestLow => {
+                if self.t_s >= Self::REST_S {
+                    self.phase = HomePhase::High;
+                    self.t_s = 0.0;
+                }
+            }
+            HomePhase::High => {
+                self.pulse_us += Self::RATE_US_S * Self::DT;
+                if stalled {
+                    self.hi_us = self.pulse_us;
+                    self.phase = HomePhase::RestHigh;
+                    self.t_s = 0.0;
+                } else if self.pulse_us >= Self::LIMIT_US.1 {
+                    result = Some(Err(HomeFail::NoStopHigh));
+                }
+            }
+            HomePhase::RestHigh => {
+                if self.t_s >= Self::REST_S {
+                    let p = ServoPulses {
+                        closed_us: (self.lo_us + Self::LEAD_US + 0.5) as u16,
+                        open_us: (self.hi_us - Self::LEAD_US + 0.5) as u16,
+                    };
+                    result = Some(if p.valid() && p.closed_us.abs_diff(p.open_us) <= Self::SPAN_MAX_US {
+                        Ok(p)
+                    } else {
+                        Err(HomeFail::Span)
+                    });
+                }
+            }
+            HomePhase::Done => {}
+        }
+        if result.is_some() {
+            self.phase = HomePhase::Done;
+        }
+        let rest = matches!(self.phase, HomePhase::RestLow | HomePhase::RestHigh | HomePhase::Done);
+        (
+            ServoOut {
+                pulse_us: (self.pulse_us + 0.5) as u16,
+                power: !rest,
+            },
+            result,
+        )
+    }
+}
+
+impl Default for Homing {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -292,6 +453,104 @@ impl LoadWatch {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A servo with hard stops at `lo` and `hi` us that draws the tripping current (the fault line low) once its power is on and
+    /// the pulse is `trip` us past either. Returns what homing answered and how long it took, s.
+    fn home_against(lo: f64, hi: f64, trip: f64) -> (Result<ServoPulses, HomeFail>, f64) {
+        let mut h = Homing::new();
+        let mut line = false;
+        let mut t = 0.0;
+        loop {
+            t += Homing::DT;
+            assert!(t < 120.0, "homing never ended");
+            let (out, done) = h.tick(line);
+            if let Some(r) = done {
+                assert!(!out.power, "the servo is off when it ends");
+                return (r, t);
+            }
+            let p = f64::from(out.pulse_us);
+            line = out.power && (p < lo - trip || p > hi + trip);
+        }
+    }
+
+    #[test]
+    fn homing_finds_the_stops_of_servos_with_different_travel() {
+        for (lo, hi) in [(1000.0, 2000.0), (1130.0, 1870.0), (900.0, 2100.0), (1250.0, 1750.0)] {
+            let (r, took) = home_against(lo, hi, 30.0);
+            let p = r.unwrap_or_else(|e| panic!("{lo}..{hi}: {e:?}"));
+            assert!(
+                (f64::from(p.closed_us) - lo).abs() <= 15.0 && (f64::from(p.open_us) - hi).abs() <= 15.0,
+                "{lo}..{hi} found as {p:?}"
+            );
+            // well inside the watchdog's 30 s only because the task beats it: it should still not be long
+            assert!(took < 30.0, "{lo}..{hi} took {took} s");
+        }
+    }
+
+    #[test]
+    fn a_servo_that_never_stalls_finds_no_stop_and_the_other_failures_are_named() {
+        // the line never asserts (no posts, or a switch that does not trip): the low sweep runs out
+        let mut h = Homing::new();
+        let r = (0..2000).find_map(|_| h.tick(false).1).unwrap();
+        assert_eq!(r, Err(HomeFail::NoStopLow));
+        // a stop below but none above
+        assert_eq!(home_against(1000.0, 3000.0, 30.0).0, Err(HomeFail::NoStopHigh));
+        // stops 1400 us apart are the servo's own end stops
+        assert_eq!(home_against(790.0, 2210.0, 30.0).0, Err(HomeFail::Span));
+        // stops 100 us apart are not a damper
+        assert_eq!(home_against(1450.0, 1550.0, 30.0).0, Err(HomeFail::Span));
+        // already low at rest: not a stall
+        let mut h = Homing::new();
+        let r = (0..40).find_map(|_| h.tick(true).1).unwrap();
+        assert_eq!(r, Err(HomeFail::FaultAtRest));
+    }
+
+    #[test]
+    fn the_line_is_not_read_through_the_start_up_current_and_a_blip_is_not_a_stall() {
+        let mut h = Homing::new();
+        // a start-up pulse on the line in the first half second
+        for _ in 0..4 {
+            assert!(h.tick(true).1.is_none());
+        }
+        // a single low read in the sweep is a blip
+        let mut seen = 0;
+        let mut r = None;
+        for i in 0..3000 {
+            let (out, done) = h.tick(i == 40);
+            if let Some(d) = done {
+                r = Some(d);
+                break;
+            }
+            seen = out.pulse_us;
+        }
+        assert_eq!(
+            r,
+            Some(Err(HomeFail::NoStopLow)),
+            "the blip did not end the sweep (last pulse {seen})"
+        );
+    }
+
+    #[test]
+    fn homing_holds_the_servo_off_while_the_switch_lets_go() {
+        let mut h = Homing::new();
+        let mut line = false;
+        let mut off_run = 0;
+        let mut longest = 0;
+        loop {
+            let (out, done) = h.tick(line);
+            let p = f64::from(out.pulse_us);
+            line = out.power && !(1000.0 - 30.0..=2000.0 + 30.0).contains(&p);
+            off_run = if out.power { 0 } else { off_run + 1 };
+            longest = longest.max(off_run);
+            if done.is_some() {
+                break;
+            }
+        }
+        assert!(
+            longest >= 10,
+            "unpowered for at least a second after a stall: {longest} steps"
+        );
+    }
 
     #[test]
     fn a_steady_fault_latches_and_a_blip_does_not() {

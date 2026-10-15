@@ -39,6 +39,9 @@ pub enum Wiring {
 pub struct ServoMech {
     pub closed_us: f64,
     pub open_us: f64,
+    /// How far past a stop the pulse must be before the servo, stalled against it, draws more than the load switch's limit
+    /// and the shared fault line goes low, us.
+    pub trip_us: f64,
 }
 
 impl Default for ServoMech {
@@ -46,6 +49,7 @@ impl Default for ServoMech {
         Self {
             closed_us: 1000.0,
             open_us: 2000.0,
+            trip_us: 30.0,
         }
     }
 }
@@ -351,6 +355,17 @@ impl Servo for SimServo<'_> {
 }
 
 impl World {
+    /// The shared fault line of the two load switches is low: an injected fault, or the powered servo pushed past a hard stop.
+    fn load_fault_low(&self) -> bool {
+        let m = self.servo;
+        let (lo, hi) = (m.closed_us.min(m.open_us), m.closed_us.max(m.open_us));
+        let p = f64::from(self.servo_pulse_us);
+        let stalled = self.servo_powered && self.servo_pulse_us != 0 && (p < lo - m.trip_us || p > hi + m.trip_us);
+        self.faults.load_fault || stalled
+    }
+}
+
+impl World {
     /// A powered servo goes straight to its commanded angle (the 10 s control period dwarfs its
     /// ~0.2 s travel). A pulse outside the mechanical stops leaves the horn at the stop.
     fn move_flap(&mut self) {
@@ -403,11 +418,11 @@ impl PinErrorType for SimLoadFault<'_> {
 
 impl InputPin for SimLoadFault<'_> {
     fn is_high(&mut self) -> Result<bool, Infallible> {
-        Ok(!self.0.borrow().faults.load_fault)
+        Ok(!self.0.borrow().load_fault_low())
     }
 
     fn is_low(&mut self) -> Result<bool, Infallible> {
-        Ok(self.0.borrow().faults.load_fault)
+        Ok(self.0.borrow().load_fault_low())
     }
 }
 
