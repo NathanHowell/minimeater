@@ -101,7 +101,7 @@ def rod():
 
 
 def tube():
-    """The smoker's intake tube, seated against the socket's shoulder, 40 mm of it."""
+    """The smoker's intake tube, seated against the socket's shoulder, its free length of it."""
     t = P.tube
     return xcyl(t.od / 2, g.socket_x0, g.socket_x0 + t.free_len) - xcyl(t.id / 2, g.socket_x0 - 1, g.socket_x0 + t.free_len + 1)
 

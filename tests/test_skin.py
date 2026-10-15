@@ -39,7 +39,7 @@ def test_shells_clear_the_internals(shells, deg):
 def test_envelope():
     shell, with_nose = K.envelope()
     assert shell == (118.2, 75.2, 73.9)  # x, y, z: the rear face to the front ring, the width, the belly to the crown
-    assert with_nose == (149.2, 75.2, 73.9)  # plus the exposed socket and its 20 mm extension
+    assert with_nose == (139.2, 75.2, 73.9)  # plus the exposed socket and its 10 mm extension
 
 
 def test_the_bay_is_closed_over_the_ports(shells):

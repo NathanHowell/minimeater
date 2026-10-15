@@ -15,7 +15,7 @@ Controllers:
 | plant | setpoint F | gain F/CFM | tau min | dead time s |
 |---|---|---|---|---|
 | low loss | 150 | 157 | 9.1 | 96 |
-| low loss | 225 | 146 | 8.8 | 103 |
+| low loss | 225 | 145 | 8.7 | 104 |
 | low loss | 275 | 138 | 8.5 | 108 |
 | low loss | 325 | 132 | 8.4 | 111 |
 | nominal | 150 | 128 | 8.9 | 97 |
@@ -23,8 +23,8 @@ Controllers:
 | nominal | 275 | 110 | 8.2 | 111 |
 | nominal | 325 | 104 | 8.0 | 115 |
 | high loss | 150 | 68 | 8.5 | 103 |
-| high loss | 225 | 58 | 8.0 | 115 |
-| high loss | 275 | 53 | 7.7 | 123 |
+| high loss | 225 | 58 | 8.0 | 116 |
+| high loss | 275 | 52 | 7.7 | 124 |
 | high loss | 325 | 48 | 7.4 | 132 |
 
 ## Chili drying 150F (cold start, lid 1 min at 4 h)
@@ -33,15 +33,15 @@ Top vent: petals open.
 
 | controller | plant | reach min | overshoot F | hold RMS F | hold max |e| F | lid recovery min | lid overshoot F | servo strokes/h | fan on % |
 |---|---|---|---|---|---|---|---|---|---|
-| PercentPid | low loss | 7.3 | 48.0 | 0.3 | 1.5 | 1.4 | 48.6 | 5.4 | 2.8 |
-| PercentPid | nominal | 7.3 | 44.8 | 0.3 | 1.2 | 1.6 | 42.0 | 5.4 | 2.8 |
-| PercentPid | high loss | 7.3 | 32.5 | 0.3 | 1.2 | 2.5 | 30.0 | 5.0 | 11.6 |
-| FfPi | low loss | 15.8 | 8.7 | 0.3 | 1.4 | 2.6 | 10.4 | 1.9 | 2.5 |
-| FfPi | nominal | 17.5 | 7.6 | 0.3 | 1.2 | 3.3 | 7.3 | 2.3 | 3.5 |
-| FfPi | high loss | 20.1 | 5.0 | 0.3 | 1.4 | 5.4 | 3.8 | 4.0 | 16.7 |
-| Mpc | low loss | 22.0 | 4.0 | 0.5 | 2.8 | 2.7 | 6.5 | 2.1 | 1.6 |
-| Mpc | nominal | 23.7 | 4.3 | 0.4 | 2.3 | 3.3 | 3.5 | 2.5 | 2.3 |
-| Mpc | high loss | 27.0 | 3.8 | 0.4 | 1.8 | 5.9 | 0.0 | 4.1 | 17.5 |
+| PercentPid | low loss | 7.3 | 47.5 | 0.3 | 1.3 | 1.5 | 48.0 | 5.4 | 2.8 |
+| PercentPid | nominal | 7.3 | 44.4 | 0.3 | 1.2 | 1.7 | 41.5 | 5.4 | 2.9 |
+| PercentPid | high loss | 7.3 | 31.8 | 0.3 | 1.2 | 2.5 | 30.0 | 5.0 | 12.7 |
+| FfPi | low loss | 15.8 | 8.6 | 0.3 | 1.4 | 2.6 | 10.4 | 2.0 | 2.6 |
+| FfPi | nominal | 17.5 | 7.4 | 0.3 | 1.2 | 3.3 | 7.3 | 2.4 | 3.7 |
+| FfPi | high loss | 20.1 | 5.0 | 0.3 | 1.4 | 5.3 | 3.9 | 4.2 | 17.9 |
+| Mpc | low loss | 22.1 | 4.0 | 0.5 | 2.8 | 2.7 | 6.5 | 2.2 | 1.7 |
+| Mpc | nominal | 23.7 | 4.3 | 0.4 | 2.3 | 3.3 | 3.5 | 2.6 | 2.5 |
+| Mpc | high loss | 27.0 | 3.7 | 0.4 | 1.8 | 5.7 | 0.0 | 4.3 | 18.1 |
 
 ![chili](control/chili.png)
 
@@ -51,14 +51,14 @@ Top vent: slider 1/4.
 
 | controller | plant | reach min | overshoot F | hold RMS F | hold max |e| F | lid recovery min | lid overshoot F | servo strokes/h | fan on % |
 |---|---|---|---|---|---|---|---|---|---|
-| PercentPid | low loss | 11.4 | 61.8 | 1.2 | 10.9 | 2.4 | 97.9 | 5.8 | 4.9 |
-| PercentPid | nominal | 11.4 | 55.9 | 1.0 | 8.2 | 2.7 | 85.6 | 4.0 | 39.8 |
-| PercentPid | high loss | 12.9 | 21.7 | 4.5 | 11.8 | 4.5 | 44.5 | 0.7 | 96.3 |
-| FfPi | low loss | 20.0 | 17.3 | 3.8 | 21.1 | 5.1 | 9.6 | 1.8 | 5.6 |
-| FfPi | nominal | 21.2 | 14.3 | 3.3 | 16.5 | 5.9 | 7.5 | 1.5 | 42.0 |
-| FfPi | high loss | 25.1 | 10.0 | 2.7 | 13.5 | 7.6 | 5.6 | 0.4 | 99.4 |
-| Mpc | low loss | 25.8 | 6.6 | 3.6 | 16.6 | 5.1 | 5.8 | 2.1 | 3.4 |
-| Mpc | nominal | 27.0 | 6.3 | 3.2 | 14.1 | 6.0 | 3.9 | 1.8 | 41.7 |
+| PercentPid | low loss | 11.4 | 60.8 | 1.1 | 10.1 | 2.4 | 95.6 | 5.8 | 5.0 |
+| PercentPid | nominal | 11.4 | 54.2 | 1.1 | 8.2 | 2.8 | 83.6 | 3.8 | 42.5 |
+| PercentPid | high loss | 13.1 | 20.1 | 3.7 | 10.6 | 4.6 | 42.5 | 0.6 | 97.1 |
+| FfPi | low loss | 20.0 | 17.4 | 3.8 | 21.1 | 5.1 | 9.6 | 1.9 | 6.0 |
+| FfPi | nominal | 21.2 | 14.3 | 3.3 | 16.5 | 5.9 | 7.4 | 1.5 | 45.4 |
+| FfPi | high loss | 25.0 | 10.0 | 2.7 | 13.5 | 7.6 | 5.6 | 0.4 | 99.5 |
+| Mpc | low loss | 25.5 | 6.6 | 3.6 | 16.6 | 5.1 | 5.7 | 2.2 | 4.1 |
+| Mpc | nominal | 27.0 | 6.3 | 3.2 | 14.1 | 6.0 | 3.8 | 1.8 | 44.9 |
 | Mpc | high loss | 28.3 | 6.5 | 3.0 | 14.0 | 7.7 | 2.0 | 0.4 | 99.5 |
 
 ![brisket](control/brisket.png)
@@ -69,15 +69,15 @@ Top vent: slider 1/2.
 
 | controller | plant | reach min | overshoot F | hold RMS F | hold max |e| F | lid recovery min | lid overshoot F | servo strokes/h | fan on % |
 |---|---|---|---|---|---|---|---|---|---|
-| PercentPid | low loss | 14.3 | 66.9 | 7.9 | 23.6 | 3.6 | 97.8 | 11.1 | 30.1 |
-| PercentPid | nominal | 14.6 | 50.3 | 16.9 | 28.6 | 4.2 | 74.7 | 14.0 | 48.4 |
-| PercentPid | high loss | 30.0 | 15.3 | 10.0 | 15.3 | 9.3 | 17.8 | 0.5 | 99.2 |
-| FfPi | low loss | 26.5 | 36.6 | 0.8 | 3.4 | 6.6 | 15.0 | 2.0 | 16.0 |
-| FfPi | nominal | 27.6 | 27.8 | 0.8 | 3.6 | 7.2 | 13.2 | 0.9 | 95.1 |
-| FfPi | high loss | 35.0 | 9.2 | 0.9 | 3.9 | 9.3 | 7.3 | 0.7 | 98.6 |
-| Mpc | low loss | 29.6 | 7.3 | 0.8 | 3.2 | 6.6 | 10.6 | 2.3 | 16.9 |
-| Mpc | nominal | 30.8 | 6.9 | 0.9 | 3.4 | 7.1 | 8.7 | 0.9 | 93.8 |
-| Mpc | high loss | 32.6 | 6.5 | 0.8 | 3.4 | 9.3 | 3.6 | 0.8 | 98.3 |
+| PercentPid | low loss | 14.3 | 63.6 | 6.9 | 23.2 | 3.6 | 93.3 | 10.4 | 29.3 |
+| PercentPid | nominal | 14.7 | 47.2 | 14.4 | 27.7 | 4.3 | 70.6 | 12.3 | 52.3 |
+| PercentPid | high loss | 33.9 | 13.1 | 8.7 | 13.6 | 9.9 | 14.2 | 0.5 | 99.2 |
+| FfPi | low loss | 26.4 | 36.4 | 0.8 | 3.4 | 6.7 | 14.5 | 2.0 | 18.3 |
+| FfPi | nominal | 27.5 | 27.5 | 0.8 | 3.6 | 7.1 | 13.6 | 0.8 | 95.8 |
+| FfPi | high loss | 38.6 | 7.2 | 1.0 | 4.0 | 9.9 | 5.3 | 0.7 | 98.6 |
+| Mpc | low loss | 29.9 | 7.8 | 0.8 | 3.2 | 6.7 | 10.1 | 2.3 | 18.5 |
+| Mpc | nominal | 30.8 | 6.9 | 0.9 | 3.4 | 7.1 | 9.2 | 0.8 | 96.5 |
+| Mpc | high loss | 35.9 | 6.3 | 0.9 | 3.5 | 9.9 | 2.1 | 0.8 | 98.3 |
 
 ![hotfast](control/hotfast.png)
 
@@ -87,15 +87,15 @@ Top vent: slider 1/4.
 
 | controller | plant | reach min | overshoot F | hold RMS F | hold max |e| F | lid recovery min | lid overshoot F | servo strokes/h | fan on % |
 |---|---|---|---|---|---|---|---|---|---|
-| PercentPid | low loss | 2.2 | 46.6 | 0.4 | 1.4 | nan | nan | 5.7 | 1.8 |
-| PercentPid | nominal | 2.5 | 40.1 | 0.3 | 1.3 | nan | nan | 5.7 | 2.2 |
-| PercentPid | high loss | 4.2 | 29.8 | 0.5 | 1.8 | nan | nan | 2.9 | 50.2 |
-| FfPi | low loss | 12.3 | 7.1 | 0.8 | 2.4 | nan | nan | 1.4 | 0.0 |
-| FfPi | nominal | 13.1 | 5.6 | 0.7 | 2.4 | nan | nan | 1.8 | 0.0 |
-| FfPi | high loss | 16.1 | 3.6 | 0.8 | 2.4 | nan | nan | 2.0 | 52.7 |
-| Mpc | low loss | 16.8 | 2.2 | 1.0 | 3.1 | nan | nan | 1.8 | 0.0 |
-| Mpc | nominal | 18.4 | 2.2 | 1.0 | 2.9 | nan | nan | 2.2 | 0.0 |
-| Mpc | high loss | 20.9 | 2.3 | 1.0 | 2.9 | nan | nan | 2.0 | 51.9 |
+| PercentPid | low loss | 2.2 | 45.3 | 0.4 | 1.3 | nan | nan | 5.7 | 1.9 |
+| PercentPid | nominal | 2.5 | 39.2 | 0.3 | 1.3 | nan | nan | 5.6 | 2.3 |
+| PercentPid | high loss | 4.3 | 29.0 | 0.5 | 1.7 | nan | nan | 2.8 | 51.4 |
+| FfPi | low loss | 12.3 | 7.1 | 0.8 | 2.4 | nan | nan | 1.5 | 0.0 |
+| FfPi | nominal | 13.1 | 5.6 | 0.7 | 2.4 | nan | nan | 1.9 | 0.1 |
+| FfPi | high loss | 16.1 | 3.6 | 0.8 | 2.4 | nan | nan | 2.1 | 53.0 |
+| Mpc | low loss | 16.8 | 2.2 | 1.0 | 3.0 | nan | nan | 1.9 | 0.0 |
+| Mpc | nominal | 18.4 | 2.2 | 1.0 | 2.9 | nan | nan | 2.4 | 0.0 |
+| Mpc | high loss | 20.9 | 2.3 | 1.0 | 2.9 | nan | nan | 2.1 | 52.5 |
 
 ![steps](control/steps.png)
 
@@ -105,6 +105,6 @@ mean / worst:
 
 | controller | reach min | overshoot F | hold RMS F | hold max |e| F | lid recovery min | lid overshoot F | servo strokes/h | fan on % |
 |---|---|---|---|---|---|---|---|---|
-| PercentPid | 10.5 / 30.0 | 42.8 / 66.9 | 3.6 / 16.9 | 8.9 / 28.6 | 3.6 / 9.3 | 59.9 / 97.9 | 5.5 / 14.0 | 32.5 / 99.2 |
-| FfPi | 20.9 / 35.0 | 12.7 / 36.6 | 1.3 / 3.8 | 6.1 / 21.1 | 5.9 / 9.3 | 8.9 / 15.0 | 1.7 / 4.0 | 36.0 / 99.4 |
-| Mpc | 25.2 / 32.6 | 4.9 / 7.3 | 1.4 / 3.6 | 5.9 / 16.6 | 6.0 / 9.3 | 5.0 / 10.6 | 1.9 / 4.1 | 35.6 / 99.5 |
+| PercentPid | 10.8 / 33.9 | 41.3 / 63.6 | 3.2 / 14.4 | 8.5 / 27.7 | 3.7 / 9.9 | 57.7 / 95.6 | 5.3 / 12.3 | 33.3 / 99.2 |
+| FfPi | 21.1 / 38.6 | 12.5 / 36.4 | 1.3 / 3.8 | 6.1 / 21.1 | 5.9 / 9.9 | 8.6 / 14.5 | 1.8 / 4.2 | 36.7 / 99.5 |
+| Mpc | 25.5 / 35.9 | 4.9 / 7.8 | 1.4 / 3.6 | 5.9 / 16.6 | 6.0 / 9.9 | 4.8 / 10.1 | 2.0 / 4.3 | 36.4 / 99.5 |

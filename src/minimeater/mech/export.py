@@ -19,12 +19,12 @@ from .printing import ALL, print_pose
 BUILDS = 5  # the first run: five units
 
 PRINT_NOTES = {
-    "duct": "airway, fan flange, servo shelf, O-ring socket with a 20 mm extension whose 8-lobe bore grips the tube: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
+    "duct": "airway, fan flange, servo shelf, O-ring socket with a 10 mm extension whose 8-lobe bore grips the tube: the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
     "hood": "upper shell; print nose up on the rear face, as exported",
     "pan": "lower shell with the port bay and the board standoffs; print nose up on the rear face, as exported",
 }
 CNC_NOTES = {
-    "flap": "damper blade: a Ø31.6 disc 2.0 thick with a 4.0 x 5.0 rib along its diameter (round-ended, Ø4); the rib's D-bore (Ø3 with a 2.5 across-flats flat, +0.03 mm over) takes the rod with retaining compound; the disc's edge is a full round (R1.0, half the thickness); edge diameter +-0.05 matters (closed-flap leak); no threads",
+    "flap": "damper blade: a Ø31.7 disc 2.0 thick with a 4.0 x 5.0 rib along its diameter (round-ended, Ø4); the rib's D-bore (Ø3 with a 2.5 across-flats flat, +0.03 mm over) takes the rod with retaining compound; the disc's edge is a full round (R1.0, half the thickness); edge diameter +-0.05 matters (closed-flap leak); no threads",
     "crank": "Ø8 hub with a D-bore slip fit (0.1 mm) for the rod's flat, an M2 set screw radial on the flat, an arm out to a tapped M2 hole, and a 3 mm wide stop lug under the arm (hits the duct's two posts at 0 and 90 deg, for homing)",
     "coupler": "flat bar 6 x 2 mm, two Ø3.1 holes on the 25 mm centres, a 0.9 mm boss under each (parallelogram linkage); deburr, no sharp edges",
     "rod": "the flap's shaft, QUANTITY 6 (not 5): Ø3 h7 (0/-0.010) with a D flat 2.5 across the full length (+-0.05), 42.7 +-0.1 long; if you can turn it from 3 mm bar or ground 3 mm rod rather than mill it from larger stock, please do; the flat is milled",

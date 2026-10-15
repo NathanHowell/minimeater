@@ -61,10 +61,10 @@ class Egg:
 
 @dataclass(frozen=True)
 class Intake:
-    # [forum] BBQ Guru plate smooth tube 1.375" OD (Bryan Mayland, tvwbb 80033);
-    # BBQ Guru-compatible stainless adapters list ~31 mm ID.
-    tube_od_m: float = 1.375 * INCH
-    tube_id_m: float = 0.0316
+    # [meas] the egg's stainless tube, calipers 2026-10-15: 34.89 mm OD (the
+    # 1.375" BBQ Guru tube), 30.83 mm ID, 31.94 mm standing off the egg.
+    tube_od_m: float = 0.03489
+    tube_id_m: float = 0.03083
     tube_len_m: float = 0.10  # [est] exposed length + plate
     k_entry: float = 0.5  # box -> tube
     k_exit: float = 1.0  # tube -> firebox (velocity head lost)

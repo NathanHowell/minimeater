@@ -134,7 +134,7 @@ def test_the_socket_grips_the_tube_over_its_extension_only():
     assert abs(min(crest(c.ext_len * i / 100) for i in range(101)) - (tr - c.grip)) < 2e-3  # the deepest grip
     assert abs(crest(c.ext_len) - (tr + c.lead_clear)) < 1e-9  # free at the mouth
     assert crest(0.0) > tr and crest(c.ext_len * 0.45) > tr  # free up to the middle
-    assert abs(lobe_amp() - 0.8) < 0.02  # about +-0.8 on a mean bore 1 mm larger
+    assert abs(lobe_amp() - 0.85) < 0.02  # about +-0.85 on a mean bore 1 mm larger
     tube, duct = A.bought()["tube"], A.printed()["duct"]
     assert A.overlap(tube & box(-30, c.ext_len * 0.45, -30, 30, -30, 30), duct) < 0.01
     assert A.overlap(tube, duct) > 3  # eight crest lines

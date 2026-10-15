@@ -1,6 +1,6 @@
 # Existing HeaterMeter blower adapter (`Adapter.stl`)
 
-This is the user's printed part that joins the old HeaterMeter blower (Roto Damper family, thingiverse:1194140) to the egg's stainless intake tube. The dimensions below were measured from the STL (Rhino export, mm) and need confirming with calipers on the physical tube (`.2.8`). The STL itself is third-party, so it is not committed.
+This is the user's printed part that joins the old HeaterMeter blower (Roto Damper family, thingiverse:1194140) to the egg's stainless intake tube. The dimensions below were measured from the STL (Rhino export, mm) Calipers on the tube since (`.2.8`, 2026-10-15): OD 34.89 mm, ID 30.83 mm (a 2.03 mm wall), 31.94 mm free length; the 1.375" reading stands, the ID was 0.8 mm under the assumed 31.6. The STL itself is third-party, so it is not committed.
 
 ![sections](heatermeter-adapter-sections.png)
 

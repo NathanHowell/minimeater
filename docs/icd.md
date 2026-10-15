@@ -5,7 +5,7 @@ Status: draft (2026-10-11), bead `minimeat-seq.1.2`. This is the contract betwee
 ## Purpose and scope
 
 - A HeaterMeter-style controller for one Big Green Egg Large, run at a 150-325 F pit. Grilling is out of scope.
-- One printed box on the egg's 34.93 mm stainless intake tube holds the fan, a servo flap damper, the controller board and one USB-C port. There is no separate blower, and no 12 V supply.
+- One printed box on the egg's 34.89 mm stainless intake tube holds the fan, a servo flap damper, the controller board and one USB-C port. There is no separate blower, and no 12 V supply.
 - Offset-free MPC control, reported over MQTT (Home Assistant) and OTLP; the schema is `docs/protocol.md`.
 
 ## Power (ADR 0004)
@@ -84,4 +84,4 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 - Fan and servo are placeholders until `.2.11` and the part checks (`.2.9`).
 - Board outline, connector parts and positions: `.3.x`.
 - Thermal break between the tube and the box: needs a tube temperature measurement (`.2.5`).
-- Tube dimensions: calipers (`.2.8`); the design uses 34.93 mm OD and 31.6 mm ID.
+- Tube dimensions: measured 34.89 mm OD, 30.83 mm ID, 31.94 mm free length (`.2.8`); roundness, end condition and clearance on the egg still to check.

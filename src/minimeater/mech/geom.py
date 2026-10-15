@@ -9,7 +9,7 @@ from .params import P
 class G:
     bore_r: float = P.damper.bore_d / 2
     wall: float = P.print.wall
-    duct_r: float = P.tube.id / 2 + P.print.wall  # outer radius of the straight duct
+    duct_r: float = P.damper.bore_d / 2 + 2.2  # outer radius of the straight duct: a 2.2 mm wall over the bore
     socket_x0: float = -P.coupling.depth
     flap_x: float = P.damper.flap_x
     # the board lies under the straight duct: its rear edge sets where the cone may start

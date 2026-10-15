@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Tube:
-    od: float = 34.93  # [stl] 1.375 in, BBQ Guru style; calipers still needed (.2.8)
-    id: float = 31.6  # [forum] BBQ Guru-compatible adapters list ~31 mm ID (.2.8)
-    free_len: float = 40.0  # [est] straight length available to the socket, which needs Coupling.depth + ext_len = 40 to seat the tube on its shoulder (.2.8)
+    od: float = 34.89  # [meas] calipers, 2026-10-15 (.2.8): the 1.375 in BBQ Guru tube; roundness still to check
+    id: float = 30.83  # [meas] a 2.03 mm wall
+    free_len: float = 31.94  # [meas] straight length standing off the egg: the socket (Coupling.depth + ext_len) must not need more
 
 
 @dataclass(frozen=True)
@@ -136,7 +136,7 @@ class Damper:
     flap_tol: float = 0.03  # radial, machined (+-0.05 on the diameter plus margin)
     ream_tol: float = 0.03  # radial: the duct's bore at the flap station reamed to size; as printed it is +-0.15 (JLC: +-0.3 mm)
     print_bore_tol: float = 0.15
-    bore_d: float = 32.0  # the duct's straight bore, a standard H7 reamer size (Ø32 +0.025/0), reamed at the flap station; the tube's ID (31.6, to measure) is 0.2 mm smaller: the step is the tube's own thickness
+    bore_d: float = 32.0  # the duct's straight bore, a standard H7 reamer size (Ø32 +0.025/0), reamed at the flap station; the tube's ID (30.83) is 1.17 mm smaller: a 0.585 mm step in at its end face, K ~0.04 on the tube's velocity head (accepted: no room for a taper between the flap's swing and the shoulder)
     flap_gap: float = 0.15  # radial; closed leak target <= 0.3 cm^2 (.2.3)
     stub_len: float = 3.0
     flap_x: float = -37.5  # shaft axis
@@ -192,7 +192,7 @@ class Coupling:
     od: float = 46.0
     # the socket runs on past the old mouth (x = 0) toward the egg; over that length the bore goes from round to a sinusoidal
     # section along a smootherstep, the wall following it, so its crests grip the tube (no thumbscrew)
-    ext_len: float = 20.0  # [est] placeholder: how far the socket reaches past x = 0
+    ext_len: float = 10.0  # how far the socket reaches past x = 0: the tube's 31.94 less the 20 deep socket leaves 1.94 mm to the egg
     ext_grow_d: float = 1.0  # the mean bore's growth over the extension, on the diameter
     lobes: int = 8  # crests around the bore
     grip: float = 0.15  # radial: the crests' deepest reach into the tube, at the egg end of the transition

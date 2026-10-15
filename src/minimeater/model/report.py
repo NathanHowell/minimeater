@@ -213,7 +213,7 @@ def main() -> None:
         rows,
     ))
     w(
-        "\nEvery candidate's free-air rating is far above what it delivers here: the 31.6 mm tube plus our "
+        "\nEvery candidate's free-air rating is far above what it delivers here: the 30.8 mm tube plus our "
         "box chokes the flow, so static pressure matters more than free-air CFM. The high-loss column is the "
         "conservative case for sizing (the model under-predicts hot-cook fuel burn).\n"
     )
@@ -261,7 +261,7 @@ def main() -> None:
     w(f"{a6.name} max flow (pit 275F, top 1/2) vs box loss coefficient k_box:\n")
     w(md_table(["k_box", "max CFM"], rows))
     rows = []
-    for od_in, id_mm in ((1.0, 22.0), (1.315, 26.6), (1.375, 31.6), (1.5, 35.0), (2.0, 47.0)):
+    for od_in, id_mm in ((1.0, 22.0), (1.315, 26.6), (1.375, 30.83), (1.5, 35.0), (2.0, 47.0)):
         it = dataclasses.replace(intake, tube_id_m=id_mm / 1000)
         rows.append([f"{od_in}\" OD / {id_mm} mm ID", f"{fan_max_cfm(egg, it, a6, mild.ambient, 275, TOP_VENT['slider 1/2']):.1f}"])
     w(f"\n{a6.name} max flow vs intake tube size:\n")

@@ -50,7 +50,7 @@ The printed and machined parts are in `build/mech/3dprint` (JLC3DP, all three in
 | USB-C charger that advertises 1.5 A or 3 A (7.5 W or more) | 1 per unit | A wall charger for overnight cooks: power banks often switch off under a light load. |
 | Thermistor probes with a 2.5 mm plug | 1 pit probe + up to 3 food probes | ThermoWorks Pro-Series (about 100k) or a generic import probe; a Maverick ET-732 (about 1M) also reads. Probes come from other sources than the board. Overmold up to about 18 mm long, 8 mm across: longer ones stand proud of the bay. |
 
-Not on this list because you already have them: the egg and its Ø34.93 intake tube the box slides onto, and a computer to flash the board over USB-C.
+Not on this list because you already have them: the egg and its Ø34.89 intake tube the box slides onto, and a computer to flash the board over USB-C.
 
 ## 5. Open items
 

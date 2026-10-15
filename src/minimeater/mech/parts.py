@@ -4,6 +4,7 @@ The chassis is the duct with the fan on its flange, the servo on its shelf and t
 unit on its own. The shells (shell.py) go around it.
 """
 
+import functools
 import math
 
 from build123d import (
@@ -84,21 +85,34 @@ def smootherstep(t):
     return t * t * t * (t * (6 * t - 15) + 10)
 
 
+@functools.cache
 def lobe_amp():
-    """The wave's amplitude on the radius: with the mean bore grown by `ext_grow_d`, the crests reach `grip` into the tube
-    where the lead starts (the transition is not quite complete there)."""
+    """The wave's amplitude on the radius: with the mean bore grown by `ext_grow_d`, the crests' deepest reach into the tube
+    is `grip`. It lies in the lead, where the transition still deepens while the opening starts, so it is solved for:
+    the crest radius is linear in the amplitude."""
     c = P.coupling
-    s = smootherstep((c.ext_len - c.lead_len) / c.ext_len)
-    return c.ext_grow_d / 2 + (sock_r() + c.grip - P.tube.od / 2) / s
+    xs = [c.ext_len * i / 2000 for i in range(2001)]
+    lo, hi = 0.0, 5.0
+    for _ in range(60):
+        a = (lo + hi) / 2
+        if min(_socket_r(x, 0.0, a) for x in xs) > P.tube.od / 2 - c.grip:
+            lo = a
+        else:
+            hi = a
+    return (lo + hi) / 2
 
 
 def socket_r(x, th):
     """The socket's bore radius at x and angle th: round up to the old mouth (x = 0), then over `ext_len` the mean grows and
     the wave comes in along a smootherstep (crests at th = 0, 45, ...), and the last `lead_len` opens so the crests clear the tube."""
+    return _socket_r(x, th, lobe_amp())
+
+
+def _socket_r(x, th, amp):
     c = P.coupling
     s = smootherstep(x / c.ext_len)
-    r = sock_r() + s * (c.ext_grow_d / 2 - lobe_amp() * math.cos(c.lobes * th))
-    open_ = P.tube.od / 2 + c.lead_clear - (sock_r() + c.ext_grow_d / 2 - lobe_amp())  # the crests' rise to clear the tube at the mouth
+    r = sock_r() + s * (c.ext_grow_d / 2 - amp * math.cos(c.lobes * th))
+    open_ = P.tube.od / 2 + c.lead_clear - (sock_r() + c.ext_grow_d / 2 - amp)  # the crests' rise to clear the tube at the mouth
     return r + smootherstep((x - (c.ext_len - c.lead_len)) / c.lead_len) * open_
 
 
