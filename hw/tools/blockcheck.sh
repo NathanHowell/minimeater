@@ -10,5 +10,5 @@ mkdir -p "$T"
 kicad-cli pcb drc --severity-all --format json -o "$T/drc.json" hw/minimeater.kicad_pcb >/dev/null 2>&1 || true
 uv run python hw/tools/drcbox.py "$T/drc.json" "$1" | grep -v -E "does not match copy in library|Missing symbol field|unconnected end" || true
 $PY hw/tools/pcbdump.py hw/minimeater.kicad_pcb "$T/b.json" 2>/dev/null
-uv run --with matplotlib python hw/tools/render.py "$T/b.json" "$2" --bbox "$1" --layers F.Cu --ppmm 70 --title "$3"
+uv run --with matplotlib python hw/tools/render.py "$T/b.json" "$2" --bbox="$1" --layers F.Cu --ppmm 70 --title "$3"
 rm -rf "$T"

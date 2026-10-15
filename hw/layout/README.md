@@ -108,6 +108,29 @@ own orientation (rotation 0): pin 1 top left, IN 3/4 lower left, OUT 5 lower rig
 - C41 100 nF from IN to ground right under pins 3/4 (the "high frequency bypass" of the figure); FLT (6) open.
 - Zones were reshaped and the redundant ones removed with KiCad closed through its python API; DRC: no errors.
 
+## U13 INA181A1 servo current sense with R36 shunt, staged at (-25, 40) (minimeat-sp4)
+
+![U13](u13_isense.png)
+
+Added after the board was routed (minimeat-vpg: servo stall seen as current, not only on the TPS2553 fault line), so
+it has its own small staging outline left of the board (x -31 to -20, y 35-44.5) with an In1 GND zone
+(`STAGING_In1_GND`); both go when the block is placed (minimeat-55j). Datasheet SBOS793H section 8.4, figure 8-11
+(single channel, SC70), reproduced in its own orientation: U13 at rotation 90 puts OUT 6, IN- 5, IN+ 4 along the top
+and REF 1, GND 2, VS 3 along the bottom, as drawn.
+
+- Kelvin connection: R36 (0.1 ohm 0402) lies above the part, VSERVO (load) pad left and VSERVO_SW (bus) pad right,
+  current flowing right to left as in the figure. The two 0.2 mm sense lines drop straight from the pads' inner halves
+  to IN- and IN+, equal length (1.86 mm), 0.45 mm apart. The 0.8 mm power stubs enter the pads from their outer ends
+  and stop 0.15 mm short of the sense taps, so the current does not run along a sense line. A stock 2-pad 0402 does
+  this; a 4-terminal or net-tie footprint was considered and is not needed while the power copper is tracks (a power
+  fill over the pad would swallow the taps: keep VSERVO/VSERVO_SW fills off the inner halves in placement).
+- Bypass: C43 100 nF straight under VS and GND, ground pad left with its via beside it (figure's "VIA to Ground
+  Plane"), 3V3 entering from the right. REF tied to the GND pin along the bottom row (unidirectional, 0 V at 0 A).
+- Output: OUT left into R37 1k, C44 100 nF to ground straight below R37's far end (the pin side of the filter, its own
+  ground via), SERVO_ISENSE leaves left toward U1 IO6. In placement it is a quiet 0.2 mm line away from BUCK_SW, the
+  fan PWM and the servo signal.
+- Block 6 x 5.5 mm. DRC in the box: only the connections that lead out of the block.
+
 ## U9 TPD4E05U06 probe ESD, origin (20, 95)
 
 ![U9](u9.png)
