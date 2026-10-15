@@ -35,7 +35,7 @@ use crate::proto::BootReason;
 
 /// Control period, s.
 pub const PERIOD_S: f64 = 10.0;
-/// A pit reading missing for longer than this fails safe, s.
+/// A pit reading missing for this long (counted in whole control periods) fails safe, s.
 pub const PROBE_GRACE_S: f64 = 20.0;
 /// Airflow at hold is averaged over this long (s) before it is trusted and saved as [`Cook::hold`];
 /// the saved value moves only when the average drifts by more than `HOLD_MOVE` (relative, or
@@ -486,7 +486,7 @@ impl Pit {
         self.ambient = ambient;
         let pit = pit_f.filter(|y| y.is_finite());
         self.lost_s = if pit.is_some() { 0.0 } else { self.lost_s + dt };
-        let faulted = self.lost_s > PROBE_GRACE_S;
+        let faulted = self.lost_s >= PROBE_GRACE_S;
         if faulted != self.faulted {
             self.faulted = faulted;
             self.emit(if faulted {

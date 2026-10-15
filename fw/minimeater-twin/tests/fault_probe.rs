@@ -23,9 +23,9 @@ fn pulling_the_pit_probe_closes_the_flap_and_stops_the_fan_and_the_cook_resumes(
         .iter()
         .find(|s| s.t_s >= from && s.flap_deg < 1.0 && s.status.out.act.fan == 0.0)
         .expect("flap closed and fan stopped");
-    // PROBE_GRACE_S (20 s) is counted in whole control periods, so the third period without the probe is the one that
-    // fails safe: 20-30 s after the pull, plus the servo's slew to closed
-    assert!(safe.t_s - from <= 35.0, "safe at +{:.2} s", safe.t_s - from);
+    // PROBE_GRACE_S (20 s) is counted in whole control periods, so the second period without the probe is the one that
+    // fails safe: up to 20 s after the pull, plus the servo's slew to closed
+    assert!(safe.t_s - from <= 30.0, "safe at +{:.2} s", safe.t_s - from);
     let raised = r
         .events
         .iter()
@@ -33,7 +33,7 @@ fn pulling_the_pit_probe_closes_the_flap_and_stops_the_fan_and_the_cook_resumes(
         .map(|(t, _)| *t)
         .expect("pit_probe fault raised");
     assert!(
-        (from + 20.0..from + 32.0).contains(&raised),
+        (from..from + 21.0).contains(&raised),
         "raised at +{:.2} s",
         raised - from
     );

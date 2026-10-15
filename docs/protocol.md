@@ -150,7 +150,7 @@ Error codes:
 | Code | Meaning |
 |---|---|
 | `board_hot` | board above 80C (the ADC die or the ambient sensor): the device keeps running and warns |
-| `pit_probe` | the selected pit probe isn't `ok` |
+| `pit_probe` | the selected pit probe has not been `ok` for two control periods (10-20 s): the flap closes and the fan stops until it is back |
 | `fan_stall` | duty above 30 % but tach reads 0 |
 | `adc` | ADS122C04 not responding |
 | `ambient` | TMP117 not responding: feedforward falls back to 20C |
