@@ -28,6 +28,8 @@ pub enum Job {
     Provision,
     /// The certificate signing request for the key, signed by the chip.
     Csr,
+    /// Erase the certificate and make a new key ([`identity::rekey`]).
+    Rekey,
     /// Print the certificate in the chip's certificate slot as PEM.
     CertShow,
     /// Forget any certificate bytes received so far.
@@ -73,6 +75,7 @@ fn fault(f: Fault) -> &'static str {
         Fault::Different => "error: the chip is locked with another configuration",
         Fault::Verify(_) => "error: the configuration read back wrong; not locked",
         Fault::NotLocked => "error: a lock did not take",
+        Fault::NotProvisioned => "error: this chip is not provisioned (identity provision lock first)",
     }
 }
 
@@ -147,6 +150,11 @@ pub async fn serve<I: I2c, T: DelayNs>(shared: &Shared<I, T>, bus: &Bus, cn: &st
                 }
             }
             Job::Csr => csr_job(chip, bus, cn).await,
+            Job::Rekey => {
+                if let Err(f) = identity::rekey(chip, &mut async |l: &str| put(bus, l).await).await {
+                    put(bus, fault(f)).await;
+                }
+            }
             Job::CertShow => cert_show(chip, bus).await,
             Job::CertStart => {
                 staged.clear();
@@ -455,6 +463,36 @@ mod tests {
         let refs: std::vec::Vec<&str> = lines.iter().map(Str::as_str).collect();
         let (out, _) = type_with_control(&bus, &refs);
         assert!(out.last().unwrap().contains("too long"), "{out:?}");
+    }
+
+    #[test]
+    fn rekey_needs_its_word_and_then_the_certificate_is_gone_and_the_key_is_new() {
+        let bus = Bus::new();
+        let chip: Shared<Chip, NoDelay> = Mutex::new(Atecc608::new(Chip::new(blank()), ADDRESS, NoDelay));
+        let t = type_line(&bus, Some(&chip), "identity rekey replace");
+        assert!(t.contains("not provisioned"), "{t}");
+        type_line(&bus, Some(&chip), "identity provision lock");
+        let old = block_on(async { chip.lock().await.public_key(KEY_SLOT).await }).unwrap();
+        let der = fake(&old, 100);
+        let lines = send(&der);
+        let t = type_lines(&bus, &chip, &lines);
+        assert!(t.last().unwrap().contains("certificate saved"), "{t:?}");
+        // without the word nothing happens
+        let t = type_line(&bus, Some(&chip), "identity rekey");
+        assert!(t.contains("identity rekey replace"), "{t}");
+        assert_eq!(
+            block_on(async { chip.lock().await.public_key(KEY_SLOT).await }).unwrap(),
+            old
+        );
+        // with it
+        let t = type_line(&bus, Some(&chip), "identity rekey replace");
+        assert!(t.contains("certificate erased") && t.contains("new public key"), "{t}");
+        let new = block_on(async { chip.lock().await.public_key(KEY_SLOT).await }).unwrap();
+        assert_ne!(new, old);
+        let t = type_line(&bus, Some(&chip), "identity cert");
+        assert!(t.contains("no certificate stored"), "{t}");
+        let t = type_line(&bus, Some(&chip), "identity csr");
+        assert!(t.contains("BEGIN CERTIFICATE REQUEST"), "{t}");
     }
 
     #[test]

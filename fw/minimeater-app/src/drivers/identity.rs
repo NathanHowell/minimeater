@@ -82,6 +82,8 @@ pub enum Fault {
     Verify(usize),
     /// A lock did not take.
     NotLocked,
+    /// Re-keying a chip that was never provisioned (configuration and data zone locked with this configuration).
+    NotProvisioned,
 }
 
 impl From<Error> for Fault {
@@ -106,6 +108,46 @@ async fn hex64(say: &mut impl AsyncFnMut(&str), label: &str, b: &[u8; 64]) {
         }
         say(&l).await;
     }
+}
+
+/// Replaces the device key with a new one made in the chip (`identity rekey replace`, `minimeat-5ix`): for a device whose key
+/// must not be trusted any more, or that changes hands. The certificate in slot 8 belongs to the old key, so it is erased
+/// first (a device never presents a certificate for a key it no longer holds); then `GenKey` makes the new pair, which is
+/// returned. A new signing request, a new certificate from the CA and `identity cert` follow.
+///
+/// Only a chip provisioned by [`provision`] qualifies, and nothing is touched on any other.
+///
+/// This needs the key slot to allow `GenKey` after the lock (it does: `SlotConfig` 0x2081). That also means any firmware on
+/// the board can replace the key; it could equally well just use it, so this adds no new power, but it is why the command asks
+/// for a word.
+pub async fn rekey<I: I2c, T: DelayNs>(
+    chip: &mut Atecc608<I, T>,
+    say: &mut impl AsyncFnMut(&str),
+) -> Result<[u8; 64], Fault> {
+    if chip.info().await?[2] != FAMILY {
+        return Err(Fault::WrongChip);
+    }
+    let locks = chip.locks().await?;
+    if !locks.config || !locks.data || !is_ours(&chip.read_config().await?) {
+        return Err(Fault::NotProvisioned);
+    }
+    let old = chip.public_key(KEY_SLOT).await.ok();
+    chip.write_slot(CERT_SLOT, &[0u8; super::cert::SLOT_LEN]).await?;
+    let mut back = [0xFFu8; super::cert::SLOT_LEN];
+    chip.read_slot(CERT_SLOT, &mut back).await?;
+    if back.iter().any(|&b| b != 0) {
+        line(say, format_args!("the certificate slot did not clear: key unchanged")).await;
+        return Err(Fault::Verify(0));
+    }
+    line(say, format_args!("certificate erased")).await;
+    let key = chip.generate_key(KEY_SLOT).await?;
+    if old == Some(key) {
+        line(say, format_args!("the chip made the same key again")).await;
+        return Err(Fault::NotLocked);
+    }
+    hex64(say, "new public key", &key).await;
+    line(say, format_args!("next: identity csr, sign it, identity cert")).await;
+    Ok(key)
 }
 
 /// Looks at the chip and, with `apply`, does what is left of: configuration, its lock, the key, the data lock. Reports
@@ -619,5 +661,67 @@ pub(crate) mod tests {
             .unwrap();
         // (csr.rs checks the DER around it against OpenSSL)
         assert_eq!(tbs.finish(&sig).unwrap()[0], 0x30);
+    }
+
+    #[test]
+    fn rekeying_erases_the_certificate_and_makes_a_new_key() {
+        use crate::drivers::cert;
+        let mut a = atecc(blank());
+        let old = run(&mut a, true).0.unwrap().unwrap();
+        // a certificate for the old key
+        let mut der = V::from([0x30u8, 0x82, 0x00, 0x00]);
+        der.push(0x04);
+        der.extend_from_slice(&old);
+        let len = (der.len() - 4) as u16;
+        der[2..4].copy_from_slice(&len.to_be_bytes());
+        block_on(cert::store(&mut a, &der)).unwrap();
+        assert!(block_on(cert::load(&mut a)).unwrap().is_some());
+
+        let lines = RefCell::new(V::new());
+        let new = block_on(rekey(&mut a, &mut async |l: &str| {
+            lines.borrow_mut().push(l.to_string())
+        }))
+        .unwrap();
+        assert_ne!(new, old, "a new key");
+        assert_eq!(block_on(a.public_key(KEY_SLOT)).unwrap(), new);
+        assert_eq!(block_on(cert::load(&mut a)), Ok(None), "the old certificate is gone");
+        assert!(lines.borrow().iter().any(|l| l.contains("certificate erased")));
+        // and the chip signs with the new key: a request for it verifies
+        let tbs = ToBeSigned::new("mm-a1b2c3", &new).unwrap();
+        let sig = block_on(a.sign(KEY_SLOT, &tbs.digest())).unwrap();
+        let mut sec1 = vec![4u8];
+        sec1.extend_from_slice(&new);
+        let vk = VerifyingKey::from_sec1_bytes(&sec1).unwrap();
+        vk.verify_prehash(&tbs.digest(), &Signature::from_slice(&sig).unwrap())
+            .expect("signed by the new key");
+        // a certificate for the old key is refused now
+        assert_eq!(block_on(cert::store(&mut a, &der)), Err(cert::Fault::WrongKey));
+    }
+
+    #[test]
+    fn a_chip_that_was_not_provisioned_is_never_rekeyed() {
+        for config in [blank(), {
+            // configuration written and locked with another configuration
+            let mut c = blank();
+            c[20] = 0x11;
+            c[87] = 0;
+            c[86] = 0;
+            c
+        }] {
+            let mut a = atecc(config);
+            let before = a.i2c().config;
+            let r = block_on(rekey(&mut a, &mut async |_: &str| {}));
+            assert_eq!(r, Err(Fault::NotProvisioned));
+            assert_eq!(writes(&a), 0, "{:?}", a.i2c().seen);
+            assert_eq!(a.i2c().config, before);
+        }
+        // locked configuration but no key yet (data zone open): not provisioned either
+        let mut a = atecc(blank());
+        let _ = run(&mut a, true);
+        a.i2c_mut().config[86] = 0x55;
+        assert_eq!(
+            block_on(rekey(&mut a, &mut async |_: &str| {})),
+            Err(Fault::NotProvisioned)
+        );
     }
 }

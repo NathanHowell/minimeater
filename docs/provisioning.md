@@ -121,3 +121,13 @@ acl_file acl
 
 With `use_identity_as_username` the certificate's common name (`mm-` and the MAC) is the user name, so an ACL can confine a device to its
 own topics: `pattern readwrite minimeater/%u/#`. `just mosquitto-tls` runs exactly this against the firmware's session.
+
+## Replacing a device's key
+
+`identity rekey` says what it would do; `identity rekey replace` does it: the certificate in slot 8 is erased (first, so the device never
+presents a certificate for a key it no longer holds), then the chip makes a new key pair in slot 0. The old key is gone for good. Then
+do steps 4 and 5 again (`identity csr`, sign, `identity cert`). Use it when a device changes hands or its key may have been exposed; the
+CA should also stop trusting the old certificate (a short certificate life, or a revocation list on the broker). It only works on a chip
+provisioned here, and refuses any other without touching it. The key slot allows this after the lock by design (`SlotConfig` 0x2081),
+so firmware on the board can re-key it, as it could equally sign with the key: the word is a guard against typing, not against code.
+While there is no certificate, TLS to the broker fails and retries, and plaintext MQTT (no pinned CA) is unaffected.

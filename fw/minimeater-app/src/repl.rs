@@ -106,9 +106,9 @@ pub const CATALOG: &[Spec] = &[
     },
     Spec {
         name: "identity",
-        usage: "identity | identity csr | identity provision lock | identity cert [start | add <base64> | save]",
+        usage: "identity | identity csr | identity provision lock | identity rekey replace | identity cert [start | add <base64> | save]",
         help: "the device key in the secure element: look, print the certificate request, lock it in (one way), or store the CA's certificate",
-        subs: &["csr", "provision", "cert"],
+        subs: &["csr", "provision", "cert", "rekey"],
     },
     Spec {
         name: "factory-reset",
@@ -510,6 +510,8 @@ pub enum Enrol {
     Csr,
     /// `provision`: true once `lock` came with it.
     Provision(bool),
+    /// `rekey`: true once `replace` came with it.
+    Rekey(bool),
     Cert(Cert),
 }
 
@@ -636,6 +638,7 @@ mod grammar {
         opt(alt((
             kw("csr").value(Enrol::Csr),
             preceded(kw("provision"), opt(kw("lock"))).map(|w| Enrol::Provision(w.is_some())),
+            preceded(kw("rekey"), opt(kw("replace"))).map(|w| Enrol::Rekey(w.is_some())),
             preceded(
                 kw("cert"),
                 opt(alt((
@@ -1075,8 +1078,13 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
             say(io, format_args!("this locks the secure element for good: its configuration, then its data zone.")).await;
             say(io, format_args!("look first with identity; when it reads right, type identity provision lock")).await;
         }
+        Cmd::Identity(Enrol::Rekey(false)) => {
+            say(io, format_args!("this makes a new device key and erases the certificate: the old key and certificate stop working.")).await;
+            say(io, format_args!("to do it, type identity rekey replace")).await;
+        }
         Cmd::Identity(c) => {
             let job = match c {
+                Enrol::Rekey(_) => Job::Rekey,
                 Enrol::Csr => Job::Csr,
                 Enrol::Provision(_) => Job::Provision,
                 Enrol::Look => Job::Look,
@@ -1440,7 +1448,16 @@ mod tests {
                 && parse("identity csr lock").is_err()
         );
         // Tab finds the subcommands but never types the word that locks
-        assert_eq!(candidates("identity ").as_slice(), &["csr", "provision", "cert"]);
+        assert_eq!(
+            candidates("identity ").as_slice(),
+            &["csr", "provision", "cert", "rekey"]
+        );
+        assert_eq!(parse("identity rekey").unwrap(), Cmd::Identity(Enrol::Rekey(false)));
+        assert_eq!(
+            parse("identity rekey replace").unwrap(),
+            Cmd::Identity(Enrol::Rekey(true))
+        );
+        assert!(parse("identity rekey now").is_err());
         assert_eq!(candidates("identity cert ").as_slice(), &["start", "add", "save"]);
         assert_eq!(parse("identity cert").unwrap(), Cmd::Identity(Enrol::Cert(Cert::Show)));
         assert_eq!(
