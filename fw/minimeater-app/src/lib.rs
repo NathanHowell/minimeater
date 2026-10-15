@@ -25,6 +25,7 @@ pub mod selftest;
 pub mod serial;
 pub mod sntp;
 pub mod tasks;
+pub mod tls;
 pub mod ui;
 
 /// The host tests' clock: every look at it is a millisecond later, and a timer that is set wakes at once, so a timeout

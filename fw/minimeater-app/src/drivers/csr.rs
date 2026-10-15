@@ -26,7 +26,7 @@ const OID_EC_PUBLIC_KEY: &[u8] = &[0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01];
 const OID_PRIME256V1: &[u8] = &[0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07];
 const OID_ECDSA_SHA256: &[u8] = &[0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02];
 
-type Der = Vec<u8, CSR_MAX>;
+pub type Der = Vec<u8, CSR_MAX>;
 
 /// Appends tag, length and `content` to `out`; `None` when it does not fit.
 fn tlv(out: &mut Der, tag: u8, content: &[u8]) -> Option<()> {
@@ -70,7 +70,7 @@ fn integer(be: &[u8]) -> Option<Der> {
 }
 
 /// The signature the chip returns (r then s) as the DER `Ecdsa-Sig-Value` a certificate request carries.
-fn ecdsa_sig(rs: &[u8; 64]) -> Option<Der> {
+pub fn ecdsa_sig(rs: &[u8; 64]) -> Option<Der> {
     let (r, s) = (integer(&rs[..32])?, integer(&rs[32..])?);
     wrap(SEQUENCE, &[&r, &s])
 }
