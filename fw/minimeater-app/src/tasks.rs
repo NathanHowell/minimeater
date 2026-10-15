@@ -185,6 +185,9 @@ pub struct Bus {
     /// `identify` and `reboot` requests, for the LED and the board.
     pub identify: Signal<M, ()>,
     pub reboot: Signal<M, ()>,
+    /// The serial REPL's jobs for the task that owns the secure element, and its answers (`enrol`).
+    pub enrol_job: Channel<M, crate::enrol::Job, 1>,
+    pub enrol_out: Channel<M, crate::enrol::Out, 4>,
     /// Why the device started, until the MQTT client has announced it (`boot` event). Set by the binary at start-up.
     pub boot: Mutex<M, Cell<Option<BootReason>>>,
     /// Hardware faults raised by any task, and the fan's last tach reading.
@@ -215,6 +218,8 @@ impl Bus {
             config_rev: Watch::new(),
             identify: Signal::new(),
             reboot: Signal::new(),
+            enrol_job: Channel::new(),
+            enrol_out: Channel::new(),
             boot: Mutex::new(Cell::new(None)),
             probes: Mutex::new(Cell::new(Snapshot {
                 passes: 0,

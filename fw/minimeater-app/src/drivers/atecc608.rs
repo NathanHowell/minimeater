@@ -44,6 +44,9 @@ const WRITE_CONFIG_4: u8 = 0x00;
 /// Lock modes with the zone's CRC checked: 0 the configuration zone, 1 the data and OTP zones together.
 const LOCK_CONFIG: u8 = 0x00;
 const LOCK_DATA: u8 = 0x01;
+/// Added to a lock mode: the zone's CRC is not checked (the data zone holds private keys the host cannot read, so it
+/// has no CRC to give).
+const LOCK_NO_CRC: u8 = 0x80;
 /// The configuration zone is 128 bytes; bytes 0-15 (serial number, revision) are fixed, and the lock bytes are 86 and 87.
 pub const CONFIG_LEN: usize = 128;
 const CONFIG_WRITABLE: core::ops::Range<usize> = 16..128;
@@ -99,6 +102,16 @@ pub struct Atecc608<I, T> {
 impl<I: I2c, T: DelayNs> Atecc608<I, T> {
     pub fn new(i2c: I, address: u8, delay: T) -> Self {
         Self { i2c, address, delay }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn i2c(&self) -> &I {
+        &self.i2c
+    }
+
+    #[cfg(test)]
+    pub(crate) fn i2c_mut(&mut self) -> &mut I {
+        &mut self.i2c
     }
 
     /// Wakes the chip and checks its wake response (count 4, status 0x11, CRC).
@@ -268,6 +281,13 @@ impl<I: I2c, T: DelayNs> Atecc608<I, T> {
     /// except as their configuration allows.
     pub async fn lock_data(&mut self, crc: u16) -> Result<(), Error> {
         self.lock(LOCK_DATA, crc).await
+    }
+
+    /// Locks the data and OTP zones, one way, without a CRC check: for a chip whose data zone holds a private key made
+    /// by [`generate_key`](Self::generate_key), which the host cannot read to compute one. Needs the configuration
+    /// locked first.
+    pub async fn lock_data_unchecked(&mut self) -> Result<(), Error> {
+        self.lock(LOCK_DATA | LOCK_NO_CRC, 0).await
     }
 
     async fn lock(&mut self, mode: u8, crc: u16) -> Result<(), Error> {

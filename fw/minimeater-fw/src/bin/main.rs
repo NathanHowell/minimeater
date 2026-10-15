@@ -105,6 +105,7 @@ async fn main(spawner: Spawner) -> ! {
     static ID: StaticCell<heapless::String<12>> = StaticCell::new();
     let id: &'static str = ID.init(device_id());
     spawner.spawn(provisioning(port, id, bus).expect("provisioning task"));
+    spawner.spawn(enrol(rest.secure_element, id, bus).expect("enrol task"));
 
     // WiFi and the clients that use it: the radio joins the saved network, MQTT and OTLP connect when their settings
     // exist and the link is up
@@ -220,6 +221,12 @@ async fn provisioning(mut port: Port, id: &'static str, bus: &'static Bus) {
         hw: "A",
     };
     improv::run(&mut port, &mut Link, &who, bus).await
+}
+
+/// The secure element, for the REPL's `identity` commands.
+#[embassy_executor::task]
+async fn enrol(mut chip: minimeater_fw::board::SecureElement, id: &'static str, bus: &'static Bus) {
+    minimeater_app::enrol::serve(&mut chip, bus, id).await
 }
 
 #[embassy_executor::task]

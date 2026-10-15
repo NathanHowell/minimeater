@@ -30,7 +30,9 @@ use esp_hal::peripherals::{ADC1, FROM_CPU_INTR0, GPIO0, GPIO1, Peripherals, TIMG
 use esp_hal::time::{Duration, Rate};
 use esp_hal::timer::timg::{MwdtStage, TimerGroup, Wdt};
 use esp_storage::FlashStorage;
-use minimeater_app::drivers::{ads122c04, ads122c04::Ads122c04, tmp117, tmp117::Tmp117, usb_cc};
+use minimeater_app::drivers::{
+    ads122c04, ads122c04::Ads122c04, atecc608, atecc608::Atecc608, tmp117, tmp117::Tmp117, usb_cc,
+};
 use minimeater_app::hal::{Board, FlashRegion, Io, PwmServo, Tach, UsbPower, Watchdog};
 use static_cell::StaticCell;
 
@@ -72,6 +74,8 @@ impl Board for Esp {
     type Watchdog = Mwdt;
 }
 
+pub type SecureElement = Atecc608<Bus, Delay>;
+
 /// Peripherals the board does not wrap, for the runtime and (later) the radio.
 pub struct Rest {
     pub timg0: TIMG0<'static>,
@@ -80,6 +84,8 @@ pub struct Rest {
     pub usb: USB_DEVICE<'static>,
     /// The radio (`net.rs`).
     pub wifi: WIFI<'static>,
+    /// The secure element on the shared I2C bus (ADR 0005); the REPL's `identity` commands reach it (`enrol`).
+    pub secure_element: SecureElement,
 }
 
 /// Brings up every peripheral. Panics only on start-up bugs (bad static configuration); a missing
@@ -103,6 +109,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
     let drdy = Input::new(p.GPIO2, InputConfig::default().with_pull(Pull::Up));
     let probes = Ads122c04::new(I2cDevice::new(i2c), ads122c04::ADDRESS, drdy, Delay);
     let ambient = Tmp117::new(I2cDevice::new(i2c), tmp117::ADDRESS);
+    let secure_element = Atecc608::new(I2cDevice::new(i2c), atecc608::ADDRESS, Delay);
 
     static LEDC: StaticCell<Ledc<'static>> = StaticCell::new();
     static FAN_TIMER: StaticCell<timer::Timer<'static, LowSpeed>> = StaticCell::new();
@@ -181,6 +188,7 @@ pub fn init(p: Peripherals) -> (Io<Esp>, Rest) {
         sw_interrupt: p.FROM_CPU_INTR0,
         usb: p.USB_DEVICE,
         wifi: p.WIFI,
+        secure_element,
     };
     (io, rest)
 }

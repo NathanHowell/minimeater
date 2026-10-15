@@ -13,10 +13,12 @@ use core::fmt::{self, Write as _};
 use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::Subscriber;
+use embassy_time::{Duration, with_timeout};
 use embedded_io_async::Write;
 use heapless::{String, Vec};
 
 use crate::config::{Mode, Mqtt, Otlp, Settings, Wifi};
+use crate::enrol::{Job, Out};
 use crate::net::Identity;
 use crate::pit::{Command, FaultCode, SP_MAX_F, SP_MIN_F};
 use crate::proto::Request;
@@ -30,6 +32,8 @@ const REQUEST_ID: u16 = 0xFF11;
 /// Lines kept for the up arrow.
 const HISTORY: usize = 4;
 const BEL: u8 = 0x07;
+/// How long a step of an `identity` job may take (a key takes the chip under a second).
+const ENROL_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub type Replies<'a> = Subscriber<'a, CriticalSectionRawMutex, Reply, 8, READERS, 1>;
 
@@ -97,6 +101,12 @@ pub const CATALOG: &[Spec] = &[
         usage: "reboot",
         help: "restart the board (a cook resumes)",
         subs: &[],
+    },
+    Spec {
+        name: "identity",
+        usage: "identity | identity csr | identity provision lock",
+        help: "the device key in the secure element: look, print the certificate request, or lock it in (one way)",
+        subs: &["csr", "provision"],
     },
     Spec {
         name: "factory-reset",
@@ -473,6 +483,16 @@ pub enum Cmd {
     Reboot,
     /// `factory-reset`: true once the confirmation word came with it.
     FactoryReset(bool),
+    Identity(Enrol),
+}
+
+/// What `identity` was asked.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Enrol {
+    Look,
+    Csr,
+    /// `provision`: true once `lock` came with it.
+    Provision(bool),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -584,6 +604,15 @@ mod grammar {
             .ok_or(why("the interval is 5 to 3600 s"))
     }
 
+    fn identity(i: &mut In<'_>) -> R<Cmd> {
+        opt(alt((
+            kw("csr").value(Enrol::Csr),
+            preceded(kw("provision"), opt(kw("lock"))).map(|w| Enrol::Provision(w.is_some())),
+        )))
+        .map(|c| Cmd::Identity(c.unwrap_or(Enrol::Look)))
+        .parse_next(i)
+    }
+
     fn setpoint(i: &mut In<'_>) -> R<Cmd> {
         preceded(
             multispace1,
@@ -680,6 +709,7 @@ mod grammar {
                 opt(kw("erase")).map(|w| Cmd::FactoryReset(w.is_some())),
             )
             .parse_next(i),
+            "identity" => command_args("identity", identity).parse_next(i),
             "setpoint" => command_args("setpoint", setpoint).parse_next(i),
             "wifi" => command_args("wifi", wifi).parse_next(i),
             "mqtt" => command_args("mqtt", mqtt).parse_next(i),
@@ -775,6 +805,27 @@ async fn request<I: Write>(io: &mut I, bus: &Bus, replies: &mut Replies<'_>, req
             Err(e) => say(io, format_args!("error: {}", e.detail)).await,
         }
         return;
+    }
+}
+
+/// Sends a job to the task that owns the secure element and prints what it answers.
+async fn enrol<I: Write>(io: &mut I, bus: &Bus, job: Job) {
+    while bus.enrol_out.try_receive().is_ok() {}
+    if bus.enrol_job.try_send(job).is_err() {
+        say(io, format_args!("busy, try again")).await;
+        return;
+    }
+    loop {
+        match with_timeout(ENROL_TIMEOUT, bus.enrol_out.receive()).await {
+            Ok(Out::Line(l)) => say(io, format_args!("{l}")).await,
+            Ok(Out::End) => return,
+            Err(_) => {
+                // nothing is running the job (a board without the chip): take it back
+                let _ = bus.enrol_job.try_receive();
+                say(io, format_args!("no answer from the secure element")).await;
+                return;
+            }
+        }
     }
 }
 
@@ -889,6 +940,18 @@ pub async fn execute<I: Write>(io: &mut I, line: &str, who: &Identity<'_>, bus: 
                 format_args!("this erases the cook, probe limits, learned schedule, WiFi, MQTT and OTLP; type factory-reset erase to do it"),
             )
             .await
+        }
+        Cmd::Identity(Enrol::Provision(false)) => {
+            say(io, format_args!("this locks the secure element for good: its configuration, then its data zone.")).await;
+            say(io, format_args!("look first with identity; when it reads right, type identity provision lock")).await;
+        }
+        Cmd::Identity(c) => {
+            let job = match c {
+                Enrol::Csr => Job::Csr,
+                Enrol::Provision(_) => Job::Provision,
+                Enrol::Look => Job::Look,
+            };
+            enrol(io, bus, job).await
         }
         Cmd::FactoryReset(true) => request(io, bus, replies, Request::Defaults, "everything reset; rebooting").await,
     }
@@ -1188,6 +1251,28 @@ mod tests {
         }
         e.show(&live);
         assert!(live.wrap(&long).is_some());
+    }
+
+    #[test]
+    fn identity_commands() {
+        assert_eq!(parse("identity").unwrap(), Cmd::Identity(Enrol::Look));
+        assert_eq!(parse("identity csr").unwrap(), Cmd::Identity(Enrol::Csr));
+        assert_eq!(
+            parse("identity provision").unwrap(),
+            Cmd::Identity(Enrol::Provision(false))
+        );
+        assert_eq!(
+            parse("identity provision lock").unwrap(),
+            Cmd::Identity(Enrol::Provision(true))
+        );
+        assert!(
+            parse("identity lock").is_err()
+                && parse("identity provision now").is_err()
+                && parse("identity csr lock").is_err()
+        );
+        // Tab finds the subcommands but never types the word that locks
+        assert_eq!(candidates("identity ").as_slice(), &["csr", "provision"]);
+        assert!(candidates("identity provision ").is_empty());
     }
 
     #[test]
