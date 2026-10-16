@@ -185,6 +185,7 @@ class Linkage:
 @dataclass(frozen=True)
 class Coupling:
     depth: float = 20.0  # socket depth the tube enters
+    flare_x: tuple[float, float] = (-25.5, -18.0)  # the outside's smootherstep from the duct's Ø36.4 to the socket's Ø46, tangent to both: it starts at the board's front edge (its keep-out 1 mm under the duct) and ends 2 mm onto the socket, behind the O-ring groove and the drip collar
     neck_len: float = 5.0  # the bore narrows from Damper.bore_d to the tube's ID over this length, ending at the flat shoulder, so the airway runs on flush into the tube
     seat_relief: float = 0.4  # radial: a ring pit at the shoulder's outer corner, 0.5 deep, so the print's corner round cannot hold the tube's end off the shoulder
     oring_id: float = 34.0  # [est] 34 x 2.5 O-ring, the seal at the joint (.2.5)
@@ -344,6 +345,7 @@ class Params:
     # the contraction's wall from the fan's bore (r 29) to the duct's (16) over the fan's face .. the bore's start, Bernstein
     # coefficients (degree 7), mm: tangent to both bores; the tail cone's pair (HubCone.profile). Was a straight cone, a corner at each end
     contraction: tuple = (29.0, 29.0, 25.498, 23.19, 18.475, 18.542, 16.0, 16.0)
+    duct_fillet: float = 3.0  # the duct's outside (the contraction's wall offset by the bore's 2.2 mm wall) meets the flange's back face in a fillet of this radius (OCC's, on the ring where they meet: a curve drawn tangent to the face fails the booleans)
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 
 

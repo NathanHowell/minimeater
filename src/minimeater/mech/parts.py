@@ -249,6 +249,26 @@ def airway(offset=0.0, x0=None, x1=None):
     return out
 
 
+def duct_outer_r(x):
+    """The duct's outside at x, from inside the flange to the socket: the contraction's wall offset by the bore's wall,
+    and a smootherstep up to the socket's diameter over `Coupling.flare_x`."""
+    c = P.coupling
+    x0, x1 = c.flare_x
+    return wall_r(x) + g.duct_r - g.bore_r + (c.od / 2 - g.duct_r) * smootherstep((x - x0) / (x1 - x0))
+
+
+def duct_outer():
+    """The duct's outside as a solid from 1 mm inside the flange's back face (so the two cross, not touch) to the end
+    of the flare: lofts of circles on `duct_outer_r`, butt-jointed to the straight duct's cylinder between them."""
+    c = P.coupling
+    xb, xa = g.fan_face_x + g.flange_t - 1.0, g.straight_x0
+    out = loft([Plane.YZ.offset(x) * Circle(duct_outer_r(x)) for x in (xb + (xa - xb) * i / 20 for i in range(21))])
+    x0, x1 = c.flare_x
+    out += xcyl(g.duct_r, xa, x0)
+    out += loft([Plane.YZ.offset(x) * Circle(duct_outer_r(x)) for x in (x0 + (x1 - x0) * i / 16 for i in range(17))])
+    return out
+
+
 def vane_passage(x):
     """The air's annulus at x between the tail cone and the contraction's wall: (r_hub, r_wall)."""
     h, x0 = P.hub_cone, g.fan_face_x
@@ -459,13 +479,12 @@ def duct():
     flange = box(g.fan_face_x, g.fan_face_x + g.flange_t, -w / 2, w / 2, -w / 2, w / 2)
     flange = flange.fillet(g.flange_r, flange.edges().filter_by(Axis.X))
     outer = flange
-    outer += xcone(w / 2, dr, g.fan_face_x + g.flange_t, g.straight_x0)
-    outer += airway(dr - br, g.fan_face_x + g.flange_t - 0.5, g.straight_x0 + 1.0)  # a curved wall keeps the bore's 2.2 mm under the cone
+    outer += duct_outer()  # the bore's 2.2 mm wall round the contraction, a smootherstep to the socket
+    xb = g.fan_face_x + g.flange_t
+    ring = [e for e in outer.edges() if abs(e.center().X - xb) < 1e-3 and e.geom_type.name != "LINE" and e.length > 100]  # where it leaves the flange
+    outer = outer.fillet(P.duct_fillet, ring)
     k = P.layout.slope
-    flare = (c.od / 2 - dr) * k  # the socket's step, at 44 degrees: it prints flange down
-    outer += xcyl(dr, g.straight_x0, g.socket_x0 - flare + 0.01)
-    outer += xcone(dr, c.od / 2, g.socket_x0 - flare, g.socket_x0)
-    outer += xcyl(c.od / 2, g.socket_x0, c.ext_len)
+    outer += xcyl(c.od / 2, c.flare_x[1], c.ext_len)
     # drip collar behind the hood's front ring: its front face seats on the shells' front cone, its back is
     # chamfered for the print
     dc = c.collar_r - c.od / 2

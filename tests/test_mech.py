@@ -220,7 +220,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 1090}  # 1076 measured: the six stator vanes' cambered undersides near their leading edges, about 110 mm2 each (they wrap 41-53 deg for the fan's measured 66-79 deg inflow; was 45 each at 25-43 deg; about 660: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
+OVERHANG_AREA_MM2 = {"duct": 1430}  # 1420 measured: the socket's smootherstep flare (steeper than 44 deg in its middle, 376 mm2: MJF only) + 1043: the six stator vanes' cambered undersides near their leading edges, about 110 mm2 each (they wrap 41-53 deg for the fan's measured 66-79 deg inflow; was 45 each at 25-43 deg; about 660: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))
@@ -228,7 +228,7 @@ def test_prints_without_support(name):
     patches = overhangs(print_pose(name))
     total = sum(p["area"] for p in patches)
     assert total <= OVERHANG_AREA_MM2[name], patches
-    assert all(p["area"] <= 230 for p in patches), patches  # the largest is the O-ring groove's 2 mm ceiling
+    assert all(p["area"] <= (380 if name == "duct" else 230) for p in patches), patches  # the largest: the duct's socket flare (MJF), else the O-ring groove's 2 mm ceiling
 
 
 def _open_edges(stl):
