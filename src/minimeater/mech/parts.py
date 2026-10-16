@@ -7,6 +7,7 @@ unit on its own. The shells (shell.py) go around it.
 import functools
 import math
 
+from OCP.BRepOffsetAPI import BRepOffsetAPI_ThruSections
 from build123d import (
     Align,
     Axis,
@@ -14,6 +15,7 @@ from build123d import (
     Cone,
     Cylinder,
     Edge,
+    Face,
     Plane,
     Solid,
     Sphere,
@@ -21,6 +23,8 @@ from build123d import (
     Polyline,
     Pos,
     Rot,
+    Shape,
+    Shell,
     Wire,
     extrude,
     loft,
@@ -213,30 +217,123 @@ def hub_profile(t):
     return P.fan.hub_d / 2 * (1 - t**h.exponent)
 
 
-def strut_section(n=24):
-    """A strut's section in its own plane, (along the flow from the leading edge, across it): NACA 4-digit thickness
-    `strut_t` on `strut_chord`, cut where it thins to `strut_te` and closed with a half round of that diameter."""
+def vane_passage(x):
+    """The air's annulus at x between the tail cone and the contraction's wall: (r_hub, r_wall)."""
+    h, x0 = P.hub_cone, g.fan_face_x
+    t = min(max((x - x0) / h.length, 0.0), 1.0)
+    f = min(max((x - x0) / (g.straight_x0 - x0), 0.0), 1.0)
+    return hub_profile(t), P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
+
+
+def vane_half(u):
+    """A vane's half thickness at u = 0 (leading edge) .. 1 (the trailing edge's round's centre), before the flare: NACA
+    4-digit on `vane_t`, its chord stretched so it thins to `vane_te_t` at u = 1."""
     h = P.hub_cone
-    c, tau = h.strut_chord, h.strut_t / h.strut_chord
 
-    def half(s):
-        u = s / c
-        return 5 * tau * c * (0.2969 * math.sqrt(u) - 0.1260 * u - 0.3516 * u**2 + 0.2843 * u**3 - 0.1015 * u**4)
+    def naca(v):
+        return 5 * h.vane_t * (0.2969 * math.sqrt(v) - 0.1260 * v - 0.3516 * v**2 + 0.2843 * v**3 - 0.1015 * v**4)
 
-    lo, hi = 0.3 * c, c  # past the thickest point the half-thickness falls: find where it is te / 2
+    lo, hi = 0.3, 1.0
     for _ in range(60):
         mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if half(mid) > h.strut_te / 2 else (lo, mid)
-    cut = lo
-    ss = [cut * (1 - math.cos(math.pi * i / (2 * n))) for i in range(n + 1)]  # dense at the nose
-    upper = [(s, half(s)) for s in ss]
-    rt = h.strut_te / 2
-    arc = [(cut + rt * math.sin(math.pi * j / 12), rt * math.cos(math.pi * j / 12)) for j in range(1, 12)]
-    return upper + arc + [(s, -y) for s, y in reversed(upper)][:-1]
+        lo, hi = (mid, hi) if naca(mid) > h.vane_te_t / 2 else (lo, mid)
+    return naca(u * lo)
 
 
+@functools.cache
+def vane_section(eta, n=28):
+    """A vane's section at span fraction `eta` (0 on the cone, 1 on the wall; past either it runs on into them), as
+    (x, r, theta) points round its outline, theta in radians about +x from the vane's own clock.
+
+    It lies on the line through the passage at this fraction of its height from leading to trailing edge. Its camber
+    line starts along the air's direction there (the fan's free vortex: tan = swirl Q / A over r, c_theta against
+    the rotor's clockwise turn looking downstream, so -theta) and turns at a steady rate to `vane_dev`'s overturn past
+    axial; the thickness is laid either side of it, normal in the developed (meridional, r theta) plane."""
+    h = P.hub_cone
+    x0 = g.fan_face_x
+    e = min(max(eta, 0.0), 1.0)
+    xl = x0 + h.vane_le[0] + (h.vane_le[1] - h.vane_le[0]) * e - h.vane_le_bow * math.sin(math.pi * e)
+    xt = x0 + h.vane_te[0] + (h.vane_te[1] - h.vane_te[0]) * e
+    m_fine = 400
+    xs, rs = [], []
+    for i in range(m_fine + 1):
+        x = xl + (xt - xl) * i / m_fine
+        rh, rw = vane_passage(x)
+        xs.append(x)
+        rs.append(rh + eta * (rw - rh))
+    ms = [0.0]
+    for i in range(m_fine):
+        ms.append(ms[-1] + math.hypot(xs[i + 1] - xs[i], rs[i + 1] - rs[i]))
+    big_m = ms[-1]
+    rh, rw = vane_passage(xl)
+    area = math.pi * (rw * rw - rh * rh)
+    beta = math.atan(h.swirl / 1000 * area / rs[0])  # the air's angle from axial at the leading edge
+    pitch = 2 * math.pi * rs[m_fine // 2] / h.vanes
+    sigma = big_m / math.cos(beta / 2) / pitch  # the camber line's length over the pitch
+    dev = h.vane_dev * beta / (math.sqrt(sigma) - h.vane_dev)  # camber = beta + dev, dev = m camber / sqrt(sigma)
+    phi0, phi1 = -beta, dev
+
+    def phi(u):
+        return phi0 + (phi1 - phi0) * u
+
+    th = [0.0]  # the camber line's angle about the axis, integrated along it
+    for i in range(m_fine):
+        u = (i + 0.5) / m_fine
+        th.append(th[-1] + math.tan(phi(u)) * (ms[i + 1] - ms[i]) / ((rs[i] + rs[i + 1]) / 2))
+
+    def at(m):
+        """x, r and the camber's theta at meridional distance m (extrapolated straight past either end)."""
+        j = min(max(int(m / big_m * m_fine), 0), m_fine - 1)
+        f = (m - ms[j]) / (ms[j + 1] - ms[j])
+        return (xs[j] + f * (xs[j + 1] - xs[j]), rs[j] + f * (rs[j + 1] - rs[j]), th[j] + f * (th[j + 1] - th[j]))
+
+    w = h.vane_flare_w
+    flare = 1 + h.vane_flare * (math.exp(-((e / w) ** 2)) + math.exp(-(((1 - e) / w) ** 2)))
+
+    def point(u, side):
+        """The outline at u, `side` (+1 toward +theta, -1 away) of the camber line, offset along its normal."""
+        m = u * big_m
+        p = phi(u)
+        d = side * vane_half(u) * flare
+        x, r, _ = at(m - d * math.sin(p))
+        _, r_c, t_c = at(m)
+        return (x, r, t_c + d * math.cos(p) / r_c)
+
+    us = [(1 - math.cos(math.pi * i / n)) / 2 for i in range(n + 1)]  # dense at both ends
+    upper = [point(u, 1) for u in reversed(us)]  # trailing edge -> leading edge
+    lower = [point(u, -1) for u in us[1:]]  # leading edge -> trailing edge
+    rt = h.vane_te_t / 2 * flare
+    xe, re, te = at(big_m)
+    cap = []
+    for j in range(1, 8):  # round the trailing edge from the lower side to the upper
+        a = -math.pi / 2 + math.pi * j / 8
+        dm, dy = rt * math.cos(a), rt * math.sin(a)  # along the camber's tangent, across it
+        m = big_m + dm * math.cos(phi1) - dy * math.sin(phi1)
+        y = dm * math.sin(phi1) + dy * math.cos(phi1)
+        x, r, _ = at(m)
+        cap.append((x, r, te + y / re))
+    return upper + lower + cap
+
+
+def vane(eta0=-0.18, eta1=1.18, k=15):
+    """One stator vane at clock 0 (+z): sections from inside the cone to inside the wall, lofted smooth. The ends are
+    not plane, so the loft is a skin closed by filled caps (both buried in the cone and the wall)."""
+    wires = []
+    for i in range(k):
+        eta = eta0 + (eta1 - eta0) * i / (k - 1)
+        pts = [(x, -r * math.sin(t), r * math.cos(t)) for x, r, t in vane_section(round(eta, 6))]
+        wires.append(Wire([Edge.make_spline(pts, periodic=True)]))
+    skin = BRepOffsetAPI_ThruSections(False, False)
+    for w in wires:
+        skin.AddWire(w.wrapped)
+    skin.CheckCompatibility(False)  # the sections are built point for point; OCC's own matching twists them
+    skin.Build()
+    return Solid(Shell(Shape.cast(skin.Shape()).faces() + [Face.make_surface(wires[0]), Face.make_surface(wires[-1])]))
+
+
+@functools.cache
 def hub_cone(solid=False):
-    """The tail cone on the fan's motor plate and its struts from the contraction's wall: printed with the duct.
+    """The tail cone on the fan's motor plate and its stator vanes from the contraction's wall: printed with the duct.
     Hollow and open toward the fan unless `solid` (the CFD's air volume wants the outside only)."""
     h, x0, n = P.hub_cone, g.fan_face_x, 80
     outer = [(x0 + h.length * i / n, hub_profile(i / n)) for i in range(n + 1)]
@@ -254,18 +351,12 @@ def hub_cone(solid=False):
             inner.append((x, r))
         void = revolve(make_face(Plane.XZ * Polyline((x0 - 0.01, 0.0), (x0 - 0.01, inner[0][1]), *inner, (inner[-1][0], 0.0), close=True)), Axis.X, 360)  # a flat end, as the outside
         body -= void
-    # the struts: the airfoil swept along a radius at 44 deg, from inside the cone's shell out into the contraction's wall
-    k = P.layout.slope
-    sec = strut_section()
-
-    def at(r):
-        return Plane(origin=(x0 + h.strut_x0 + r * k, 0.0, r), x_dir=(1, 0, 0), z_dir=(0, 0, 1)) * Polyline(*sec, close=True)
-
-    plate = loft([make_face(at(1.0)), make_face(at(P.fan.aperture_d / 2 + 2.0))], ruled=True)
+    # the vanes, from inside the cone's shell out into the contraction's wall
     wall = xcone(P.fan.aperture_d / 2 + 0.5, g.bore_r + 0.5, x0, g.straight_x0) + xcyl(g.bore_r + 0.5, g.straight_x0 - 0.01, g.straight_x0 + 10.0)
-    for i in range(h.struts):
-        strut = Rot(h.strut_clock + 360 * i / h.struts, 0, 0) * plate & wall
-        body += strut if solid else strut - void  # from the cone's shell out, not across the cup
+    one = vane() & wall
+    for i in range(h.vanes):
+        v = Rot(h.vane_clock + 360 * i / h.vanes, 0, 0) * one
+        body += v if solid else v - void  # from the cone's shell out, not across the cup
     return body
 
 

@@ -220,7 +220,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 420}  # 415 measured with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
+OVERHANG_AREA_MM2 = {"duct": 735}  # 724 measured: the six stator vanes' cambered undersides near their leading edges, 51-52 mm2 each (308: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))
@@ -304,7 +304,7 @@ def test_the_airway_runs_flush_into_the_tube():
 def test_the_tail_cone_fills_the_fan_hub_and_the_area_falls():
     """The tail cone stands on the fan's motor plate (flush with the outlet face, the plate's Ø26.5) and closes at the bore's
     start: the annulus' area falls all the way from the fan to the bore, so the flow accelerates and stays attached. It is
-    hollow, open toward the fan, and held by its struts in one solid with the duct."""
+    hollow, open toward the fan, and held by its vanes in one solid with the duct."""
     from build123d import Vector
 
     from minimeater.mech.parts import hub_cone, hub_profile
@@ -322,18 +322,23 @@ def test_the_tail_cone_fills_the_fan_hub_and_the_area_falls():
     assert hub_cone(solid=True).volume > hub_cone().volume
 
 
-def test_the_struts_are_airfoils_no_thinner_than_the_printer_allows():
-    """A round-nosed NACA section `strut_t` thick, cut at `strut_te` and closed round: nothing under the thin-wall limit."""
-    from minimeater.mech.parts import strut_section
+def test_the_vanes_meet_the_swirl_and_are_no_thinner_than_the_printer_allows():
+    """Each vane's section is NACA thickness `vane_t` on a camber line, round-nosed and closed round at `vane_te_t` (the
+    thin-wall limit), thicker toward its roots. The camber line leaves the leading edge along the fan's swirl (the rotor
+    turns -theta about +x) and turns back past axial at the trailing edge."""
+    from minimeater.mech.parts import vane_half, vane_section
 
     h = P.hub_cone
-    sec = strut_section()
-    ys = [y for _, y in sec]
-    assert 2 * max(ys) == pytest.approx(h.strut_t, abs=0.01) and min(ys) == pytest.approx(-max(ys))
-    tail = [y for s, y in sec if s > max(s for s, _ in sec) - h.strut_te]
-    assert 2 * max(tail) >= h.strut_te - 1e-6  # the round tail is the cut's full thickness
-    assert max(s for s, _ in sec) < h.strut_chord  # the cut leaves the chord's thin end off
-
+    us = [i / 400 for i in range(401)]
+    assert vane_half(0.0) == 0.0
+    assert 2 * max(vane_half(u) for u in us) == pytest.approx(h.vane_t, abs=0.01)
+    assert 2 * vane_half(1.0) == pytest.approx(h.vane_te_t, abs=1e-6)
+    for eta in (0.0, 0.5, 1.0):
+        sec = vane_section(eta)
+        le = min(sec, key=lambda p: p[0])
+        te = max(sec, key=lambda p: p[0])
+        mid = min(sec, key=lambda p: p[2])
+        assert mid[2] < le[2] - 0.2 and te[2] > mid[2]  # it wraps with the swirl, then turns back
 
 def test_the_extension_is_smooth_outside_and_its_lobes_are_free():
     """Outside, the socket's Ø46 runs on to the mouth; inside it the lobed wall stands free in an open slot (at least 0.8 mm,

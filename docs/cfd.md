@@ -8,13 +8,13 @@ parts as the print (`mech/parts.py`), so a change to the duct or the flap is a c
 
 `uv run minimeater-cfd <case> [--flap DEG] [--cfm Q] [--rpm N]` builds the air volume, meshes it and solves it in
 OpenFOAM v2606 (`opencfd/openfoam-run:2606`, arm64, in Apple's `container`; no build), and writes
-`build/cfd/<case>/results.json`. Named cases: `open`, `open-swirl`, `flap-30`, `flap-45`, `flap-60`.
+`build/cfd/<case>/results.json`. Named cases: `open`, `open-swirl`, `open-vortex`, `flap-30`, `flap-45`, `flap-60`.
 
 - **Geometry** (`geometry.py`): the fan's outlet annulus (5 mm of the frame's Ø58 bore around the Ø26.5 hub), the
-  27 mm cone with the tail cone and its three struts (`HubCone`, subtracted solid), the Ø32 bore with the flap and its rod at the case's angle, the 5 mm neck from it to the tube's bore at the socket's
+  27 mm cone with the tail cone and its six stator vanes (`HubCone`, subtracted solid), the Ø32 bore with the flap and its rod at the case's angle, the 5 mm neck from it to the tube's bore at the socket's
   shoulder, and 12 diameters of the Ø30.83 tube (the results below were run on the Ø31.6 tube assumed before
   the calipers, a 0.2 mm step and no neck). Patches: inlet, outlet, duct, tube, flap. The fan's blades and struts
-  are not modelled; the inlet can swirl (solid-body rotation at `--rpm`).
+  are not modelled; the inlet can swirl: solid-body rotation at `--rpm`, or a free vortex at `--vortex` (r·c_θ / Q in 1/m, in the rotor's sense; `open-vortex` is 18, the Euler floor at the operating line). Every case samples U on five planes along the duct at its end; `python -m minimeater.mech.cfd.swirl <case>` reports the swirl angle, r·c_θ and the swirl's dynamic head on each.
 - **Mesh**: snappyHexMesh, 2 mm background, 0.5 mm at the duct's walls, 0.25 mm on the flap, 1 mm through the bore and
   the first two tube diameters; 3 boundary layers (2 on the flap). About 0.75 M cells.
 - **Solver**: simpleFoam (SIMPLEC), k-omega SST with wall functions; the fan's flow fixed into the annulus at 10 %
@@ -40,6 +40,23 @@ The swirl case is a warning, not a number: if the fan's exit swirl were anything
 (which spins it up as it narrows) and the bore would cost several times the straight-flow loss. The real exit swirl of
 the NF-A6x25 at these flows is the input that is missing (bake-off rig, `.2.11`, or a fan model); stator vanes in the
 cone are the remedy if it is large (`.2.13`).
+
+### The tail cone's struts against stator vanes (`.2.25`, 2026-10-16)
+
+Coarse (807k cells, base 2 mm, 8 ranks on the Mac, about 25 minutes a case), 6 CFM, the measured tube and the neck. The
+swirl is a free vortex at the inlet, r·c_θ / Q = 18 per metre in the rotor's sense (Euler's floor on the model's
+operating line; `HubCone.swirl`). The table above predates the neck and the tail cone.
+
+| tail cone held by | inlet swirl | duct Δp static | k_static | swirl in the bore | r·c_θ in the bore | swirl head, tube |
+|---|---|---|---|---|---|---|
+| 3 straight struts | none | 14.6 Pa | 1.30 | 1° | 0 | 0 |
+| 3 straight struts | free vortex 18 | 25.1 Pa | 2.40 | 42° | -334 cm²/s | 1.7 Pa |
+| 6 stator vanes | none | 18.5 Pa | 1.69 | 11° | -62 cm²/s | 0.15 Pa |
+| 6 stator vanes | free vortex 18 | 13.5 Pa | 1.17 | 9° | -43 cm²/s | 0.13 Pa |
+
+With the fan's swirl the vanes take out 91 % of the angular momentum and save 11.6 Pa, more than the whole loss of the
+plain duct without swirl. Their cost when the air arrives straight (+3.9 Pa over the struts) is the risk if the real
+swirl is much less than the floor; the fan's own rotor in a rotating frame (`cfd/fan.py`) checks it.
 
 The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 1.26 without the grille. The duct
 does not need a change for its loss. The 45° figure is inside the range published for butterfly valves (about 10-18). With the flap partly closed the

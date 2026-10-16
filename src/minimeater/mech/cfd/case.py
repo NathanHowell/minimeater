@@ -10,6 +10,7 @@ across the tube (for the developed pressure line).
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..geom import g
 from .geometry import Stations, inside_point, stations
 
 HEADER = """FoamFile {{ version 2.0; format ascii; class {cls}; object {obj}; }}
@@ -25,6 +26,7 @@ class Case:
     flap_deg: float = 0.0
     cfm: float = 6.0
     rpm: float = 0.0  # swirl at the inlet: solid-body rotation at this speed (the fan's exit swirl; 0 = none)
+    vortex: float = 0.0  # swirl at the inlet: a free vortex, r c_theta / Q in 1/m, turning with the rotor (0 = none; overrides rpm)
     tube_d: float = 12.0  # tube length after the shoulder, in tube diameters
     iterations: int = 2000
     np: int = 8
@@ -41,6 +43,14 @@ def tube_planes(s: Stations, tube_d: float) -> list[float]:
     """x (mm) of the sampling planes across the tube: one per diameter, from the shoulder to a diameter short of the outlet."""
     d = 2 * s.r_tube
     return [s.x_tube + k * d for k in range(1, int(tube_d))]
+
+
+def swirl_planes(s: Stations, tube_d: float) -> dict[str, float]:
+    """x (mm) of the planes the swirl is read on (U and p written raw at the end): just past the fan, just past the tail
+    cone's struts, ahead of the flap, a diameter into the tube and a diameter short of the outlet."""
+    d = 2 * s.r_tube
+    return {"fan": s.x_fan + 2.0, "bore": s.x_bore + 3.0, "preflap": g.flap_x - s.r_bore - 2.0, "tube1": s.x_tube + d,
+            "out": s.x_out - d}
 
 
 def _f(cls: str, obj: str, body: str) -> str:
@@ -124,6 +134,13 @@ mergeTolerance 1e-6;
     fos.append("""    flow { type surfaceFieldValue; libs (fieldFunctionObjects); regionType patch; name outlet;
         operation sum; fields (phi); writeFields false; log false; }
 """)
+    swirl = "".join(f"""        {nm} {{ type cuttingPlane; planeType pointAndNormal; pointAndNormalDict {{ point ({x / 1000} 0 0); normal (1 0 0); }}
+            interpolate false; }}
+""" for nm, x in swirl_planes(s, c.tube_d).items())
+    fos.append(f"""    swirl {{ type surfaces; libs (sampling); writeControl onEnd; surfaceFormat raw; fields (U p);
+        surfaces {{
+{swirl}        }} }}
+""")
     for i, x in enumerate(planes):
         fos.append(f"""    plane{i} {{ type surfaceFieldValue; libs (fieldFunctionObjects); regionType sampledSurface; name plane{i};
         sampledSurfaceDict {{ type cuttingPlane; planeType pointAndNormal; pointAndNormalDict {{ point ({x / 1000} 0 0); normal (1 0 0); }}
@@ -177,9 +194,18 @@ relaxationFactors { equations { U 0.7; "(k|omega)" 0.6; } fields { p 0.9; } }
     # the inlet: the fan's flow into the annulus, 10 % intensity, the blade passage as the length scale
     u_in = q / (3.14159265 * ((s.r_fan / 1000) ** 2 - (s.r_hub / 1000) ** 2))
     k_in = 1.5 * (0.1 * u_in) ** 2
+    if c.vortex:
+        # r c_theta = vortex * Q, in the rotor's sense: the NF-A6x25 turns clockwise looking downstream (-theta about +x)
+        gam = c.vortex * q
+        rs = [s.r_hub / 1000 * (s.r_fan / s.r_hub) ** (i / 16) for i in range(17)]
+        tab = " ".join(f"({r:.6f} {-gam / r:.5f})" for r in rs)
+        inlet_u = (f"type swirlInletVelocity; origin (0 0 0); axis (1 0 0); axialVelocity constant {u_in}; "
+                   f"radialVelocity constant 0; tangentialVelocity table ({tab}); value uniform ({u_in} 0 0);")
+    else:
+        inlet_u = f"type swirlFlowRateInletVelocity; flowRate constant {q}; rpm constant {c.rpm}; origin (0 0 0); axis (1 0 0); value uniform (0 0 0);"
     bf = {
         "U": ("volVectorField", "[0 1 -1 0 0 0 0]", "uniform (0 0 0)", {
-            "inlet": f"type swirlFlowRateInletVelocity; flowRate constant {q}; rpm constant {c.rpm}; origin (0 0 0); axis (1 0 0); value uniform (0 0 0);",
+            "inlet": inlet_u,
             "outlet": "type inletOutlet; inletValue uniform (0 0 0); value uniform (0 0 0);",
             WALLS: "type noSlip;"}),
         "p": ("volScalarField", "[0 2 -2 0 0 0 0]", "uniform 0", {

@@ -32,7 +32,7 @@ Decided 2026-10-14 (`minimeat-dx8`): **all three printed parts in MJF PA12S-HP, 
 
 - **`duct`:** the hot part gets a 175 °C material. Step up to FDM PEEK only if the tube temperature check (`.2.5`) finds the socket hotter than about 140 °C; PEEK costs about three times as much and is brown only.
 - **`hood` and `pan`:** the same material instead of ASA. One material and one process; the few 1.0-1.2 mm edges JLC's check flagged (the eave, the seam skirt by the vents, the grille's rim) pass MJF's 1.0 mm minimum and would not pass ASA's 1.2; black for UV, grey nylon's weak point (general knowledge, not from JLC's pages). Nylon takes up some water; the fits and screw bosses allow for it.
-- The parts keep their FDM rules (44° overhangs, teardrops, 2.4-2.8 mm walls): harmless on MJF, and they can still be printed on FDM.
+- The parts keep their FDM rules (44° overhangs, teardrops, 2.4-2.8 mm walls): harmless on MJF, and they can still be printed on FDM, except the duct: its stator vanes' cambered undersides (six patches near the leading edges, about 51 mm² each) would need supports inside the contraction. The duct is MJF only.
 - Tolerance is ±0.3 mm either way. The O-ring groove (1.9 mm deep, squeeze 18 % on paper, the test wants 10-30 %) would swing about ±12 % at that tolerance; widen the margin or order the duct with the groove machined if the first seals leak.
 
 ## The threaded-insert service

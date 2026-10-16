@@ -296,18 +296,25 @@ class Mass:
 @dataclass(frozen=True)
 class HubCone:
     """A tail cone printed with the duct, on the fan's motor plate (stationary: part of Noctua's frame, a flat Ø26.5
-    face flush with the outlet), held by radial struts from the contraction's wall (.2.22). It fills the dead zone
+    face flush with the outlet), held by stator vanes from the contraction's wall (.2.22, .2.25). It fills the dead zone
     behind the plate so the annulus runs smoothly into the bore. A starting shape: the CFD tunes it (.2.13)."""
 
     length: float = 27.0  # the tip at the bore's start (Params.cone_len): the annulus' area falls all the way
     exponent: float = 2.0  # radius r0 (1 - t^n): parallel to the axis at the plate, so the flow leaves its edge without a turn
     wall: float = 1.6  # hollow, open toward the fan: MJF is priced by volume and a closed hollow traps powder
-    struts: int = 3  # three locate the cone without over-constraint (no rocking, no built-in stress); less blockage than four
-    strut_clock: float = 0.0  # deg from +z: one straight up, the other two at 120 deg, 30 deg below the horizontal
-    strut_t: float = 2.0  # a strut's section is a symmetric NACA 4-digit airfoil this thick (at 30 % chord): 4.6x the 1.2 mm plate's stiffness across the flow
-    strut_chord: float = 12.0  # its nominal chord along the flow (NACA 0017) ...
-    strut_te: float = 1.2  # ... cut where it thins to this (the printer's thinnest wall, about 70 % chord) and closed by a full round
-    strut_x0: float = 0.0  # the leading edge crosses the axis at the plate and leans 44 deg out (it prints flange down); the section is constant along it
+    # stator vanes from the contraction's wall carry it and take out the fan's swirl (.2.25): the rotor leaves the air
+    # turning with it, a free vortex (r c_theta constant) whose dynamic head is otherwise lost in the tube
+    vanes: int = 6  # turning ~50-70 deg wants a solidity near 1; 6 is co-prime with the rotor's 7 blades (no common tone)
+    vane_clock: float = 0.0  # deg from +z: one straight up, one straight down
+    swirl: float = 18.0  # [est] r c_theta / Q in 1/m: Euler's work (dp = rho omega r c_theta) on the model's line at 0.6-1.0 speed (18-21); it is set by the system's curve, not the speed
+    vane_le: tuple[float, float] = (4.0, 7.0)  # the leading edge behind the plate at the hub and at the wall, mm ...
+    vane_le_bow: float = 2.0  # ... bowed forward this much at mid span (a swept, crescent leading edge)
+    vane_te: tuple[float, float] = (17.0, 26.0)  # the trailing edge at the hub and at the wall
+    vane_t: float = 1.8  # the section: NACA 4-digit thickness on its camber line ...
+    vane_te_t: float = 1.2  # ... cut where it thins to this (the thin-wall limit) and closed round
+    vane_flare: float = 0.9  # extra thickness (times vane_t) where a vane meets the cone and the wall: a fillet's blend ...
+    vane_flare_w: float = 0.12  # ... over this fraction of the span
+    vane_dev: float = 0.23  # Carter's m: the air leaves a cambered vane short of its metal angle by m camber / sqrt(solidity); the vane overturns by that
 
 
 @dataclass(frozen=True)

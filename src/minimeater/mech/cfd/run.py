@@ -33,6 +33,7 @@ TAIL = 500  # iterations averaged for the result (a partly closed flap's wake ne
 CASES = {
     "open": Case(flap_deg=0.0),
     "open-swirl": Case(flap_deg=0.0, rpm=2000.0),
+    "open-vortex": Case(flap_deg=0.0, vortex=18.0),  # the fan's exit swirl, Euler at the model's operating line (docs/cfd.md)
     "flap-30": Case(flap_deg=30.0),
     "flap-45": Case(flap_deg=45.0),
     "flap-60": Case(flap_deg=60.0),
@@ -114,13 +115,16 @@ def main():
     ap.add_argument("--flap", type=float, help="flap angle, deg (0 open)")
     ap.add_argument("--cfm", type=float, help="flow")
     ap.add_argument("--rpm", type=float, help="inlet swirl, rpm")
+    ap.add_argument("--vortex", type=float, help="inlet free-vortex swirl, r c_theta / Q in 1/m")
+    ap.add_argument("--base", type=float, help="background cell, mm (coarser is faster)")
     ap.add_argument("--iterations", type=int)
     ap.add_argument("--np", type=int, default=8, help="MPI ranks (and container CPUs)")
     ap.add_argument("--mem", default="8G", help="container memory")
     ap.add_argument("--out", type=Path, default=Path("build/cfd"))
     a = ap.parse_args()
     c = replace(CASES[a.case], np=a.np)
-    for field, val in (("flap_deg", a.flap), ("cfm", a.cfm), ("rpm", a.rpm), ("iterations", a.iterations)):
+    for field, val in (("flap_deg", a.flap), ("cfm", a.cfm), ("rpm", a.rpm), ("vortex", a.vortex), ("base", a.base),
+                       ("iterations", a.iterations)):
         if val is not None:
             c = replace(c, **{field: val})
     res = run(a.case, c, a.out, a.np, a.mem)
