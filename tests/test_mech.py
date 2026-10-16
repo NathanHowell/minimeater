@@ -220,7 +220,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 735}  # 724 measured: the six stator vanes' cambered undersides near their leading edges, 51-52 mm2 each (308: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
+OVERHANG_AREA_MM2 = {"duct": 695}  # 683 measured: the six stator vanes' cambered undersides near their leading edges, about 45 mm2 each (268: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))
@@ -323,16 +323,17 @@ def test_the_tail_cone_fills_the_fan_hub_and_the_area_falls():
 
 
 def test_the_vanes_meet_the_swirl_and_are_no_thinner_than_the_printer_allows():
-    """Each vane's section is NACA thickness `vane_t` on a camber line, round-nosed and closed round at `vane_te_t` (the
-    thin-wall limit), thicker toward its roots. The camber line leaves the leading edge along the fan's swirl (the rotor
+    """Each vane's section is NACA thickness on a camber line (`vane_t`, thinning from the hub to the wall), round-nosed
+    and closed round at `vane_te_t` (the thin-wall limit), thicker toward its roots. The camber line leaves the leading edge along the fan's swirl (the rotor
     turns -theta about +x) and turns back past axial at the trailing edge."""
     from minimeater.mech.parts import vane_half, vane_section
 
     h = P.hub_cone
     us = [i / 400 for i in range(401)]
     assert vane_half(0.0) == 0.0
-    assert 2 * max(vane_half(u) for u in us) == pytest.approx(h.vane_t, abs=0.01)
-    assert 2 * vane_half(1.0) == pytest.approx(h.vane_te_t, abs=1e-6)
+    for t in h.vane_t:
+        assert 2 * max(vane_half(u, t) for u in us) == pytest.approx(t, abs=0.01)
+        assert 2 * vane_half(1.0, t) == pytest.approx(h.vane_te_t, abs=1e-6)
     for eta in (0.0, 0.5, 1.0):
         sec = vane_section(eta)
         le = min(sec, key=lambda p: p[0])

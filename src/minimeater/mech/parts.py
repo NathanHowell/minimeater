@@ -226,13 +226,14 @@ def vane_passage(x):
     return hub_profile(t), P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
 
 
-def vane_half(u):
+def vane_half(u, t=None):
     """A vane's half thickness at u = 0 (leading edge) .. 1 (the trailing edge's round's centre), before the flare: NACA
-    4-digit on `vane_t`, its chord stretched so it thins to `vane_te_t` at u = 1."""
+    4-digit on thickness t (the hub's `vane_t` by default), its chord stretched so it thins to `vane_te_t` at u = 1."""
     h = P.hub_cone
+    t = h.vane_t[0] if t is None else t
 
     def naca(v):
-        return 5 * h.vane_t * (0.2969 * math.sqrt(v) - 0.1260 * v - 0.3516 * v**2 + 0.2843 * v**3 - 0.1015 * v**4)
+        return 5 * t * (0.2969 * math.sqrt(v) - 0.1260 * v - 0.3516 * v**2 + 0.2843 * v**3 - 0.1015 * v**4)
 
     lo, hi = 0.3, 1.0
     for _ in range(60):
@@ -254,23 +255,33 @@ def vane_section(eta, n=28):
     x0 = g.fan_face_x
     e = min(max(eta, 0.0), 1.0)
     xl = x0 + h.vane_le[0] + (h.vane_le[1] - h.vane_le[0]) * e - h.vane_le_bow * math.sin(math.pi * e)
-    xt = x0 + h.vane_te[0] + (h.vane_te[1] - h.vane_te[0]) * e
     m_fine = 400
-    xs, rs = [], []
-    for i in range(m_fine + 1):
-        x = xl + (xt - xl) * i / m_fine
-        rh, rw = vane_passage(x)
-        xs.append(x)
-        rs.append(rh + eta * (rw - rh))
-    ms = [0.0]
-    for i in range(m_fine):
-        ms.append(ms[-1] + math.hypot(xs[i + 1] - xs[i], rs[i + 1] - rs[i]))
+
+    def line(xt, et):
+        xs, rs = [], []
+        for i in range(m_fine + 1):
+            x = xl + (xt - xl) * i / m_fine
+            rh, rw = vane_passage(x)
+            xs.append(x)
+            rs.append(rh + et * (rw - rh))
+        ms = [0.0]
+        for i in range(m_fine):
+            ms.append(ms[-1] + math.hypot(xs[i + 1] - xs[i], rs[i + 1] - rs[i]))
+        return xs, rs, ms
+
+    def flow(xs, rs, ms):
+        rh, rw = vane_passage(xl)
+        beta = math.atan(h.swirl / 1000 * math.pi * (rw * rw - rh * rh) / rs[0])  # the air's angle from axial at the leading edge
+        pitch = 2 * math.pi * rs[m_fine // 2] / h.vanes
+        return beta, ms[-1] / math.cos(beta / 2) / pitch  # the camber line's length over the pitch
+
+    lo, hi = xl + 4.0, x0 + h.vane_te_max  # the trailing edge: the chord that makes the solidity (at the span inside the walls), within the limit
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if flow(*line(mid, e))[1] < h.vane_solidity else (lo, mid)
+    xs, rs, ms = line(hi, eta)
     big_m = ms[-1]
-    rh, rw = vane_passage(xl)
-    area = math.pi * (rw * rw - rh * rh)
-    beta = math.atan(h.swirl / 1000 * area / rs[0])  # the air's angle from axial at the leading edge
-    pitch = 2 * math.pi * rs[m_fine // 2] / h.vanes
-    sigma = big_m / math.cos(beta / 2) / pitch  # the camber line's length over the pitch
+    beta, sigma = flow(xs, rs, ms)
     dev = h.vane_dev * beta / (math.sqrt(sigma) - h.vane_dev)  # camber = beta + dev, dev = m camber / sqrt(sigma)
     phi0, phi1 = -beta, dev
 
@@ -288,6 +299,7 @@ def vane_section(eta, n=28):
         f = (m - ms[j]) / (ms[j + 1] - ms[j])
         return (xs[j] + f * (xs[j + 1] - xs[j]), rs[j] + f * (rs[j + 1] - rs[j]), th[j] + f * (th[j + 1] - th[j]))
 
+    thick = h.vane_t[0] + (h.vane_t[1] - h.vane_t[0]) * e
     w = h.vane_flare_w
     flare = 1 + h.vane_flare * (math.exp(-((e / w) ** 2)) + math.exp(-(((1 - e) / w) ** 2)))
 
@@ -295,7 +307,7 @@ def vane_section(eta, n=28):
         """The outline at u, `side` (+1 toward +theta, -1 away) of the camber line, offset along its normal."""
         m = u * big_m
         p = phi(u)
-        d = side * vane_half(u) * flare
+        d = side * vane_half(u, thick) * flare
         x, r, _ = at(m - d * math.sin(p))
         _, r_c, t_c = at(m)
         return (x, r, t_c + d * math.cos(p) / r_c)

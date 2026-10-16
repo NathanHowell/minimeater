@@ -309,12 +309,13 @@ class HubCone:
     swirl: float = 18.0  # [est] r c_theta / Q in 1/m: Euler's work (dp = rho omega r c_theta) on the model's line at 0.6-1.0 speed (18-21); it is set by the system's curve, not the speed
     vane_le: tuple[float, float] = (4.0, 7.0)  # the leading edge behind the plate at the hub and at the wall, mm ...
     vane_le_bow: float = 2.0  # ... bowed forward this much at mid span (a swept, crescent leading edge)
-    vane_te: tuple[float, float] = (17.0, 26.0)  # the trailing edge at the hub and at the wall
-    vane_t: float = 1.8  # the section: NACA 4-digit thickness on its camber line ...
+    vane_solidity: float = 1.2  # each section's chord is what makes camber length / pitch this: the pitch grows with the radius, so the chord does, longest at the wall
+    vane_te_max: float = 31.0  # mm behind the plate: no trailing edge past this (the bore's start is 27, the flap's swing 43)
+    vane_t: tuple[float, float] = (2.2, 1.5)  # the section: NACA 4-digit thickness on its camber line, at the hub and at the wall ...
     vane_te_t: float = 1.2  # ... cut where it thins to this (the thin-wall limit) and closed round
     vane_flare: float = 0.9  # extra thickness (times vane_t) where a vane meets the cone and the wall: a fillet's blend ...
     vane_flare_w: float = 0.12  # ... over this fraction of the span
-    vane_dev: float = 0.23  # Carter's m: the air leaves a cambered vane short of its metal angle by m camber / sqrt(solidity); the vane overturns by that
+    vane_dev: float = 0.28  # (0.23 left 9 % of the swirl, with the rotor) Carter's m: the air leaves a cambered vane short of its metal angle by m camber / sqrt(solidity); the vane overturns by that
 
 
 @dataclass(frozen=True)
