@@ -221,7 +221,7 @@ class Layout:
     board_x1: float = -24.5  # board's front edge: under the socket flare's first mm, clear of the shells' front cone
     straight_over: float = 2.5  # the board's rear edge may sit this far into the cone (its outer r grows 0.5/mm): 1.0 for the parts, plus Pcb.usb_end, where only the USB-C stands
     x_front: float = -11.0  # the front face: the socket's last 11 mm and its extension are outside
-    rear_gap: float = 4.5  # fan's rear face to the rear wall's inner face: the fan screw heads and the inlet
+    rear_gap: float = 14.5  # fan's rear face to the rear wall's inner face: the plenum in front of the rotor. The grille CFD (cfd/grille.py, docs/cfd.md) leaves the fan 2.9 Pa of its 12.0 at 4.5 mm, 6.7 at 14.5, 7.4 at 24.5: the knee
     front_screw_x: float = -18.0  # the front shell screws, in the shells' thick front zone
     slope: float = 1.0355  # run per rise of every designed overhang: 44 degrees, inside the 45 the printer allows
 
@@ -301,6 +301,7 @@ class HubCone:
 
     length: float = 27.0  # the tip at the bore's start (Params.cone_len): the annulus' area falls all the way
     exponent: float = 2.0  # radius r0 (1 - t^n): parallel to the axis at the plate, so the flow leaves its edge without a turn
+    tail: float = 1.0  # ... to the power b: 1 ends in a point (44 deg at n = 2), above 1 the tail runs into the axis tangent (a cusp)
     wall: float = 1.6  # hollow, open toward the fan: MJF is priced by volume and a closed hollow traps powder
     # stator vanes from the contraction's wall carry it and take out the fan's swirl (.2.25): the rotor leaves the air
     # turning with it, a free vortex (r c_theta constant) whose dynamic head is otherwise lost in the tube
@@ -338,6 +339,7 @@ class Params:
     hub_cone: HubCone = field(default_factory=HubCone)
     mass: Mass = field(default_factory=Mass)
     cone_len: float = 27.0
+    contraction: str = "cone"  # the airway's wall from the fan's bore to the duct's: "cone" (straight, a corner at each end), "cubic" or "quintic" (smoothstep, smootherstep: tangent to both)
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 
 

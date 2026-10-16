@@ -12,6 +12,7 @@ from build123d import (
     Align,
     Axis,
     Box,
+    Circle,
     Cone,
     Cylinder,
     Edge,
@@ -215,15 +216,45 @@ def stop_posts():
 def hub_profile(t):
     """The tail cone's radius at t = 0 (the fan's plate) .. 1 (the tip)."""
     h = P.hub_cone
-    return P.fan.hub_d / 2 * (1 - t**h.exponent)
+    return P.fan.hub_d / 2 * max(1 - t**h.exponent, 0.0) ** h.tail
+
+
+def wall_r(x):
+    """The contraction's wall at x, from the fan's bore at its outlet face to the duct's bore (`P.contraction`)."""
+    t = min(max((x - g.fan_face_x) / (g.straight_x0 - g.fan_face_x), 0.0), 1.0)
+    f = {"cone": t, "cubic": t * t * (3 - 2 * t), "quintic": smootherstep(t)}[P.contraction]
+    return P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
+
+
+def contraction(offset=0.0, x0=None, x1=None):
+    """The solid of revolution inside the contraction's wall pushed out by `offset`, from x0 to x1 (default the fan's
+    face to the bore's start); a cone, or a loft through circles on the curved wall (a revolved spline, run into the
+    bore's cylinder tangent, failed OCC's booleans)."""
+    x0 = g.fan_face_x if x0 is None else x0
+    x1 = g.straight_x0 if x1 is None else x1
+    if P.contraction == "cone":
+        return xcone(wall_r(x0) + offset, wall_r(x1) + offset, x0, x1)
+    n = 16
+    return loft([Plane.YZ.offset(x) * Circle(wall_r(x) + offset) for x in (x0 + (x1 - x0) * i / n for i in range(n + 1))])
+
+
+def airway(offset=0.0, x0=None, x1=None):
+    """The airway pushed out by `offset` from x0 to x1: the fan's bore before its face, the contraction, the duct's bore
+    after it. The pieces butt end to end: overlapped, a curved wall's tangent run into the cylinder fails the booleans."""
+    xa, xb = g.fan_face_x, g.straight_x0
+    out = contraction(offset, max(x0, xa), min(x1, xb))
+    if x0 < xa:
+        out += xcyl(P.fan.aperture_d / 2 + offset, x0, xa)
+    if x1 > xb:
+        out += xcyl(g.bore_r + offset, xb, x1)
+    return out
 
 
 def vane_passage(x):
     """The air's annulus at x between the tail cone and the contraction's wall: (r_hub, r_wall)."""
     h, x0 = P.hub_cone, g.fan_face_x
     t = min(max((x - x0) / h.length, 0.0), 1.0)
-    f = min(max((x - x0) / (g.straight_x0 - x0), 0.0), 1.0)
-    return hub_profile(t), P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
+    return hub_profile(t), wall_r(x)
 
 
 def _interp(x, knots):
@@ -363,7 +394,8 @@ def hub_cone(solid=False):
     Hollow and open toward the fan unless `solid` (the CFD's air volume wants the outside only)."""
     h, x0, n = P.hub_cone, g.fan_face_x, 80
     outer = [(x0 + h.length * i / n, hub_profile(i / n)) for i in range(n + 1)]
-    outer = [p for p in outer if p[1] >= 0.3]  # the point ends in a 0.6 mm flat: a surface that closes on the axis meshes open
+    tip = 0.3 if h.tail <= 1 else 0.75  # the point ends in a flat: a surface that closes on the axis meshes open; a cusp's needle is cut at Ø1.5 (MJF)
+    outer = [p for p in outer if p[1] >= tip]
     body = revolve(make_face(Plane.XZ * Polyline((x0, 0.0), *outer, (outer[-1][0], 0.0), close=True)), Axis.X, 360)
     if not solid:
         # the inside: the outer profile offset `wall` along its normal, closed on the axis where it runs out
@@ -376,13 +408,13 @@ def hub_cone(solid=False):
                 break
             inner.append((x, r))
         void = revolve(make_face(Plane.XZ * Polyline((x0 - 0.01, 0.0), (x0 - 0.01, inner[0][1]), *inner, (inner[-1][0], 0.0), close=True)), Axis.X, 360)  # a flat end, as the outside
-        body -= void
-    # the vanes, from inside the cone's shell out into the contraction's wall
-    wall = xcone(P.fan.aperture_d / 2 + 0.5, g.bore_r + 0.5, x0, g.straight_x0) + xcyl(g.bore_r + 0.5, g.straight_x0 - 0.01, g.straight_x0 + 10.0)
+    # the vanes, from inside the cone out into the contraction's wall
+    wall = airway(0.5, g.fan_face_x, g.straight_x0 + 10.0)
     one = vane() & wall
     for i in range(h.vanes):
-        v = Rot(h.vane_clock + 360 * i / h.vanes, 0, 0) * one
-        body += v if solid else v - void  # from the cone's shell out, not across the cup
+        body += Rot(h.vane_clock + 360 * i / h.vanes, 0, 0) * one
+    if not solid:
+        body -= void  # once, after the vanes: their roots go no further than the cone's shell (cut one by one, a thin tail's slivers left it invalid)
     return body
 
 
@@ -398,6 +430,7 @@ def duct():
     flange = flange.fillet(g.flange_r, flange.edges().filter_by(Axis.X))
     outer = flange
     outer += xcone(w / 2, dr, g.fan_face_x + g.flange_t, g.straight_x0)
+    outer += airway(dr - br, g.fan_face_x + g.flange_t - 0.5, g.straight_x0)  # a curved wall keeps the bore's 2.2 mm under the cone
     k = P.layout.slope
     flare = (c.od / 2 - dr) * k  # the socket's step, at 44 degrees: it prints flange down
     outer += xcyl(dr, g.straight_x0, g.socket_x0 - flare + 0.01)
@@ -416,9 +449,8 @@ def duct():
     body = outer + servo_shelf() + stop_posts()
 
     # the airway and the features cut into the walls
-    body -= xcone(P.fan.aperture_d / 2, br, g.fan_face_x - 0.1, g.straight_x0)
     x_neck = g.socket_x0 - c.neck_len
-    body -= xcyl(br, g.straight_x0 - 0.01, x_neck + 0.01)
+    body -= airway(0.0, g.fan_face_x - 0.1, x_neck + 0.01)
     body -= xcone(br, P.tube.id / 2, x_neck, g.socket_x0 + 0.01)  # the neck down to the tube's bore
     body -= socket_loft()  # it stops at the flat shoulder the tube's end face sits on
     body -= xcyl(sock_r(), g.socket_x0 - 0.5, g.socket_x0 + 0.01) - xcyl(P.tube.od / 2 - c.seat_relief, g.socket_x0 - 1, g.socket_x0 + 1)  # the seat's corner relief

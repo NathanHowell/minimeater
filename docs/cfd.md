@@ -105,6 +105,10 @@ first 10 mm give back 3.8 Pa, the next 20 only 1.6 more. The S-louvre concept is
 and hub cover crowd the rotor's inflow. The mesh is coarse (grille level 2) and steady MRF of a fan near stall is the
 weakest part of these models, so take the trend, not the numbers.
 
+The gap is now 14.5 mm (`Layout.rear_gap`, `.2.28`). Run with the shells' own shim blocks and the four Ø4 rest pads
+standing in the plenum (`gap` 0 at the new rear_gap), the fan keeps 7.3 Pa static (15.6 total), the intake at 60° with
+23 % backflow: the pads, out at r 34 in the frame's corners, cost nothing measurable.
+
 ## Acoustics: `uv run minimeater-acoustics`
 
 `acoustics.py`: below the bore's first cross mode (6.3 kHz) only plane waves travel, so the path is a chain of transfer

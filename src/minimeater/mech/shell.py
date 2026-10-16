@@ -278,7 +278,7 @@ def drip_lip():
 
 FRONT_BOSS = (P.layout.front_screw_x, 28.0)
 REAR_BOSS = (G.REAR_IN_X + P.layout.rear_gap / 2, S.rear_screw_y)
-REAR_BOSS_D = 4.5  # M2: the fan's rear gap (4.5) sets it; the column stands in the fan shim block, so the channel's sleeve is the block
+REAR_BOSS_D = 4.5  # M2; the column stands in the fan shim block, so the channel's sleeve is the block
 LAP = 1.2  # the rear wall's lip at the parting plane
 
 

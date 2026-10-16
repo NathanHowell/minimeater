@@ -85,7 +85,10 @@ def wall(c: GrilleCase):
     x2 = G.g.fan_face_x - 1.0  # into fan.seal, which carries the walls on as the pipe's
     hole = extrude(Pos(x1 - c.gap - 0.3 - sec.center().X, 0, 0) * sec, x2 + 1 - (x1 - c.gap - 0.3), dir=(1, 0, 0))
     sleeve = box(x1 - c.gap - 0.3, x2, -HALF - 1, HALF + 1, -HALF - 1, HALF + 1) - hole
-    return plate + sleeve
+    out = plate + sleeve
+    if c.gap == 0:  # what stands in the plenum as the shells draw it: the fan's shim blocks and its four rest pads
+        out = out + shell.fan_shims() + shell.rear_bumps()
+    return out
 
 
 PATCHES = ("inlet", "outlet", "frame", "rotor", "pipe", "walls")

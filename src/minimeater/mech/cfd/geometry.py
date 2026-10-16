@@ -15,7 +15,7 @@ from .. import mock
 from ..assembly import about_shaft
 from ..geom import g
 from ..params import P
-from ..parts import flap, hub_cone, xcone, xcyl
+from ..parts import airway, flap, hub_cone, xcone, xcyl
 
 FAN_STUB = 5.0  # the fan's outlet annulus ahead of its face: the hub's wake starts at the face
 
@@ -42,10 +42,8 @@ def stations(tube_d: float) -> Stations:
 def fluid(flap_deg: float, tube_d: float, dm=None):
     """The air volume with the flap at `flap_deg` (0 open, 90 closed); `dm` a variant of the damper's parameters (variants.py)."""
     s = stations(tube_d)
-    air = xcyl(s.r_fan, s.x_in, s.x_fan + 0.01) - xcyl(s.r_hub, s.x_in - 1, s.x_fan)
-    air += xcone(s.r_fan, s.r_bore, s.x_fan, s.x_bore)
     x_neck = s.x_tube - P.coupling.neck_len
-    air += xcyl(s.r_bore, s.x_bore - 0.01, x_neck + 0.01)
+    air = airway(0.0, s.x_in, x_neck + 0.01) - xcyl(s.r_hub, s.x_in - 1, s.x_fan)
     air += xcone(s.r_bore, s.r_tube, x_neck, s.x_tube + 0.01)
     air += xcyl(s.r_tube, s.x_tube - 0.01, s.x_out)
     air -= hub_cone(solid=True)  # the tail cone on the fan's plate and its struts
