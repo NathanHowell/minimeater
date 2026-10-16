@@ -7,7 +7,10 @@ unit on its own. The shells (shell.py) go around it.
 import functools
 import math
 
-from OCP.BRepOffsetAPI import BRepOffsetAPI_ThruSections
+from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeSolid, BRepBuilderAPI_Sewing
+from OCP.TopAbs import TopAbs_SHELL
+from OCP.TopExp import TopExp_Explorer
+from OCP.TopoDS import TopoDS
 from build123d import (
     Align,
     Axis,
@@ -213,40 +216,36 @@ def stop_posts():
     return open_post + closed_post
 
 
+def bernstein(c, t):
+    """The polynomial with Bernstein coefficients c at t in 0..1 (clamped)."""
+    t = min(max(t, 0.0), 1.0)
+    n = len(c) - 1
+    return sum(ci * math.comb(n, i) * t**i * (1 - t) ** (n - i) for i, ci in enumerate(c))
+
+
 def hub_profile(t):
     """The tail cone's radius at t = 0 (the fan's plate) .. 1 (the tip)."""
-    h = P.hub_cone
-    return P.fan.hub_d / 2 * max(1 - t**h.exponent, 0.0) ** h.tail
+    return max(bernstein(P.hub_cone.profile, t), 0.0)
 
 
 def wall_r(x):
-    """The contraction's wall at x, from the fan's bore at its outlet face to the duct's bore (`P.contraction`)."""
-    t = min(max((x - g.fan_face_x) / (g.straight_x0 - g.fan_face_x), 0.0), 1.0)
-    f = {"cone": t, "cubic": t * t * (3 - 2 * t), "quintic": smootherstep(t)}[P.contraction]
-    return P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
-
-
-def contraction(offset=0.0, x0=None, x1=None):
-    """The solid of revolution inside the contraction's wall pushed out by `offset`, from x0 to x1 (default the fan's
-    face to the bore's start); a cone, or a loft through circles on the curved wall (a revolved spline, run into the
-    bore's cylinder tangent, failed OCC's booleans)."""
-    x0 = g.fan_face_x if x0 is None else x0
-    x1 = g.straight_x0 if x1 is None else x1
-    if P.contraction == "cone":
-        return xcone(wall_r(x0) + offset, wall_r(x1) + offset, x0, x1)
-    n = 16
-    return loft([Plane.YZ.offset(x) * Circle(wall_r(x) + offset) for x in (x0 + (x1 - x0) * i / n for i in range(n + 1))])
+    """The airway's wall at x: the fan's bore before its face, the contraction (`P.contraction`), the duct's bore after."""
+    return bernstein(P.contraction, (x - g.fan_face_x) / (g.straight_x0 - g.fan_face_x))
 
 
 def airway(offset=0.0, x0=None, x1=None):
-    """The airway pushed out by `offset` from x0 to x1: the fan's bore before its face, the contraction, the duct's bore
-    after it. The pieces butt end to end: overlapped, a curved wall's tangent run into the cylinder fails the booleans."""
+    """The airway pushed out by `offset` from x0 to x1: the fan's bore before its face, the contraction (a loft of
+    circles on the wall's curve: within 2 um of it, where a revolved spline meshed for half an hour in OCC), the duct's
+    bore after it. The pieces butt end to end: overlapped, the curved wall's tangent run into a cylinder failed the
+    booleans."""
     xa, xb = g.fan_face_x, g.straight_x0
-    out = contraction(offset, max(x0, xa), min(x1, xb))
+    lo, hi = max(x0, xa), min(x1, xb)
+    n = 16
+    out = loft([Plane.YZ.offset(x) * Circle(wall_r(x) + offset) for x in (lo + (hi - lo) * i / n for i in range(n + 1))])
     if x0 < xa:
-        out += xcyl(P.fan.aperture_d / 2 + offset, x0, xa)
+        out = xcyl(P.fan.aperture_d / 2 + offset, x0, xa) + out
     if x1 > xb:
-        out += xcyl(g.bore_r + offset, xb, x1)
+        out = out + xcyl(g.bore_r + offset, xb, x1)
     return out
 
 
@@ -271,11 +270,12 @@ def _interp(x, knots):
     return total
 
 
-def vane_half(u, t=None):
-    """A vane's half thickness at u = 0 (leading edge) .. 1 (the trailing edge's round's centre), before the flare: NACA
-    4-digit on thickness t (the hub's `vane_t` by default), its chord stretched so it thins to `vane_te_t` at u = 1."""
+def vane_half(u, t=None, te=None):
+    """A vane's half thickness at u = 0 (leading edge) .. 1 (the trailing edge's round's centre): NACA 4-digit on
+    thickness t (the hub's `vane_t` by default), its chord stretched so it thins to te (`vane_te_t`) at u = 1."""
     h = P.hub_cone
     t = h.vane_t[0] if t is None else t
+    te = h.vane_te_t if te is None else te
 
     def naca(v):
         return 5 * t * (0.2969 * math.sqrt(v) - 0.1260 * v - 0.3516 * v**2 + 0.2843 * v**3 - 0.1015 * v**4)
@@ -283,8 +283,19 @@ def vane_half(u, t=None):
     lo, hi = 0.3, 1.0
     for _ in range(60):
         mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if naca(mid) > h.vane_te_t / 2 else (lo, mid)
+        lo, hi = (mid, hi) if naca(mid) > te / 2 else (lo, mid)
     return naca(u * lo)
+
+
+def vane_fillet(s):
+    """The root fillet's added half-thickness at s mm from the wall: R (1 - s/R)^2 over 0..R, none beyond; inside the
+    wall (buried) carried on with its slope past the wall's 0.5 mm trim, then held (offset further, the outline folds)."""
+    R = P.hub_cone.vane_fillet
+    if s >= R:
+        return 0.0
+    if s >= 0:
+        return R * (1 - s / R) ** 2
+    return R + 2 * min(-s, 0.6)
 
 
 @functools.cache
@@ -325,6 +336,7 @@ def vane_section(eta, n=28):
         lo, hi = (mid, hi) if flow(*line(mid, e))[1] < h.vane_solidity else (lo, mid)
     xs, rs, ms = line(hi, eta)
     big_m = ms[-1]
+    hs = [vane_passage(x)[1] - vane_passage(x)[0] for x in xs]  # the passage's height along the section
     beta, sigma = flow(xs, rs, ms)
     dev = h.vane_dev * beta / (math.sqrt(sigma) - h.vane_dev)  # camber = beta + dev, dev = m camber / sqrt(sigma)
     phi0, phi1 = -beta, dev
@@ -344,14 +356,19 @@ def vane_section(eta, n=28):
         return (xs[j] + f * (xs[j + 1] - xs[j]), rs[j] + f * (rs[j + 1] - rs[j]), th[j] + f * (th[j + 1] - th[j]))
 
     thick = h.vane_t[0] + (h.vane_t[1] - h.vane_t[0]) * e
-    w = h.vane_flare_w
-    flare = 1 + h.vane_flare * (math.exp(-((e / w) ** 2)) + math.exp(-(((1 - e) / w) ** 2)))
+
+    def fil(m):
+        """The fillet's added half-thickness at meridional m: by the mm from the nearer wall there."""
+        j = min(max(int(m / big_m * m_fine), 0), m_fine)
+        return vane_fillet(min(eta, 1 - eta) * hs[j])
 
     def point(u, side):
-        """The outline at u, `side` (+1 toward +theta, -1 away) of the camber line, offset along its normal."""
+        """The outline at u, `side` (+1 toward +theta, -1 away) of the camber line, offset along its normal: NACA on the
+        filleted thickness (its round nose at any t), thinning to the filleted trailing edge's round."""
         m = u * big_m
         p = phi(u)
-        d = side * vane_half(u, thick) * flare
+        f = fil(m)
+        d = side * vane_half(u, thick + 2 * f, h.vane_te_t + 2 * f)
         x, r, _ = at(m - d * math.sin(p))
         _, r_c, t_c = at(m)
         return (x, r, t_c + d * math.cos(p) / r_c)
@@ -359,7 +376,7 @@ def vane_section(eta, n=28):
     us = [(1 - math.cos(math.pi * i / n)) / 2 for i in range(n + 1)]  # dense at both ends
     upper = [point(u, 1) for u in reversed(us)]  # trailing edge -> leading edge
     lower = [point(u, -1) for u in us[1:]]  # leading edge -> trailing edge
-    rt = h.vane_te_t / 2 * flare
+    rt = h.vane_te_t / 2 + fil(big_m)
     xe, re, te = at(big_m)
     cap = []
     for j in range(1, 8):  # round the trailing edge from the lower side to the upper
@@ -372,20 +389,31 @@ def vane_section(eta, n=28):
     return upper + lower + cap
 
 
-def vane(eta0=-0.18, eta1=1.18, k=15):
-    """One stator vane at clock 0 (+z): sections from inside the cone to inside the wall, lofted smooth. The ends are
-    not plane, so the loft is a skin closed by filled caps (both buried in the cone and the wall)."""
-    wires = []
-    for i in range(k):
-        eta = eta0 + (eta1 - eta0) * i / (k - 1)
-        pts = [(x, -r * math.sin(t), r * math.cos(t)) for x, r, t in vane_section(round(eta, 6))]
-        wires.append(Wire([Edge.make_spline(pts, periodic=True)]))
-    skin = BRepOffsetAPI_ThruSections(False, False)
-    for w in wires:
-        skin.AddWire(w.wrapped)
-    skin.CheckCompatibility(False)  # the sections are built point for point; OCC's own matching twists them
-    skin.Build()
-    return Solid(Shell(Shape.cast(skin.Shape()).faces() + [Face.make_surface(wires[0]), Face.make_surface(wires[-1])]))
+def vane_etas():
+    """The span stations: clustered through the fillets at both ends (0.02-0.04 apart), 0.08 across the middle, and on
+    past both walls into the buried ends."""
+    ends = [-0.18, -0.12, -0.06, 0.0, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.2]
+    return ends + [0.25 + i / 12 for i in range(7)] + [1 - v for v in reversed(ends)]
+
+
+def vane():
+    """One stator vane at clock 0 (+z): one B-spline surface through the grid of its sections (rows the span stations,
+    columns the same chord stations round every section, so no matching is left to the loft: lofted section to section
+    the leading edges twisted and nicked), closed round at the trailing edge's seam, capped at both buried ends and
+    sewn to a solid."""
+    rows = []
+    for eta in vane_etas():
+        pts = [(x, -r * math.sin(t), r * math.cos(t)) for x, r, t in vane_section(round(eta, 6), 40)]
+        rows.append(pts + [pts[0]])
+    skin = Face.make_surface_from_array_of_points(rows, tol=0.005, max_deg=3)
+    ends = sorted(skin.edges(), key=lambda e: e.length)[-2:]  # the first and last sections: the long boundary edges
+    sew = BRepBuilderAPI_Sewing(1e-3)
+    for f in [skin, *(Face.make_surface(Wire([e])) for e in ends)]:
+        sew.Add(f.wrapped)
+    sew.Perform()
+    shell = TopoDS.Shell(TopExp_Explorer(sew.SewedShape(), TopAbs_SHELL).Current())
+    s = Solid(BRepBuilderAPI_MakeSolid(shell).Solid())
+    return s if s.volume > 0 else Solid(s.wrapped.Reversed())
 
 
 @disk_cache
@@ -394,9 +422,11 @@ def hub_cone(solid=False):
     Hollow and open toward the fan unless `solid` (the CFD's air volume wants the outside only)."""
     h, x0, n = P.hub_cone, g.fan_face_x, 80
     outer = [(x0 + h.length * i / n, hub_profile(i / n)) for i in range(n + 1)]
-    tip = 0.3 if h.tail <= 1 else 0.75  # the point ends in a flat: a surface that closes on the axis meshes open; a cusp's needle is cut at Ø1.5 (MJF)
-    outer = [p for p in outer if p[1] >= tip]
-    body = revolve(make_face(Plane.XZ * Polyline((x0, 0.0), *outer, (outer[-1][0], 0.0), close=True)), Axis.X, 360)
+    outer = [p for p in outer if p[1] >= 0.6]  # the point ends in a Ø1.2 flat: a surface that closes on the axis meshes open
+    xe, re = outer[-1]
+    prof = [Edge.make_spline([(x, 0, r) for x, r in outer]),
+            Edge.make_line((xe, 0, re), (xe, 0, 0)), Edge.make_line((xe, 0, 0), (x0, 0, 0)), Edge.make_line((x0, 0, 0), (x0, 0, outer[0][1]))]
+    body = revolve(Face(Wire(prof)), Axis.X, 360)
     if not solid:
         # the inside: the outer profile offset `wall` along its normal, closed on the axis where it runs out
         inner = []
@@ -430,7 +460,7 @@ def duct():
     flange = flange.fillet(g.flange_r, flange.edges().filter_by(Axis.X))
     outer = flange
     outer += xcone(w / 2, dr, g.fan_face_x + g.flange_t, g.straight_x0)
-    outer += airway(dr - br, g.fan_face_x + g.flange_t - 0.5, g.straight_x0)  # a curved wall keeps the bore's 2.2 mm under the cone
+    outer += airway(dr - br, g.fan_face_x + g.flange_t - 0.5, g.straight_x0 + 1.0)  # a curved wall keeps the bore's 2.2 mm under the cone
     k = P.layout.slope
     flare = (c.od / 2 - dr) * k  # the socket's step, at 44 degrees: it prints flange down
     outer += xcyl(dr, g.straight_x0, g.socket_x0 - flare + 0.01)

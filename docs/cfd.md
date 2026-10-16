@@ -64,6 +64,11 @@ swirl, turning 66-79° at the vanes' leading edges), the solidity-1.2 vanes draw
 lose 16.1 Pa, with 24° and 2.8 Pa of swirl head in the bore and 0.26 Pa in the tube. Most of the angle left in the
 bore is the hub and the tip turned in opposite senses (mean c_θ about 0), not net swirl.
 
+The inlet redrawn as a designed pair of curves (the contraction's wall tangent to both bores and a tail cone closing at
+18°, `cfd/inlet.py`, docs/mech.md) loses 16.07 Pa on the same profile inlet, with 22.7° and 2.6 Pa of swirl head in
+the bore: the same as the straight cone. The vanes rebuilt as one fitted surface with a millimetre root fillet
+(`vane_fillet`) on it: 16.21 Pa, the same within the coarse mesh's noise (0.22 Pa of swirl head in the tube either way).
+
 The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 1.26 without the grille. The duct
 does not need a change for its loss. The 45° figure is inside the range published for butterfly valves (about 10-18). With the flap partly closed the
 tube's friction reads high (0.043-0.050): the wake has not died out by the fitted planes, so those k carry some of the

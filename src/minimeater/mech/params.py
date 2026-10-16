@@ -300,8 +300,11 @@ class HubCone:
     behind the plate so the annulus runs smoothly into the bore. A starting shape: the CFD tunes it (.2.13)."""
 
     length: float = 27.0  # the tip at the bore's start (Params.cone_len): the annulus' area falls all the way
-    exponent: float = 2.0  # radius r0 (1 - t^n): parallel to the axis at the plate, so the flow leaves its edge without a turn
-    tail: float = 1.0  # ... to the power b: 1 ends in a point (44 deg at n = 2), above 1 the tail runs into the axis tangent (a cusp)
+    # the tail cone's radius by t = 0 (the plate) .. 1 (the tip), Bernstein coefficients (degree 7), mm: flat at the plate,
+    # an 18 deg tip. With the wall's (Params.contraction) it is the pair that makes the mean speed rise most evenly through
+    # the contraction (least squares of dU/dx, with curvature penalties, the annulus never widening; cfd/inlet.py):
+    # r0 (1 - t^2) closed at 44 deg at the bore's start, the air's acceleration peaking there at 2.6x the even rate; this, 1.25x
+    profile: tuple = (13.25, 13.25, 12.794, 11.412, 6.999, 3.56, 1.253, 0.0)
     wall: float = 1.6  # hollow, open toward the fan: MJF is priced by volume and a closed hollow traps powder
     # stator vanes from the contraction's wall carry it and take out the fan's swirl (.2.25): the rotor leaves the air
     # turning with it, a free vortex (r c_theta constant) whose dynamic head is otherwise lost in the tube
@@ -319,8 +322,7 @@ class HubCone:
     vane_te_max: float = 31.0  # mm behind the plate: no trailing edge past this (the bore's start is 27, the flap's swing 43)
     vane_t: tuple[float, float] = (2.2, 1.5)  # the section: NACA 4-digit thickness on its camber line, at the hub and at the wall ...
     vane_te_t: float = 1.2  # ... cut where it thins to this (the thin-wall limit) and closed round
-    vane_flare: float = 0.9  # extra thickness (times vane_t) where a vane meets the cone and the wall: a fillet's blend ...
-    vane_flare_w: float = 0.12  # ... over this fraction of the span
+    vane_fillet: float = 1.0  # mm: the root fillet into the cone and the wall, as added half-thickness R (1 - s/R)^2 at s mm from the wall (C1 at s = R, 63 deg to the wall at s = 0), the trailing edge's round grown with it
     vane_dev: float = 0.28  # (0.23 left 9 % of the swirl, with the rotor) Carter's m: the air leaves a cambered vane short of its metal angle by m camber / sqrt(solidity); the vane overturns by that
 
 
@@ -339,7 +341,9 @@ class Params:
     hub_cone: HubCone = field(default_factory=HubCone)
     mass: Mass = field(default_factory=Mass)
     cone_len: float = 27.0
-    contraction: str = "cone"  # the airway's wall from the fan's bore to the duct's: "cone" (straight, a corner at each end), "cubic" or "quintic" (smoothstep, smootherstep: tangent to both)
+    # the contraction's wall from the fan's bore (r 29) to the duct's (16) over the fan's face .. the bore's start, Bernstein
+    # coefficients (degree 7), mm: tangent to both bores; the tail cone's pair (HubCone.profile). Was a straight cone, a corner at each end
+    contraction: tuple = (29.0, 29.0, 25.498, 23.19, 18.475, 18.542, 16.0, 16.0)
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 
 
