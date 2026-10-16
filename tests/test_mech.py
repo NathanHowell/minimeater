@@ -220,7 +220,7 @@ def test_the_one_sided_flap_variant_is_a_valid_solid(monkeypatch):
 
 # Overhang inventory: faces steeper than 45 degrees off vertical, in the print pose. What is left must be
 # short bridges and small holes. A new patch or a bigger total means a change that needs a printing look.
-OVERHANG_AREA_MM2 = {"duct": 695}  # 683 measured: the six stator vanes' cambered undersides near their leading edges, about 45 mm2 each (268: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
+OVERHANG_AREA_MM2 = {"duct": 1090}  # 1076 measured: the six stator vanes' cambered undersides near their leading edges, about 110 mm2 each (they wrap 41-53 deg for the fan's measured 66-79 deg inflow; was 45 each at 25-43 deg; about 660: MJF only, which needs no supports; on FDM they would need supports inside the contraction), + 415 with the thumbscrew boss gone (its underside and hole rims were about 60): 340 - those + the 1.2 mm land at the shelf's rear end (27 mm2) + the front servo block's face toward the body (12 x 7 = 84 mm2, a bridge as short as it is deep) + the stop posts' ends toward the rod (two 3 mm bridges, about 8 mm2)
 
 
 @pytest.mark.parametrize("name", list(PARTS))

@@ -58,6 +58,12 @@ With the fan's swirl the vanes take out 91 % of the angular momentum and save 11
 plain duct without swirl. Their cost when the air arrives straight (+3.9 Pa over the struts) is the risk if the real
 swirl is much less than the floor; the fan's own rotor in a rotating frame (`cfd/fan.py`) checks it.
 
+With the fan's own exit as the inlet (`--profile`, from `cfd/fan.py` below, scaled to 6 CFM: about twice the floor's
+swirl, turning 66-79° at the vanes' leading edges), the solidity-1.2 vanes drawn for the free vortex lose 16.9 Pa
+(26° and 3.5 Pa of swirl head left in the bore). The vanes redrawn for that inflow (`HubCone.vane_beta`, solidity 1.3)
+lose 16.1 Pa, with 24° and 2.8 Pa of swirl head in the bore and 0.26 Pa in the tube. Most of the angle left in the
+bore is the hub and the tip turned in opposite senses (mean c_θ about 0), not net swirl.
+
 The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 1.26 without the grille. The duct
 does not need a change for its loss. The 45° figure is inside the range published for butterfly valves (about 10-18). With the flap partly closed the
 tube's friction reads high (0.043-0.050): the wake has not died out by the fitted planes, so those k carry some of the
@@ -87,12 +93,15 @@ the fan. The gap is added to `rear_gap` (4.5 mm); the S-louvre is the concept in
 |---|---|---|---|---|
 | none (fan.py) | | 12.0 Pa | | |
 | current straight louvres | 0 | 2.9 Pa | 66° | 26 % |
+| current straight louvres | 5 mm | 5.0 Pa | 68° | 35 % |
 | current straight louvres | 10 mm | 6.7 Pa | 62° | 24 % |
+| current straight louvres | 20 mm | 7.4 Pa | 60° | 21 % |
+| current straight louvres | 30 mm | 8.3 Pa | 60° | 22 % |
 | S-louvre concept | 5 mm | 1.1 Pa | 68° | 33 % |
 | S-louvre concept | 10 mm | 4.0 Pa | 62° | 23 % |
 
-The wall and the 4.5 mm gap cost the fan about three quarters of its static rise, and the gap is what matters: every
-10 mm gives back about 4 Pa. The S-louvre concept is worse than the straight louvres at the same gap; its deep field
+The wall and the 4.5 mm gap cost the fan about three quarters of its static rise, and the gap is what matters: the
+first 10 mm give back 3.8 Pa, the next 20 only 1.6 more. The S-louvre concept is worse than the straight louvres at the same gap; its deep field
 and hub cover crowd the rotor's inflow. The mesh is coarse (grille level 2) and steady MRF of a fan near stall is the
 weakest part of these models, so take the trend, not the numbers.
 

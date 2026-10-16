@@ -306,10 +306,15 @@ class HubCone:
     # turning with it, a free vortex (r c_theta constant) whose dynamic head is otherwise lost in the tube
     vanes: int = 6  # turning ~50-70 deg wants a solidity near 1; 6 is co-prime with the rotor's 7 blades (no common tone)
     vane_clock: float = 0.0  # deg from +z: one straight up, one straight down
-    swirl: float = 18.0  # [est] r c_theta / Q in 1/m: Euler's work (dp = rho omega r c_theta) on the model's line at 0.6-1.0 speed (18-21); it is set by the system's curve, not the speed
+    swirl: float = 18.0  # Euler's floor, r c_theta / Q in 1/m on the model's line (dp = rho omega r c_theta): the CFD's free-vortex inlet. The fan's own (MRF, cfd/fan.py) is about 39, flux-weighted
+    # the air's angle from axial at the leading edge by span (0 the cone, 1 the wall), deg: the duct CFD on the fan's measured
+    # exit profile (cfd/fan.py at 4.2 CFM, 3000 rpm, near stall: the flow leaves through the outer third, turning hard),
+    # 66-79 deg over r 14-28 at 2 mm behind the face: the least-squares cubic through those, by these four points (the
+    # wall's eased 2 deg toward the last bin); within 3.5 deg of every bin
+    vane_beta: tuple = ((0.0, 71.8), (1 / 3, 75.3), (2 / 3, 66.8), (1.0, 72.0))
     vane_le: tuple[float, float] = (4.0, 7.0)  # the leading edge behind the plate at the hub and at the wall, mm ...
     vane_le_bow: float = 2.0  # ... bowed forward this much at mid span (a swept, crescent leading edge)
-    vane_solidity: float = 1.2  # each section's chord is what makes camber length / pitch this: the pitch grows with the radius, so the chord does, longest at the wall
+    vane_solidity: float = 1.3  # (1.2 with the free vortex's 50-70 deg) each section's chord is what makes camber length / pitch this: the pitch grows with the radius, so the chord does, longest at the wall
     vane_te_max: float = 31.0  # mm behind the plate: no trailing edge past this (the bore's start is 27, the flap's swing 43)
     vane_t: tuple[float, float] = (2.2, 1.5)  # the section: NACA 4-digit thickness on its camber line, at the hub and at the wall ...
     vane_te_t: float = 1.2  # ... cut where it thins to this (the thin-wall limit) and closed round

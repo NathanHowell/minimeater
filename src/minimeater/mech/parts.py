@@ -226,6 +226,20 @@ def vane_passage(x):
     return hub_profile(t), P.fan.aperture_d / 2 + (g.bore_r - P.fan.aperture_d / 2) * f
 
 
+def _interp(x, knots):
+    """The polynomial through the (x, y) knots (Lagrange; a cubic for four), x held to their range: smooth along the
+    span, where a piecewise line's kinks show in the vanes' surfaces."""
+    x = min(max(x, knots[0][0]), knots[-1][0])
+    total = 0.0
+    for i, (xi, yi) in enumerate(knots):
+        w = 1.0
+        for j, (xj, _) in enumerate(knots):
+            if j != i:
+                w *= (x - xj) / (xi - xj)
+        total += w * yi
+    return total
+
+
 def vane_half(u, t=None):
     """A vane's half thickness at u = 0 (leading edge) .. 1 (the trailing edge's round's centre), before the flare: NACA
     4-digit on thickness t (the hub's `vane_t` by default), its chord stretched so it thins to `vane_te_t` at u = 1."""
@@ -270,8 +284,7 @@ def vane_section(eta, n=28):
         return xs, rs, ms
 
     def flow(xs, rs, ms):
-        rh, rw = vane_passage(xl)
-        beta = math.atan(h.swirl / 1000 * math.pi * (rw * rw - rh * rh) / rs[0])  # the air's angle from axial at the leading edge
+        beta = math.radians(_interp(e, h.vane_beta))  # the air's angle from axial at the leading edge
         pitch = 2 * math.pi * rs[m_fine // 2] / h.vanes
         return beta, ms[-1] / math.cos(beta / 2) / pitch  # the camber line's length over the pitch
 
