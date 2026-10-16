@@ -1,4 +1,4 @@
-"""Numbers the design is held to: closed-flap leakage, open-flap blockage, the O-ring and the envelope (mm, cm^2)."""
+"""Numbers the design is held to: closed-flap leakage, open-flap blockage, the O-ring, the envelope and the mass (mm, cm^2, g)."""
 
 import math
 
@@ -66,3 +66,42 @@ def sizes():
         b = build().bounding_box()
         out[n] = (round(b.size.X, 1), round(b.size.Y, 1), round(b.size.Z, 1))
     return out
+
+
+def mass_budget():
+    """{part: (grams, x of its centre)} for the box as installed, from the CAD's volumes (printed and machined) and the
+    bought parts' data; the cables and plugs hanging off the ports are not in it."""
+    from . import assembly as A
+    from . import shell as K
+
+    m = P.mass
+    vol = lambda s: s.volume / 1000.0  # cm^3
+    out = {}
+    for name, s in {**A.printed(), "hood": K.hood(), "pan": K.pan()}.items():
+        out[name] = (vol(s) * m.pa12, s.center().X)
+    b = A.bought()
+    for name in ("flap", "crank", "coupler", "rod", "pin_crank", "pin_horn"):
+        out[name] = (vol(b[name]) * m.machined, b[name].center().X)
+    out["fan"] = (m.fan_g, b["fan"].center().X)
+    out["servo"] = (m.servo_g + m.horn_g, b["servo"].center().X)
+    out["board"] = (vol(b["pcb"]) * m.fr4 + m.board_parts_g, b["pcb"].center().X)
+    out["hardware"] = (m.hardware_g, m.hardware_x)
+    return out
+
+
+def mass_and_cg():
+    """(grams, x of the centre of mass): x from the socket's mouth, the box toward -x."""
+    parts = mass_budget()
+    total = sum(g_ for g_, _ in parts.values())
+    return total, sum(g_ * x for g_, x in parts.values()) / total
+
+
+def tube_loads(engaged=None):
+    """(N up at the tube's end, N down at the far end of the engagement, N.m at the egg): the box as a lever on the
+    tube, its weight at the centre of mass, held at the tube's end (the shoulder) and `engaged` mm further on."""
+    total, cg = mass_and_cg()
+    w = total / 1000 * 9.81
+    x_end = -P.coupling.depth
+    span = engaged if engaged is not None else P.coupling.depth + P.coupling.ext_len
+    up = w * (x_end + span - cg) / span
+    return up, up - w, w * (x_end + P.tube.free_len - cg) / 1000

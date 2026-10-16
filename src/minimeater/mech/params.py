@@ -200,6 +200,9 @@ class Coupling:
     grip: float = 0.15  # radial: the crests' deepest reach into the tube, at the egg end of the transition
     lead_len: float = 3.0  # the last stretch at the mouth opens up so the tube starts freely ...
     lead_clear: float = 0.15  # ... to this radial clearance at the crests
+    lobe_wall: float = 1.7  # the lobed wall, following the wave so the crests flex; thin enough to sit inside the sleeve
+    sleeve_t: float = 1.2  # a smooth sleeve carries the socket's Ø46 outside on to the mouth, joined only at its base ...
+    sleeve_x0: float = 1.0  # ... up to here: past it an annular slot (open at the mouth) leaves the lobes free
     collar_x: float = -12.5  # drip collar behind the hood's front ring: a 44 deg cone r23 -> r24.5 toward -x, 0.3 off the shells' cone
     collar_r: float = 24.5
 
@@ -270,6 +273,21 @@ class Shell:
 
 
 @dataclass(frozen=True)
+class Mass:
+    """What the box weighs (analysis.mass_budget): densities for the CAD's volumes, and the bought parts by their data."""
+
+    pa12: float = 1.01  # [spec] g/cm^3, MJF PA12 parts (HP)
+    machined: float = 7.93  # [spec] 304 stainless; 6061 is 2.70
+    fr4: float = 1.85  # [spec]
+    fan_g: float = 50.0  # [spec] Noctua's NF-A6x25 5V PWM, without its pads
+    servo_g: float = 11.9  # [spec] HS-5065MG (docs/parts/servo-hs-5065mg.md)
+    horn_g: float = 0.9  # [est] the Secraft aluminium arm (0.34 cm^3 of 6061)
+    board_parts_g: float = 5.0  # [est] the components and connectors on the board
+    hardware_g: float = 7.0  # [est] the screws (fan, servo, board, shells), the shoulder screws' nuts, the O-ring
+    hardware_x: float = -70.0  # [est] where they sit, on average
+
+
+@dataclass(frozen=True)
 class HubCone:
     """A tail cone printed with the duct, on the fan's motor plate (stationary: part of Noctua's frame, a flat Ø26.5
     face flush with the outlet), held by radial struts from the contraction's wall (.2.22). It fills the dead zone
@@ -299,6 +317,7 @@ class Params:
     layout: Layout = field(default_factory=Layout)
     shell: Shell = field(default_factory=Shell)
     hub_cone: HubCone = field(default_factory=HubCone)
+    mass: Mass = field(default_factory=Mass)
     cone_len: float = 27.0
     screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
 

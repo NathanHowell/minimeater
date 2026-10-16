@@ -329,3 +329,31 @@ def test_the_struts_are_airfoils_no_thinner_than_the_printer_allows():
     tail = [y for s, y in sec if s > max(s for s, _ in sec) - h.strut_te]
     assert 2 * max(tail) >= h.strut_te - 1e-6  # the round tail is the cut's full thickness
     assert max(s for s, _ in sec) < h.strut_chord  # the cut leaves the chord's thin end off
+
+
+def test_the_extension_is_smooth_outside_and_its_lobes_are_free():
+    """Outside, the socket's Ø46 runs on to the mouth; inside it the lobed wall stands free in an open slot (at least 0.8 mm,
+    for the lobes to flex and the powder to leave), joined only at the sleeve's base."""
+    from build123d import Vector
+
+    from minimeater.mech.parts import socket_r
+
+    c, duct = P.coupling, A.printed()["duct"]
+    ths = [math.pi * j / 64 for j in range(129)]
+    lobes_out = max(socket_r(c.ext_len * i / 100, t) for i in range(101) for t in ths) + c.lobe_wall
+    assert c.od / 2 - c.sleeve_t - lobes_out >= 0.8
+    for x in (c.sleeve_x0 + 0.5, c.ext_len / 2, c.ext_len - 0.2):
+        for th in (0.0, math.pi / 8, 1.0):
+            at = lambda r: Vector(x, r * math.cos(th), r * math.sin(th))
+            assert duct.is_inside(at(c.od / 2 - c.sleeve_t / 2))  # the sleeve
+            assert not duct.is_inside(at(c.od / 2 - c.sleeve_t - 0.4))  # the slot
+            assert not duct.is_inside(at(c.od / 2 + 0.1))  # nothing outside the Ø46
+
+
+def test_the_mass_budget_and_the_load_on_the_tube():
+    """About 270 g with its centre about 70 mm behind the mouth: a lever on the tube's 30 mm, a few newtons at each end of
+    the engagement and a fraction of a newton-metre at the egg. The numbers move as the parts do; the bounds catch a slip."""
+    total, cg = analysis.mass_and_cg()
+    assert 240 < total < 310 and -80 < cg < -60
+    up, down, at_egg = analysis.tube_loads()
+    assert 0 < up < 12 and 0 < down < 8 and at_egg < 0.3

@@ -290,7 +290,9 @@ def duct():
     outer += xcone(c.od / 2, c.collar_r, c.collar_x - 1.5 - 1.6 - dc * k, c.collar_x - 1.5 - 1.6)
     outer += xcyl(c.collar_r, c.collar_x - 1.5 - 1.6, c.collar_x - 1.5)
     outer += xcone(c.collar_r, c.od / 2, c.collar_x - 1.5, c.collar_x)
-    outer += socket_loft(P.print.wall, x0=-1.0)  # the extension, its wall following the wave; it starts inside the Ø46
+    outer += socket_loft(c.lobe_wall, x0=-1.0)  # the extension, its wall following the wave; it starts inside the Ø46
+    # the smooth sleeve over it, the socket's Ø46 to the mouth, and the slot between them that lets the lobes flex
+    outer += xcyl(c.od / 2, -0.01, c.ext_len) - xcyl(c.od / 2 - c.sleeve_t, c.sleeve_x0, c.ext_len + 1.0)
     body = outer + servo_shelf() + stop_posts()
 
     # the airway and the features cut into the walls
