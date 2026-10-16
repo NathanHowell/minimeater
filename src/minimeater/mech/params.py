@@ -190,7 +190,8 @@ class Coupling:
     oring_id: float = 34.0  # [est] 34 x 2.5 O-ring, the seal at the joint (.2.5)
     oring_cs: float = 2.5
     groove_depth: float = 1.9  # from the bore wall outward: sets the squeeze on the tube
-    oring_x: float = -10.0  # groove centre
+    oring_x: float = -15.0  # groove centre (3.2 wide): the seal line about 5 mm in from the tube's end, clear of its chamfer or burr; deeper is cooler (further from the egg) and less travel through the ring
+    wave_land: float = 1.0  # round bore between the groove's front edge and where the lobes start, so the ring sits in rigid bore
     od: float = 46.0
     # the socket runs on past the old mouth (x = 0) toward the egg; over that length the bore goes from round to a sinusoidal
     # section along a smootherstep, the wall following it, so its crests grip the tube (no thumbscrew)
@@ -202,9 +203,14 @@ class Coupling:
     lead_clear: float = 0.15  # ... to this radial clearance at the crests
     lobe_wall: float = 1.7  # the lobed wall, following the wave so the crests flex; thin enough to sit inside the sleeve
     sleeve_t: float = 1.2  # a smooth sleeve carries the socket's Ø46 outside on to the mouth, joined only at its base ...
-    sleeve_x0: float = 1.0  # ... up to here: past it an annular slot (open at the mouth) leaves the lobes free
+    sleeve_x0: float = -10.0  # ... up to here: past it an annular slot (open at the mouth) leaves the lobes free; 3.4 mm in front of the groove, in front of the shell
     collar_x: float = -12.5  # drip collar behind the hood's front ring: a 44 deg cone r23 -> r24.5 toward -x, 0.3 off the shells' cone
     collar_r: float = 24.5
+
+    @property
+    def wave_x0(self):
+        """Where the bore leaves round for the lobes: the groove's front edge plus the land."""
+        return self.oring_x + 1.6 + self.wave_land
 
 
 @dataclass(frozen=True)

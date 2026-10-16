@@ -93,7 +93,7 @@ def lobe_amp():
     is `grip`. It lies in the lead, where the transition still deepens while the opening starts, so it is solved for:
     the crest radius is linear in the amplitude."""
     c = P.coupling
-    xs = [c.ext_len * i / 2000 for i in range(2001)]
+    xs = [c.wave_x0 + (c.ext_len - c.wave_x0) * i / 2000 for i in range(2001)]
     lo, hi = 0.0, 5.0
     for _ in range(60):
         a = (lo + hi) / 2
@@ -105,14 +105,15 @@ def lobe_amp():
 
 
 def socket_r(x, th):
-    """The socket's bore radius at x and angle th: round up to the old mouth (x = 0), then over `ext_len` the mean grows and
-    the wave comes in along a smootherstep (crests at th = 0, 45, ...), and the last `lead_len` opens so the crests clear the tube."""
+    """The socket's bore radius at x and angle th: round up to `wave_x0` (just in front of the O-ring groove), then on to the
+    mouth the mean grows and the wave comes in along a smootherstep (crests at th = 0, 45, ...), and the last `lead_len` opens
+    so the crests clear the tube."""
     return _socket_r(x, th, lobe_amp())
 
 
 def _socket_r(x, th, amp):
     c = P.coupling
-    s = smootherstep(x / c.ext_len)
+    s = smootherstep((x - c.wave_x0) / (c.ext_len - c.wave_x0))
     r = sock_r() + s * (c.ext_grow_d / 2 - amp * math.cos(c.lobes * th))
     open_ = P.tube.od / 2 + c.lead_clear - (sock_r() + c.ext_grow_d / 2 - amp)  # the crests' rise to clear the tube at the mouth
     return r + smootherstep((x - (c.ext_len - c.lead_len)) / c.lead_len) * open_
@@ -283,16 +284,17 @@ def duct():
     flare = (c.od / 2 - dr) * k  # the socket's step, at 44 degrees: it prints flange down
     outer += xcyl(dr, g.straight_x0, g.socket_x0 - flare + 0.01)
     outer += xcone(dr, c.od / 2, g.socket_x0 - flare, g.socket_x0)
-    outer += xcyl(c.od / 2, g.socket_x0, 0.0)
+    outer += xcyl(c.od / 2, g.socket_x0, c.ext_len)
     # drip collar behind the hood's front ring: its front face seats on the shells' front cone, its back is
     # chamfered for the print
     dc = c.collar_r - c.od / 2
     outer += xcone(c.od / 2, c.collar_r, c.collar_x - 1.5 - 1.6 - dc * k, c.collar_x - 1.5 - 1.6)
     outer += xcyl(c.collar_r, c.collar_x - 1.5 - 1.6, c.collar_x - 1.5)
     outer += xcone(c.collar_r, c.od / 2, c.collar_x - 1.5, c.collar_x)
-    outer += socket_loft(c.lobe_wall, x0=-1.0)  # the extension, its wall following the wave; it starts inside the Ø46
-    # the smooth sleeve over it, the socket's Ø46 to the mouth, and the slot between them that lets the lobes flex
-    outer += xcyl(c.od / 2, -0.01, c.ext_len) - xcyl(c.od / 2 - c.sleeve_t, c.sleeve_x0, c.ext_len + 1.0)
+    # the socket's Ø46 runs on to the mouth as a smooth sleeve; inside it a slot, open at the mouth, leaves the lobed wall
+    # free to flex from `sleeve_x0` on (the lobed wall follows the wave; it starts inside the solid behind the slot's floor)
+    outer -= xcyl(c.od / 2 - c.sleeve_t, c.sleeve_x0, c.ext_len + 1.0)
+    outer += socket_loft(c.lobe_wall, x0=c.sleeve_x0 - 1.0)
     body = outer + servo_shelf() + stop_posts()
 
     # the airway and the features cut into the walls

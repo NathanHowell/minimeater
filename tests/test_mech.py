@@ -124,21 +124,25 @@ def test_oring_seals_the_joint():
     assert A.overlap(ring, A.bought()["tube"]) < 0.5
 
 
-def test_the_socket_grips_the_tube_over_its_extension_only():
-    """The tube seats on the shoulder and slides free through the round socket and the first half of the extension; the
-    lobes' crests then reach in to `grip` and the last `lead_len` lets them out again, so the tube starts freely."""
-    import math
-
+def test_the_socket_grips_the_tube_over_its_lobes_only():
+    """The tube seats on the shoulder and slides free through the round bore, past the O-ring in it, and the first half of
+    the lobes' run; the crests then reach in to `grip` and the last `lead_len` lets them out again, so the tube starts
+    freely. The lobes start just in front of the groove, so the ring sits in round, rigid bore, and they touch the tube
+    only where the slot behind the sleeve leaves them free."""
     from minimeater.mech.parts import box, lobe_amp, socket_r
 
     c, tr = P.coupling, P.tube.od / 2
+    span = c.ext_len - c.wave_x0
     crest = lambda x: min(socket_r(x, math.pi * i / 64) for i in range(128))
-    assert abs(min(crest(c.ext_len * i / 100) for i in range(101)) - (tr - c.grip)) < 2e-3  # the deepest grip
+    assert abs(min(crest(c.wave_x0 + span * i / 100) for i in range(101)) - (tr - c.grip)) < 2e-3  # the deepest grip
     assert abs(crest(c.ext_len) - (tr + c.lead_clear)) < 1e-9  # free at the mouth
-    assert crest(0.0) > tr and crest(c.ext_len * 0.45) > tr  # free up to the middle
-    assert abs(lobe_amp() - 0.85) < 0.02  # about +-0.85 on a mean bore 1 mm larger
+    assert c.wave_x0 >= c.oring_x + 1.6 + 0.99  # round bore round the groove
+    assert crest(c.wave_x0) > tr and crest(c.wave_x0 + span * 0.45) > tr  # free up to the middle of the run
+    first = next(x for x in (c.wave_x0 + span * i / 500 for i in range(501)) if crest(x) < tr)
+    assert first > c.sleeve_x0 + 2.0  # the crests touch the tube only where the lobes are free
+    assert abs(lobe_amp() - 0.8) < 0.02  # about +-0.8 on a mean bore 1 mm larger
     tube, duct = A.bought()["tube"], A.printed()["duct"]
-    assert A.overlap(tube & box(-30, c.ext_len * 0.45, -30, 30, -30, 30), duct) < 0.01
+    assert A.overlap(tube & box(-30, c.wave_x0 + span * 0.45, -30, 30, -30, 30), duct) < 0.01
     assert A.overlap(tube, duct) > 3  # eight crest lines
     assert duct.bounding_box().max.X == pytest.approx(c.ext_len, abs=1e-3)
 
