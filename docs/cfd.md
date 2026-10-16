@@ -63,6 +63,39 @@ does not need a change for its loss. The 45° figure is inside the range publish
 tube's friction reads high (0.043-0.050): the wake has not died out by the fitted planes, so those k carry some of the
 tube's recovery; a longer tube (`tube_d`) is the fix when the numbers matter to better than ~10 %.
 
+### The fan in a rotating frame (`cfd/fan.py`, 2026-10-16)
+
+Noctua's NF-A6x25 model (`mock.fan_step`): frame and rotor, the rotor's cells turning (MRF), a square plenum ahead and
+a pipe of the frame's outlet bore behind, sealed to the outlet face as the duct's flange is. Coarse, 8 ranks, about 21
+minutes. At 4.2 CFM and 3000 rpm (about 25 % of free flow, the model's operating point) it gives 12.0 Pa static and
+21.0 Pa total; the spec curve reads about 16 Pa static there, fair for a coarse rotor mesh. (A first run without the
+seal let about 1 CFM loop round the frame's outside and read 6.4 Pa.)
+
+At this flow the rotor is near stall. Inside r ≈ 17 mm the flow recirculates and the air leaves through r 21-29.
+r·c_θ / Q runs from -17 to -56 per metre across the annulus, -39 flux-weighted: about twice Euler's floor of 18 that
+the vanes were first drawn for. `profile.json` holds the binned c_x and r·c_θ, and `--profile` hands them to the duct
+cases as their inlet (`Case.profile`, scaled to the case's flow).
+
+### The intake grille and the gap to the rotor (`cfd/grille.py`, `.2.26`, 2026-10-16)
+
+This is fan.py's case with a room behind the rear face (slip walls, uniform inflow 25 mm out). Then come the rear wall
+with its grille, the cavity's section carried from the wall to the fan, and the fan with its sealed pipe. It is run at
+the same flow and speed as the free-air case, so the static rise lost against 12.0 Pa is what the wall and the gap cost
+the fan. The gap is added to `rear_gap` (4.5 mm); the S-louvre is the concept insert (round field, S blades, hub cover).
+
+| grille | gap added | fan static rise | intake angle | backflow at the rotor face |
+|---|---|---|---|---|
+| none (fan.py) | | 12.0 Pa | | |
+| current straight louvres | 0 | 2.9 Pa | 66° | 26 % |
+| current straight louvres | 10 mm | 6.7 Pa | 62° | 24 % |
+| S-louvre concept | 5 mm | 1.1 Pa | 68° | 33 % |
+| S-louvre concept | 10 mm | 4.0 Pa | 62° | 23 % |
+
+The wall and the 4.5 mm gap cost the fan about three quarters of its static rise, and the gap is what matters: every
+10 mm gives back about 4 Pa. The S-louvre concept is worse than the straight louvres at the same gap; its deep field
+and hub cover crowd the rotor's inflow. The mesh is coarse (grille level 2) and steady MRF of a fan near stall is the
+weakest part of these models, so take the trend, not the numbers.
+
 ## Acoustics: `uv run minimeater-acoustics`
 
 `acoustics.py`: below the bore's first cross mode (6.3 kHz) only plane waves travel, so the path is a chain of transfer
@@ -168,6 +201,5 @@ about 1.5 days, the medium one 3-4. Not measured at medium yet: time one case's 
 
 ## Not yet in it
 
-- The grille and the cavity behind the fan (a hood change if they cost much).
-- The fan's real exit: blades, struts, swirl (`open-swirl` is solid-body rotation, a first look); the LES inlet has none either.
+- The duct and the fan in one case (the duct cases take the fan's exit as a fixed inlet profile); the LES inlet has no swirl.
 - The flap's torque on the servo (the flap patch's force and moment are on the mesh).

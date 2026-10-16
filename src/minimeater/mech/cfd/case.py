@@ -7,8 +7,11 @@ pressure on the inlet and the outlet, the flow through the outlet, and the area-
 across the tube (for the developed pressure line).
 """
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
+
+import numpy as np
 
 from ..geom import g
 from .geometry import Stations, inside_point, stations
@@ -27,6 +30,7 @@ class Case:
     cfm: float = 6.0
     rpm: float = 0.0  # swirl at the inlet: solid-body rotation at this speed (the fan's exit swirl; 0 = none)
     vortex: float = 0.0  # swirl at the inlet: a free vortex, r c_theta / Q in 1/m, turning with the rotor (0 = none; overrides rpm)
+    profile: str = ""  # the inlet from the fan case's profile.json (fan.py): its c_x and r c_theta by radius, scaled to cfm (overrides both)
     tube_d: float = 12.0  # tube length after the shoulder, in tube diameters
     iterations: int = 2000
     np: int = 8
@@ -51,6 +55,21 @@ def swirl_planes(s: Stations, tube_d: float) -> dict[str, float]:
     d = 2 * s.r_tube
     return {"fan": s.x_fan + 2.0, "bore": s.x_bore + 3.0, "preflap": g.flap_x - s.r_bore - 2.0, "tube1": s.x_tube + d,
             "out": s.x_out - d}
+
+
+def _profile_inlet(path: Path, s: Stations, q: float, u_in: float) -> str:
+    """swirlInletVelocity from the fan case's radial profile: c_x and c_theta as tables of the radius over the annulus,
+    c_x scaled so the patch carries q and r c_theta by the same factor (the velocity triangles scale with the flow)."""
+    bins = json.loads(path.read_text())["bins"]
+    r0 = np.array([b["r_m"] for b in bins])
+    rs = np.linspace(s.r_hub / 1000, s.r_fan / 1000, 17)
+    cx = np.clip(np.interp(rs, r0, [b["cx_m_s"] for b in bins]), 0.05 * u_in, None)  # no backflow into the domain
+    rct = np.interp(rs, r0, [b["rct_m2_s"] for b in bins])
+    k = q / np.trapezoid(cx * 2 * np.pi * rs, rs)
+    ax = " ".join(f"({r:.6f} {k * v:.5f})" for r, v in zip(rs, cx))
+    tg = " ".join(f"({r:.6f} {k * v / r:.5f})" for r, v in zip(rs, rct))
+    return (f"type swirlInletVelocity; origin (0 0 0); axis (1 0 0); axialVelocity table ({ax}); "
+            f"radialVelocity constant 0; tangentialVelocity table ({tg}); value uniform ({u_in} 0 0);")
 
 
 def _f(cls: str, obj: str, body: str) -> str:
@@ -156,7 +175,7 @@ functions
     converged {{ type runTimeControl; libs (utilityFunctionObjects); satisfiedAction end;
         conditions {{ pt {{ type average; functionObject inlet; fields (weightedAreaAverage(total(p))); tolerance 1e-4;
             window 200; windowType exact; }} }} }}
-    total {{ type pressure; libs (fieldFunctionObjects); mode total; p p; U U; rho rhoInf; rhoInf 1; pRef 0; }}
+    total {{ type pressure; libs (fieldFunctionObjects); mode total; p p; U U; rho rhoInf; rhoInf 1; pRef 0; writeControl writeTime; }}
 {"".join(fos)}}}
 """)
     out["system/fvSchemes"] = _f("dictionary", "fvSchemes", """
@@ -194,7 +213,9 @@ relaxationFactors { equations { U 0.7; "(k|omega)" 0.6; } fields { p 0.9; } }
     # the inlet: the fan's flow into the annulus, 10 % intensity, the blade passage as the length scale
     u_in = q / (3.14159265 * ((s.r_fan / 1000) ** 2 - (s.r_hub / 1000) ** 2))
     k_in = 1.5 * (0.1 * u_in) ** 2
-    if c.vortex:
+    if c.profile:
+        inlet_u = _profile_inlet(Path(c.profile), s, q, u_in)
+    elif c.vortex:
         # r c_theta = vortex * Q, in the rotor's sense: the NF-A6x25 turns clockwise looking downstream (-theta about +x)
         gam = c.vortex * q
         rs = [s.r_hub / 1000 * (s.r_fan / s.r_hub) ** (i / 16) for i in range(17)]

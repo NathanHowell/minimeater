@@ -116,6 +116,7 @@ def main():
     ap.add_argument("--cfm", type=float, help="flow")
     ap.add_argument("--rpm", type=float, help="inlet swirl, rpm")
     ap.add_argument("--vortex", type=float, help="inlet free-vortex swirl, r c_theta / Q in 1/m")
+    ap.add_argument("--profile", help="inlet from a fan case's profile.json (overrides --rpm and --vortex)")
     ap.add_argument("--base", type=float, help="background cell, mm (coarser is faster)")
     ap.add_argument("--iterations", type=int)
     ap.add_argument("--np", type=int, default=8, help="MPI ranks (and container CPUs)")
@@ -123,7 +124,7 @@ def main():
     ap.add_argument("--out", type=Path, default=Path("build/cfd"))
     a = ap.parse_args()
     c = replace(CASES[a.case], np=a.np)
-    for field, val in (("flap_deg", a.flap), ("cfm", a.cfm), ("rpm", a.rpm), ("vortex", a.vortex), ("base", a.base),
+    for field, val in (("flap_deg", a.flap), ("cfm", a.cfm), ("rpm", a.rpm), ("vortex", a.vortex), ("profile", a.profile), ("base", a.base),
                        ("iterations", a.iterations)):
         if val is not None:
             c = replace(c, **{field: val})
