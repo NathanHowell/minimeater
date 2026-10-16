@@ -33,6 +33,7 @@ from build123d import (
 )
 
 from . import geom as G
+from .cache import disk_cache
 from .geom import g
 from .params import P
 
@@ -331,7 +332,7 @@ def vane(eta0=-0.18, eta1=1.18, k=15):
     return Solid(Shell(Shape.cast(skin.Shape()).faces() + [Face.make_surface(wires[0]), Face.make_surface(wires[-1])]))
 
 
-@functools.cache
+@disk_cache
 def hub_cone(solid=False):
     """The tail cone on the fan's motor plate and its stator vanes from the contraction's wall: printed with the duct.
     Hollow and open toward the fan unless `solid` (the CFD's air volume wants the outside only)."""
@@ -360,6 +361,7 @@ def hub_cone(solid=False):
     return body
 
 
+@disk_cache
 def duct():
     """Fan flange, contraction cone with the tail cone on its struts, the straight bore with the flap station, the servo
     shelf and the socket onto the intake tube, with its drip collar and its extension toward the egg, whose lobed bore

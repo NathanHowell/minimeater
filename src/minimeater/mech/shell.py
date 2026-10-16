@@ -25,6 +25,7 @@ from build123d import (
 )
 
 from . import geom as G
+from .cache import disk_cache
 from .geom import g
 from .params import P
 from .parts import box, prism_xz, teardrop_z, xcyl, xcone, ycyl, zcyl
@@ -393,6 +394,7 @@ def _half(shape, above):
     return shape & Pos(0, 0, S.z_part + sgn * 200) * Box(600, 600, 400)
 
 
+@disk_cache
 def hood():
     o = outer()
     h = _half(_shell(), True)
@@ -410,6 +412,7 @@ def hood():
     return h
 
 
+@disk_cache
 def pan():
     o = outer()
     p = _half(_shell(True), False) + (_shell(True) & rear_lip())
