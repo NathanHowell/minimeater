@@ -155,7 +155,14 @@ camera through the fan, a close-up of the flap as it passes, the follow camera a
 - **Time is re-timed.** The molecule takes about 190 ms in the CFD from the room to the tube, 6 ms of it in the rotor, and its speed
   varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled). The
   rotor turns by omega times the molecule's own clock, so the blades are where the CFD had them as it passes.
-- **The path** draws itself behind the molecule as a short trail; forty neighbouring lines of the CFD are drawn faint for context.
+- **The gas moves** (`swarm.py`). The molecule is one parcel of a stream: about 1800 more are on the CFD's own lines (606 of the 648 that reach the
+  tube), each a comet, a head with a tail that is its last 0.5 s, coloured by its local speed (blue slow to red fast; a fast parcel has a long
+  tail). Every line is re-timed by the molecule's law with the molecule's constant, so a parcel's screen speed depends on the local speed
+  alone and neighbours move in step; the stream is steady, each parcel looping round its line out of step with the others. Past the tube each
+  goes on along the molecule's hand-drawn way in carrying its own sideways offset, narrowing through the grate's hole, and is consumed at
+  the coal. The positions are baked to `build/scene/gas-air.pc2` and read back by a Mesh Cache modifier; Geometry Nodes draw the comets.
+  The parcels in the rotor's zone follow the lines as traced (in the rotor's frame, turned by omega times the line's own time), so
+  they are not in step with the blades as drawn: a parcel can be seen crossing one. The molecule keeps its own trail, drawn behind it.
 - **The egg is illustrative** (`firebox.py`): a large egg's shape (300 mm fire ring, 456 mm across, 570 to the top vent), the port the tube
   enters, a grate with a ring of holes, about 180 charcoal lumps, a cooking grid and a brisket. The minimeater's CFD ends at the tube, so the air's
   way in is drawn by hand: the port, the cavity under the grate, up through one hole in the grate and the bed to a lump, a spline with
@@ -163,9 +170,10 @@ camera through the fan, a close-up of the flap as it passes, the follow camera a
 - **The reaction** (`molecule.py`) is the textbook one, C + O2 -> CO2: a carbon atom comes out of the lump's face, the two oxygens part to
   2.32 angstrom either side of it, the O-O double bond runs out and two C=O double bonds (four sticks) grow in, so the product is linear
   O=C=O. The coal's glow flares with a seeded flicker as it happens and a point light follows it.
-- **The smoke** (`smoke.py`) is a tube of scrolling-noise volume that grows along the rise path with the molecule, with 28 amber particles spiralling up
-  beside it. They are the flavour, kept apart from the CO2 on purpose: smoke flavour is the wood's pyrolysis products (phenols, carbonyls), not
-  CO2. They land on the brisket's underside and darken it there.
+- **The smoke** (`smoke.py`) is a tube of scrolling-noise volume that grows along the rise path a little ahead of the molecule. It is full of
+  parcels of its own (grey-to-warm comets, about 40 a second, spiralling and widening up the path, a made-up flow like the egg's way in), and
+  28 amber particles spiral up among them as individuals picked out of the plume. They are the flavour, kept apart from the CO2 on purpose:
+  smoke flavour is the wood's pyrolysis products (phenols, carbonyls), not CO2. They land on the brisket's underside and darken it there.
 - Not done: ember sparks and the heat shimmer. Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
 
 ## Commands

@@ -200,3 +200,38 @@ def test_film_timeline_is_continuous_and_the_firebox_path_goes_where_the_air_has
     assert np.abs(np.diff(pos, axis=0)).max() < 25  # no jumps at the joins (mm per frame)
     assert (np.diff(real) >= 0).all()
     assert (pos[48:72] == p_in[-1]).all()
+
+
+def test_swarm_parcels_share_one_clock_and_the_stream_is_steady(tmp_path):
+    import numpy as np
+
+    from minimeater.mech import firebox, swarm
+
+    x = np.linspace(-150, 100, 26)
+    fast, slow = _line(x, np.where(x < -20, 4.0, 9.0), 0), _line(x + 0.0, np.full(26, 4.0), 0)
+    assert swarm.raw_clock(fast, 0.5)[-1] < swarm.raw_clock(slow, 0.5)[-1]  # one law: the same constant makes the fast line quicker on screen
+    hero_end = np.array([100.0, 5.0, 0.0])
+    p_in, v_in = firebox.approach(firebox.layout(16.0), hero_end, 4.0)
+    k1, k2 = swarm.raw_clock(fast, 0.5)[-1] / 10.0, swarm.raw_clock({"p": p_in, "speed": v_in}, 0.3)[-1] / 5.0
+    off = {**fast, "p": fast["p"] + [0.0, 3.0, 2.0]}  # a neighbour 3 mm over and 2 mm up
+    (p, v, tau), (q, _, tau2) = swarm.chain(fast, p_in, v_in, hero_end, k1, k2, 0.5), swarm.chain(off, p_in, v_in, hero_end, k1, k2, 0.5)
+    assert len(p) == len(v) == len(tau) and (np.diff(tau) >= 0).all() and tau[-1] == pytest.approx(15.0)
+    assert np.allclose(p[len(x) - 1], hero_end) and np.allclose(q[len(x) - 1], hero_end + [0.0, 3.0, 2.0])  # the way on starts where the line ended
+    assert np.linalg.norm(q[-1] - p[-1]) < np.linalg.norm([3.0, 2.0])  # and narrows through the grate's hole
+    n, per = 240, 2
+    track, period = swarm.air([(p, v, tau), (q, v, tau2)], n, 24, per=per)
+    nm = 2 * per * swarm.TAIL
+    assert track.shape == (n, nm + 2 * per, 3) and period > tau[-1]
+    heads = track[:, 0:nm:swarm.TAIL, 0] * 1e3  # the heads' x (mm)
+    assert (np.diff(heads[:12, 0]) > 0).all() or (np.diff(heads[:12, 1]) > 0).all()  # a parcel goes down its line ...
+    assert heads[0].min() < -100 and heads[0].max() > 0 and track[0, nm:, 0].min() > 0  # ... and the stream has parcels all along it at once; the carriers hold speeds
+    cfd = heads[0] < 90  # (on the straight part of the way) a tail trails its head: its points are further back
+    assert (track[0, 0:nm:swarm.TAIL, 0][cfd] >= track[0, 3:nm:swarm.TAIL, 0][cfd]).all()
+    path = np.stack([np.zeros(200), np.zeros(200), np.linspace(0, 199, 200)], axis=1)
+    rise = swarm.plume(path, np.full(200, 0.5), 24, 240, 24, 8.0, per_s=10.0)
+    parcels = rise.shape[1] // (swarm.TAIL + 1)
+    assert parcels == int(10.0 * (239 / 24 - 1)) and rise[:24, : parcels * swarm.TAIL, 2].max() < 0.001  # none has left before the start frame (all are at the path's start, in metres)
+    assert rise[-1, 0 : parcels * swarm.TAIL : swarm.TAIL, 2].max() * 1e3 > 150  # the first ones get to the top, in metres
+    swarm.write_pc2(tmp_path / "t.pc2", track)
+    raw = (tmp_path / "t.pc2").read_bytes()
+    assert raw[:12] == b"POINTCACHE2\0" and len(raw) == 32 + track.size * 4

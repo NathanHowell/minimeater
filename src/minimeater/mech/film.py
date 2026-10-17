@@ -16,6 +16,8 @@ from pathlib import Path
 
 import numpy as np
 
+from . import swarm
+
 ANGSTROM = 1e-10
 BOND, BALL, STICK, DOUBLE = 1.21, 0.4, 0.09, 0.2  # O=O bond length, ball radius, stick radius, the two sticks' offset (A)
 SEED = 7
@@ -44,10 +46,7 @@ def trim(lines, x_mm):
 
 def screen_time(line, seconds, alpha=0.5, v_min=0.3):
     """Screen time (s) at each vertex of `line`, 0 at the seed and `seconds` at the end."""
-    p, v = line["p"].astype(float), np.maximum(line["speed"].astype(float), v_min)
-    ds = np.linalg.norm(np.diff(p, axis=0), axis=1)
-    dt = ds / np.maximum(0.5 * (v[1:] + v[:-1]), v_min) ** alpha
-    tau = np.r_[0.0, np.cumsum(dt)]
+    tau = swarm.raw_clock(line, alpha, v_min)
     return tau / tau[-1] * seconds
 
 
@@ -115,7 +114,7 @@ def timeline(segs, fps):
     return np.concatenate(pos), np.concatenate(real), arcs, firsts
 
 
-def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.5, scale=4e7, context=40, cut=True, flap_x=-37.5, tail_mm=15.0, fire=True):
+def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.5, scale=4e7, cut=True, flap_x=-37.5, tail_mm=15.0, fire=True):
     import bpy
     import bmesh  # noqa: I001 (bpy first: it provides bmesh)
     from mathutils import Vector
@@ -228,7 +227,7 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
         mol.keyframe_insert("location", frame=f + 1)
         mol.keyframe_insert("rotation_euler", frame=f + 1)
 
-    # the paths: each segment's line draws itself behind the molecule, a short bright trail; the CFD's neighbours are faint context
+    # the paths: each segment's line draws itself behind the molecule, a short bright trail
     def curve(name, polys, depth, mat):
         cu = bpy.data.curves.new(name, "CURVE")
         cu.dimensions, cu.bevel_depth, cu.bevel_resolution, cu.resolution_u = "3D", depth, 2, 1
@@ -244,7 +243,6 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
         return o
 
     glow = material("trail", (0.35, 0.75, 1.0), 0.5, emit=3.0)
-    faint = material("context", (0.35, 0.6, 0.9), 0.5, emit=0.25)
     for name, (ln, _, _), arc in zip(("trail_room_to_tube", "trail_to_coal", "", "trail_rise", ""), segs, arcs):
         if not name:
             continue
@@ -256,13 +254,34 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
             tr.data.bevel_factor_start = 1.0 if done else max(0.0, arc[f] - 25.0) / total  # 25 mm of tail, gone once the molecule has passed
             tr.data.keyframe_insert("bevel_factor_end", frame=f + 1)
             tr.data.keyframe_insert("bevel_factor_start", frame=f + 1)
-    near = np.argsort([np.linalg.norm(ln["p"][0, 1:] - line["p"][0, 1:]) for ln in lines])[1 : context + 1]
-    curve("context", [lines[i]["p"].astype(float) for i in near], 0.00010, faint)
+
+    # the gas: parcels on the CFD's lines (and the molecule's way on into the egg), and a plume of them rising off the coal. The molecule,
+    # the CO2 and the flavour particles are individuals picked out of these flows
+    reach = [ln for i, ln in enumerate(lines) if i != pk and ln["p"][-1, 0] >= tube_end]
+    k1 = swarm.raw_clock(line, alpha)[-1] / secs["cfd"]
+    if fire:
+        k2 = swarm.raw_clock(approach, 0.3)[-1] / secs["approach"]
+        chains = [swarm.chain(ln, p_in, v_in, line["p"][-1].astype(float), k1, k2, alpha) for ln in reach]
+        stop_pt = p_in[-1]
+    else:
+        chains = [(ln["p"].astype(float), ln["speed"], swarm.raw_clock(ln, alpha) / k1) for ln in reach]
+        stop_pt = line["p"][-1].astype(float)
+    xyz, period = swarm.air(chains, n, fps)
+    swarm.write_pc2(out.parent / "gas-air.pc2", xyz)
+    n_air = len(chains) * 3
+    swarm.build(sc, "gas", out.parent / "gas-air.pc2", n_air, n, 0.3, ((meta["seed_plane_mm"], 0.0, 0.0), (1.0, 0.0, 0.0), 8.0), (stop_pt, 6.0, 22.0), vmax=8.0, glow=1.2)
+    del xyz
+    print(f"gas: {n_air} parcels from {len(chains)} lines, a loop of {period:.1f} s")
 
     # the reaction at the coal
     if fire:
         f0, f1 = firsts[2] + 12, firsts[3] - 12
         smoke.build(sc, p_up, arcs[3], lay["plume_end"], fps, objs["brisket"], firsts[4] + 1)
+        xyz = swarm.plume(p_up, v_up, firsts[3], n, fps, secs["rise"])
+        swarm.write_pc2(out.parent / "gas-plume.pc2", xyz)
+        tang = p_up[min(20, len(p_up) - 1)] - p_up[0]
+        swarm.build(sc, "gas_plume", out.parent / "gas-plume.pc2", xyz.shape[1] // (swarm.TAIL + 1), n, 0.35,
+                    (p_up[0], tuple(tang / np.linalg.norm(tang)), 20.0), (lay["plume_end"], 8.0, 25.0), swarm.SMOKE_COLOURS, vmax=1.0, glow=0.5)
         molecule.chemistry(parts, scale, f0 + 1, f1 + 1, fps, firebox.GAP * 1e-3 / (scale * molecule.ANGSTROM))
         f_bond = f0 + int(0.4 * (f1 - f0))
 

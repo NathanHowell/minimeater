@@ -47,9 +47,10 @@ def flavour_tracks(path: np.ndarray, arc: np.ndarray, target_c: np.ndarray, fps:
     return out, first
 
 
-def build(sc, path: np.ndarray, arc: np.ndarray, target_c: np.ndarray, fps: int, meat, f_arrive: int):
+def build(sc, path: np.ndarray, arc: np.ndarray, target_c: np.ndarray, fps: int, meat, f_arrive: int, lead: float = 1.4):
     """Adds the plume, the flavour particles and the meat's tint to `sc`, keyed to `arc` (the frames' distance along `path`). `meat` is the
-    brisket object; `f_arrive` the first frame (1-based) the molecule is at the meat."""
+    brisket object; `f_arrive` the first frame (1-based) the molecule is at the meat. The plume's front runs `lead` times ahead of the molecule
+    (the gas parcels in it go a little faster and slower than the molecule)."""
     import bpy
 
     mm = 1e-3
@@ -93,7 +94,7 @@ def build(sc, path: np.ndarray, arc: np.ndarray, target_c: np.ndarray, fps: int,
     ob.data.materials.append(m)
     for f in range(n):
         cu.bevel_factor_start = 0.0
-        cu.bevel_factor_end = arc[f] / total
+        cu.bevel_factor_end = min(1.0, lead * arc[f] / total)
         cu.keyframe_insert("bevel_factor_end", frame=f + 1)
 
     # the flavour: amber particles on spirals beside the molecule, then settled on the meat
