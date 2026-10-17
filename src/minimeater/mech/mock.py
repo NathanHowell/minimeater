@@ -3,7 +3,7 @@
 from functools import cache
 from pathlib import Path
 
-from build123d import Axis, Pos, Rot, Torus, import_step
+from build123d import Axis, Compound, Pos, Rot, Torus, import_step
 
 from . import geom as G
 from .geom import g
@@ -36,6 +36,14 @@ def fan_step():
     renderer and the interference checks use the box version."""
     s = Rot(Z=90) * import_step(FAN_STEP)  # (X, Y, Z) -> (-Y, X, Z)
     return Pos(g.fan_face_x, 0, 0) * s
+
+
+def fan_parts():
+    """`fan_step()` as (rotor, the rest) for a scene that spins it: the rotor is the model's second largest solid (the frame is
+    the largest; the rest are the hub label and the eight corner pads). The axis is the x axis through the origin, so
+    turning the rotor about x spins it in place."""
+    solids = sorted(fan_step().solids(), key=lambda s: -s.volume)
+    return solids[1], Compound(obj=[solids[0], *solids[2:]])
 
 
 SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"

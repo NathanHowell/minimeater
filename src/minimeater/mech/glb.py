@@ -8,23 +8,31 @@ import struct
 
 import numpy as np
 import pyvista as pv
+from OCP.BRep import BRep_Tool
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
+from OCP.TopAbs import TopAbs_REVERSED
+from OCP.TopLoc import TopLoc_Location
 
 from .printing import mesh
 
 
 def _by_face(solid):
-    """Vertices and triangles of the faces of `solid` that OCC will triangulate. The fan's frame has one 0.05 mm2 sliver
-    of a plane (negative area, on a screw boss) that it never does, at any tolerance; the rest of its 563 faces are fine."""
+    """Vertices and triangles of the faces of `solid` that OCC will triangulate, meshed together so that neighbours share
+    their edge points (meshed one by one they leave a crack along every shared edge: 468 open edges in the fan's frame, 8 this
+    way). The frame has a few slivers of planes, 0.05 mm2 with a negative area, that OCC never does, at any tolerance; the
+    rest of its 563 faces are fine."""
+    BRepMesh_IncrementalMesh(solid.wrapped, 0.05, False, 0.2, True)
     verts, tris, base = [], [], 0
     for f in solid.faces():
-        try:
-            v, t = f.tessellate(0.05, 0.2)
-        except (AttributeError, RuntimeError):
+        loc = TopLoc_Location()
+        tri = BRep_Tool.Triangulation_s(f.wrapped, loc)
+        if tri is None:
             continue
-        if not t:
-            continue
-        verts.append(np.array([(p.X, p.Y, p.Z) for p in v]))
-        tris.append(np.asarray(t, dtype=np.int64) + base)
+        turn, flip = loc.Transformation(), f.wrapped.Orientation() == TopAbs_REVERSED
+        v = [tri.Node(i).Transformed(turn) for i in range(1, tri.NbNodes() + 1)]
+        t = [tri.Triangle(i).Get() for i in range(1, tri.NbTriangles() + 1)]
+        verts.append(np.array([(p.X(), p.Y(), p.Z()) for p in v]))
+        tris.append(np.array([(a - 1, c - 1, b - 1) if flip else (a - 1, b - 1, c - 1) for a, b, c in t]) + base)
         base += len(v)
     if not verts:
         raise RuntimeError("tessellation failed")
@@ -32,27 +40,20 @@ def _by_face(solid):
 
 
 def _mesh(shape):
-    """Vertices (mm) and triangles of `shape`: a shape, a mesh already made as (vertices, triangles), or a list of them. A
-    solid OCC will not triangulate whole (the fan's, the board's) is done face by face, leaving out the faces it will not do
-    rather than the solid, or failing the export."""
+    """Vertices (mm) and triangles of `shape`; a solid OCC will not triangulate whole (the fan's) is done by `_by_face`,
+    and one that fails that too is left out rather than failing the export."""
     verts, tris, base = [], [], 0
-    for item in shape if isinstance(shape, list) else [shape]:
-        if isinstance(item, tuple):
-            meshes = [item]
-        else:
-            meshes = []
-            for solid in item.solids() or [item]:
-                try:
-                    meshes.append(mesh(solid, 0.05, 0.2))
-                except RuntimeError:
-                    try:
-                        meshes.append(_by_face(solid))
-                    except RuntimeError:
-                        continue
-        for v, t in meshes:
-            verts.append(v)
-            tris.append(np.asarray(t, dtype=np.int64) + base)
-            base += len(v)
+    for solid in shape.solids() or [shape]:
+        try:
+            v, t = mesh(solid, 0.05, 0.2)
+        except RuntimeError:
+            try:
+                v, t = _by_face(solid)
+            except RuntimeError:
+                continue
+        verts.append(v)
+        tris.append(np.asarray(t, dtype=np.int64) + base)
+        base += len(v)
     if not verts:
         return np.zeros((0, 3)), np.zeros((0, 3), dtype=np.uint32)
     return np.vstack(verts), np.vstack(tris).astype(np.uint32)

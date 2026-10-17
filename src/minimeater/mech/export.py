@@ -100,9 +100,8 @@ def export(out: Path, flap_deg=0.0):
     product = Compound(label="minimeater", children=list(asm.values()))
     export_step(product, str(out / "assembly.step"))
     # the same assembly for Blender and other viewers (File > Import > glTF): binary glTF, metres, one node per part (the
-    # board one per colour), PBR materials, the air path's stations as empties; and cut through the flow axis (scene.py)
+    # board one per colour), PBR materials, the fan's rotor apart, the air path's stations as empties (scene.py)
     scene.write(out / "assembly.glb", asm, flap_deg=flap_deg)
-    scene.write(out / "assembly_cut.glb", asm, cut_y=scene.CUT_Y, flap_deg=flap_deg)
     (out / "envelope.json").write_text(json.dumps(envelope(), indent=2))
     drawings.write(cnc)
     write_packages(out)
@@ -116,4 +115,4 @@ def main():
     args = ap.parse_args()
     out, flap = args.out, args.flap
     names = export(out, flap)
-    print(f"wrote {', '.join(names)}, assembly.step, assembly.glb, assembly_cut.glb and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")
+    print(f"wrote {', '.join(names)}, assembly.step, assembly.glb and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")
