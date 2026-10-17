@@ -120,7 +120,7 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     import bmesh  # noqa: I001 (bpy first: it provides bmesh)
     from mathutils import Vector
 
-    from . import firebox, molecule
+    from . import firebox, molecule, smoke
     from .cfd import pathlines
 
     secs = {**SECONDS, **(seconds or {})}
@@ -262,6 +262,7 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     # the reaction at the coal
     if fire:
         f0, f1 = firsts[2] + 12, firsts[3] - 12
+        smoke.build(sc, p_up, arcs[3], lay["plume_end"], fps, objs["brisket"], firsts[4] + 1)
         molecule.chemistry(parts, scale, f0 + 1, f1 + 1, fps, firebox.GAP * 1e-3 / (scale * molecule.ANGSTROM))
         f_bond = f0 + int(0.4 * (f1 - f0))
 
@@ -270,7 +271,7 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     centre, span = (bb.min(0) + bb.max(0)) / 2, np.ptp(bb, axis=0).max()
 
     def camera(name, loc, target, lens=50, dof=None):
-        cam = bpy.data.objects.new(name, bpy.data.cameras.new(name))
+        cam = bpy.data.objects.new(f"cam_{name}", bpy.data.cameras.new(name))  # not `name`: the glb has a part called flap
         cam.data.lens = lens
         sc.collection.objects.link(cam)
         cam.location = loc
@@ -295,7 +296,7 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
         follow.keyframe_insert("location", frame=f + 1)
     camera("flap", Vector((flap_x * 1e-3 + 0.01, -0.09, 0.04)), empty("flap_target", (flap_x * 1e-3, 0, 0)), lens=50, dof=32.0)
     gx = bpy.data.objects["air.0.grille"].matrix_world.translation
-    intake = camera("intake", gx + Vector((-0.10, -0.07, 0.05)), empty("grille_target", gx), lens=35)
+    camera("intake", gx + Vector((-0.10, -0.07, 0.05)), empty("grille_target", gx), lens=35)
     # the cuts: the molecule starts outside the gills, is followed through the fan, the flap gets its close-up as it passes, and the
     # last shot of the machine pulls back once it is in the tube
     cuts = []
@@ -311,13 +312,13 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
         camera("plume", Vector((upx + 0.02, -0.26, 0.21)), empty("plume_target", (upx, 0, 0.21)), lens=45, dof=24.0)
         cuts += [("egg", firsts[1] + 1), ("coal", firsts[1] + 1 + int(0.55 * (firsts[2] - firsts[1]))), ("plume", firsts[3] + 1)]
     for name, frame in cuts:
-        sc.timeline_markers.new(name, frame=frame).camera = bpy.data.objects[name]
-    sc.camera = intake
+        sc.timeline_markers.new(name, frame=frame).camera = bpy.data.objects[f"cam_{name}"]
+    sc.camera = bpy.data.objects["cam_intake"]
 
     # light: a big soft key from the camera's side, a rim from behind, a dark studio world; a big one over the egg, and the coal's own glow
     lights = [("key", (-0.1, -0.35, 0.3), 25, 0.3, mid), ("rim", (0.15, 0.2, 0.25), 15, 0.25, mid)]
     if fire:
-        lights += [("egg_key", (x0 - 0.1, -1.1, 0.9), 110, 0.8, bpy.data.objects["egg_target"]), ("egg_rim", (x0 + 0.5, 0.8, 0.7), 50, 0.6, bpy.data.objects["egg_target"])]
+        lights += [("egg_key", (x0 - 0.1, -1.1, 0.9), 55, 0.8, bpy.data.objects["egg_target"]), ("egg_rim", (x0 + 0.5, 0.8, 0.7), 25, 0.6, bpy.data.objects["egg_target"])]
     for name, loc, power, size, aim in lights:
         li = bpy.data.objects.new(name, bpy.data.lights.new(name, "AREA"))
         li.data.energy, li.data.size = power, size
@@ -367,7 +368,7 @@ def hold(sc, shot):
 
     for mk in sc.timeline_markers:
         mk.camera = None
-    sc.camera = bpy.data.objects[shot]
+    sc.camera = bpy.data.objects[f"cam_{shot}"]
 
 
 def still(sc, path: Path, frame):

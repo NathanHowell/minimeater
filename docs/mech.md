@@ -131,24 +131,42 @@ Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between
 
 Nothing here has been printed yet.
 
-## The animation: one air molecule through the assembly (`film.py`, `just scene`)
+## The animation: one air molecule through the assembly and the egg (`film.py`, `just scene`)
 
 An O2 molecule enters at the grille, passes the plenum, the fan, the stator cone, the flap and the tube, riding one of the CFD's pathlines
-(`docs/cfd.md`, "Pathlines through the whole airway"). `uv run --group scene mech-scene` (Blender as the `bpy` module, Cycles,
-ADR 0007) builds `build/scene/scene.blend` from `assembly.glb` and the pathlines; `--still N` renders frames, `--video` the film
-(`--preview` for a quick one), `--shot` holds one camera instead of the film's cuts.
+(`docs/cfd.md`, "Pathlines through the whole airway"). It goes on into a stand-in kamado, meets a glowing coal and becomes CO2, which rises
+in smoke to the brisket. `uv run --group scene mech-scene` (Blender as the `bpy` module, Cycles, ADR 0007) builds `build/scene/scene.blend`
+from `assembly.glb` and the pathlines; `--still N` renders frames, `--video` the film (`--preview` for a quick one), `--shot` holds one
+camera instead of the film's cuts, `--no-fire` leaves the egg out, `--no-cut` skips the cutaway.
 
-- **The cut.** Every part is cut at y = 0 by a Boolean (Exact, hole tolerant), so the air path is open to the camera. It takes about a
-  minute at build. The rotor keeps its modifier live and spins inside the fixed cut.
+![The molecule in the fan's plenum, the pathline behind it](mech/animation.png)
+
+*Frame 290 of the film: the O2 behind the fan's inlet, its pathline from the CFD (a Cycles render, `just scene --still 290 --shot follow`).*
+
+**The film** is 50 s in five parts (`SECONDS`): 22 s from the room to the tube, 8 s through the egg to the coal, 9 s of the reaction, 8 s of
+the rise and 3 s at the meat. Cameras and cuts are timeline markers in the .blend, to hand-tune (`SHOTS`): outside the gills, a follow
+camera through the fan, a close-up of the flap as it passes, the follow camera again, a wide shot of the machine, the whole egg, the coal
+(through the reaction) and the plume. Every camera object is `cam_<shot>`.
+
+- **The cut.** Every part is cut at y = 0 by a Boolean (Exact, hole tolerant), so the air path is open to the camera; the egg's parts too. It takes
+  about a minute at build. The rotor keeps its modifier live and spins inside the fixed cut.
 - **The molecule** is ball-and-stick (two balls, two sticks for the double bond) at 4e7 times life size (`--scale`): at life size an
   O=O bond is 1.21 angstrom, and the gills are 10^8 times that. It tumbles slowly with seeded thermal jitter, so a render is repeatable.
 - **Time is re-timed.** The molecule takes about 190 ms in the CFD from the room to the tube, 6 ms of it in the rotor, and its speed
-  varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled), spread over 24 s. The
+  varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled). The
   rotor turns by omega times the molecule's own clock, so the blades are where the CFD had them as it passes.
-- **The path** draws itself behind the molecule as a short trail; forty neighbouring lines are drawn faint for context.
-- **Cuts of the film** (`SHOTS`): outside the gills, a follow camera through the fan, a close-up of the flap as it passes, the follow
-  camera again, and a wide shot once it is in the tube. Cameras and cuts are timeline markers in the .blend, to hand-tune.
-- Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
+- **The path** draws itself behind the molecule as a short trail; forty neighbouring lines of the CFD are drawn faint for context.
+- **The egg is illustrative** (`firebox.py`): a large egg's shape (300 mm fire ring, 456 mm across, 570 to the top vent), the port the tube
+  enters, a grate with a ring of holes, about 180 charcoal lumps, a cooking grid and a brisket. The minimeater's CFD ends at the tube, so the air's
+  way in is drawn by hand: the port, the cavity under the grate, up through one hole in the grate and the bed to a lump, a spline with
+  made-up speeds (about 0.5-1 m/s). It is not a flow simulation, and the film should say so.
+- **The reaction** (`molecule.py`) is the textbook one, C + O2 -> CO2: a carbon atom comes out of the lump's face, the two oxygens part to
+  2.32 angstrom either side of it, the O-O double bond runs out and two C=O double bonds (four sticks) grow in, so the product is linear
+  O=C=O. The coal's glow flares with a seeded flicker as it happens and a point light follows it.
+- **The smoke** (`smoke.py`) is a tube of scrolling-noise volume that grows along the rise path with the molecule, with 28 amber particles spiralling up
+  beside it. They are the flavour, kept apart from the CO2 on purpose: smoke flavour is the wood's pyrolysis products (phenols, carbonyls), not
+  CO2. They land on the brisket's underside and darken it there.
+- Not done: ember sparks and the heat shimmer. Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
 
 ## Commands
 
