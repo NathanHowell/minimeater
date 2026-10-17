@@ -153,16 +153,21 @@ camera through the fan, a close-up of the flap as it passes, the follow camera a
 - **The molecule** is ball-and-stick (two balls, two sticks for the double bond) at 4e7 times life size (`--scale`): at life size an
   O=O bond is 1.21 angstrom, and the gills are 10^8 times that. It tumbles slowly with seeded thermal jitter, so a render is repeatable.
 - **Time is re-timed.** The molecule takes about 190 ms in the CFD from the room to the tube, 6 ms of it in the rotor, and its speed
-  varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled). The
-  rotor turns by omega times the molecule's own clock, so the blades are where the CFD had them as it passes.
+  varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled), except in the rotor's
+  zone, where it is real time over a fixed ratio (the zone takes 1.8 s) and the rotor turns at a constant rate, so the blades are where
+  the CFD had them as the molecule, and every parcel, passes.
 - **The gas moves** (`swarm.py`). The molecule is one parcel of a stream: about 1800 more are on the CFD's own lines (606 of the 648 that reach the
   tube), each a comet, a head with a tail that is its last 0.5 s, coloured by its local speed (blue slow to red fast; a fast parcel has a long
   tail). Every line is re-timed by the molecule's law with the molecule's constant, so a parcel's screen speed depends on the local speed
   alone and neighbours move in step; the stream is steady, each parcel looping round its line out of step with the others. Past the tube each
   goes on along the molecule's hand-drawn way in carrying its own sideways offset, narrowing through the grate's hole, and is consumed at
   the coal. The positions are baked to `build/scene/gas-air.pc2` and read back by a Mesh Cache modifier; Geometry Nodes draw the comets.
-  The parcels in the rotor's zone follow the lines as traced (in the rotor's frame, turned by omega times the line's own time), so
-  they are not in step with the blades as drawn: a parcel can be seen crossing one. The molecule keeps its own trail, drawn behind it.
+  **The rotor zone is kept in step.** The lines there were traced in the rotor's frame, so a parcel is right only if the blades are where the
+  CFD had them when it arrives. In the zone screen time is therefore a fixed multiple of real time (the molecule's clock law meets it at 8 m/s)
+  and the rotor turns at one constant rate on screen (7.2 s a turn, omega times that multiple), and a line's parcels enter the zone only at the
+  film times the rotor is at the angle that line expects: once a turn, the loop a whole number of turns. Checked against the rotor's own mesh:
+  as many parcels sit inside the blades' solid as the CFD's own lines do (6 %, a mesh mismatch), 13-17 % if the rotor is a half or quarter
+  pitch out. The molecule keeps its own trail, drawn behind it.
 - **The egg is illustrative** (`firebox.py`): a large egg's shape (300 mm fire ring, 456 mm across, 570 to the top vent), the port the tube
   enters, a grate with a ring of holes, about 180 charcoal lumps, a cooking grid and a brisket. The minimeater's CFD ends at the tube, so the air's
   way in is drawn by hand: the port, the cavity under the grate, up through one hole in the grate and the bed to a lump, a spline with

@@ -6,7 +6,8 @@ pathlines (`cfd.pathlines`) are mm in the same frame.
 
 Time. A pathline's own clock runs about 35 ms from the room to the tube, 10x faster in the rotor than in the plenum, so the film
 re-times it: screen time advances by ds / speed^ALPHA (ALPHA 0 is constant screen speed, 1 is real time scaled), normalised to
-the shot's length. The rotor turns by omega * (the line's real time), so it stays in step with the molecule through the blades.
+the shot's length. In the rotor's zone screen time is a fixed multiple of real time and the rotor turns at a fixed rate on screen (omega times that
+multiple), so the molecule, and every gas parcel (swarm.py), passes the blades as it did in the CFD.
 The molecule is ball-and-stick, SCALE times life size (an O=O bond is 1.21 A), because at life size it is under a billionth of a
 metre; the film says so."""
 
@@ -146,7 +147,12 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     pos, real, arcs, firsts = timeline(segs, fps)
     n = len(pos)
     t = np.arange(n) / fps
-    rotor_angle = meta["omega_rad_s"] * real
+    omega = meta["omega_rad_s"]
+    k1 = swarm.raw_clock(line, alpha)[-1] / secs["cfd"]
+    omega_f = swarm.rotor_rate(omega, k1, alpha)  # the rotor turns at a fixed rate on screen: screen time in its zone is a multiple of real time
+    in_h = swarm.entry(line, screen_time(line, secs["cfd"], alpha))
+    theta0 = omega * in_h[1] - omega_f * in_h[0]  # the molecule meets the blades where the CFD had them
+    rotor_angle = theta0 + omega_f * np.arange(n) / fps
 
     sc = bpy.context.scene
     sc.render.fps = fps
@@ -258,20 +264,19 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     # the gas: parcels on the CFD's lines (and the molecule's way on into the egg), and a plume of them rising off the coal. The molecule,
     # the CO2 and the flavour particles are individuals picked out of these flows
     reach = [ln for i, ln in enumerate(lines) if i != pk and ln["p"][-1, 0] >= tube_end]
-    k1 = swarm.raw_clock(line, alpha)[-1] / secs["cfd"]
     if fire:
         k2 = swarm.raw_clock(approach, 0.3)[-1] / secs["approach"]
         chains = [swarm.chain(ln, p_in, v_in, line["p"][-1].astype(float), k1, k2, alpha) for ln in reach]
         stop_pt = p_in[-1]
     else:
-        chains = [(ln["p"].astype(float), ln["speed"], swarm.raw_clock(ln, alpha) / k1) for ln in reach]
+        chains = [(ln["p"].astype(float), ln["speed"], swarm.raw_clock(ln, alpha) / k1, swarm.entry(ln, swarm.raw_clock(ln, alpha) / k1)) for ln in reach]
         stop_pt = line["p"][-1].astype(float)
-    xyz, period = swarm.air(chains, n, fps)
+    xyz, period, per = swarm.air(chains, n, fps, rotor=(omega, omega_f, theta0))
     swarm.write_pc2(out.parent / "gas-air.pc2", xyz)
-    n_air = len(chains) * 3
+    n_air = len(chains) * per
     swarm.build(sc, "gas", out.parent / "gas-air.pc2", n_air, n, 0.3, ((meta["seed_plane_mm"], 0.0, 0.0), (1.0, 0.0, 0.0), 8.0), (stop_pt, 6.0, 22.0), vmax=8.0, glow=1.2)
     del xyz
-    print(f"gas: {n_air} parcels from {len(chains)} lines, a loop of {period:.1f} s")
+    print(f"gas: {n_air} parcels from {len(chains)} lines, a loop of {period:.1f} s ({period * abs(omega_f) / (2 * math.pi):.0f} rotor turns of {2 * math.pi / abs(omega_f):.2f} s)")
 
     # the reaction at the coal
     if fire:

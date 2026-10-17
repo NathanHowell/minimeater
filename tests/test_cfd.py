@@ -163,7 +163,8 @@ def test_film_retimes_a_pathline_and_trims_it_where_the_tube_ends():
     assert cut["p"][-1, 0] > 20.0 and cut["p"][-2, 0] <= 20.0 and len(cut["p"]) == 5  # ends on the first vertex past it
     tau = film.screen_time(ln, 10.0, alpha=0.5)
     assert tau[0] == 0 and tau[-1] == 10.0 and (np.diff(tau) > 0).all()
-    assert np.ptp(film.screen_time(ln, 10.0, alpha=0.0)[:3]) == pytest.approx(10.0 * 100 / 250)  # alpha 0: screen time follows arc length
+    flat = np.diff(film.screen_time(ln, 10.0, alpha=0.0))
+    assert flat[0] == pytest.approx(flat[1])  # alpha 0: outside the rotor's zone, equal steps along the line take equal screen time
     pos, real, arc = film.sample(ln, tau, np.array([0.0, 5.0, 10.0]))
     assert pos[0, 0] == -150 and pos[-1, 0] == 100 and real[-1] == pytest.approx(0.03) and arc[-1] == pytest.approx(250)
     t = np.arange(48) / 24
@@ -208,18 +209,18 @@ def test_swarm_parcels_share_one_clock_and_the_stream_is_steady(tmp_path):
     from minimeater.mech import firebox, swarm
 
     x = np.linspace(-150, 100, 26)
-    fast, slow = _line(x, np.where(x < -20, 4.0, 9.0), 0), _line(x + 0.0, np.full(26, 4.0), 0)
+    fast, slow = _line(x, np.where(x < -20, 4.0, 9.0), np.zeros(26)), _line(x + 0.0, np.full(26, 4.0), np.zeros(26))
     assert swarm.raw_clock(fast, 0.5)[-1] < swarm.raw_clock(slow, 0.5)[-1]  # one law: the same constant makes the fast line quicker on screen
     hero_end = np.array([100.0, 5.0, 0.0])
     p_in, v_in = firebox.approach(firebox.layout(16.0), hero_end, 4.0)
     k1, k2 = swarm.raw_clock(fast, 0.5)[-1] / 10.0, swarm.raw_clock({"p": p_in, "speed": v_in}, 0.3)[-1] / 5.0
     off = {**fast, "p": fast["p"] + [0.0, 3.0, 2.0]}  # a neighbour 3 mm over and 2 mm up
-    (p, v, tau), (q, _, tau2) = swarm.chain(fast, p_in, v_in, hero_end, k1, k2, 0.5), swarm.chain(off, p_in, v_in, hero_end, k1, k2, 0.5)
+    (p, v, tau, _), (q, _, tau2, _) = swarm.chain(fast, p_in, v_in, hero_end, k1, k2, 0.5), swarm.chain(off, p_in, v_in, hero_end, k1, k2, 0.5)
     assert len(p) == len(v) == len(tau) and (np.diff(tau) >= 0).all() and tau[-1] == pytest.approx(15.0)
     assert np.allclose(p[len(x) - 1], hero_end) and np.allclose(q[len(x) - 1], hero_end + [0.0, 3.0, 2.0])  # the way on starts where the line ended
     assert np.linalg.norm(q[-1] - p[-1]) < np.linalg.norm([3.0, 2.0])  # and narrows through the grate's hole
     n, per = 240, 2
-    track, period = swarm.air([(p, v, tau), (q, v, tau2)], n, 24, per=per)
+    track, period, _ = swarm.air([(p, v, tau, None), (q, v, tau2, None)], n, 24, per=per)
     nm = 2 * per * swarm.TAIL
     assert track.shape == (n, nm + 2 * per, 3) and period > tau[-1]
     heads = track[:, 0:nm:swarm.TAIL, 0] * 1e3  # the heads' x (mm)
@@ -235,3 +236,39 @@ def test_swarm_parcels_share_one_clock_and_the_stream_is_steady(tmp_path):
     swarm.write_pc2(tmp_path / "t.pc2", track)
     raw = (tmp_path / "t.pc2").read_bytes()
     assert raw[:12] == b"POINTCACHE2\0" and len(raw) == 32 + track.size * 4
+
+
+def test_swarm_parcels_meet_the_blades_where_the_cfd_had_them():
+    import math
+
+    import numpy as np
+
+    from minimeater.mech import swarm
+
+    x = np.linspace(-150, 100, 126)
+    stage = np.where(x < -120, 0, np.where(x < -100, 1, 2))
+    line = {**_line(x, np.full(126, 5.0), stage), "t": np.cumsum(np.r_[0.0, np.diff(x) * 1e-3 / 5.0])}
+    # in the zone screen time is real time over a fixed ratio, whatever the speed
+    tau = swarm.raw_clock({**line, "speed": np.where(stage == 1, 11.0, 5.0)}, 0.5)
+    zone = np.flatnonzero(stage == 1)
+    dz = np.diff(tau)[zone[0] : zone[-1]] / np.diff(line["t"])[zone[0] : zone[-1]]
+    assert np.allclose(dz, dz[0]) and dz[0] == pytest.approx(1e3 * swarm.V_REF**0.5)
+    k = tau[-1] / 20.0
+    omega = -314.0
+    omega_f = swarm.rotor_rate(omega, k, 0.5)
+    assert 0 > omega_f > omega  # slower on screen, the same way round
+    # the molecule's own entry fixes the rotor's angle at screen time 0; the other lines' parcels then enter when it is where they expect it
+    hero = swarm.entry(line, tau / k)
+    theta0 = omega * hero[1] - omega_f * hero[0]
+    other = {**line, "t": line["t"] + 0.0137}  # a neighbour that reached the zone later: it expects the rotor elsewhere
+    pts = (other["p"].astype(float), other["speed"], tau / k, swarm.entry(other, tau / k))
+    track, period, per = swarm.air([pts], 4000, 24, per=2, rotor=(omega, omega_f, theta0))
+    turn = 2 * math.pi / abs(omega_f)
+    assert period / turn == pytest.approx(round(period / turn)) and per == 2
+    tin, t_in = pts[3]
+    heads = track[:, 0 : per * swarm.TAIL : swarm.TAIL, 0] * 1e3
+    arrive = np.flatnonzero((heads[1:, 0] >= x[stage == 1][0]) & (heads[:-1, 0] < x[stage == 1][0]))
+    assert len(arrive) >= 2
+    for f in arrive:  # at each arrival the film's rotor is where this line's zone points assume it (mod a turn)
+        angle = theta0 + omega_f * f / 24
+        assert np.angle(np.exp(1j * (angle - omega * t_in))) == pytest.approx(0.0, abs=abs(omega_f) * 2 / 24 * 1.5)

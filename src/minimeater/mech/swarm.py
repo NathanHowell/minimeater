@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
+V_REF = 8.0  # m/s: the speed at which the rotor zone's clock meets the outside's
 TAIL = 8  # points a parcel's tail is drawn through
 TAIL_DT = 0.07 # s of screen time between them
 
@@ -29,14 +30,36 @@ def write_pc2(path: Path, xyz: np.ndarray):
 
 
 def raw_clock(line, alpha: float, v_min: float = 0.3) -> np.ndarray:
-    """The integral of ds / speed^alpha along `line` at each vertex (0 at the first)."""
+    """The integral of ds / speed^alpha along `line` at each vertex (0 at the first), except in the rotor's zone (`stage` 1 at both ends of
+    a step), where it is the line's own real time, scaled to meet the outside's law at `V_REF` m/s. There screen time is a fixed multiple of
+    real time (`rotor_rate`), so the blades turn through the same angle on screen as in the CFD while a parcel crosses the zone."""
     p, v = line["p"].astype(float), np.maximum(line["speed"].astype(float), v_min)
-    return np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(p, axis=0), axis=1) / np.maximum(0.5 * (v[1:] + v[:-1]), v_min) ** alpha)]
+    dt = np.linalg.norm(np.diff(p, axis=0), axis=1) / np.maximum(0.5 * (v[1:] + v[:-1]), v_min) ** alpha
+    if line.get("stage") is not None and line.get("t") is not None:
+        stage = np.asarray(line["stage"])
+        zone = (stage[1:] == 1) & (stage[:-1] == 1)
+        dt = np.where(zone, np.diff(line["t"].astype(float)) * 1e3 * V_REF ** (1 - alpha), dt)
+    return np.r_[0.0, np.cumsum(dt)]
+
+
+def rotor_rate(omega: float, k: float, alpha: float) -> float:
+    """The rotor's angular speed on screen (rad/s): `omega` (rad/s, real) times the zone's real seconds per screen second, which is
+    `k` (the clock's constant: raw units per screen second) scaled as `raw_clock` scales the zone's real time."""
+    return omega * k * V_REF ** (alpha - 1) * 1e-3
+
+
+def entry(line, tau):
+    """(screen time, the line's own real time) at its first vertex in the rotor's zone, or None if it never enters."""
+    stage = line.get("stage")
+    inside = np.flatnonzero(np.asarray(stage) == 1) if stage is not None else []
+    if not len(inside):
+        return None
+    return float(tau[inside[0]]), float(line["t"][inside[0]])
 
 
 def chain(line, p_in, v_in, hero_end, k1, k2, alpha):
     """One line's whole way: the CFD line then the hand-drawn approach carrying the line's offset from the molecule's (taken along the
-    approach's own frame: sideways in y, and across the path in its plane). Returns (points mm, speed m/s, screen time s at each point)."""
+    approach's own frame: sideways in y, and across the path in its plane). Returns (points mm, speed m/s, screen time s at each point, `entry` of the line)."""
     d = line["p"][-1].astype(float) - hero_end
     tang = np.gradient(p_in, axis=0)
     tang /= np.linalg.norm(tang, axis=1)[:, None]
@@ -47,26 +70,41 @@ def chain(line, p_in, v_in, hero_end, k1, k2, alpha):
     tail = p_in + g[:, None] * (d[1] * np.array([0.0, 1.0, 0.0]) + d[2] * nrm)
     t1 = raw_clock(line, alpha) / k1
     t2 = raw_clock({"p": tail, "speed": v_in}, 0.3) / k2 + t1[-1]
-    return np.vstack([line["p"].astype(float), tail[1:]]), np.r_[line["speed"], v_in[1:]], np.r_[t1, t2[1:]]
+    return np.vstack([line["p"].astype(float), tail[1:]]), np.r_[line["speed"], v_in[1:]], np.r_[t1, t2[1:]], entry(line, t1)
 
 
-def air(chains, n, fps, per=3, seed=3):
+def air(chains, n, fps, per=3, seed=3, rotor=None):
     """The stream's tracks: (n frames, parcels*TAIL + parcels, 3) with the tail points in metres and the parcels' speeds (m/s) at their
-    heads in the carrier points' x, and the period of the loop."""
+    heads in the carrier points' x, and the period of the loop.
+
+    `rotor` = (omega, omega_f, theta0): the rotor's real and screen angular speeds and its angle at screen time 0. A line's points in the
+    zone assume the rotor at omega * (the line's own time) there, so a parcel must reach the zone's entry when the film's rotor is at that
+    angle: once a turn (2 pi / omega_f). The loop is a whole number of turns and a line's parcels are put at those entries, `per` of the
+    turns evenly spread. Without `rotor`, or for a line that misses the zone, the phases are random."""
     rng = np.random.default_rng(seed)
-    period = max(c[2][-1] for c in chains) + 1.0
     t = np.arange(n) / fps
+    period = max(c[2][-1] for c in chains) + 1.0
+    turn = 2 * math.pi / abs(rotor[1]) if rotor else None
+    if rotor:
+        turns = math.ceil(period / turn)
+        period = turns * turn
+        per = min(per, turns)
     out = np.zeros((n, len(chains) * per * (TAIL + 1), 3), np.float32)
     nm = len(chains) * per * TAIL
-    for i, (p, v, tau) in enumerate(chains):
-        phi = (np.arange(per) + rng.uniform(0.1, 0.9, per)) / per * period
+    for i, (p, v, tau, enter) in enumerate(chains):
+        if rotor and enter:
+            omega, omega_f, theta0 = rotor
+            at = ((omega * enter[1] - theta0) / omega_f) % turn  # the screen times (mod a turn) the rotor is where the line expects it
+            phi = (enter[0] - at + turn * (np.arange(per) * turns // per)) % period
+        else:
+            phi = (np.arange(per) + rng.uniform(0.1, 0.9, per)) / per * period
         u = (t[:, None] + phi[None, :]) % period  # (n, per)
         uk = np.maximum(u[:, :, None] - TAIL_DT * np.arange(TAIL), 0.0)  # (n, per, TAIL)
         pos = np.stack([np.interp(uk, tau, p[:, k]) for k in range(3)], axis=-1)  # (n, per, TAIL, 3)
         a = i * per * TAIL
         out[:, a : a + per * TAIL] = pos.reshape(n, per * TAIL, 3) * 1e-3
         out[:, nm + i * per : nm + (i + 1) * per, 0] = np.interp(u, tau, v)
-    return out, period
+    return out, period, per
 
 
 def plume(path, speed, f_start, n, fps, secs, per_s=40.0, spread=(2.0, 11.0), seed=4):
