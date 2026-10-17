@@ -127,6 +127,7 @@ plenum it leaves keeps 6.8 Pa (pitch 6.05 gave 7.0, so the pitch's last 0.07 mm 
 |---|---|---|---|---|
 | plain | 6.8 Pa | 15.7 Pa | 61° | 25 % |
 | ribs: 12 radial, 1.2 thick, r 25-34, wall to 2 mm off the frame | 11.1 Pa | 19.3 Pa | 52° | 22 % |
+| the shells' ribs: the same, to 4 mm off the frame, with the fan's four M3 heads | 10.6 Pa | 18.4 Pa | 52° | 23 % |
 | dome: a half-ellipsoid r 12.5 over the hub, 1 mm off it | 5.9 Pa | 14.6 Pa | 60° | 24 % |
 | ring: r 29.5 separator at the tips, the ribs outside it | 3.9 Pa | 12.4 Pa | 66° | 29 % |
 | bell: a 6 mm quarter round down to the fan's bore | 2.8 Pa | 10.2 Pa | 68° | 37 % |
@@ -134,7 +135,10 @@ plenum it leaves keeps 6.8 Pa (pitch 6.05 gave 7.0, so the pitch's last 0.07 mm 
 The ribs take the swirl out of the blade tips' recirculation, so the air coming back in meets the rotor without
 pre-swirl, and the fan keeps nearly its free-air 12.0. The ring and the bell narrow what the recirculation has to turn
 in and lose more than half; the hub carries almost no flow, so the dome only crowds it. As modelled the ribs sit at
-15° + 30° steps, one on each diagonal where the fan's M3 heads are; the printed set must move off them.
+15° + 30° steps, one on each diagonal where the fan's M3 heads are. The shells carry them (`shell.tip_ribs`,
+`Shell.tip_ribs`) stopping 1 mm short of the heads' 3 mm, so the hood and the pan close past the heads: 4 mm off the
+frame, which with the heads in the plenum costs 0.5 Pa of the 11.1. The grille case now always has them (`--plenum`
+adds to them); the plain plenum's 6.8 is kept in `grille-current-gap0-4.2cfm-noribs`.
 
 ## Acoustics: `uv run minimeater-acoustics`
 

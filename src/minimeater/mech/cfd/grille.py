@@ -51,7 +51,7 @@ class GrilleCase:
     rotor_level: int = 3
     grille_level: int = 2
     concept: str = ""  # the S-louvre script (s_louvre)
-    plenum: str = ""  # flow shaping in the plenum: "ribs" (anti-swirl ribs at the blade tips), "dome" (a stationary nose over the rotor hub), "ring" (a separator ring at the tips, the ribs outside it), "bell" (a bellmouth down to the fan's bore)
+    plenum: str = ""  # extra flow shaping in the plenum (at gap 0 the shells' own tip ribs are always in): "ribs" (the first anti-swirl ribs at the blade tips), "dome" (a stationary nose over the rotor hub), "ring" (a separator ring at the tips, the ribs outside it), "bell" (a bellmouth down to the fan's bore)
 
     @property
     def q_m3s(self) -> float:
@@ -89,8 +89,14 @@ def wall(c: GrilleCase):
     hole = extrude(Pos(x1 - c.gap - 0.3 - sec.center().X, 0, 0) * sec, x2 + 1 - (x1 - c.gap - 0.3), dir=(1, 0, 0))
     sleeve = box(x1 - c.gap - 0.3, x2, -HALF - 1, HALF + 1, -HALF - 1, HALF + 1) - hole
     out = plate + sleeve
-    if c.gap == 0:  # what stands in the plenum as the shells draw it: the fan's shim blocks and its four rest pads
-        out = out + shell.fan_shims() + shell.rear_bumps()
+    if c.gap == 0:  # what stands in the plenum as the shells draw it: the fan's shim blocks, its four rest pads and the
+        # tip ribs, and the fan's four screw heads on its inlet face (into the frame, as mock.fan's)
+        f = P.fan
+        heads = [xcyl(f.screw_head_d / 2, G.FAN_X0 - f.screw_head_h, G.FAN_X0 + 0.2, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
+                 for sy in (-1, 1) for sz in (-1, 1)]
+        out = out + shell.fan_shims() + shell.rear_bumps() + shell.tip_ribs()
+        for h in heads:
+            out = out + h
     if c.plenum:
         out = out + plenum_shaping(c)
     return out

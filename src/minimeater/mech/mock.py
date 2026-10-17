@@ -22,7 +22,7 @@ def fan():
     for sy in (-1, 1):
         for sz in (-1, 1):
             s -= xcyl(f.hole_d / 2, G.FAN_X0 - 0.1, g.fan_face_x + 0.1, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
-            s += xcyl(3.0, G.FAN_X0 - 3.0, G.FAN_X0 + 0.2, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)  # screw heads
+            s += xcyl(f.screw_head_d / 2, G.FAN_X0 - f.screw_head_h, G.FAN_X0 + 0.2, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)  # screw heads
     return s
 
 

@@ -26,6 +26,8 @@ class Fan:
     aperture_d: float = 58.0  # [spec] the frame's bore (the model's inner wall at r = 29)
     hub_d: float = 26.5  # [spec] the motor plate's hub on the outlet face (r = 13.25 at 1 mm in)
     corner_r: float = 4.0  # [spec] from the model's corner extent
+    screw_head_d: float = 5.5  # [spec] M3 x 30 socket head (ISO 4762), through the corners from the inlet side
+    screw_head_h: float = 3.0  # [spec]
 
 
 @dataclass(frozen=True)
@@ -260,6 +262,10 @@ class Shell:
     boss_d: float = 6.7  # the front shell screw columns: the pan's head channel is d/2 - 1.05 = 2.3 radius (an M2 head is 3.8; sized for M2.5's 4.5), leaving a 1.05 mm sleeve, or 1.75 round an M2 insert's Ø3.2 in the hood. Larger columns make the pan fail to tessellate (OCC), 6.7 is the largest that works
     screw_len: float = 16.0  # all four shell screws are M2 x 16 (the front pair was M2.5 x 20)
     screw_engage: float = 6.0  # thread in the hood's boss
+    # anti-swirl ribs in the plenum at the blade tips, on the rear wall's inner face: count, thickness, r0, r1 (from the
+    # axis), gap to the fan's frame. 15 deg + 30i off vertical, so none lies on the parting plane; they stop 1 mm short of
+    # the fan's screw heads in x, so the shells close past the heads (the CFD's first ribs stopped 2 mm off the frame)
+    tip_ribs: tuple[int, float, float, float, float] = (12, 1.2, 25.0, 34.0, 4.0)
     rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves 1.2 mm to the cavity wall at y 29.9, and the hull 1.3 mm outside (at 32.1 the channel left 0.08 mm)
     label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
     label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor

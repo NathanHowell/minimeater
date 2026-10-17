@@ -211,3 +211,15 @@ def test_every_fixing_is_on_the_screw_list(shells):
         assert _pilot(shells["pan"], x, y, seat + 0.5, s.z_part - 0.5, 2.3)
     for hx, hy in p.holes:
         assert _pilot(shells["pan"], K.PCB_XC + hx, hy, G.PCB_Z0 - 5.5, G.PCB_Z0 - 0.5, P.m2_pilot)
+
+
+def test_tip_ribs_clear_the_fans_screw_heads_as_the_shells_close():
+    """The hood comes down and the pan up past the fan, its M3 heads standing 3 mm proud of its inlet face: no rib
+    may share the heads' depth anywhere along their path."""
+    f = P.fan
+    ribs = K.tip_ribs()
+    for sy in (-1, 1):
+        swept = box(G.FAN_X0 - f.screw_head_h - 0.5, G.FAN_X0, sy * f.hole_pitch / 2 - f.screw_head_d / 2 - 0.5,
+                    sy * f.hole_pitch / 2 + f.screw_head_d / 2 + 0.5, -60, 60)
+        assert A.overlap(ribs, swept) < 1e-6
+    assert len(ribs.solids()) == P.shell.tip_ribs[0]
