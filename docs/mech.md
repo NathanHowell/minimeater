@@ -135,7 +135,7 @@ Nothing here has been printed yet.
 
 ```bash
 uv run pytest tests/test_mech.py tests/test_skin.py   # builds the parts and shells, fit, leak and overhang checks
-uv run mech-export [dir]             # build/mech: 3dprint/ (duct, hood, pan: STEP and STL in print pose) and cnc/ (flap, crank, coupler: STEP and a PDF drawing each, same names), each with a README and a zip of the same files; assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), assembly.glb (the same for Blender: File > Import > glTF; metres, one object per part and the board in five colours), envelope.json, plugs_mock.step (docs/jlc3dp.md)
+uv run mech-export [dir] [--flap DEG]  # build/mech (--flap: the flap's angle in the assembly files, 0 open, 90 closed): 3dprint/ (duct, hood, pan: STEP and STL in print pose) and cnc/ (flap, crank, coupler: STEP and a PDF drawing each, same names), each with a README and a zip of the same files; assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), assembly.glb (the same for Blender: File > Import > glTF; metres, one object per part and the board in five colours, a PBR material and smooth normals on each, the air path's stations as empties `air.0.grille` .. `air.7.tube_end` along the flow axis, and the flap angle on the scene), assembly_cut.glb (the same cut through the flow axis at y = 0, the servo and linkage side kept, for the raytraced animation; `scene.py`), envelope.json, plugs_mock.step (docs/jlc3dp.md)
 uv run mech-render [dir]             # the images above (default build/)
 uv run mech-envelope                 # the board contract
 ```

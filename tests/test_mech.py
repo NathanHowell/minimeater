@@ -266,7 +266,53 @@ def test_export_writes_step_and_stl(tmp_path):
     assert (tmp_path / "assembly.step").exists()
     glb = (tmp_path / "assembly.glb").read_bytes()  # a binary glTF, one mesh per part, not one per face
     assert glb[:4] == b"glTF" and glb.count(b'"POSITION"') < 40
+    assert (tmp_path / "assembly_cut.glb").stat().st_size > 1000
     assert (tmp_path / "envelope.json").exists()
+
+
+def _glb(path):
+    """The JSON chunk of a binary glTF and its binary chunk."""
+    import json
+    import struct
+
+    raw = path.read_bytes()
+    n = struct.unpack_from("<I", raw, 12)[0]
+    return json.loads(raw[20 : 20 + n]), raw[28 + n :]
+
+
+def _node_box(doc, name):
+    """A mesh node's (min, max) in glTF's frame (m, y up)."""
+    node = next(n for n in doc["nodes"] if n["name"] == name)
+    acc = doc["accessors"][doc["meshes"][node["mesh"]]["primitives"][0]["attributes"]["POSITION"]]
+    return acc["min"], acc["max"]
+
+
+def test_scene_glb_has_materials_normals_the_air_path_and_a_cutaway(tmp_path):
+    """The Blender files: every part has a PBR material and smooth normals, the fan's frame is in (one face of it will not
+    mesh), the air path's stations are empties along the flow axis, the flap angle is on the scene, and the cutaway holds
+    nothing on the -y side of its plane."""
+    from minimeater.mech import scene
+
+    asm = scene.assembly(55.0)
+    scene.write(tmp_path / "full.glb", asm, flap_deg=55.0)
+    scene.write(tmp_path / "cut.glb", asm, cut_y=scene.CUT_Y, flap_deg=55.0)
+    for f in ("full", "cut"):
+        doc, _ = _glb(tmp_path / f"{f}.glb")
+        assert all("NORMAL" in p["attributes"] for m in doc["meshes"] for p in m["primitives"])
+        assert {m["name"] for m in doc["materials"]} == {m["name"] for m in doc["meshes"]}
+        assert {"flap", "rod", "tube"} <= {m["name"] for m in doc["meshes"]}
+        stations = [n for n in doc["nodes"] if "mesh" not in n]
+        assert [n["name"].split(".")[2] for n in stations] == ["grille", "plenum", "fan_in", "fan_out", "bore", "flap", "socket", "tube_end"]
+        xs = [n["translation"][0] for n in stations]
+        assert xs == sorted(xs) and all(n["translation"][1:] == [0.0, 0.0] for n in stations)  # in order, on the axis
+        assert doc["scenes"][0]["extras"]["flap_deg"] == 55.0
+        lo, hi = _node_box(doc, "fan")  # the frame, not just the hub and the screws, and no stray geometry
+        assert hi[1] - lo[1] > 0.059 and hi[0] - lo[0] > 0.024 and max(abs(c) for c in lo + hi) < 0.2
+        assert hi[2] - lo[2] > (0.059 if f == "full" else 0.029)  # (half as deep across, cut)
+    doc, _ = _glb(tmp_path / "cut.glb")
+    for m in doc["meshes"]:
+        acc = doc["accessors"][m["primitives"][0]["attributes"]["POSITION"]]
+        assert acc["max"][2] <= -scene.CUT_Y * 0.001 + 1e-6, m["name"]  # glTF z is -y: nothing at y < CUT_Y
 
 
 def test_made_parts_are_valid_and_the_bar_spans_the_pins():

@@ -1,16 +1,13 @@
 """Writes the two order folders (printed parts, machined parts), the assembly and the envelope (`uv run mech-export [dir]`)."""
 
+import argparse
 import json
-import sys
 import zipfile
 from pathlib import Path
 
 from build123d import Color, Compound, export_step, export_stl
 
-from . import assembly as A
-from . import board3d, drawings, mock
-from .glb import write_glb
-from . import shell as K
+from . import board3d, drawings, mock, scene
 from .envelope import envelope
 from .parts import MACHINED
 from .printing import ALL, print_pose
@@ -70,7 +67,7 @@ def write_packages(out: Path):
     ]))
 
 
-def export(out: Path):
+def export(out: Path, flap_deg=0.0):
     out.mkdir(parents=True, exist_ok=True)
     prints, cnc = out / "3dprint", out / "cnc"
     for d in (prints, cnc):
@@ -90,14 +87,10 @@ def export(out: Path):
     for name, build in MACHINED.items():  # the made parts that are not printed, for the CNC quote
         export_step(build(), str(cnc / f"{name}.step"))
         written.append(name)
-    asm = {**A.printed(0.0), **A.bought(0.0), "hood": K.hood(), "pan": K.pan()}
-    asm.pop("pcb_keepout")
     # the plugs are fit-check stand-ins for the probe and USB-C plugs, not parts of the product: a file of their own
-    export_step(asm.pop("plugs"), str(out / "plugs_mock.step"))
-    asm["fan"] = mock.fan_step()
+    export_step(mock.plugs(), str(out / "plugs_mock.step"))
     board = board3d.export_board(out)
-    if board is not None:
-        asm["pcb"] = board3d.placed(board)
+    asm = scene.assembly(flap_deg, board)
     # one labelled product per part under the assembly, so an exploded view moves each part as a unit; the board is
     # one flat piece (`board3d.frozen`), its few hundred components do not fly apart
     for name, shape in asm.items():
@@ -106,18 +99,10 @@ def export(out: Path):
             shape.color = Color(COLORS[name])
     product = Compound(label="minimeater", children=list(asm.values()))
     export_step(product, str(out / "assembly.step"))
-    # the same assembly for Blender and other viewers (File > Import > glTF): binary glTF, metres, one node per part
-    # (the board one per colour)
-    glb = []
-    for name, shape in asm.items():
-        if name == "pcb":
-            for part, solids, colour in zip(("pcb_substrate", "pcb_module", "pcb_usb", "pcb_jacks", "pcb_parts"), board3d.pieces(shape),
-                                            ("#1d6b3a", "#3b3b3b", "#c8c8c8", "#202020", "#2a2a2a")):
-                if solids:
-                    glb.append((part, Compound(obj=solids), colour))
-        else:
-            glb.append((name, shape, COLORS.get(name, "#a0a0a0")))
-    write_glb(out / "assembly.glb", glb)
+    # the same assembly for Blender and other viewers (File > Import > glTF): binary glTF, metres, one node per part (the
+    # board one per colour), PBR materials, the air path's stations as empties; and cut through the flow axis (scene.py)
+    scene.write(out / "assembly.glb", asm, flap_deg=flap_deg)
+    scene.write(out / "assembly_cut.glb", asm, cut_y=scene.CUT_Y, flap_deg=flap_deg)
     (out / "envelope.json").write_text(json.dumps(envelope(), indent=2))
     drawings.write(cnc)
     write_packages(out)
@@ -125,6 +110,10 @@ def export(out: Path):
 
 
 def main():
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else "build/mech")
-    names = export(out)
-    print(f"wrote {', '.join(names)}, assembly.step, assembly.glb and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")
+    ap = argparse.ArgumentParser(description="the order folders, the assembly (STEP and glb) and the envelope")
+    ap.add_argument("out", nargs="?", default="build/mech", type=Path)
+    ap.add_argument("--flap", type=float, default=0.0, help="the flap's angle in the assembly files: 0 open, 90 closed")
+    args = ap.parse_args()
+    out, flap = args.out, args.flap
+    names = export(out, flap)
+    print(f"wrote {', '.join(names)}, assembly.step, assembly.glb, assembly_cut.glb and envelope.json to {out}; the order folders {out}/3dprint and {out}/cnc, each with a zip")
