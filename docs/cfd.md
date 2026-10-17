@@ -140,6 +140,36 @@ in and lose more than half; the hub carries almost no flow, so the dome only cro
 frame, which with the heads in the plenum costs 0.5 Pa of the 11.1. The grille case now always has them (`--plenum`
 adds to them); the plain plenum's 6.8 is kept in `grille-current-gap0-4.2cfm-noribs`.
 
+### Pathlines through the whole airway (`cfd/pathlines.py`, `just pathlines`, `.cp2.2`, 2026-10-17)
+
+The animation (`docs/mech.md`) follows one air molecule from the room to the tube, so it needs lines through the grille, the fan, the stator cone,
+the flap and the tube, with the speed at each vertex. The grille case and the duct case are two meshes, joined at the fan's exit:
+`just pathlines run --flap 0 30` runs the grille case once (4.2 CFM, the fan's operating point, at its rated 3000 rpm), writes its fan-exit
+profile (`fan.profile`, the same one the duct cases take), runs a duct case from that profile at each flap angle and traces through each pair.
+The result is `build/pathlines/pathlines-flapN.npz` (and a `.vtp` for ParaView): per line the points in mm in the mech frame, the particle's own
+time, its absolute speed and the stage (room, rotor, duct) at each vertex.
+
+- **Seeds.** A square lattice (2 mm) across the room's inflow face, 44 mm either side of the axis, so each seed carries the same flux and the
+  density of lines is the density of the flow. 648 of about 2000 seeds get through the rotor and the stator to the duct's outlet.
+- **The rotor.** The stored velocity is absolute (the MRF solver's `U`: the mean tangential speed behind the rotor, -3 to -6 m/s against
+  a blade tip speed of 9 m/s, is a flow that the blades have turned, not their own motion), so a streamline of it dies inside the rotor zone, where the
+  blades are moving through the cells. In the zone the line is traced through the relative velocity (U minus omega x r, the field the mesh
+  sees) and then turned about x by omega times its time there, which is where the particle is in the room's frame. A test builds a field with
+  a known answer (the particle turns with the rotor at constant radius while in the zone, then goes straight) and the tracer
+  reproduces it. Hand-over at the zone's wall steps the seed a few cells inward, because the tracer stops a step short of an interface.
+- **What it leaves out.** A steady MRF has no blades in the room's frame: the lines show the mean swirl, not blade passing. The rotor stands
+  at its meshed pose at t = 0 of each line, and the film turns it by omega times that time, so the blades and the molecule are in step but
+  the phase against the blade-passing is arbitrary. The other seeds, about two thirds, stop on the rear wall's plate between the gills
+  (stagnation) or are trapped in the tip-gap recirculation near r = 28 mm (5 m/s, round and round until the step limit); they are dropped, so the
+  lines are for looking at, not for a mass balance. Every flap angle uses the same 4.2 CFM and the same fan-exit profile: the flap's higher loss (the 30 degree duct case is 16.9 Pa static against 6.9 open, and
+  its 2000 iterations had not fully converged) does not feed back to the fan.
+- **Results.** Seed to the end of the duct case 148-243 ms (median 190), of which the median 6.3 ms is in the rotor zone: the speed on a line goes
+  from under 1 m/s in the plenum to 9 m/s in the rotor and settles near 3 m/s in the bore. The swirl, as the angle a line turns about the
+  axis per 10 mm of travel (median, lines further than 8 mm from the axis): -26 degrees in the plenum behind the rotor's inlet, -33 degrees
+  in the 27 mm after it, -9 after the stator cone's struts, and -6 to -7 degrees in the tube: the stator removes about three
+  quarters of the swirl, and the rest is what the `.2.25` study found (the struts straighten the flow they can reach). With the flap at 30 degrees the lines squeeze past the blade faster (6-7 m/s) and a wake of loops follows it for about 30 mm
+  (`pathlines-flap30.npz`).
+
 ## Acoustics: `uv run minimeater-acoustics`
 
 `acoustics.py`: below the bore's first cross mode (6.3 kHz) only plane waves travel, so the path is a chain of transfer

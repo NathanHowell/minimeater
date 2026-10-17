@@ -131,6 +131,25 @@ Minimum feature 0.8 mm: the louvre blades are 1.1 at the faces, the webs between
 
 Nothing here has been printed yet.
 
+## The animation: one air molecule through the assembly (`film.py`, `just scene`)
+
+An O2 molecule enters at the grille, passes the plenum, the fan, the stator cone, the flap and the tube, riding one of the CFD's pathlines
+(`docs/cfd.md`, "Pathlines through the whole airway"). `uv run --group scene mech-scene` (Blender as the `bpy` module, Cycles,
+ADR 0007) builds `build/scene/scene.blend` from `assembly.glb` and the pathlines; `--still N` renders frames, `--video` the film
+(`--preview` for a quick one), `--shot` holds one camera instead of the film's cuts.
+
+- **The cut.** Every part is cut at y = 0 by a Boolean (Exact, hole tolerant), so the air path is open to the camera. It takes about a
+  minute at build. The rotor keeps its modifier live and spins inside the fixed cut.
+- **The molecule** is ball-and-stick (two balls, two sticks for the double bond) at 4e7 times life size (`--scale`): at life size an
+  O=O bond is 1.21 angstrom, and the gills are 10^8 times that. It tumbles slowly with seeded thermal jitter, so a render is repeatable.
+- **Time is re-timed.** The molecule takes about 190 ms in the CFD from the room to the tube, 6 ms of it in the rotor, and its speed
+  varies 40-fold. Screen time advances by ds / speed^0.5 (`--alpha`: 0 is constant screen speed, 1 is real time scaled), spread over 24 s. The
+  rotor turns by omega times the molecule's own clock, so the blades are where the CFD had them as it passes.
+- **The path** draws itself behind the molecule as a short trail; forty neighbouring lines are drawn faint for context.
+- **Cuts of the film** (`SHOTS`): outside the gills, a follow camera through the fan, a close-up of the flap as it passes, the follow
+  camera again, and a wide shot once it is in the tube. Cameras and cuts are timeline markers in the .blend, to hand-tune.
+- Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
+
 ## Commands
 
 ```bash
@@ -138,4 +157,5 @@ uv run pytest tests/test_mech.py tests/test_skin.py   # builds the parts and she
 uv run mech-export [dir] [--flap DEG]  # build/mech (--flap: the flap's angle in the assembly files, 0 open, 90 closed): 3dprint/ (duct, hood, pan: STEP and STL in print pose) and cnc/ (flap, crank, coupler: STEP and a PDF drawing each, same names), each with a README and a zip of the same files; assembly.step (a product per part; the board is one flat "pcb", so an exploded view moves it as a unit), assembly.glb (the same for Blender: File > Import > glTF; metres, one object per part and the board in five colours, a PBR material and smooth normals on each, the fan's rotor a node of its own (`fan_rotor`: turn it about x), the air path's stations as empties `air.0.grille` .. `air.7.tube_end` along the flow axis, and the flap angle on the scene; `scene.py`; the cutaway is a Boolean in the Blender scene, see its docstring), envelope.json, plugs_mock.step (docs/jlc3dp.md)
 uv run mech-render [dir]             # the images above (default build/)
 uv run mech-envelope                 # the board contract
+just scene --preview --video         # the air-molecule film (needs `just pathlines` and mech-export first; docs above)
 ```

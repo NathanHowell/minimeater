@@ -124,6 +124,16 @@ ci-hw:
 cfd *args:
     uv run minimeater-cfd {{args}}
 
+# The air's paths through the whole airway for the animation (docs/cfd.md): `just pathlines run --flap 0 30` runs the grille case and a
+# duct case per flap angle and traces through them (build/pathlines/pathlines-flapN.npz, hours); `just pathlines trace --grille D --duct D` re-traces finished cases.
+pathlines *args:
+    uv run minimeater-pathlines {{args}}
+
+# The air-molecule animation (docs/mech.md, ADR 0007): the scene as build/scene/scene.blend, `--still N` PNGs, `--video` the mp4; `--preview` is
+# quick (640 x 360, 8 samples). Needs `just pathlines` and `uv run mech-export` first.
+scene *args:
+    uv run --group scene mech-scene {{args}}
+
 # One flap LES case (pimpleFoam + WALE; hours: a Linux box, docs/cfd.md): `just les --flap 33 --cfm 0.7 --res coarse`, `--sweep` for the
 # list of operating points, `--dry` to write the case and print its time step, `--mesh-only` for the cell count, `--resume` after a stop.
 # The case goes to build/les/<variant>-<deg>deg-<cfm>cfm-<res>.
