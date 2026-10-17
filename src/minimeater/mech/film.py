@@ -12,6 +12,7 @@ The molecule is ball-and-stick, SCALE times life size (an O=O bond is 1.21 A), b
 metre; the film says so."""
 
 import argparse
+import json
 import math
 from pathlib import Path
 
@@ -24,6 +25,7 @@ BOND, BALL, STICK, DOUBLE = 1.21, 0.4, 0.09, 0.2  # O=O bond length, ball radius
 SEED = 7
 SECONDS = {"cfd": 22.0, "approach": 8.0, "combustion": 9.0, "rise": 8.0, "bump": 3.0}  # screen time of each part of the film
 # (camera, the x (mm) at which the film cuts to it; None is 10 mm before the tube's end): the molecule starts in the room
+EXPOSURE = {"egg": -1.2, "plume": -1.6}  # a shot's exposure where it differs from the scene's -0.8 (AgX): the egg's whites are bright
 SHOTS = (("intake", -999.0), ("follow", -128.0), ("flap", -62.0), ("follow", -20.0), ("wide", None))
 
 
@@ -338,6 +340,28 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
     for name, frame in cuts:
         sc.timeline_markers.new(name, frame=frame).camera = bpy.data.objects[f"cam_{name}"]
     sc.camera = bpy.data.objects["cam_intake"]
+    shot_at = dict(cuts)
+    if fire:
+        beacon(sc, mol, 22.0, (shot_at["wide"], shot_at["coal"] - 1))  # the molecule is 5 mm in the egg shot
+    sc.view_settings.exposure = -0.8
+    last = -0.8
+    for name, frame in sorted(cuts, key=lambda c: c[1]):
+        want = EXPOSURE.get(name, -0.8)
+        if want != last:
+            for f, v in ((max(1, frame - 12), last), (frame, want)):
+                sc.view_settings.exposure = v
+                sc.view_settings.keyframe_insert("exposure", frame=f)
+            last = want
+    sc.view_settings.exposure = -0.8
+    if fire:
+        sc["captions"] = json.dumps([
+            [f"The molecule is drawn {scale:.0e} times life size".replace("e+0", " x 10^").replace("e+", " x 10^"), 1, n, 0],
+            ["CFD: OpenFOAM, 4.2 CFM, 3000 rpm", 1, firsts[1], 1],
+            ["Illustrative: the egg and the air's way in are not CFD", firsts[1] + 1, n, 1],
+            ["C + O2 -> CO2: the oxygen bonds to a carbon of the coal", firsts[2] + 1, firsts[3], 2],
+            ["Smoke flavour is wood chemistry, not CO2: it rides the plume", firsts[3] + 1, n, 2],
+        ])
+    bloom(sc)
 
     # light: a big soft key from the camera's side, a rim from behind, a dark studio world; a big one over the egg, and the coal's own glow
     lights = [("key", (-0.1, -0.35, 0.3), 25, 0.3, mid), ("rim", (0.15, 0.2, 0.25), 15, 0.25, mid)]
@@ -356,18 +380,131 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
         ember.location = hero + Vector((0, -0.02, -0.02))
         sc.collection.objects.link(ember)
         molecule.flicker(bpy.data.materials["ember"], firsts[1] + 1, firsts[3] + 1, 0.6, 5.0, f_bond + 1, light=ember.data, watts=0.1)
+        xyz = swarm.sparks(lay["hero"], lay["hero_r"], firsts[1], firsts[3], f_bond, n, fps)
+        swarm.write_pc2(out.parent / "gas-sparks.pc2", xyz)
+        hr, up_ = lay["hero_r"], np.array([0.0, 0.0, 1000.0])
+        swarm.build(sc, "embers", out.parent / "gas-sparks.pc2", xyz.shape[1] // (swarm.TAIL + 1), n, 0.6, (lay["hero"] - up_, (0.0, 0.0, 1.0), 1.0),
+                    (lay["hero"], hr - 7.0, hr - 0.5), swarm.SPARK_COLOURS, vmax=1.0, glow=8.0)
+        shimmer(sc, lay["hero"] - [0.0, 0.0, 40.0], 150.0, 55.0, fps, n)
     w = bpy.data.worlds.new("studio")
     w.use_nodes = True
     w.node_tree.nodes["Background"].inputs[0].default_value = (0.02, 0.025, 0.035, 1)
     w.node_tree.nodes["Background"].inputs[1].default_value = 1.0
     sc.world = w
-    sc.view_settings.exposure = -0.8  # AgX (the default), the whites of the cut sections held under clipping
     sc["pathline"] = int(pk)
     sc["scale"] = scale
 
     out.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(out))
     return sc
+
+
+def shimmer(sc, base_mm, height_mm, radius_mm, fps, n):
+    """The heat shimmer: a column of glass over the coal whose normals are a noise that drifts upward, so what is behind it wobbles. Only
+    camera and refraction rays see it (it casts no shadow and takes no light), and it thins to nothing at its sides and ends."""
+    import bmesh
+    import bpy
+
+    mm = 1e-3
+    me = bpy.data.meshes.new("shimmer")
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=48, radius1=radius_mm * mm, radius2=radius_mm * mm, depth=height_mm * mm)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new("shimmer", me)
+    sc.collection.objects.link(ob)
+    ob.location = (base_mm[0] * mm, base_mm[1] * mm, (base_mm[2] + height_mm / 2) * mm)
+    ob.visible_shadow = ob.visible_glossy = ob.visible_diffuse = False
+    m = bpy.data.materials.new("shimmer")
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    coord, mapping, noise = nt.nodes.new("ShaderNodeTexCoord"), nt.nodes.new("ShaderNodeMapping"), nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value, noise.inputs["Detail"].default_value = 30.0, 3.0
+    bump, glass, clear, mix, out = (nt.nodes.new(k) for k in ("ShaderNodeBump", "ShaderNodeBsdfGlass", "ShaderNodeBsdfTransparent", "ShaderNodeMixShader", "ShaderNodeOutputMaterial"))
+    bump.inputs["Strength"].default_value, bump.inputs["Distance"].default_value = 1.0, 0.007
+    glass.inputs["IOR"].default_value, glass.inputs["Roughness"].default_value = 1.1, 0.0
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    nt.links.new(mapping.outputs["Vector"], noise.inputs["Vector"])
+    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], glass.inputs["Normal"])
+    for f, z in ((1, 0.0), (n, -0.25 * n / fps)):  # a quarter metre a second upward through the noise
+        mapping.inputs["Location"].default_value = (0, 0, z)
+        mapping.inputs["Location"].keyframe_insert("default_value", frame=f)
+    # the weight of the glass: 1 where the wall faces the camera, 0 at the column's edge-on sides, and 0 at its capped ends
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(coord.outputs["Object"], sep.inputs[0])
+
+    def ramp(src, lo, hi, a, b):
+        r = nt.nodes.new("ShaderNodeMapRange")
+        r.interpolation_type, r.clamp = "SMOOTHSTEP", True
+        for key, v in (("From Min", lo), ("From Max", hi), ("To Min", a), ("To Max", b)):
+            r.inputs[key].default_value = v
+        nt.links.new(src, r.inputs["Value"])
+        return r.outputs["Result"]
+
+    lw = nt.nodes.new("ShaderNodeLayerWeight")
+    lw.inputs["Blend"].default_value = 0.5
+    side = ramp(lw.outputs["Facing"], 0.0, 0.6, 1.0, 0.0)
+    absz = nt.nodes.new("ShaderNodeMath")
+    absz.operation = "ABSOLUTE"
+    nt.links.new(sep.outputs["Z"], absz.inputs[0])
+    ends = ramp(absz.outputs[0], 0.5 * height_mm / 2 * mm, height_mm / 2 * mm, 1.0, 0.0)
+    both = nt.nodes.new("ShaderNodeMath")
+    both.operation = "MULTIPLY"
+    nt.links.new(side, both.inputs[0])
+    nt.links.new(ends, both.inputs[1])
+    nt.links.new(both.outputs[0], mix.inputs["Fac"])
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(glass.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    me.materials.append(m)
+    return ob
+
+
+def beacon(sc, parent, radius_mm, shown):
+    """A soft glowing shell round the molecule (an edge glow, clear in the middle) where it would be lost in the picture; rendered only
+    between frames `shown` = (first, last)."""
+    import bpy
+
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius_mm * 1e-3, segments=48, ring_count=24)
+    ob = bpy.context.object
+    ob.name = "beacon"
+    ob.parent = parent
+    ob.visible_shadow = False
+    m = bpy.data.materials.new("beacon")
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    fres, power, clear, emit, mix, out = (nt.nodes.new(k) for k in ("ShaderNodeLayerWeight", "ShaderNodeMath", "ShaderNodeBsdfTransparent", "ShaderNodeEmission", "ShaderNodeMixShader", "ShaderNodeOutputMaterial"))
+    fres.inputs["Blend"].default_value = 0.3
+    power.operation = "POWER"
+    power.inputs[1].default_value = 1.6
+    nt.links.new(fres.outputs["Facing"], power.inputs[0])
+    emit.inputs["Color"].default_value, emit.inputs["Strength"].default_value = (1.0, 0.82, 0.4, 1.0), 6.0
+    nt.links.new(power.outputs[0], mix.inputs["Fac"])
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(emit.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    ob.data.materials.append(m)
+    for f, v in ((1, True), (shown[0] - 1, True), (shown[0], False), (shown[1], False), (shown[1] + 1, True), (sc.frame_end, True)):
+        ob.hide_render = v
+        ob.keyframe_insert("hide_render", frame=f)
+    return ob
+
+
+def bloom(sc):
+    """A glare on the render's brightest parts (the coal, the sparks, the beacon) in the compositor."""
+    import bpy
+
+    ng = bpy.data.node_groups.new("bloom", "CompositorNodeTree")
+    ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    rl, gl, out = ng.nodes.new("CompositorNodeRLayers"), ng.nodes.new("CompositorNodeGlare"), ng.nodes.new("NodeGroupOutput")
+    gl.inputs["Type"].default_value = "Bloom"
+    gl.inputs["Threshold"].default_value, gl.inputs["Strength"].default_value, gl.inputs["Size"].default_value = 5.0, 0.5, 0.6
+    ng.links.new(rl.outputs["Image"], gl.inputs["Image"])
+    ng.links.new(gl.outputs["Image"], out.inputs[0])
+    sc.compositing_node_group = ng
 
 
 def settings(sc, samples, res):
@@ -403,6 +540,19 @@ def still(sc, path: Path, frame):
     bpy.ops.render.render(write_still=True)
 
 
+def encode(sc, path: Path):
+    """Set `sc` to write an H.264 mp4 to `path` (Blender adds the frame range to the name: `finish` renames it)."""
+    sc.render.image_settings.media_type = "VIDEO"
+    sc.render.image_settings.file_format = "FFMPEG"
+    sc.render.ffmpeg.format, sc.render.ffmpeg.codec, sc.render.ffmpeg.constant_rate_factor = "MPEG4", "H264", "MEDIUM"
+    sc.render.filepath = str(path.with_suffix(""))
+
+
+def finish(path: Path):
+    for made in path.parent.glob(f"{path.stem}[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9].mp4"):
+        made.replace(path)
+
+
 def video(sc, path: Path, frames=None, step=1):
     """The animation (frames `frames` = (first, last), every `step`th) as an H.264 mp4."""
     import bpy
@@ -411,13 +561,37 @@ def video(sc, path: Path, frames=None, step=1):
         sc.frame_start, sc.frame_end = frames
     sc.frame_step = step
     sc.render.fps = max(1, round(sc.render.fps / step))
-    sc.render.image_settings.media_type = "VIDEO"
-    sc.render.image_settings.file_format = "FFMPEG"
-    sc.render.ffmpeg.format, sc.render.ffmpeg.codec, sc.render.ffmpeg.constant_rate_factor = "MPEG4", "H264", "MEDIUM"
-    sc.render.filepath = str(path.with_suffix(""))
+    encode(sc, path)
     bpy.ops.render.render(animation=True)
-    for made in path.parent.glob(f"{path.stem}[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9].mp4"):  # Blender adds the frame range
-        made.replace(path)
+    finish(path)
+
+
+def captions(raw: Path, out: Path, items, fps: int, step=1, first=1):
+    """`raw` (the rendered film) with a caption strip along the bottom for each of `items` = (text, first film frame, last, row up from the bottom), in Blender's
+    sequencer: no ray tracing, so captions can be reworded and re-laid in a few seconds. `step` is the video's frame step and `first` the film frame it starts at."""
+    import bpy
+
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    sc = bpy.context.scene
+    sc.render.fps = fps
+    sc.view_settings.view_transform = "Standard"  # the film has been through AgX already
+    sc.sequencer_colorspace_settings.name = "sRGB"
+    sed = sc.sequence_editor_create()
+    mov = sed.strips.new_movie("film", str(raw), 1, 1)
+    mov.colorspace_settings.name = "sRGB"
+    sc.render.resolution_x, sc.render.resolution_y, sc.render.resolution_percentage = mov.elements[0].orig_width, mov.elements[0].orig_height, 100
+    sc.frame_start, sc.frame_end = 1, mov.frame_final_duration
+    for k, (text, a, b, row) in enumerate(items):
+        a, b = max(1, (a - first) // step + 1), min((b - first) // step + 1, sc.frame_end)
+        if b < 1 or a > sc.frame_end:
+            continue
+        st = sed.strips.new_effect(f"caption{k}", "TEXT", 2 + k, a, length=max(1, b - a + 1))  # a channel each
+        st.text, st.font_size = text, int(0.034 * sc.render.resolution_y)
+        st.color, st.use_box, st.box_color, st.box_margin = (1, 1, 1, 1), True, (0, 0, 0, 0.45), 0.012
+        st.anchor_x, st.anchor_y, st.location = "CENTER", "BOTTOM", (0.5, 0.03 + 0.075 * row)
+    encode(sc, out)
+    bpy.ops.render.render(animation=True)
+    finish(out)
 
 
 def main():
@@ -447,6 +621,10 @@ def main():
         still(sc, png, f)
         print(f"wrote {png}")
     if args.video:
-        mp4 = args.out.with_suffix(".mp4")
-        video(sc, mp4, args.frames, 2 if args.preview else 1)
-        print(f"wrote {mp4}")
+        mp4, raw = args.out.with_suffix(".mp4"), args.out.with_suffix(".raw.mp4")
+        step = 2 if args.preview else 1
+        items = json.loads(sc["captions"]) if "captions" in sc else []
+        fps = max(1, round(sc.render.fps / step))
+        video(sc, raw, args.frames, step)
+        captions(raw, mp4, items, fps, step, args.frames[0] if args.frames else 1)
+        print(f"wrote {mp4} (the uncaptioned render is {raw})")

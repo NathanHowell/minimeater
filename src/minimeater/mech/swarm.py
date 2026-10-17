@@ -142,9 +142,46 @@ def plume(path, speed, f_start, n, fps, secs, per_s=40.0, spread=(2.0, 11.0), se
     return out
 
 
+def sparks(centre, radius, f0, f1, f_peak, n, fps, seed=8, base=6.0, peak=40.0):
+    """Embers thrown off the coal: sparks leave the lump (`centre` mm, `radius` mm) between frames f0 and f1 (0-based) at `base` a second,
+    rising to `peak` at `f_peak`; each rises on a made-up buoyant track (50-110 mm/s up, 25 sideways, a sway) for 0.7-2.2 s and goes out.
+    Returns (n, sparks*TAIL + sparks, 3) as `air` does, but the carrier's x is the spark's heat (1 new, 0 out): colour by it. A spark
+    not yet born or already out is parked at `centre`, where the stream's fade (the lump's own radius) hides it."""
+    rng = np.random.default_rng(seed)
+    t = np.arange(n) / fps
+    rate = np.where((t >= f0 / fps) & (t <= f1 / fps), np.interp(t, [f0 / fps, f_peak / fps, f1 / fps], [base, peak, base * 2]), 0.0)
+    count = rng.poisson(rate / fps)
+    start = np.concatenate([t[k] + rng.uniform(0, 1 / fps, c) for k, c in enumerate(count)])
+    m = len(start)
+    d = rng.normal(0, 1, (m, 3))
+    d[:, 2] = np.maximum(d[:, 2] * 0.5 + 0.25, -0.2)  # off the sides and top, leaning up
+    d /= np.linalg.norm(d, axis=1)[:, None]
+    origin = np.asarray(centre, float) + (radius + 1.0) * d
+    side = d[:, :2] / np.maximum(np.linalg.norm(d[:, :2], axis=1), 1e-6)[:, None]
+    vel = np.c_[side * rng.uniform(5, 35, (m, 1)) + rng.normal(0, 8, (m, 2)), rng.uniform(50, 110, m)]  # up, and out from the lump
+    life = rng.uniform(0.7, 2.2, m)
+    sway, hz, ph = rng.uniform(1.0, 4.0, m), rng.uniform(2.0, 4.5, m), rng.uniform(0, 2 * math.pi, (m, 2))
+    out = np.zeros((n, m * (TAIL + 1), 3), np.float32)
+    nm = m * TAIL
+    park = np.asarray(centre, float) * 1e-3
+    for j in range(m):
+        age = t - start[j]
+        alive = (age >= 0) & (age <= life[j])
+        ak = np.clip(age[:, None] - TAIL_DT * np.arange(TAIL), 0.0, life[j])  # (n, TAIL)
+        pos = origin[j] + vel[j] * ak[..., None] + np.array([0.0, 0.0, 12.0]) * ak[..., None] ** 2  # buoyancy: 24 mm/s^2
+        pos[..., 0] += sway[j] * (np.sin(2 * math.pi * hz[j] * ak + ph[j, 0]) - np.sin(ph[j, 0]))  # (from nothing at birth)
+        pos[..., 1] += sway[j] * (np.sin(2 * math.pi * hz[j] * ak + ph[j, 1]) - np.sin(ph[j, 1]))
+        pos = pos * 1e-3
+        pos[~alive] = park
+        out[:, j * TAIL : (j + 1) * TAIL] = pos
+        out[:, nm + j, 0] = np.where(alive, 1 - np.clip(age / life[j], 0, 1), 0.0)
+    return out
+
+
 # the colour of a parcel by its speed: a CFD plot's blue to red
 SPEED_COLOURS = ((0.0, (0.05, 0.12, 0.9)), (0.25, (0.0, 0.65, 1.0)), (0.5, (0.35, 1.0, 0.55)), (0.75, (1.0, 0.85, 0.1)), (1.0, (1.0, 0.25, 0.05)))
 
+SPARK_COLOURS = ((0.0, (0.12, 0.015, 0.0)), (0.3, (0.8, 0.12, 0.01)), (0.65, (1.0, 0.45, 0.04)), (1.0, (1.0, 0.85, 0.45)))
 SMOKE_COLOURS = ((0.0, (0.4, 0.42, 0.48)), (0.5, (0.7, 0.66, 0.6)), (1.0, (1.0, 0.8, 0.55)))
 
 

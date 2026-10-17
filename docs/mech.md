@@ -179,7 +179,17 @@ camera through the fan, a close-up of the flap as it passes, the follow camera a
   parcels of its own (grey-to-warm comets, about 40 a second, spiralling and widening up the path, a made-up flow like the egg's way in), and
   28 amber particles spiral up among them as individuals picked out of the plume. They are the flavour, kept apart from the CO2 on purpose:
   smoke flavour is the wood's pyrolysis products (phenols, carbonyls), not CO2. They land on the brisket's underside and darken it there.
-- Not done: ember sparks and the heat shimmer. Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
+- **Effects, where they earn their place.** *Sparks* (`swarm.sparks`): embers leave the hero lump through the flare (6 a second, 40 at the peak),
+  rise on a buoyant, swaying track for 0.7-2.2 s and go out, drawn as the same comets, white-yellow when new and dark red when out. *Heat
+  shimmer* (`shimmer`): a column of glass over the coal whose normals are a noise drifting upward, so the lumps behind it waver; it takes
+  no light and casts no shadow. *Bloom*: a compositor glare on the very brightest parts (the coal, sparks, beacon). *Beacon*: the molecule is
+  5 mm in a 600 mm shot, so from the wide cut to the coal cut a soft edge-glow shell (22 mm) marks it. *Exposure* is keyed per shot
+  (`EXPOSURE`: the egg and the plume shots are darker, the egg is bright).
+- **Captions** are laid in a second pass in Blender's sequencer (`captions`; no ray tracing, so rewording is seconds): the molecule's scale
+  throughout, the CFD's conditions until the egg, "Illustrative: the egg and the air's way in are not CFD" from there on, and a line each for the
+  reaction and the smoke. `--video` writes the raw render beside the .blend as `*.raw.mp4` and the captioned film as `*.mp4`.
+- **Cost.** A preview (640 x 360, 8 samples, every other frame) takes 25 minutes; a final render (1920 x 1080, 64 samples) 12-20 s a frame, about
+  5 hours for the 1201 frames. Rendered frames and video stay in `build/scene/`; nothing here is checked in but the scripts.
 
 ## Commands
 

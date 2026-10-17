@@ -272,3 +272,24 @@ def test_swarm_parcels_meet_the_blades_where_the_cfd_had_them():
     for f in arrive:  # at each arrival the film's rotor is where this line's zone points assume it (mod a turn)
         angle = theta0 + omega_f * f / 24
         assert np.angle(np.exp(1j * (angle - omega * t_in))) == pytest.approx(0.0, abs=abs(omega_f) * 2 / 24 * 1.5)
+
+
+def test_swarm_sparks_leave_the_lump_rise_and_go_out():
+    import numpy as np
+
+    from minimeater.mech import swarm
+
+    centre, r, fps = np.array([300.0, 0.0, 140.0]), 21.0, 24
+    xyz = swarm.sparks(centre, r, 48, 240, 120, 360, fps)
+    m = xyz.shape[1] // (swarm.TAIL + 1)
+    nm = m * swarm.TAIL
+    heads, heat = xyz[:, 0:nm:swarm.TAIL] * 1e3, xyz[:, nm:, 0]
+    assert m > 100 and heat.min() >= 0 and heat.max() <= 1
+    live = heat > 0
+    assert np.allclose(heads[~live], centre, atol=1e-3)  # unborn and burnt-out sparks wait at the lump's centre (the fade hides them)
+    born = np.array([np.argmax(live[:, j]) for j in range(m)])
+    first = np.linalg.norm(heads[born, np.arange(m)] - centre, axis=1)[live.any(axis=0)]
+    assert (first > r - 6).all()  # a live one starts at the lump's surface (a frame's travel at most)
+    assert (born[live.any(axis=0)] >= 48 - 1).all() and (live[:47].sum() == 0) and (live[250:].sum() < live.sum() * 0.2)  # only in its window
+    rate = np.bincount(born[live.any(axis=0)], minlength=360)
+    assert rate[100:140].sum() > 1.5 * rate[48:88].sum() and heads[live][:, 2].mean() > centre[2]  # busiest near the flare, and they rise
