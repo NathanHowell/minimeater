@@ -190,3 +190,24 @@ def test_reset_hole_and_louvres_open_the_floor_under_the_parts(shells):
 def test_the_louvres_stay_under_the_rear_chamfer():
     """Climbing inward, the top slots would open through the chamfer over the grille, an upward face rain runs into."""
     assert (K.grille_cut() - K.under_chamfer(K.GRILLE_SKIN - 0.01)).volume < 1e-6
+
+
+def _pilot(shape, x, y, z0, z1, d):
+    """Over z0..z1 the hole at (x, y) is d across: nothing in it inside d, wall round it outside (on its -x side: the
+    teardrops point +x)."""
+    inner = zcyl(d / 2 - 0.05, z0, z1, x, y)
+    ring = (zcyl(d / 2 + 0.3, z0, z1, x, y) - zcyl(d / 2 + 0.05, z0, z1, x, y)) & box(x - 5, x, y - 5, y + 5, z0 - 1, z1 + 1)
+    return A.overlap(inner, shape) < 1e-3 and A.overlap(ring, shape) > 0.95 * ring.volume
+
+
+def test_every_fixing_is_on_the_screw_list(shells):
+    """Two thread sizes: M2 for the board, the servo tabs and the shells, M3 for the fan. Every shell screw is M2 x 16
+    into an M2 pilot, through an M2 clearance hole; the board's standoffs are M2 pilots under its M2 holes."""
+    s, p = P.shell, P.pcb
+    assert 2.0 < p.hole_d < 2.4  # M2 clearance (KiCad MountingHole_2.2mm_M2)
+    seat = s.z_part + s.screw_engage - s.screw_len
+    for x, y, _ in K.boss_points():
+        assert _pilot(shells["hood"], x, y, s.z_part + 0.5, s.z_part + s.screw_engage - 0.5, P.m2_pilot)
+        assert _pilot(shells["pan"], x, y, seat + 0.5, s.z_part - 0.5, 2.3)
+    for hx, hy in p.holes:
+        assert _pilot(shells["pan"], K.PCB_XC + hx, hy, G.PCB_Z0 - 5.5, G.PCB_Z0 - 0.5, P.m2_pilot)

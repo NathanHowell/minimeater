@@ -68,7 +68,7 @@ class Pcb:
     usb_end: float = 1.5  # the board's extra length past the USB-C (x_len includes it): moves the USB-C out of the first jack's 0.2 mm web (commit fd4c019)
     y_len: float = 54.0  # across
     t: float = 1.6
-    hole_d: float = 2.7  # [est] M2.5
+    hole_d: float = 2.2  # [spec] M2 (KiCad MountingHole_2.2mm_M2)
     standoff_d: float = 5.5  # the pan's columns under the holes
     # three mounting holes, board frame (centre origin, y toward +y): the corners are taken by the connector row and the
     # module, so the screws sit where the layout left room; the connector row is held by the port wall
@@ -257,8 +257,8 @@ class Shell:
     lip_t: float = 1.3  # the pan's tongue, up inside the hood's wall; the hood's skirt outside it is wall - lip_t - 0.2 = 1.3
     lip_h: float = 3.0
     rib_t: float = 1.3  # the hood's rib inside the tongue: the seam is a labyrinth
-    boss_d: float = 6.7  # shell screw columns, M2.5: the pan's head channel is d/2 - 1.05 = 2.3 radius (an M2.5 head is 4.5), leaving a 1.05 mm sleeve; it was 2.9 and a 0.1 mm sleeve. Larger columns make the pan fail to tessellate (OCC), 6.7 is the largest that works
-    screw_len: float = 20.0
+    boss_d: float = 6.7  # the front shell screw columns: the pan's head channel is d/2 - 1.05 = 2.3 radius (an M2 head is 3.8; sized for M2.5's 4.5), leaving a 1.05 mm sleeve, or 1.75 round an M2 insert's Ø3.2 in the hood. Larger columns make the pan fail to tessellate (OCC), 6.7 is the largest that works
+    screw_len: float = 16.0  # all four shell screws are M2 x 16 (the front pair was M2.5 x 20)
     screw_engage: float = 6.0  # thread in the hood's boss
     rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves 1.2 mm to the cavity wall at y 29.9, and the hull 1.3 mm outside (at 32.1 the channel left 0.08 mm)
     label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
@@ -345,7 +345,11 @@ class Params:
     # coefficients (degree 7), mm: tangent to both bores; the tail cone's pair (HubCone.profile). Was a straight cone, a corner at each end
     contraction: tuple = (29.0, 29.0, 25.498, 23.19, 18.475, 18.542, 16.0, 16.0)
     duct_fillet: float = 3.0  # the duct's outside (the contraction's wall offset by the bore's 2.2 mm wall) meets the flange's back face in a fillet of this radius (OCC's, on the ring where they meet: a curve drawn tangent to the face fails the booleans)
-    screw_d: float = 2.5  # M2.5 self-tapping into plastic: pilot hole
+    # the fixings, two thread sizes: M2 (the board, the servo tabs, the shells, the pivots, the set screw) and M3 (the fan).
+    # Self-tapping into the nylon: these are the pilots. A heat-set insert, if one is wanted later, drills a pilot out to
+    # Ø3.2 (M2) or Ø4.0 (M3) by hand
+    m2_pilot: float = 1.7
+    m3_pilot: float = 2.5
 
 
 P = Params()

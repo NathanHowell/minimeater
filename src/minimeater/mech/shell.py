@@ -428,13 +428,13 @@ def flange_pads():
 
 
 def standoffs():
-    """Teardrop columns on the pan floor at the board's holes, M2.5 pilot."""
+    """Teardrop columns on the pan floor at the board's holes, M2 pilots."""
     p = P.pcb
     out = None
     for hx, hy in p.holes:
         x, y = PCB_XC + hx, hy
         c = teardrop_z(x, y, p.standoff_d / 2, G.FLOOR_Z - 2.0, G.PCB_Z0, toward=-1)
-        c -= teardrop_z(x, y, 1.05, G.PCB_Z0 - 6.0, G.PCB_Z0 + 0.1, toward=1)
+        c -= teardrop_z(x, y, P.m2_pilot / 2, G.PCB_Z0 - 6.0, G.PCB_Z0 + 0.1, toward=1)
         out = c if out is None else out + c
     return out
 
@@ -488,8 +488,7 @@ def hood():
     h += _half(rear_bumps(), True)
     for x, y, d in boss_points():
         h += teardrop_z(x, y, d / 2, S.z_part + 0.2, 40.0, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
-        pilot = 1.05 if d == S.boss_d else 0.85
-        h -= teardrop_z(x, y, pilot, S.z_part + 0.1, S.z_part + S.screw_engage + 0.5, toward=1)
+        h -= teardrop_z(x, y, P.m2_pilot / 2, S.z_part + 0.1, S.z_part + S.screw_engage + 0.5, toward=1)
     h -= rebate()
     h -= seam_wedge()  # the V seam on the rear wall, climbing with the gills: the pan rises into it (last, so the rear
     # bosses, which start 0.1 inside the wall, give way to it too)
@@ -515,9 +514,9 @@ def pan():
     p += (flange_pads() + standoffs()) & o
     for x, y, d in boss_points():
         p += teardrop_z(x, y, d / 2, -60.0, S.z_part, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
-        seat = S.z_part + S.screw_engage - (S.screw_len if d == S.boss_d else 16.0)
+        seat = S.z_part + S.screw_engage - S.screw_len
         p -= teardrop_z(x, y, d / 2 - (1.05 if d == S.boss_d else 0.1), -60.0, seat, toward=1)  # the head and the driver, from the belly; the front column keeps a 1.05 mm sleeve
-        p -= teardrop_z(x, y, 1.4 if d == S.boss_d else 1.15, seat - 0.1, S.z_part + 0.1, toward=1)
+        p -= teardrop_z(x, y, 1.15, seat - 0.1, S.z_part + 0.1, toward=1)
     p += tongue()
     return p
 

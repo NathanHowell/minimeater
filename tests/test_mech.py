@@ -367,3 +367,16 @@ def test_the_mass_budget_and_the_load_on_the_tube():
     assert 240 < total < 310 and -80 < cg < -60
     up, down, at_egg = analysis.tube_loads()
     assert 0 < up < 12 and 0 < down < 8 and at_egg < 0.3
+
+
+def test_fan_screws_are_m3_into_pilots_in_the_flange(printed):
+    """The fan's four M3 x 30 self-tap into Ø2.5 pilots through the flange (a hand-placed insert drills them to Ø4.0)."""
+    from minimeater.mech.parts import xcyl
+    x0, x1 = G.g.fan_face_x + 0.5, G.g.fan_face_x + 7.5
+    for sy in (-1, 1):
+        for sz in (-1, 1):
+            y, z = sy * P.fan.hole_pitch / 2, sz * P.fan.hole_pitch / 2
+            inner = xcyl(P.m3_pilot / 2 - 0.05, x0, x1, y, z)
+            ring = xcyl(P.m3_pilot / 2 + 0.3, x0, x1, y, z) - xcyl(P.m3_pilot / 2 + 0.05, x0, x1, y, z)
+            assert A.overlap(inner, printed["duct"]) < 1e-3
+            assert A.overlap(ring, printed["duct"]) > 0.95 * ring.volume

@@ -199,7 +199,7 @@ def servo_shelf():
     s -= prism_xz([(SHELF_X0 - 0.1, zb - 0.1), (SHELF_X0 - 0.1 + lean, zb - 0.1), (SHELF_X0 - 0.1, z1 - land)], SHELF_Y0 - 1, SHELF_Y1 + 1)
     s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, zb - 1, z1 + 1)  # the body's cutout
     for x, y in G.TAB_HOLES:
-        s -= zcyl(0.85, zb + 1.0, z1 + 0.1, x, y)  # M2 pilot, 6 mm
+        s -= zcyl(P.m2_pilot / 2, zb + 1.0, z1 + 0.1, x, y)  # M2 pilot, 6 mm
     return s
 
 
@@ -508,7 +508,7 @@ def duct():
     body += hub_cone()  # in the airway, after it is cut
     for sy in (-1, 1):
         for sz in (-1, 1):
-            body -= xcyl(1.3, g.fan_face_x - 0.1, g.fan_face_x + 9.0, sy * P.fan.hole_pitch / 2, sz * P.fan.hole_pitch / 2)
+            body -= xcyl(P.m3_pilot / 2, g.fan_face_x - 0.1, g.fan_face_x + 9.0, sy * P.fan.hole_pitch / 2, sz * P.fan.hole_pitch / 2)
     return body
 
 
