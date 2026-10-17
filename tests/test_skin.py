@@ -1,3 +1,4 @@
+import math
 """The shells build, clear the chassis and the board, keep the envelope, breathe, line up with the board's
 connectors and print without support."""
 
@@ -26,7 +27,7 @@ def test_shell_is_one_valid_solid(shells, name):
 def test_shells_meet_on_the_parting_plane(shells):
     assert A.overlap(shells["hood"], shells["pan"]) < 0.5
     assert shells["hood"].bounding_box().min.Z >= P.shell.z_part - P.shell.lip_h - 0.01  # only the rib hangs below the seam
-    assert shells["pan"].bounding_box().max.Z <= P.shell.z_part + P.shell.lip_h + 0.01  # only the tongue rises
+    assert shells["pan"].bounding_box().max.Z <= P.shell.z_part + max(P.shell.lip_h, K.V_APEX + K.REAR_T * K.TAN44) + 0.01  # only the tongue and the V, climbing through the rear wall
 
 
 @pytest.mark.parametrize("deg", [0, 90])
@@ -50,7 +51,7 @@ def test_the_bay_is_closed_over_the_ports(shells):
 
 
 def test_grille_breathes():
-    assert K.grille_open_area() >= 1500  # mm^2 through the louvres, measured across the slot
+    assert K.grille_open_area() >= 1350  # mm^2 through the gills, measured across the slot (1388: eight that open on both faces)
 
 
 def test_ports_line_up_with_the_board(shells):
@@ -125,13 +126,24 @@ def test_rain_features(shells):
     assert A.overlap(tongue, pan) > 0.9 * tongue.volume
     rib = box(xm - 5, xm + 5, hw - 0.4 - P.shell.rib_t + 0.1, hw - 0.5, -P.shell.lip_h + 0.5, -0.5)
     assert A.overlap(rib, hood) > 0.9 * rib.volume
-    lip = box(K.X_REAR + 2.9, G.REAR_IN_X - 0.1, -20, 20, 0.1, K.LAP - 0.1)
-    assert A.overlap(lip, pan) > 0.9 * lip.volume and A.overlap(lip, hood) < 0.01
-    # a louvre: open at the outer face lower than at the inner face
-    z = K.GRILLE_ZS[-2]  # (the last slot is clipped by the field)
-    outer_probe = box(K.X_REAR - 0.5, K.X_REAR + 0.3, -5, 5, z - 1.0, z + 1.0)
-    inner_probe = box(G.REAR_IN_X - 0.3, G.REAR_IN_X + 0.5, -5, 5, z + K.REAR_T - 1.0, z + K.REAR_T + 1.0)
+    # the V seam climbs 44 degrees through the rear wall with the gills: under the split, in the wall's middle and
+    # at its inner face, it is the pan; over it, the hood
+    za = K.seam_z(0.0)
+    for x in (K.X_REAR + K.REAR_T / 2, G.REAR_IN_X - 0.4):
+        zs = K.seam_at(x, 0.0)
+        below = box(x - 0.3, x + 0.3, -2, 2, zs - 1.5, zs - 0.6)
+        above = box(x - 0.3, x + 0.3, -2, 2, zs + 0.6, zs + 1.5)
+        assert A.overlap(below, pan) > 0.9 * below.volume and A.overlap(below, hood) < 0.01, x
+        assert A.overlap(above, hood) > 0.9 * above.volume and A.overlap(above, pan) < 0.01, x
+    assert K.seam_at(G.REAR_IN_X, 0.0) - za > K.GRILLE_H  # no level line of sight through the split either
+    # a gill: open at the outer face lower than at the inner face (44 degrees up through the wall)
+    zc, half = [sl for sl in K.grille_slots() if sl[0] > za][1]
+    t = math.tan(math.radians(44))
+    outer_probe = box(K.X_REAR - 0.5, K.X_REAR + 0.3, -3, 3, zc - 1.0, zc + 0.6)
+    inner_probe = box(G.REAR_IN_X - 0.3, G.REAR_IN_X + 0.5, -3, 3, zc + K.REAR_T * t - 1.0, zc + K.REAR_T * t + 0.6)
     assert A.overlap(outer_probe, hood) < 0.05 * outer_probe.volume and A.overlap(inner_probe, hood) < 0.05 * inner_probe.volume
+    # no level line of sight through the gills: the rise across the wall is more than a slot's height on the face
+    assert K.REAR_T * t - K.GRILLE_H >= 0.4
     assert P.coupling.collar_r > K.NOSE_R  # the collar cannot pass the nose hole
 
 
@@ -178,11 +190,3 @@ def test_reset_hole_and_louvres_open_the_floor_under_the_parts(shells):
 def test_the_louvres_stay_under_the_rear_chamfer():
     """Climbing inward, the top slots would open through the chamfer over the grille, an upward face rain runs into."""
     assert (K.grille_cut() - K.under_chamfer(K.GRILLE_SKIN - 0.01)).volume < 1e-6
-
-
-def test_the_rear_lip_stays_inside_the_skin():
-    """The pan's rear lip and the hood's notch for it stop inside the flanks' inner half and under the rear chamfer:
-    cut across the whole width they came out through the corners, a tab in a gap on the outside."""
-    skin = K.W - K.S.lip_t - 0.2 - 0.01
-    keep = K._loft(K.sections(), skin, x0=K.X_REAR - 5.0) & K.under_chamfer(skin)
-    assert not (K.rear_lip(0.2) - keep).volume > 1e-6

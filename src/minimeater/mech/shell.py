@@ -38,10 +38,13 @@ NOSE_R = S.nose_hole_d / 2
 KS = P.layout.slope
 R_CORNER = 48.0  # beyond the inner sections' corners
 X_CONE0 = X_FRONT_IN - (R_CORNER - NOSE_R) * KS  # the cavity's front cone covers the whole section from here
-REAR_T = 3.2  # the rear wall: thicker, so the louvre blades are longer
+REAR_T = 5.1  # the rear wall: thick enough that the 44 deg louvres leave no level line of sight (the rise across it, T tan 44 = 4.93, over the slot's 4.45 mm height: 0.48 overlap; at 3.2 a 1.36 mm band per slot was open)
 X_REAR = G.REAR_IN_X - REAR_T
 WEDGE_Z = -21.0  # the pan's front wedge starts under the nose hole's bottom, above the board's keep-out
-GRILLE_ZS = tuple(s * (S.grille_bar + S.grille_slot / 2 + 0.5 + S.grille_pitch * i) for s in (-1, 1) for i in range(S.grille_n))
+KV = math.tan(math.radians(S.grille_chevron))
+V_Y = S.rear_w / 2  # the V seam meets the parting plane at the rear face's sides, so the flanks' seam stays level
+V_APEX = KV * V_Y
+GRILLE_H = S.grille_slot / math.cos(math.radians(44))  # a slot's height on the face
 
 
 # --- the body ------------------------------------------------------------------------------------------------
@@ -141,26 +144,121 @@ def nose_hole():
 # --- openings -------------------------------------------------------------------------------------------------
 
 
-def louvre(z, x_face, t, length, slot, down_out=(1, 0, -1)):
-    """A slot through a wall at x_face..x_face + t, `slot` tall, cut 45 degrees so that going outward (-x)
-    it descends: spray cannot pass straight in, water inside runs out. Returns the cutter."""
-    cut = Box(14.0, length, slot)
-    return Pos(x_face + t / 2, 0, z + t / 2) * Rot(0, -44, 0) * cut
+def seam_z(y):
+    """The hood/pan split at y on the rear wall: a V, apex up on the axis, down to the parting plane at the sides."""
+    return S.z_part + max(V_APEX - KV * abs(y), 0.0)
+
+
+def _yz_prism(pts, x0, x1):
+    """The (y, z) polygon extruded over x0..x1."""
+    return extrude(make_face(Plane.YZ.offset(x0) * Polyline(*pts, close=True)), amount=x1 - x0)
+
+
+TAN44 = math.tan(math.radians(44))
+SEAM_FADE = (32.5, V_Y)  # |y| over which the seam's climb through the wall fades to level: just outside the gills' ends
+
+
+def seam_climb(y):
+    """The share of the gills' 44 degree climb the seam makes through the rear wall at y: all of it across the
+    gills, none at the corners, where it meets the flanks' level seam."""
+    a, b = SEAM_FADE
+    return min(max((b - abs(y)) / (b - a), 0.0), 1.0)
+
+
+def seam_at(x, y):
+    """The hood/pan split's height in the rear wall at (x, y): the V on the face, climbing inward with the gills."""
+    return seam_z(y) + (x - X_REAR) * TAN44 * seam_climb(y)
+
+
+def seam_wedge():
+    """What the V moves from the hood to the pan: between the parting plane and the split, through the rear wall,
+    the split a blade parallel to the gills' (a ruled loft between its lines just outside the face and on the inner
+    face). It reaches 0.5 under the plane: a face lying on the shells' own parting face fails the booleans silently."""
+    z0 = S.z_part
+    a, b = SEAM_FADE
+    ys = [-50.0, -b, -a, 0.0, a, b, 50.0]
+
+    def sec(x):
+        pts = [(y, seam_at(x, y)) for y in ys] + [(50.0, z0 - 0.5), (-50.0, z0 - 0.5)]
+        return make_face(Plane.YZ.offset(x) * Polyline(*pts, close=True))
+
+    return loft([sec(X_REAR - 0.3), sec(G.REAR_IN_X)], ruled=True)
+
+
+def seam_band():
+    """The seam's blade: grille_seam high on the face along the V, climbing 44 degrees through the wall with the
+    gills; no slot crosses it."""
+    hs = S.grille_seam / 2
+    ys = [-50.0, -V_Y, 0.0, V_Y, 50.0]
+    pts = [(y, seam_z(y) + hs - TAN44) for y in ys] + [(y, seam_z(y) - hs - TAN44) for y in reversed(ys)]
+    face = make_face(Plane.YZ.offset(X_REAR - 1.0) * Polyline(*pts, close=True))
+    return extrude(face, amount=(REAR_T + 2.0) / math.cos(math.radians(44)), dir=(1.0, 0.0, TAN44))
+
+
+def _face_flat():
+    """The rear face's flat, inside its chamfer: (half width, half height, corner radius, centre z)."""
+    x, c = X_REAR, S.rear_chamfer
+    w1, h1, r1, zc1 = profile(x + c * KS)
+    return w1 / 2 - c, h1 / 2 - c, r1 - c, zc1
+
+
+def _in_rrect(y, z, a, b, r, zc):
+    dy, dz = abs(y) - (a - r), abs(z - zc) - (b - r)
+    return (dy <= 0 and abs(z - zc) <= b) or (dz <= 0 and abs(y) <= a) or math.hypot(max(dy, 0.0), max(dz, 0.0)) <= r
+
+
+def _in_flat(y, z, m):
+    a, b, r, zc = _face_flat()
+    return _in_rrect(y, z, a - m, b - m, r - m, zc)
+
+
+def _in_inner(y, z, m):
+    """(y, z) at least m inside the rear wall's inner face (the cavity's section there)."""
+    w, h, r, zc = profile(G.REAR_IN_X)
+    return _in_rrect(y, z, w / 2 - W - m, h / 2 - W - m, r - W - m, zc)
+
+
+def _gill(zc, half):
+    """A chevron slot's outline on the face (y, z): the V's top edge out to +-half, the bottom edge shorter by the
+    44 degree ends."""
+    hh, e = GRILLE_H / 2, GRILLE_H / math.tan(math.radians(44))
+    z = lambda y: zc - KV * abs(y)  # noqa: E731
+    return [(-half, z(half) + hh), (0.0, zc + hh), (half, z(half) + hh), (half - e, z(half - e) - hh), (0.0, zc - hh), (-(half - e), z(half - e) - hh)]
+
+
+def grille_slots():
+    """[(zc, half)]: each gill's apex height on the face and its half length, the longest that keeps its outline
+    `grille_edge` inside the face's flat and, risen through the wall, inside the inner face (no gill ends in the
+    chamfer's corner). One even pitch up and down from the seam's blade, which climbs with them, so it sits in the
+    field's middle. Gills shorter than 20 mm a side are left out."""
+    hs, pitch = S.grille_seam / 2, S.grille_pitch
+    rise = REAR_T * TAN44
+    z0 = S.z_part + V_APEX
+    out = []
+    for zc in [z0 + sgn * (hs + GRILLE_H / 2 + pitch * i) for sgn in (1, -1) for i in range(12)]:
+        fits = lambda half: all(_in_flat(y, z, S.grille_edge) and _in_inner(y, z + rise, S.grille_edge) for y, z in _gill(zc, half))  # noqa: E731
+        if not fits(20.0):
+            continue
+        lo, hi = 20.0, 40.0
+        for _ in range(30):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if fits(mid) else (lo, mid)
+        out.append((zc, lo))
+    return sorted(out)
 
 
 def grille_cut():
-    """Ten louvres in the rear wall inside a rounded square around the fan's axis; they stop short of the
-    parting plane so the two halves of the wall meet in a bar."""
-    # the field is sheared along the louvres' tilt, so the top slot is open through the whole wall
-    k = math.tan(math.radians(44))
-    field = loft([Plane.YZ.offset(X_REAR + dx) * Pos(0, dx * k + REAR_T / 2 * (1 - k)) *
-                  RectangleRounded(S.grille_field, S.grille_field + 4.0, S.grille_r) for dx in (-3.0, REAR_T + 4.0)], ruled=True)
+    """The chevron gills: each slot's outline on the face, extruded through the rear wall along the louvres' 44 degrees
+    (rising inward: spray cannot pass straight in, water inside runs out), clipped under the rear chamfer and kept
+    off the seam's blade."""
+    t = math.tan(math.radians(44))
+    run = REAR_T + 2.0
     cut = None
-    for z in GRILLE_ZS:
-        s = louvre(z, X_REAR, REAR_T, 80.0, S.grille_slot)
+    for zc, half in grille_slots():
+        face = make_face(Plane.YZ.offset(X_REAR - 1.0) * Polyline(*[(y, z - t) for y, z in _gill(zc, half)], close=True))
+        s = extrude(face, amount=run / math.cos(math.radians(44)), dir=(1.0, 0.0, t))
         cut = s if cut is None else cut + s
-    cut = cut & field & under_chamfer(GRILLE_SKIN)
-    return cut - box(X_REAR - 3, G.REAR_IN_X + 3, -50, 50, -S.grille_bar, S.grille_bar)
+    return cut & under_chamfer(GRILLE_SKIN) - seam_band()
 
 
 GRILLE_SKIN = 1.2  # the louvres keep this much wall under the rear chamfer: the top slots climbing inward would open through it, upward
@@ -279,7 +377,6 @@ def drip_lip():
 FRONT_BOSS = (P.layout.front_screw_x, 28.0)
 REAR_BOSS = (G.REAR_IN_X + P.layout.rear_gap / 2, S.rear_screw_y)
 REAR_BOSS_D = 4.5  # M2; the column stands in the fan shim block, so the channel's sleeve is the block
-LAP = 1.2  # the rear wall's lip at the parting plane
 
 
 def boss_points():
@@ -295,18 +392,6 @@ def pin_relief():
     L = P.linkage
     top = G.COUPLER_Z1 + L.pin_head_h + PIN_RELIEF
     return teardrop_z(g.flap_x - L.arm_r, G.SERVO_Y, L.pin_head_d / 2 + PIN_RELIEF, G.COUPLER_Z1, top, toward=1)
-
-
-def rear_lip(clear=0.0):
-    """The rear wall's inner half rises LAP above the parting plane behind a 44 degree face (the pan); with
-    `clear` it is the notch cut from the hood. Both faces print nose up."""
-    x0 = X_REAR + REAR_T / 2 - clear
-    h = LAP + clear
-    lip = prism_xz([(x0, h), (G.REAR_IN_X + 1.0, h), (G.REAR_IN_X + 1.0, -0.01 - clear), (x0 + h * KS, -0.01 - clear)], -50.0, 50.0)
-    # it stops inside the flanks' inner half, as the tongue does, and under the rear chamfer, so the hood keeps a skirt outside
-    # it at the corners (cut across the whole width it came through the flank and the chamfer)
-    skin = W - S.lip_t - clear
-    return lip & _loft(sections(), skin, x0=X_REAR - 5.0) & under_chamfer(skin)
 
 
 def fan_shims():
@@ -405,8 +490,9 @@ def hood():
         h += teardrop_z(x, y, d / 2, S.z_part + 0.2, 40.0, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
         pilot = 1.05 if d == S.boss_d else 0.85
         h -= teardrop_z(x, y, pilot, S.z_part + 0.1, S.z_part + S.screw_engage + 0.5, toward=1)
-    h -= rear_lip(0.2)
     h -= rebate()
+    h -= seam_wedge()  # the V seam on the rear wall, climbing with the gills: the pan rises into it (last, so the rear
+    # bosses, which start 0.1 inside the wall, give way to it too)
     h -= pin_relief()
     h += rib()
     return h
@@ -415,7 +501,8 @@ def hood():
 @disk_cache
 def pan():
     o = outer()
-    p = _half(_shell(True), False) + (_shell(True) & rear_lip())
+    sh = _shell(True)
+    p = _half(sh, False) + (sh & seam_wedge())
     p -= bay_pocket()
     p += (bay_walls() + bay_ceiling()) & o
     p -= port_openings()

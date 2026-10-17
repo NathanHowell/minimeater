@@ -14,6 +14,7 @@ angle.
 """
 
 import argparse
+import math
 import importlib.util
 import json
 import shutil
@@ -23,11 +24,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-from build123d import Compound, Plane, Pos, Rectangle, export_stl, extrude
+from build123d import Axis, Compound, Edge, Face, Plane, Pos, Rectangle, Rot, Wire, export_stl, extrude, revolve
 
 from .. import geom as G
 from .. import shell
 from ..mock import fan_step
+from ..params import P
 from ..parts import box, xcyl
 from . import fan, runtime, swirl
 from .run import RHO, _tail
@@ -49,6 +51,7 @@ class GrilleCase:
     rotor_level: int = 3
     grille_level: int = 2
     concept: str = ""  # the S-louvre script (s_louvre)
+    plenum: str = ""  # flow shaping in the plenum: "ribs" (anti-swirl ribs at the blade tips), "dome" (a stationary nose over the rotor hub), "ring" (a separator ring at the tips, the ribs outside it), "bell" (a bellmouth down to the fan's bore)
 
     @property
     def q_m3s(self) -> float:
@@ -88,7 +91,63 @@ def wall(c: GrilleCase):
     out = plate + sleeve
     if c.gap == 0:  # what stands in the plenum as the shells draw it: the fan's shim blocks and its four rest pads
         out = out + shell.fan_shims() + shell.rear_bumps()
+    if c.plenum:
+        out = out + plenum_shaping(c)
     return out
+
+
+RIBS = (12, 1.2, 25.0, 34.0, 2.0)  # count, thickness, r0, r1, gap to the fan's frame
+DOME = (12.5, 8.0, 1.0)  # radius, depth upstream, gap to the rotor's hub
+RING = (29.5, 1.2, 6.0, 0.5)  # inner radius, wall, length upstream, gap to the frame
+BELL = 6.0  # the bellmouth's quarter-round lip, down to the fan's bore
+
+
+def plenum_shaping(c: GrilleCase):
+    """`ribs`: radial ribs at the blade tips from the rear wall to just off the frame, 15 deg off the axes (none on
+    the seam): an anti-swirl ring for the tips' recirculation, a stall stabiliser in industrial axial fans. `dome`: a
+    half-ellipsoid over the rotor's hub, floating (the control: the hub carries almost no flow)."""
+    x0, x1 = G.REAR_IN_X - c.gap - 0.2, G.FAN_X0 - RIBS[4]
+    if c.plenum == "ribs":
+        n, t, r0, r1, _ = RIBS
+        one = box(x0, x1, -t / 2, t / 2, r0, r1)
+        out = None
+        for i in range(n):
+            rib = Rot(15.0 + 360.0 * i / n, 0, 0) * one
+            out = rib if out is None else out + rib
+        return out
+    if c.plenum == "dome":
+        r, d, gap = DOME
+        xe = G.FAN_X0 - gap
+        return _dome(xe, r, d)
+    if c.plenum == "ring":
+        # a separator ring just outside the blade tips; the tips' reverse flow leaves outward between it and the wall,
+        # where the ribs take its swirl out, and rejoins upstream of the ring's lip (an axial fan's stall stabiliser)
+        ri, t, ln, gap = RING
+        xr1 = G.FAN_X0 - gap
+        ring = xcyl(ri + t, xr1 - ln, xr1) - xcyl(ri, xr1 - ln - 1, xr1 + 1)
+        n = RIBS[0]
+        one = box(xr1 - ln, xr1, -RIBS[1] / 2, RIBS[1] / 2, ri + t / 2, 45.0)
+        out = ring
+        for i in range(n):
+            out = out + Rot(15.0 + 360.0 * i / n, 0, 0) * one
+        return out & box(x0, xr1, -45, 45, -45, 45)
+    if c.plenum == "bell":
+        # the plenum filled outside a bellmouth: a quarter round from the bore's r 29 at the frame to r 29 + BELL upstream
+        r0, R, xe = P.fan.aperture_d / 2, BELL, G.FAN_X0 - 0.3
+        pts = [(xe - R * math.sin(math.pi / 2 * i / 16), 0, r0 + R * (1 - math.cos(math.pi / 2 * i / 16))) for i in range(17)]
+        prof = [Edge.make_spline(pts), Edge.make_line(pts[-1], (pts[-1][0], 0, 0)), Edge.make_line((pts[-1][0], 0, 0), (xe, 0, 0)), Edge.make_line((xe, 0, 0), pts[0])]
+        air = revolve(Face(Wire(prof)), Axis.X, 360)
+        return box(xe - R, xe, -45, 45, -45, 45) - air
+    raise ValueError(f"unknown plenum shaping {c.plenum}")
+
+
+def _dome(xe, r, d):
+    """A half-ellipsoid, flat face at xe toward the rotor, reaching d upstream."""
+    from build123d import Axis, Edge, Face, Wire, revolve
+    pts = [(xe - d * math.sin(math.pi / 2 * i / 16), 0, r * math.cos(math.pi / 2 * i / 16)) for i in range(17)]
+    pts[-1] = (xe - d, 0, 0)  # the arc ends on the axis
+    prof = [Edge.make_spline(pts), Edge.make_line(pts[-1], (xe, 0, 0)), Edge.make_line((xe, 0, 0), pts[0])]
+    return revolve(Face(Wire(prof)), Axis.X, 360)
 
 
 PATCHES = ("inlet", "outlet", "frame", "rotor", "pipe", "walls")
@@ -125,7 +184,7 @@ def intake(f: Path) -> dict:
 
 
 def run(c: GrilleCase, out: Path, mem: str) -> dict:
-    name = f"grille-{c.grille}-gap{c.gap:g}-{c.cfm:g}cfm"
+    name = f"grille-{c.grille}-gap{c.gap:g}-{c.cfm:g}cfm" + (f"-{c.plenum}" if c.plenum else "")
     case_dir = (out / name).resolve()
     if case_dir.exists():
         shutil.rmtree(case_dir)
@@ -171,9 +230,10 @@ def main():
     ap.add_argument("--np", type=int, default=8)
     ap.add_argument("--mem", default="32G")
     ap.add_argument("--out", type=Path, default=Path("build/cfd"))
+    ap.add_argument("--plenum", default="", choices=("", "ribs", "dome", "ring", "bell"), help="flow shaping in the plenum")
     ap.add_argument("--dry", action="store_true", help="write the case and stop")
     a = ap.parse_args()
-    c = GrilleCase(grille=a.grille, concept=a.concept, gap=a.gap, cfm=a.cfm, rpm=a.rpm, iterations=a.iterations, np=a.np)
+    c = GrilleCase(grille=a.grille, concept=a.concept, gap=a.gap, cfm=a.cfm, rpm=a.rpm, iterations=a.iterations, np=a.np, plenum=a.plenum)
     if a.dry:
         d = a.out / f"grille-{c.grille}-gap{c.gap:g}-dry"
         print(write_stl(c, d / "constant" / "triSurface"))

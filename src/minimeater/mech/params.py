@@ -222,7 +222,7 @@ class Layout:
     board_x1: float = -24.5  # board's front edge: under the socket flare's first mm, clear of the shells' front cone
     straight_over: float = 2.5  # the board's rear edge may sit this far into the cone (its outer r grows 0.5/mm): 1.0 for the parts, plus Pcb.usb_end, where only the USB-C stands
     x_front: float = -11.0  # the front face: the socket's last 11 mm and its extension are outside
-    rear_gap: float = 14.5  # fan's rear face to the rear wall's inner face: the plenum in front of the rotor. The grille CFD (cfd/grille.py, docs/cfd.md) leaves the fan 2.9 Pa of its 12.0 at 4.5 mm, 6.7 at 14.5, 7.4 at 24.5: the knee
+    rear_gap: float = 12.6  # fan's rear face to the rear wall's inner face: the plenum in front of the rotor. The grille CFD (cfd/grille.py, docs/cfd.md) leaves the fan 2.9 Pa of its 12.0 at 4.5 mm, 6.7 at 14.5, 7.4 at 24.5: the knee. 14.5 less the 1.9 mm the rear wall gained inward (shell.REAR_T 5.1: no level line of sight through the louvres), so the box keeps its length
     front_screw_x: float = -18.0  # the front shell screws, in the shells' thick front zone
     slope: float = 1.0355  # run per rise of every designed overhang: 44 degrees, inside the 45 the printer allows
 
@@ -263,12 +263,11 @@ class Shell:
     rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves 1.2 mm to the cavity wall at y 29.9, and the hull 1.3 mm outside (at 32.1 the channel left 0.08 mm)
     label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
     label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor
-    grille_field: float = 58.0  # rounded square of louvres around the fan's axis
-    grille_r: float = 14.0
-    grille_pitch: float = 6.2  # five slots a side, vertical pitch; the slots are cut 44 deg, so the blades between are pitch x cos 44 - slot thick
-    grille_slot: float = 3.2  # slot height; cut 44 deg down and out (the first slot is centred 3.5 off the axis)
-    grille_n: int = 5
-    grille_bar: float = 1.6  # the slots stop this far from the parting plane
+    grille_pitch: float = 6.12  # vertical pitch of the chevron gills, one even field (6.12 cos 44 - 3.2 = 1.20, the printer's minimum web); the slots are cut 44 deg, so the blades between are pitch x cos 44 - slot thick
+    grille_slot: float = 3.2  # slot width across it (4.45 high on the face); cut 44 deg down and out
+    grille_chevron: float = 6.0  # deg: each slot is a shallow V, apex up on the axis, so water on the blades runs to the sides; the hood/pan split on the rear face follows the same V
+    grille_seam: float = 7.79  # the seam's blade on the face, 2 pitches less a slot's 4.45 height (one gill's place); it climbs 44 deg through the wall with the gills, so it sits in the field's middle: the split runs along its middle, the rear lip and the hood's notch inside it
+    grille_edge: float = 1.0  # the slots' ends, cut at 44 deg (the rear chamfer's and the louvres' angle), stop this far inside the rear face's flat
     bay_z: tuple[float, float] = (-34.0, -21.0)  # the bay's floor and ceiling (the eave)
     bay_x: tuple[float, float] = (-74.5, -24.0)  # the front end stops short of the front screw column (x -18, |y| 28: its teardrop reaches x -22.8), so the column stands in solid pan; the front jack's plug (to x -25.2) still clears it
     bay_wall_t: float = 2.4  # the port wall

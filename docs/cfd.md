@@ -69,6 +69,11 @@ The inlet redrawn as a designed pair of curves (the contraction's wall tangent t
 the bore: the same as the straight cone. The vanes rebuilt as one fitted surface with a millimetre root fillet
 (`vane_fillet`) on it: 16.21 Pa, the same within the coarse mesh's noise (0.22 Pa of swirl head in the tube either way).
 
+Mesh check (2026-10-16): the final design (the designed inlet, the fitted vanes, the profile inlet) on a 1.4 mm
+background (1.84 M cells, 46 minutes on 8 ranks) loses 15.98 Pa against 16.21 on the 2 mm one (0.84 M): 1.4 %, so
+these coarse comparisons resolve about 1-2 % and differences inside that are ties. The swirl left is the same
+(2.7 Pa of swirl head in the bore, 0.2 in the tube).
+
 The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 1.26 without the grille. The duct
 does not need a change for its loss. The 45° figure is inside the range published for butterfly valves (about 10-18). With the flap partly closed the
 tube's friction reads high (0.043-0.050): the wake has not died out by the fitted planes, so those k carry some of the
@@ -113,6 +118,23 @@ weakest part of these models, so take the trend, not the numbers.
 The gap is now 14.5 mm (`Layout.rear_gap`, `.2.28`). Run with the shells' own shim blocks and the four Ø4 rest pads
 standing in the plenum (`gap` 0 at the new rear_gap), the fan keeps 7.3 Pa static (15.6 total), the intake at 60° with
 23 % backflow: the pads, out at r 34 in the frame's corners, cost nothing measurable.
+
+The chevron grille (eight gills, 1485 mm², the seam climbing with them) with the 5.1 mm rear wall and the 12.6 mm
+plenum it leaves keeps 6.8 Pa (pitch 6.05 gave 7.0, so the pitch's last 0.07 mm is noise). Shaping the plenum
+(`--plenum`, all at that grille):
+
+| plenum | fan static rise | total | intake angle | backflow at the rotor face |
+|---|---|---|---|---|
+| plain | 6.8 Pa | 15.7 Pa | 61° | 25 % |
+| ribs: 12 radial, 1.2 thick, r 25-34, wall to 2 mm off the frame | 11.1 Pa | 19.3 Pa | 52° | 22 % |
+| dome: a half-ellipsoid r 12.5 over the hub, 1 mm off it | 5.9 Pa | 14.6 Pa | 60° | 24 % |
+| ring: r 29.5 separator at the tips, the ribs outside it | 3.9 Pa | 12.4 Pa | 66° | 29 % |
+| bell: a 6 mm quarter round down to the fan's bore | 2.8 Pa | 10.2 Pa | 68° | 37 % |
+
+The ribs take the swirl out of the blade tips' recirculation, so the air coming back in meets the rotor without
+pre-swirl, and the fan keeps nearly its free-air 12.0. The ring and the bell narrow what the recirculation has to turn
+in and lose more than half; the hub carries almost no flow, so the dome only crowds it. As modelled the ribs sit at
+15° + 30° steps, one on each diagonal where the fan's M3 heads are; the printed set must move off them.
 
 ## Acoustics: `uv run minimeater-acoustics`
 
