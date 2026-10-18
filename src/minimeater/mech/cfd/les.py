@@ -58,6 +58,8 @@ class LesCase(Case):
     co: float = 0.8  # the largest Courant number the adjustable time step allows
     intensity: float = 0.05  # the inlet's velocity fluctuations (the fan's blade wakes), share of the annulus speed
     howe: bool = True  # the Lamb-vector slab integrals (.2.19)
+    force_hz: float = 0.0  # a forced run (.2.19): the inflow oscillates at this frequency, a duct mode's (0: the turbulent inlet)
+    force_amp: float = 0.0  # its amplitude, a share of the inflow's mean speed: a compact flap sees the mode's acoustic velocity
     zone_from: float = -8.0  # mm from the shaft axis: the refined cylinder round the flap
     zone_to: float = 30.0
 
@@ -99,7 +101,7 @@ def g_flap_x() -> float:
 
 
 def name_of(c: LesCase) -> str:
-    return f"{c.variant}-{c.flap_deg:g}deg-{c.cfm:g}cfm-{c.res}"
+    return f"{c.variant}-{c.flap_deg:g}deg-{c.cfm:g}cfm-{c.res}" + (f"-forced{c.force_hz:g}hz-{c.force_amp:g}" if c.force_hz else "")
 
 
 def probes(c: LesCase) -> list[tuple[str, tuple[float, float, float]]]:
@@ -191,7 +193,9 @@ LES { LESModel WALE; turbulence on; printCoeffs on; delta cubeRootVol; cubeRootV
 """)
     bf = {
         "U": ("volVectorField", "[0 1 -1 0 0 0 0]", {
-            "inlet": f"type turbulentInlet; referenceField uniform ({u_in} 0 0); fluctuationScale ({u_in * c.intensity} {u_in * c.intensity} {u_in * c.intensity}); alpha 0.1; value uniform ({u_in} 0 0);",
+            "inlet": (f"type uniformFixedValue; uniformValue {{ type sine; frequency {c.force_hz}; amplitude constant {u_in * c.force_amp}; "
+                      f"scale constant (1 0 0); level constant ({u_in} 0 0); }} value uniform ({u_in} 0 0);") if c.force_hz else
+            f"type turbulentInlet; referenceField uniform ({u_in} 0 0); fluctuationScale ({u_in * c.intensity} {u_in * c.intensity} {u_in * c.intensity}); alpha 0.1; value uniform ({u_in} 0 0);",
             "outlet": "type inletOutlet; inletValue uniform (0 0 0); value uniform (0 0 0);",
             steady.WALLS: "type noSlip;"}),
         "p": ("volScalarField", "[0 2 -2 0 0 0 0]", {
@@ -292,6 +296,8 @@ def main():
     ap.add_argument("--t-stats", type=float, help="s: where the averaging starts")
     ap.add_argument("--co", type=float, help="the Courant number to size the time step for")
     ap.add_argument("--no-howe", action="store_true", help="skip the Lamb-vector slab integrals")
+    ap.add_argument("--force-hz", type=float, help="a forced run: the inflow oscillates at this frequency (a duct mode's; .2.19)")
+    ap.add_argument("--force-amp", type=float, default=0.05, help="the forcing's amplitude, a share of the mean inflow")
     ap.add_argument("--np", type=int, default=12, help="MPI ranks (and container CPUs)")
     ap.add_argument("--mem", default="48G", help="container memory")
     ap.add_argument("--out", type=Path, default=Path("build/les"))
@@ -302,6 +308,8 @@ def main():
     kw = {k: v for k, v in (("t_end", a.t_end), ("t_stats", a.t_stats), ("co", a.co)) if v is not None}
     if a.no_howe:
         kw["howe"] = False
+    if a.force_hz:
+        kw |= {"force_hz": a.force_hz, "force_amp": a.force_amp}
     todo = SWEEP if a.sweep else ((a.flap, a.cfm),)
     for flap, cfm in todo:
         c = make(flap, cfm, a.variant, a.res, a.np, **kw)

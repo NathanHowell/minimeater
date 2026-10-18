@@ -293,3 +293,52 @@ def test_swarm_sparks_leave_the_lump_rise_and_go_out():
     assert (born[live.any(axis=0)] >= 48 - 1).all() and (live[:47].sum() == 0) and (live[250:].sum() < live.sum() * 0.2)  # only in its window
     rate = np.bincount(born[live.any(axis=0)], minlength=360)
     assert rate[100:140].sum() > 1.5 * rate[48:88].sum() and heads[live][:, 2].mean() > centre[2]  # busiest near the flare, and they rise
+
+
+def test_whistle_reads_a_forced_runs_impedance(tmp_path):
+    """A forced run whose flap force is a known resistance and inertance on the oscillating flow gives them back, and a negative
+    resistance larger than the rest of the loop's is a whistle."""
+    import json
+    import math
+
+    import numpy as np
+
+    from minimeater.mech.cfd import acoustics as ac
+    from minimeater.mech.cfd import whistle
+
+    hz, amp, cfm = 846.0, 0.05, 0.7
+    a_bore = math.pi * (ac.g.bore_r * 1e-3) ** 2
+    q0 = cfm * ac.CFM
+    t = np.arange(0.0, 0.06, 2.5e-5)
+    q_ac = q0 * amp * np.sin(2 * math.pi * hz * t)
+    dq = q0 * amp * 2 * math.pi * hz * np.cos(2 * math.pi * hz * t)
+
+    def run(r, l):
+        d = tmp_path / f"r{r}"
+        (d / "postProcessing" / "forces" / "0").mkdir(parents=True)
+        fx = (r * q_ac + l * dq) * a_bore / ac.RHO  # the case holds forces per unit density
+        rows = "\n".join(f"{ti:.7f} ({x:.9e} 0 0) ({x:.9e} 0 0) (0 0 0)" for ti, x in zip(t, fx))
+        (d / "postProcessing" / "forces" / "0" / "force.dat").write_text("# Time total pressure viscous\n" + rows + "\n")
+        (d / "case.json").write_text(json.dumps({"force_hz": hz, "force_amp": amp, "t_stats": 0.01, "cfm": cfm, "flap_deg": 33.0}))
+        return whistle.case(d)
+
+    ok = run(2.0e4, 50.0)
+    assert ok["z_flap"][0] == pytest.approx(2.0e4, rel=0.02)
+    assert ok["z_flap"][1] == pytest.approx(50.0 * 2 * math.pi * hz, rel=0.02)
+    assert not ok["whistles"] and ok["margin"] > 1
+    bad = run(-10 * ok["r_rest"], 0.0)
+    assert bad["whistles"] and bad["margin"] < 0
+
+
+def test_whistle_radiated_level_follows_the_force():
+    """Ten times the force is 20 dB more at the listener; the A-weighting takes off more at 100 Hz than at 1 kHz."""
+    import numpy as np
+
+    from minimeater.mech.cfd import acoustics as ac
+    from minimeater.mech.cfd import whistle
+
+    f = np.arange(20.0, 6000.0, 5.0)
+    s = np.where(abs(f - 1000) < 50, 1e-8, 1e-14)
+    a, b = (whistle.radiated(f, k * s, 33, 0.7 * ac.CFM) for k in (1, 100))
+    assert b["room_db"] - a["room_db"] == pytest.approx(20.0, abs=0.01)
+    assert whistle.a_weight(np.array([100.0]))[0] < -15 < whistle.a_weight(np.array([1000.0]))[0] + 1
