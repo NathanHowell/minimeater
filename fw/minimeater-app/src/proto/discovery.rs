@@ -23,7 +23,7 @@ pub struct Device<'a> {
 }
 
 /// Every `event_type` the device publishes, for the `event` entity.
-pub const EVENT_TYPES: [&str; 18] = [
+pub const EVENT_TYPES: [&str; 19] = [
     "boot",
     "alarm",
     "alarm_clear",
@@ -42,6 +42,7 @@ pub const EVENT_TYPES: [&str; 18] = [
     "rejected",
     "fault",
     "fault_clear",
+    "servo_home",
 ];
 
 const URL: &str = "https://github.com/NathanHowell/minimeater";

@@ -28,7 +28,9 @@ use minimeater_core::model::actuator::{flap_angle_deg, open_frac};
 use minimeater_core::model::airflow::{Actuation, AirPath, AirflowMap, ModelFeedforward};
 
 use crate::alarms::Limit;
+use crate::config::ServoPulses;
 use crate::config::{ControllerKind, Cook, Lid, Mode, Settings};
+use crate::drive::HomeFail;
 use crate::hal::PROBE_JACKS;
 use crate::probes::Check;
 use crate::proto::BootReason;
@@ -79,6 +81,9 @@ pub enum FaultCode {
     /// The damper servo's current is wrong on two moves running: high while it holds (jammed) or nothing on a move
     /// (unplugged). It only warns.
     Servo,
+    /// The damper servo has no calibration and none is being found: homing failed (`servo_home` says why), so it
+    /// runs on the nominal pulses, which may push the flap against a post. It only warns.
+    ServoCal,
 }
 
 impl FaultCode {
@@ -93,10 +98,11 @@ impl FaultCode {
             FaultCode::Supply => "supply",
             FaultCode::Load => "load",
             FaultCode::Servo => "servo",
+            FaultCode::ServoCal => "servo_cal",
         }
     }
 
-    pub const ALL: [FaultCode; 8] = [
+    pub const ALL: [FaultCode; 9] = [
         FaultCode::PitProbe,
         FaultCode::BoardHot,
         FaultCode::FanStall,
@@ -105,6 +111,7 @@ impl FaultCode {
         FaultCode::Supply,
         FaultCode::Load,
         FaultCode::Servo,
+        FaultCode::ServoCal,
     ];
 }
 
@@ -172,6 +179,8 @@ pub enum Event {
     },
     Fault(FaultCode),
     FaultClear(FaultCode),
+    /// A homing run ended (`minimeat-xdn`): the pulses it found and saved, or why it found none.
+    ServoHome(Result<ServoPulses, HomeFail>),
     /// The device started, and why: raised once per boot, when the MQTT session first comes up.
     Boot(BootReason),
 }
@@ -196,6 +205,7 @@ impl Event {
             Event::SelfCheck { .. } => "selfcheck",
             Event::Fault(_) => "fault",
             Event::FaultClear(_) => "fault_clear",
+            Event::ServoHome(_) => "servo_home",
             Event::Boot(_) => "boot",
         }
     }

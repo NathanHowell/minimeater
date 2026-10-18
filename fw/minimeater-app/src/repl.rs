@@ -1018,7 +1018,7 @@ fn why_home(e: HomeFail) -> &'static str {
         HomeFail::NoStopHigh => "no stop found toward the high pulses (are the posts and the lug fitted?)",
         HomeFail::FaultAtRest => "the load switches' fault line is low with the servo at rest",
         HomeFail::Span => "the two stops are not the flap's travel apart (servo jog and mark, then)",
-        HomeFail::Cancelled => "stopped: a cook started or the USB supply went away",
+        HomeFail::Cancelled => "stopped: the USB supply went away (it runs again once the supply is back)",
     }
 }
 

@@ -72,6 +72,15 @@ pub fn event<W: Write>(j: &mut Json<W>, e: &Event) {
         Event::Fault(code) | Event::FaultClear(code) => {
             j.key("code").str(code.name());
         }
+        Event::ServoHome(Ok(p)) => {
+            j.key("ok").bool(true);
+            j.key("closed").int(i64::from(p.closed_us));
+            j.key("open").int(i64::from(p.open_us));
+        }
+        Event::ServoHome(Err(why)) => {
+            j.key("ok").bool(false);
+            j.key("why").str(why.name());
+        }
         Event::Boot(_) => {}
     }
     j.end_obj();

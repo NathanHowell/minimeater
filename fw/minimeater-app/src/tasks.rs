@@ -92,10 +92,10 @@ pub struct AutotuneInfo {
 
 /// A set of [`FaultCode`]s.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Faults(u8);
+pub struct Faults(u16);
 
 impl Faults {
-    fn bit(code: FaultCode) -> u8 {
+    fn bit(code: FaultCode) -> u16 {
         1 << FaultCode::ALL.iter().position(|c| *c == code).unwrap_or(0)
     }
 
@@ -191,8 +191,6 @@ pub enum Home {
     /// Asked for; the actuator task starts it when the supply is good.
     Wanted,
     Running,
-    /// Told to stop: a cook has started.
-    Cancel,
 }
 
 impl ServoCtl {
@@ -316,15 +314,12 @@ impl Bus {
         self.config_rev.sender().send(rev);
     }
 
-    /// A cook has started: a jog is let go, and a homing run that has begun is told to stop (one still waiting is dropped).
+    /// A cook has started: a jog is let go. A homing run, waiting or begun, goes on: it takes about 30 s, and a cook on an
+    /// uncalibrated servo can push the flap against a post and trip the load switch (`minimeat-ixz`). The flap goes where
+    /// the controller wants it once the run ends.
     fn end_bench(&self) {
         self.servo_with(|s| {
             s.jog = None;
-            s.home = match s.home {
-                Home::Running => Home::Cancel,
-                Home::Wanted => Home::Idle,
-                h => h,
-            };
         });
     }
 
@@ -492,9 +487,15 @@ fn apply(req: Request, pit: &mut Pit, settings: &mut Settings, bus: &Bus) -> Res
         }
         Request::ServoHomed(result) => {
             bus.servo_with(|s| {
-                s.home = Home::Idle;
+                // a run the supply cut short goes again when it is back, unless a calibration was saved meanwhile
+                s.home = if result == Err(HomeFail::Cancelled) && s.cal.is_none() {
+                    Home::Wanted
+                } else {
+                    Home::Idle
+                };
                 s.last_home = Some(result);
             });
+            bus.emit(Event::ServoHome(result));
             match result {
                 Ok(p) => {
                     let changed = settings.servo != Some(p);
@@ -542,9 +543,10 @@ pub async fn control<B: Board>(
     // armed here, after the boot's flash reads and the self-survey; a hang from now on resets the board into the saved cook
     wdt.start(WATCHDOG_MS);
     let mut beat = 0;
-    // a unit with no calibration (new, or a record that failed its check) finds it against the hard stops; one that is resuming
-    // a cook after a power cut is not the time to move the flap
-    let home = settings.servo.is_none() && settings.cook.mode == Mode::Off;
+    // a unit with no calibration (new, or a record that failed its check) finds it against the hard stops, a resumed cook
+    // too: about 30 s with the fan off beats a cook on pulses that may push the flap against a post (`minimeat-ixz`). A
+    // calibrated unit never moves the flap to look.
+    let home = settings.servo.is_none();
     bus.servo_with(|s| {
         s.cal = settings.servo;
         if home {
@@ -623,6 +625,9 @@ pub async fn control<B: Board>(
         if pit.cook().mode != Mode::Off {
             bus.end_bench();
         }
+        // running on the nominal pulses with no homing to come
+        let servo = bus.servo();
+        bus.fault(FaultCode::ServoCal, servo.cal.is_none() && servo.home == Home::Idle);
         let jack = settings.cook.pit_probe as usize;
         let (out, events) = pit.step(temps[jack], amb, PERIOD_S);
         bus.act.signal(out.act);
@@ -789,7 +794,7 @@ async fn home<B: Board>(
         let source_ok = usb
             .source_current_ma()
             .is_some_and(|ma| ma >= crate::drive::SUPPLY_MIN_MA);
-        if bus.servo().home == Home::Cancel || !source_ok {
+        if !source_ok {
             break Err(HomeFail::Cancelled);
         }
         // the line and the current are read all through the step, and show the pulse set the step before

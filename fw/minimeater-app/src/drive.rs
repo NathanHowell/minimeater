@@ -120,8 +120,21 @@ pub enum HomeFail {
     FaultAtRest,
     /// The two stops are not a flap's travel apart (too close, or out of range).
     Span,
-    /// A cook started, or the supply or a load switch went away, before it finished.
+    /// The supply or a load switch went away before it finished; it runs again once the supply is back.
     Cancelled,
+}
+
+impl HomeFail {
+    /// Wire name (the `servo_home` event's `why`, docs/protocol.md).
+    pub fn name(self) -> &'static str {
+        match self {
+            HomeFail::NoStopLow => "no_stop_low",
+            HomeFail::NoStopHigh => "no_stop_high",
+            HomeFail::FaultAtRest => "fault_at_rest",
+            HomeFail::Span => "span",
+            HomeFail::Cancelled => "cancelled",
+        }
+    }
 }
 
 /// Homing (`minimeat-xdn`): the servo is swept slowly toward each end until the crank's lug meets a printed post and

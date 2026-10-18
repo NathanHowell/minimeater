@@ -3,7 +3,8 @@
 //! the parser must hold its limits.
 
 use minimeater_app::alarms::Limit;
-use minimeater_app::config::{ControllerKind, Cook, Mode, ProbeKind, Settings, StallPolicy};
+use minimeater_app::config::{ControllerKind, Cook, Mode, ProbeKind, ServoPulses, Settings, StallPolicy};
+use minimeater_app::drive::HomeFail;
 use minimeater_app::pit::{Command, Event, FaultCode, Output, Phase};
 use minimeater_app::probes::{Check, ProbeSt};
 use minimeater_app::proto::{self, ErrorCode, Json, ProbeChange, Request};
@@ -231,6 +232,19 @@ fn events_are_the_docs_examples_and_every_type_is_listed() {
         find("rejected"),
         "rejected",
     );
+    same(
+        &write(|j| {
+            proto::event(
+                j,
+                &Event::ServoHome(Ok(ServoPulses {
+                    closed_us: 1170,
+                    open_us: 1830,
+                })),
+            )
+        }),
+        find("servo_home"),
+        "servo_home",
+    );
 
     // one of every event the control loop raises, against the doc's table of event types
     let listed: Vec<String> = doc_example("cmps")["cmps"]["events"]["evt_typ"]
@@ -268,6 +282,7 @@ fn events_are_the_docs_examples_and_every_type_is_listed() {
         },
         Event::Fault(FaultCode::PitProbe),
         Event::FaultClear(FaultCode::PitProbe),
+        Event::ServoHome(Err(HomeFail::Span)),
     ];
     for e in all {
         let v = write(|j| proto::event(j, &e));

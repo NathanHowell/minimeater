@@ -160,6 +160,7 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
 | `load` | a load switch is limiting its current (stalled servo, jammed fan, short): the fan and servo are cut and stay off until reboot; the fault line is shared, so it does not say which, but `servo` is raised with it when the servo's current was high as it tripped |
 | `servo` | the damper servo's current is wrong on two moves running: still high once it should be holding still (a jammed flap, a binding linkage, a crank slipped on its spline so the flap meets a stop early), or next to nothing on a move of 3 degrees or more (unplugged, broken, or the current sense dead). The device keeps driving it and warns; it clears after two good moves. A crank that spins free on its shaft draws normal current and is not seen |
 | `supply` | the USB-C source advertises less than 1.5 A (or nothing): the fan and servo are off, probes and alarms keep running |
+| `servo_cal` | the damper servo has no calibration and no homing run is to come (the last one failed: `servo_home` says why, or the console's `servo clear`). It runs on the nominal 1 to 2 ms pulses, which may push the flap against a post and trip the load switch; it warns, and clears once a calibration is saved |
 
 - `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS122C04 internal sensor). Detailed diagnostics go to OTLP, not here.
 
@@ -246,6 +247,10 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 {"v": 1, "event_type": "autotune_done", "sp": 225.0, "k": 116.0, "tau": 480.0, "dead": 110.0, "accepted": 6}
 ```
 
+```json
+{"v": 1, "event_type": "servo_home", "ok": true, "closed": 1170, "open": 1830}
+```
+
 | `event_type` | Extra fields |
 |---|---|
 | `boot` | `reason` (`power_on` \| `watchdog` \| `panic` \| `ota` \| `user`), `sw` |
@@ -261,6 +266,10 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `selfcheck` | `results`: one per jack, each `{"probe": n, "delta": F}` or `{"probe": n, "st": "open"}` |
 | `rejected` | `topic`, `error`, `detail` |
 | `fault`, `fault_clear` | `code` |
+| `servo_home` | `ok`; `closed` and `open` (the pulses found and saved, us) when it is true, else `why`: `no_stop_low` or `no_stop_high` (no post toward that end: the posts are missing or the linkage is off), `fault_at_rest` (the load switches' fault line was low with the servo at rest), `span` (the stops are not a flap's travel apart), `cancelled` (the USB supply went away; it runs again when the supply is back) |
+
+The damper servo homes itself against its posts (about 30 s, the fan held off) at power-on whenever no calibration is
+saved, a resumed cook included, and on the console's `servo home`. A cook that starts meanwhile waits for it.
 
 ## Home Assistant discovery
 
@@ -331,7 +340,7 @@ Excerpt, using HA's abbreviated keys:
       "stat_t": "minimeater/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
                   "setpoint_reached", "stall_start", "stall_end", "wrap_reminder", "stall_bump",
-                  "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear"]
+                  "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear", "servo_home"]
     }
   }
 }
