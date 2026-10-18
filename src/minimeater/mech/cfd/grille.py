@@ -94,26 +94,68 @@ def wall(c: GrilleCase):
         f = P.fan
         heads = [xcyl(f.screw_head_d / 2, G.FAN_X0 - f.screw_head_h, G.FAN_X0 + 0.2, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
                  for sy in (-1, 1) for sz in (-1, 1)]
-        out = out + shell.fan_shims() + shell.rear_bumps() + shell.tip_ribs()
+        out = out + shell.fan_shims() + shell.rear_bumps()
+        if not any(k in RIB_SETS or (k in DESIGNS and DESIGNS[k][0]) for k in _shapings(c)):  # a rib set in --plenum stands in for the shells' own
+            out = out + shell.tip_ribs()
         for h in heads:
             out = out + h
-    if c.plenum:
-        out = out + plenum_shaping(c)
+    for k in _shapings(c):
+        out = out + plenum_shaping(c, k)
     return out
+
+
+def _shapings(c: GrilleCase) -> list[str]:
+    return [k for k in c.plenum.split("+") if k]
 
 
 RIBS = (12, 1.2, 25.0, 34.0, 2.0)  # count, thickness, r0, r1, gap to the fan's frame
 DOME = (12.5, 8.0, 1.0)  # radius, depth upstream, gap to the rotor's hub
 RING = (29.5, 1.2, 6.0, 0.5)  # inner radius, wall, length upstream, gap to the frame
 BELL = 6.0  # the bellmouth's quarter-round lip, down to the fan's bore
+# rib sets that replace the shells' tip ribs: (count, thickness, r0, r1, gap to the frame), notched round the fan's M3
+# heads (NOTCH clear of them) instead of all stopping short of the heads' 3 mm
+RIB_SETS = {
+    "ribs2n": (12, 1.2, 25.0, 34.0, 2.0),
+    "ribs2n16": (16, 1.2, 25.0, 34.0, 2.0),
+    "ribs2n20": (12, 1.2, 20.0, 34.0, 2.0),
+    "ribs1n": (12, 1.2, 25.0, 34.0, 1.0),
+    "ribs2nW": (12, 1.2, 25.0, 50.0, 2.0),  # out to the cavity walls (into the sleeve), filling the corner pockets
+    "ribsmax": (12, 1.2, 20.0, 50.0, 2.0),  # in to r 20 and out to the walls: whether rib extent matters at all
+}
+NOTCH = 0.5
+LIP = (4.0, 1.0, 1.0)  # the inner turning lip: the arc's radius (44 deg to axial), thickness, the axial tail after it
+LIP_R = 25.0  # lips-r25: the lips kept inside this radius (the intake plane's net inflow is all inside ~25)
+LIP_BAND = (13.25, 25.0, 3.0)  # lips-band: (r0, r1, mm of tail added there): trailing edges ~5 mm off the rotor
+LIP_IN = 10.0
+D1_RIBS = (12, 1.2, 17.0, 50.0, 1.0, 0.3)  # count, thickness, r0, r1 (to the walls), gap to the frame over the blades, beyond the bore
+AIM_R = 21.0  # design v1: outer rows' jets aimed to land inside this radius
+D2_RIBS = (12, 1.2, 25.0, 50.0, 1.0, 0.3)  # v1's ribs out of the blades' intake band (r 17-25 cost 2 Pa: d1-ribs)
+DESIGNS = {"d1": (True, True), "d1-ribs": (True, False), "d1-lips": (False, True),
+           "d2": (True, True, D2_RIBS), "d2-ribs": (True, False, D2_RIBS),
+           "d3-ribs": (True, False, D2_RIBS + (15.0,))}  # lips-in: each lip ends this many degrees past axial toward the fan's axis (down above it, less turn below),
+# so the outer gills' air lands inside the blade tips' backflow ring (r > ~25 at the intake plane)
 
 
-def plenum_shaping(c: GrilleCase):
+def plenum_shaping(c: GrilleCase, kind: str):
     """`ribs`: radial ribs at the blade tips from the rear wall to just off the frame, 15 deg off the axes (none on
     the seam): an anti-swirl ring for the tips' recirculation, a stall stabiliser in industrial axial fans. `dome`: a
     half-ellipsoid over the rotor's hub, floating (the control: the hub carries almost no flow)."""
     x0, x1 = G.REAR_IN_X - c.gap - 0.2, G.FAN_X0 - RIBS[4]
-    if c.plenum == "ribs":
+    if kind in RIB_SETS:
+        return notched_ribs(c, *RIB_SETS[kind])
+    if kind == "lips":
+        return Pos(-c.gap, 0, 0) * lips()
+    if kind == "lips-r25":  # lips only over the annulus's through-flow, clear of the tips' backflow ring and the ribs
+        return Pos(-c.gap, 0, 0) * (lips() & xcyl(LIP_R, G.REAR_IN_X - 2.0, G.FAN_X0))
+    if kind == "lips-band":  # the lips, and LIP_BAND's more axial tail over the annulus's through-flow (r 13-25)
+        r0, r1, more = LIP_BAND
+        band = xcyl(r1, G.REAR_IN_X - 2.0, G.FAN_X0) - xcyl(r0, G.REAR_IN_X - 3.0, G.FAN_X0 + 1.0)
+        return Pos(-c.gap, 0, 0) * (lips() + (lips(extra=more) & band))
+    if kind in DESIGNS:
+        return design(c, *DESIGNS[kind])
+    if kind == "lips-in":
+        return Pos(-c.gap, 0, 0) * lips(LIP_IN)
+    if kind == "ribs":
         n, t, r0, r1, _ = RIBS
         one = box(x0, x1, -t / 2, t / 2, r0, r1)
         out = None
@@ -121,11 +163,11 @@ def plenum_shaping(c: GrilleCase):
             rib = Rot(15.0 + 360.0 * i / n, 0, 0) * one
             out = rib if out is None else out + rib
         return out
-    if c.plenum == "dome":
+    if kind == "dome":
         r, d, gap = DOME
         xe = G.FAN_X0 - gap
         return _dome(xe, r, d)
-    if c.plenum == "ring":
+    if kind == "ring":
         # a separator ring just outside the blade tips; the tips' reverse flow leaves outward between it and the wall,
         # where the ribs take its swirl out, and rejoins upstream of the ring's lip (an axial fan's stall stabiliser)
         ri, t, ln, gap = RING
@@ -137,14 +179,98 @@ def plenum_shaping(c: GrilleCase):
         for i in range(n):
             out = out + Rot(15.0 + 360.0 * i / n, 0, 0) * one
         return out & box(x0, xr1, -45, 45, -45, 45)
-    if c.plenum == "bell":
+    if kind == "bell":
         # the plenum filled outside a bellmouth: a quarter round from the bore's r 29 at the frame to r 29 + BELL upstream
         r0, R, xe = P.fan.aperture_d / 2, BELL, G.FAN_X0 - 0.3
         pts = [(xe - R * math.sin(math.pi / 2 * i / 16), 0, r0 + R * (1 - math.cos(math.pi / 2 * i / 16))) for i in range(17)]
         prof = [Edge.make_spline(pts), Edge.make_line(pts[-1], (pts[-1][0], 0, 0)), Edge.make_line((pts[-1][0], 0, 0), (xe, 0, 0)), Edge.make_line((xe, 0, 0), pts[0])]
         air = revolve(Face(Wire(prof)), Axis.X, 360)
         return box(xe - R, xe, -45, 45, -45, 45) - air
-    raise ValueError(f"unknown plenum shaping {c.plenum}")
+    raise ValueError(f"unknown plenum shaping {kind}")
+
+
+def aimed(z0: float) -> float:
+    """Design v1's lip end angle for the row leaving the inner face at z0 (its lower edge at y = 0): the rows inside
+    the through-flow band straight on (axial), the outer rows aimed so their jets land at AIM_R, inside the tips'
+    backflow ring (from r ~25, ~21 at the bottom), over the lip's end to the rotor (~8 mm)."""
+    zm = z0 + shell.GRILLE_H / 2  # the jet's middle
+    if abs(zm) <= AIM_R:
+        return 0.0
+    return math.degrees(math.atan2(math.copysign(AIM_R, zm) - zm, 8.0))
+
+
+def design(c: GrilleCase, ribs: bool, lip: bool, rib_set=None):
+    """Design v1 from the baseline's field (docs: the rows' jets cross the plenum rising, the top rows starve; the
+    blades' inflow at r 17-25 carries the tips' co-swirl): ribs from r 17 to the walls, 1 mm off the frame over the
+    blades and 0.3 beyond the bore, notched round the heads; lips aimed per row."""
+    out = None
+    if ribs:
+        n, t, r0, r1, g_in, g_out, *tilt = rib_set or D1_RIBS
+        f = P.fan
+        x0 = G.REAR_IN_X - c.gap - 0.2
+        rb = P.fan.aperture_d / 2
+        # tilt: degrees off axial, leaning so the air leaving toward the rotor turns against its rotation (the rotor
+        # turns -theta about +x, omega < 0; the rib below sits at theta = 90, where +theta is -y)
+        a = tilt[0] if tilt else 0.0
+        xc = (x0 + G.FAN_X0) / 2
+        slab = Pos(xc, 0, 0) * Rot(0, 0, -a) * box(-20, 20, -t / 2 / math.cos(math.radians(a)), t / 2 / math.cos(math.radians(a)), r0, r1)
+        one = (slab & box(x0, G.FAN_X0 - g_in, -30, 30, r0, rb)) + (slab & box(x0, G.FAN_X0 - g_out, -30, 30, rb, r1))
+        for i in range(n):
+            rib = Rot(15.0 + 360.0 * i / n, 0, 0) * one
+            out = rib if out is None else out + rib
+        for sy in (-1, 1):
+            for sz in (-1, 1):
+                out = out - xcyl(f.screw_head_d / 2 + NOTCH, G.FAN_X0 - f.screw_head_h - NOTCH, G.FAN_X0 + 1, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
+        out = out - Pos(-c.gap, 0, 0) * shell.grille_cut()
+    if lip:
+        L = Pos(-c.gap, 0, 0) * lips(end=aimed)
+        out = L if out is None else out + L
+    return out
+
+
+def notched_ribs(c: GrilleCase, n, t, r0, r1, gap):
+    """The shells' tip ribs (15 deg + equal steps) run to `gap` off the frame, each notched round a screw head it
+    meets, so the ribs on the diagonals keep their full depth everywhere else."""
+    f = P.fan
+    one = box(G.REAR_IN_X - c.gap - 0.2, G.FAN_X0 - gap, -t / 2, t / 2, r0, r1)
+    out = None
+    for i in range(n):
+        rib = Rot(15.0 + 360.0 * i / n, 0, 0) * one
+        out = rib if out is None else out + rib
+    for sy in (-1, 1):
+        for sz in (-1, 1):
+            out = out - xcyl(f.screw_head_d / 2 + NOTCH, G.FAN_X0 - f.screw_head_h - NOTCH, G.FAN_X0 + 1, sy * f.hole_pitch / 2, sz * f.hole_pitch / 2)
+    return out - Pos(-c.gap, 0, 0) * shell.grille_cut()
+
+
+def lips(toward_axis: float = 0.0, extra: float = 0.0, end=None):
+    """A turning lip under each gill's exit on the rear wall's inner face: the slot's lower wall carried on into the
+    plenum as a curved plate, from the louvres' 44 degrees to axial, along both halves of the chevron. The rising
+    jets leave level toward the rotor instead of at 44 degrees across the plenum."""
+    from build123d import Polyline, make_face, mirror
+    R, T, tail = LIP
+    tail += extra
+    t44 = math.tan(math.radians(44))
+    x0 = G.REAR_IN_X
+    a = math.radians(44)
+    out = None
+    for zc, half in shell.grille_slots():
+        z0 = zc - shell.GRILLE_H / 2 + shell.REAR_T * t44  # the slot's lower edge on the inner face, at y = 0
+        cx, cz = x0 + R * math.sin(a), z0 - R * math.cos(a)
+        # the tangent's angle at the lip's end, + up: `end(z0)` for the row leaving the inner face at z0, else
+        # toward_axis degrees toward the axis
+        b = math.radians(end(z0) if end else (-toward_axis if zc > 0 else toward_axis))
+        phi = [a + (b - a) * i / 12 for i in range(13)]
+        top = [(cx - R * math.sin(f), cz + R * math.cos(f)) for f in phi]
+        bot = [(cx - (R - T) * math.sin(f), cz + (R - T) * math.cos(f)) for f in phi]
+        tx, tz = tail * math.cos(b), tail * math.sin(b)
+        pts = [(x0 - 0.6, z0 - 0.6 * t44)] + top + [(top[-1][0] + tx, top[-1][1] + tz), (bot[-1][0] + tx, bot[-1][1] + tz)] + bot[::-1] + [(x0 - 0.6, bot[0][1] - (bot[0][0] - x0 + 0.6) * t44)]
+        sec = make_face(Polyline(*[(x, 0.0, z) for x, z in pts], close=True))
+        e = half - shell.GRILLE_H / t44  # the lower edge's half length (the ends cut at 44 deg)
+        right = extrude(sec, amount=e * math.hypot(1, shell.KV), dir=(0.0, 1.0 / math.hypot(1, shell.KV), -shell.KV / math.hypot(1, shell.KV)))
+        both = right + mirror(right, Plane.XZ)
+        out = both if out is None else out + both
+    return out
 
 
 def _dome(xe, r, d):
@@ -208,6 +334,7 @@ def run(c: GrilleCase, out: Path, mem: str) -> dict:
     if runtime.run(case_dir, "/case/Allrun", c.np, mem):
         sys.exit(f"{name}: OpenFOAM failed (logs in {case_dir})")
     pt_in, _ = _tail(case_dir, "inlet", "weightedAreaAverage(total(p))")
+    mean = _window(case_dir, c.iterations // 6)
     p_out, _ = _tail(case_dir, "outlet", "weightedAreaAverage(p)")
     pt_out, _ = _tail(case_dir, "outlet", "weightedAreaAverage(total(p))")
     q_out, _ = _tail(case_dir, "flow", "sum(phi)")
@@ -217,12 +344,24 @@ def run(c: GrilleCase, out: Path, mem: str) -> dict:
         "flow_cfm": q_out * 60 / 0.0283168,
         "dp_static_pa": RHO * (p_out - pt_in),  # what the fan delivers past the grille: outlet static less the room's total
         "dp_total_pa": RHO * (pt_out - pt_in),
+        "dp_static_mean_pa": mean,  # over the last sixth of the iterations: steady MRF near stall wanders ~1 Pa
+
         "intake": intake(sw / "U_intake.raw"),
         "fan_plane": swirl.plane(sw / "U_fan.raw"),
         "wall_s": round(time.time() - t0),
     }
     (case_dir / "results.json").write_text(json.dumps(res, indent=2))
     return res
+
+
+def _window(case_dir: Path, n: int) -> float:
+    """The fan's static rise averaged over the last n iterations (outlet static less the room's total)."""
+    def series(name, col):
+        f = next((case_dir / "postProcessing" / name).glob("*/surfaceFieldValue.dat"))
+        return np.array([float(ln.split()[col]) for ln in f.read_text().splitlines() if ln.strip() and not ln.startswith("#")])
+    po, pi = series("outlet", 1), series("inlet", 2)
+    k = min(len(po), len(pi))
+    return float(RHO * (po[:k] - pi[:k])[-n:].mean())
 
 
 def main():
@@ -236,7 +375,7 @@ def main():
     ap.add_argument("--np", type=int, default=8)
     ap.add_argument("--mem", default="32G")
     ap.add_argument("--out", type=Path, default=Path("build/cfd"))
-    ap.add_argument("--plenum", default="", choices=("", "ribs", "dome", "ring", "bell"), help="flow shaping in the plenum")
+    ap.add_argument("--plenum", default="", help="flow shaping in the plenum, '+'-joined: ribs, dome, ring, bell, lips, lips-in, lips-r25, lips-band, or a rib set that replaces the shells' (%s)" % ", ".join(RIB_SETS))
     ap.add_argument("--dry", action="store_true", help="write the case and stop")
     a = ap.parse_args()
     c = GrilleCase(grille=a.grille, concept=a.concept, gap=a.gap, cfm=a.cfm, rpm=a.rpm, iterations=a.iterations, np=a.np, plenum=a.plenum)
