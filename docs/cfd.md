@@ -147,6 +147,34 @@ in and lose more than half; the hub carries almost no flow, so the dome only cro
 frame, which with the heads in the plenum costs 0.5 Pa of the 11.1. The grille case now always has them (`--plenum`
 adds to them); the plain plenum's 6.8 is kept in `grille-current-gap0-4.2cfm-noribs`.
 
+#### Inside the plenum, the exterior unchanged (`.2.34`, 2026-10-18)
+
+Steady MRF this near stall does not settle: the fan's static rise wanders about ±0.5 Pa over the last few hundred
+iterations, so the case now reports its mean over the last sixth (`dp_static_mean_pa`) and differences under about
+1 Pa are noise. `uv run python -m minimeater.mech.cfd.fields CASE [CASE ...]` cuts slices through finished cases (two
+sections across the gills, three planes facing the fan) and draws speed, axial velocity, cross flow and total
+pressure side by side; it reads the last time step every case keeps.
+
+The baseline's field: the gills' jets keep rising at 43° across the plenum, so the lower rows carry the flow and the
+top two barely breathe (0.1-1.3 m/s); the blades take nearly all their inflow inside r 25, with the tips' backflow
+ring outside it (from r ~21 at the bottom); the air entering at r 17-25 carries the ring's swirl in the rotor's
+direction (-0.4 to -1.8 m/s). Designed from that, against the baseline's 10.4 Pa mean:
+
+| plenum | static rise (mean) | what it did |
+|---|---|---|
+| the shells' ribs (baseline) | 10.4 Pa | |
+| ribs 2 mm off the frame, notched round the heads (`ribs2n`) | 10.5 | |
+| ribs to the walls, 1 mm off over the blades and 0.3 beyond the bore (`d2-ribs`) | 10.6 | |
+| the same tilted 15° against the rotor (`d3-ribs`) | 9.9 | no counter-swirl reached the blades |
+| ribs from r 17 to the walls (`d1-ribs`) | 8.4 | less pre-swirl at r 17-25, 7 % less rotor torque |
+| a turning lip under each gill, outer rows aimed in (`d1-lips`) | 9.7 | every row jets level; more inflow at the tips |
+| both (`d1`) | 8.6 | |
+
+The rotor's efficiency stays at 0.20-0.22 in every case, so its pressure follows the work it takes in, and that
+falls whenever the inflow moves toward the tips or the ribs reach into the blades' intake band. Evening out the
+grille's jets does not help: the rotor sees well-mixed plenum air either way. Nothing inside the plenum beats the
+shells' ribs by more than the noise; the shell is left as it is.
+
 ### Pathlines through the whole airway (`cfd/pathlines.py`, `just pathlines`, `.cp2.2`, 2026-10-17)
 
 The animation (`docs/mech.md`) follows one air molecule from the room to the tube, so it needs lines through the grille, the fan, the stator cone,
