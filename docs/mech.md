@@ -139,9 +139,9 @@ in smoke to the brisket. `uv run --group scene mech-scene` (Blender as the `bpy`
 from `assembly.glb` and the pathlines; `--still N` renders frames, `--video` the film (`--preview` for a quick one), `--shot` holds one
 camera instead of the film's cuts, `--no-fire` leaves the egg out, `--no-cut` skips the cutaway.
 
-![The molecule in the fan's plenum, the pathline behind it](mech/animation.png)
+![The molecule in the fan's plenum, among the gas parcels](mech/animation.png)
 
-*Frame 290 of the film: the O2 behind the fan's inlet, its pathline from the CFD (a Cycles render, `just scene --still 290 --shot follow`).*
+*Frame 290 of the film: the O2 behind the fan's inlet, its pathline from the CFD trailing it, and the gas as parcels moving on the CFD's lines (a frame of the finished film, captions as in it).*
 
 **The film** is 50 s in five parts (`SECONDS`): 22 s from the room to the tube, 8 s through the egg to the coal, 9 s of the reaction, 8 s of
 the rise and 3 s at the meat. Cameras and cuts are timeline markers in the .blend, to hand-tune (`SHOTS`): outside the gills, a follow
