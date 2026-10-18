@@ -4,6 +4,11 @@ members         = ["minimeater-app", "minimeater-core", "minimeater-fw", "minime
 # A bare `cargo build/test` from fw/ builds for the host; the firmware needs the RISC-V target (see .cargo/config.toml).
 default-members = ["minimeater-app", "minimeater-core", "minimeater-sim", "minimeater-twin"]
 
+# embedded-tls 0.19 with one change: a signature scheme it has no name for is skipped, not a DecodeError (RFC 8446 4.2.3; OpenSSL 4's
+# CertificateRequest lists 0x0708). See vendor/embedded-tls/README.md; drop this when a release has it.
+[patch.crates-io]
+embedded-tls = { path = "vendor/embedded-tls" }
+
 [workspace.package]
 authors      = ["Nathan Howell"]
 edition      = "2024"

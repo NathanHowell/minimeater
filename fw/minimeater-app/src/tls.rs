@@ -457,19 +457,25 @@ mod tests {
         }
     }
 
-    /// An OpenSSL 3 to run: the one on the PATH, else Homebrew's `openssl@3`. macOS's own `openssl` is LibreSSL, whose `s_server` takes none of
-    /// the signature schemes the chip's client certificate offers, and OpenSSL 4's gives the client a `DecodeError`, so the tests go without (as
-    /// without any openssl) rather than fail on either.
+    /// An OpenSSL to run: `MINIMEATER_OPENSSL`, the one on the PATH, else Homebrew's. macOS's own `openssl` is LibreSSL, whose `s_server`
+    /// takes none of the signature schemes the chip's client certificate offers, so the tests go without it (as without any openssl)
+    /// rather than fail on it.
     fn openssl_bin() -> Option<&'static str> {
-        static BIN: std::sync::OnceLock<Option<&'static str>> = std::sync::OnceLock::new();
-        *BIN.get_or_init(|| {
-            ["openssl", "/opt/homebrew/opt/openssl@3/bin/openssl", "/usr/local/opt/openssl@3/bin/openssl"].into_iter().find(|bin| {
-                Command::new(bin)
-                    .arg("version")
-                    .output()
-                    .is_ok_and(|o| o.status.success() && o.stdout.starts_with(b"OpenSSL 3."))
-            })
+        static BIN: std::sync::OnceLock<Option<Str>> = std::sync::OnceLock::new();
+        BIN.get_or_init(|| {
+            let env = std::env::var("MINIMEATER_OPENSSL").ok();
+            env.iter()
+                .map(Str::as_str)
+                .chain(["openssl", "/opt/homebrew/bin/openssl", "/usr/local/bin/openssl"])
+                .find(|bin| {
+                    Command::new(bin)
+                        .arg("version")
+                        .output()
+                        .is_ok_and(|o| o.status.success() && o.stdout.starts_with(b"OpenSSL "))
+                })
+                .map(Str::from)
         })
+        .as_deref()
     }
 
     fn openssl(dir: &Path, args: &[&str]) -> Option<V<u8>> {
