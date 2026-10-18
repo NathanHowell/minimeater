@@ -269,6 +269,11 @@ What changed from the staged blocks, and how the board is routed. The sections a
   entering the pads from their outer ends. VSERVO climbs a 0.9 mm gap between C36 and C10 into C36's pad (C36's
   ground via moved into its pad). C43 sits against VS/GND/REF with its own 3V3 and GND vias; OUT escapes under the
   package body to R37, C44 at R37's far end, and SERVO_ISENSE runs 10 mm on In2 to U1 pin 27 (GPIO2, swapped with
-  ADC_DRDY in minimeat-9jn; DRDY now goes on B.Cu from U8 to pin 6). Done with KiCad closed through its python API;
+  ADC_DRDY in minimeat-9jn; DRDY went on B.Cu from U8 to pin 6; since minimeat-098 it is not wired, see the ring block below). Done with KiCad closed through its python API;
   DRC: no errors, nothing unconnected.
 
+## The probe rings: U14, R38-R45 (minimeat-098)
+
+The jacks' rings (pad 4, `RING1`-`RING4`) go to the module's pins 7, 6, 5, 4 (GPIO7-4, `RING_IO1`-`RING_IO4`, ring 1 on pin 7). Placement: the four rows of a 1k series resistor and a 4.7k pull-up at the module's pins (y = 42.14, 43.41, 44.68, 45.95 mm, the pins' own pitch), a 3V3 bar on the pull-ups' east pads that ends on R13's 3V3 pad, and U14 (the ESD array) at the top of the ring bundle just under the jacks (x 38.15, y 13.4). The bundle is on B.Cu: each ring drops through a via under its jack's ring pad (identical at every jack), runs east on its own level (rings 3, 4 at y 11.0, ring 2 at 11.9, ring 1 at 12.8: nested, no crossings) to U14's taps, then south in a 0.5 mm-pitch corridor at x 37.7-39.2 between the stitching vias and the 3V3 via at (37.0, 31.95), and in to a via in each pull-up's west pad (the ring node). From each pin the 1k is reached on F.Cu; the outer rows kink toward the middle to clear the capacitors' ground pads, the inner two run straight. The rows are symmetric about y = 44.04; the whole block is mirror-symmetric in its pairs (rows 1/4 and 2/3). Rings run 13-29 mm from the jacks to U14 (the tips' U9 is 10-20 mm from theirs).
+
+Moved for it: FID2 to (42.2, 12.7), FID3 to (44.3, 41.0), TP5 (EN) to (36.2, 47.25) with its label, the BTN trace on In2 off y = 42.35 to y = 42.775. References of U14, R38-R45, C23, C4 and SW1 are hidden (silk). Done with KiCad closed through its python API; DRC: no errors, nothing unconnected, the same lint-only warnings as before.

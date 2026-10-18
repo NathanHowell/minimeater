@@ -47,7 +47,7 @@ The control range is a 150-325F pit. Food probes also see 32F during an ice-bath
 3. 1k series resistor.
 4. Node with the 47k bias resistor up to `VREF_PROBE`.
 5. 100 nF X7R to AGND at the ADC pin. Ratiometric DC measurement makes capacitor tolerance irrelevant. Each node has its own capacitor, so mux switching has no settling problem; the node time constant is under 5 ms.
-6. The jack sleeve and ring both go to AGND, so a stereo jack accepts the mono probe plugs.
+6. The jack sleeve and ring both go to AGND, so a stereo jack accepts the mono probe plugs. (Amended 2026-10-18: the ring now goes to a GPIO, below.)
 
 **`VREF_PROBE`:** 3V3 through a ferrite bead and 10 Ω, with 10 µF + 100 nF. It feeds only the four dividers and REFP0. The reference input current is ±10 nA. The rail's absolute value is irrelevant.
 
@@ -110,3 +110,13 @@ The ADC is now the **TI ADS122C04IPWR** (JLC C2872338, 4.5k in stock, $7.92) on 
 ## Amendment (2026-10-12): bias resistor on the tip side of the series 1k
 
 The first schematic put the 47k bias on the ADC side of the 1k series resistor, so the 1k added to the probe's resistance. The ngspice check (`uv run minimeater-sim`, `docs/sim/probe-frontend.md`) read 11 F low at 225 F and 46 F low at 325 F. The bias now joins at the jack tip (tip, 47k up, then 1k to the ADC pin with its 100 nF), as the per-input list above describes; the same check reads within 0.1 F across the pit range. Schematic and PCB are fixed.
+
+## Amendment (2026-10-18): each jack's ring to a GPIO, for smart probes (minimeat-098)
+
+The smart dome thermometer (`minimeat-0k5`) and probes with a display (`minimeat-2rm`) need the jack's ring as a serial line beside the passive tip. The ring, pad 4 of the PJ-242 (`RING1_4`, the contact next to the tip), left AGND; pads 2 and 3 (`SLEEVE_2`, `RING2_3`) stay on it, so a mono plug, whose sleeve spans every contact, still grounds the ring and the jack reads as a plain probe.
+
+Per jack, from the ring: a TPD4E05U06DQAR (one for the four, `U14`, C138714: the same part as the tips' `U9`, so no new line in the BOM), a 4.7k pull-up to 3V3 (`R38`-`R41`, C25900) and a 1k series resistor (`R42`-`R45`, C11702) to the GPIO. Resistors 0402, both basic parts already in the BOM; nothing new to buy. A plain probe loads the line with 0.7 mA (3.3 V / 4.7k) while plugged in.
+
+GPIO4, 5, 6 and 7 carry rings 4 to 1 (the module's east pins, in a row; `RING_IO1` is GPIO7). GPIO4 and GPIO5 are strapping pins only for the SDIO clock edge and GPIO6 and GPIO7 are not straps (ESP32-C6-WROOM-1 datasheet, boot configuration), so a ring held low at reset by a plain plug changes nothing. GPIO8 (boot mode, with GPIO9) and GPIO15 (JTAG source, only with an eFuse burnt) were kept free of the rings on purpose. The ADC's DRDY pin used GPIO6; it is not wired, and `Ads122c04` reads register 2's DRDY bit over I2C every 5 ms of the 51 ms conversion (ADR 0001's own fallback).
+
+Not decided here: the protocol on the ring (the bead for the dome thermometer has it: half-duplex, open-drain, about 9600 baud, box as master) and the firmware for it. The board only provides four GPIOs that can do it. The line's rise time with the 4.7k and a metre of cable (150 pF) is about 0.7 us.

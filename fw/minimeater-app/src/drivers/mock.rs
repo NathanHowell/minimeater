@@ -1,14 +1,11 @@
-//! Scripted buses and pins for driver tests.
+//! Scripted buses for driver tests.
 
 extern crate std;
 
-use core::convert::Infallible;
 use std::collections::VecDeque;
 use std::vec::Vec;
 
-use embedded_hal::digital::{ErrorType as PinErrorType, InputPin};
 use embedded_hal_async::delay::DelayNs;
-use embedded_hal_async::digital::Wait;
 use embedded_hal_async::i2c::{self, I2c};
 
 pub use embassy_futures::block_on;
@@ -32,58 +29,6 @@ impl I2cLog {
 
     pub fn writes(&self) -> &[Vec<u8>] {
         &self.writes
-    }
-}
-
-/// A pin stuck at one level; waiting for the other level never completes.
-pub struct Pin(bool);
-
-impl Pin {
-    pub fn low() -> Self {
-        Pin(false)
-    }
-    pub fn high() -> Self {
-        Pin(true)
-    }
-}
-
-impl PinErrorType for Pin {
-    type Error = Infallible;
-}
-
-impl InputPin for Pin {
-    fn is_high(&mut self) -> Result<bool, Infallible> {
-        Ok(self.0)
-    }
-    fn is_low(&mut self) -> Result<bool, Infallible> {
-        Ok(!self.0)
-    }
-}
-
-impl Wait for Pin {
-    async fn wait_for_high(&mut self) -> Result<(), Infallible> {
-        self.wait(true).await
-    }
-    async fn wait_for_low(&mut self) -> Result<(), Infallible> {
-        self.wait(false).await
-    }
-    async fn wait_for_rising_edge(&mut self) -> Result<(), Infallible> {
-        core::future::pending().await
-    }
-    async fn wait_for_falling_edge(&mut self) -> Result<(), Infallible> {
-        core::future::pending().await
-    }
-    async fn wait_for_any_edge(&mut self) -> Result<(), Infallible> {
-        core::future::pending().await
-    }
-}
-
-impl Pin {
-    async fn wait(&self, level: bool) -> Result<(), Infallible> {
-        if self.0 != level {
-            core::future::pending::<()>().await;
-        }
-        Ok(())
     }
 }
 

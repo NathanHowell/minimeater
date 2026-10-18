@@ -8584,20 +8584,8 @@
 		(uuid "09bebd03-113e-48f1-b1e8-dcbe3757bf91")
 	)
 	(no_connect
-		(at 271.78 330.2)
-		(uuid "1f7955d7-ab17-48eb-99b5-596cc0b4f717")
-	)
-	(no_connect
-		(at 327.66 332.74)
-		(uuid "3ca5fd6f-726d-4cb6-9f65-d60433c3efa9")
-	)
-	(no_connect
 		(at 50.8 287.02)
 		(uuid "45f14730-c4ca-4e10-8146-c01c074d1f94")
-	)
-	(no_connect
-		(at 271.78 325.12)
-		(uuid "5e515878-c405-4a5b-9c92-dc3bafac4fa4")
 	)
 	(no_connect
 		(at 515.62 266.7)
@@ -8618,10 +8606,6 @@
 	(no_connect
 		(at 50.8 363.22)
 		(uuid "9777bbaf-8658-4bf5-9f11-f5c8fb80fafa")
-	)
-	(no_connect
-		(at 271.78 322.58)
-		(uuid "a020c64d-a5f1-48fb-8eb3-59f930e22161")
 	)
 	(no_connect
 		(at 50.8 248.92)
@@ -9247,17 +9231,6 @@
 	)
 	(wire
 		(pts
-			(xy 509.27 187.96)
-			(xy 506.73 187.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4736399c-f45e-4945-9884-c8419f3c6ccb")
-	)
-	(wire
-		(pts
 			(xy 55.88 281.94)
 			(xy 55.88 284.48)
 		)
@@ -9566,17 +9539,6 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 360.68)
-			(xy 55.88 360.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7030b1c1-330c-49e6-bcb6-f7038a1707a1")
-	)
-	(wire
-		(pts
 			(xy 55.88 81.28)
 			(xy 60.96 81.28)
 		)
@@ -9684,17 +9646,6 @@
 			(type default)
 		)
 		(uuid "7acb8110-a71c-4acc-8362-5d2ccd0cdb9d")
-	)
-	(wire
-		(pts
-			(xy 50.8 284.48)
-			(xy 55.88 284.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7adb6838-9fb2-424f-b262-b30ab1262127")
 	)
 	(wire
 		(pts
@@ -9871,17 +9822,6 @@
 			(type default)
 		)
 		(uuid "9a9c8bd0-242f-4223-9783-a6ef98557c22")
-	)
-	(wire
-		(pts
-			(xy 50.8 246.38)
-			(xy 55.88 246.38)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9b7a2879-02ec-4445-9892-ac0a14918932")
 	)
 	(wire
 		(pts
@@ -10069,17 +10009,6 @@
 			(type default)
 		)
 		(uuid "b1b89a9a-04f0-49de-adae-baa95015ec85")
-	)
-	(wire
-		(pts
-			(xy 50.8 322.58)
-			(xy 55.88 322.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b20acb0d-1a67-4925-8cb5-9151c07b5447")
 	)
 	(wire
 		(pts
@@ -10917,6 +10846,230 @@
 		)
 		(uuid "9c7544fe-6cb9-44a5-ba79-b61a4f5d4bce")
 	)
+	(wire
+		(pts
+			(xy 50.8 246.38)
+			(xy 53.34 246.38)
+		)
+		(uuid "0b29485c-0bb2-45bd-9473-61a86ed6d89a")
+	)
+	(wire
+		(pts
+			(xy 53.34 246.38)
+			(xy 53.34 251.46)
+		)
+		(uuid "cf5302d0-9e01-4f1c-8b75-5709f3c65a0c")
+	)
+	(wire
+		(pts
+			(xy 50.8 284.48)
+			(xy 53.34 284.48)
+		)
+		(uuid "9a32d922-2c10-4fa3-bd05-c19959c9dbfe")
+	)
+	(wire
+		(pts
+			(xy 53.34 284.48)
+			(xy 53.34 289.56)
+		)
+		(uuid "9dbaae77-d363-4489-bcb4-95095c4e8d92")
+	)
+	(wire
+		(pts
+			(xy 50.8 322.58)
+			(xy 53.34 322.58)
+		)
+		(uuid "e494153d-bbdc-43b8-828a-0e2ea325e741")
+	)
+	(wire
+		(pts
+			(xy 53.34 322.58)
+			(xy 53.34 327.66)
+		)
+		(uuid "4bd17538-d529-4c38-825f-375239d955e0")
+	)
+	(wire
+		(pts
+			(xy 50.8 360.68)
+			(xy 53.34 360.68)
+		)
+		(uuid "edc1f0b1-19ee-4169-b860-9f35b55810f4")
+	)
+	(wire
+		(pts
+			(xy 53.34 360.68)
+			(xy 53.34 365.76)
+		)
+		(uuid "6ee9ae0d-74e3-4ac4-905d-92388352e0e4")
+	)
+	(wire
+		(pts
+			(xy 165.1 328.93)
+			(xy 186.69 328.93)
+		)
+		(uuid "36059d56-1552-445a-a62e-80ea20bf7277")
+	)
+	(wire
+		(pts
+			(xy 165.1 346.71)
+			(xy 186.69 346.71)
+		)
+		(uuid "36874d88-f107-4c15-b27e-48e6ea1a6261")
+	)
+	(wire
+		(pts
+			(xy 165.1 364.49)
+			(xy 186.69 364.49)
+		)
+		(uuid "9d4587f3-0a07-44f0-b50e-b090181ea0cb")
+	)
+	(wire
+		(pts
+			(xy 165.1 382.27)
+			(xy 186.69 382.27)
+		)
+		(uuid "ce18115e-c9b0-4a06-b25b-3e4c6fb2781c")
+	)
+	(wire
+		(pts
+			(xy 165.1 321.31)
+			(xy 165.1 318.77)
+		)
+		(uuid "f23727e6-b0ed-44ed-8e95-5fd1ec799a64")
+	)
+	(wire
+		(pts
+			(xy 165.1 339.09)
+			(xy 165.1 336.55)
+		)
+		(uuid "2759a117-3daf-42d0-b628-6366608de83a")
+	)
+	(wire
+		(pts
+			(xy 165.1 356.87)
+			(xy 165.1 354.33)
+		)
+		(uuid "001e7e0e-f2a4-4d37-bd39-c36be24156fd")
+	)
+	(wire
+		(pts
+			(xy 165.1 374.65)
+			(xy 165.1 372.11)
+		)
+		(uuid "df15250f-5959-469e-bfae-67cac8a39c96")
+	)
+	(wire
+		(pts
+			(xy 194.31 328.93)
+			(xy 196.85 328.93)
+		)
+		(uuid "1b31952d-9d77-424a-9b64-90b19d56be46")
+	)
+	(wire
+		(pts
+			(xy 194.31 346.71)
+			(xy 196.85 346.71)
+		)
+		(uuid "01a74fbc-c72c-4116-9660-509d24ef9f5f")
+	)
+	(wire
+		(pts
+			(xy 194.31 364.49)
+			(xy 196.85 364.49)
+		)
+		(uuid "d0185cad-7208-45ef-89fd-a061459076db")
+	)
+	(wire
+		(pts
+			(xy 194.31 382.27)
+			(xy 196.85 382.27)
+		)
+		(uuid "6664c050-417a-4fed-aa35-9bb0a0b37561")
+	)
+	(wire
+		(pts
+			(xy 114.3 335.28)
+			(xy 111.76 335.28)
+		)
+		(uuid "3d5d5771-efbb-4098-8894-7e447fa4ad8e")
+	)
+	(wire
+		(pts
+			(xy 114.3 340.36)
+			(xy 111.76 340.36)
+		)
+		(uuid "1036035e-b596-42a1-a4ec-e1f0030e8ecf")
+	)
+	(wire
+		(pts
+			(xy 114.3 345.44)
+			(xy 111.76 345.44)
+		)
+		(uuid "8de08656-88f6-4704-bea0-c90850ecc259")
+	)
+	(wire
+		(pts
+			(xy 114.3 350.52)
+			(xy 111.76 350.52)
+		)
+		(uuid "5154d414-0a24-4b55-ad07-567a6727cdee")
+	)
+	(wire
+		(pts
+			(xy 139.7 335.28)
+			(xy 142.24 335.28)
+		)
+		(uuid "20f8b57f-4226-4110-a920-76758c6c650c")
+	)
+	(wire
+		(pts
+			(xy 139.7 340.36)
+			(xy 142.24 340.36)
+		)
+		(uuid "3f4d497b-a463-43aa-a3a9-4d4ecec1dad9")
+	)
+	(wire
+		(pts
+			(xy 139.7 345.44)
+			(xy 142.24 345.44)
+		)
+		(uuid "26f40bb0-7006-488e-b530-021f181f0d83")
+	)
+	(wire
+		(pts
+			(xy 139.7 350.52)
+			(xy 142.24 350.52)
+		)
+		(uuid "29bcb312-f790-41fb-b0ee-d7bd897a0548")
+	)
+	(wire
+		(pts
+			(xy 127 355.6)
+			(xy 127 358.14)
+		)
+		(uuid "42567cc7-c9f6-4491-adc0-799da32b8d59")
+	)
+	(wire
+		(pts
+			(xy 271.78 322.58)
+			(xy 269.24 322.58)
+		)
+		(uuid "8c6c61c9-7cd7-4661-b851-3ff5c89641c0")
+	)
+	(wire
+		(pts
+			(xy 271.78 325.12)
+			(xy 269.24 325.12)
+		)
+		(uuid "03426f41-f877-4de3-80f1-73c4bb83f82b")
+	)
+	(wire
+		(pts
+			(xy 271.78 330.2)
+			(xy 269.24 330.2)
+		)
+		(uuid "5206d1ff-a229-4a80-b65f-e6d9d8d3c0b1")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -11021,7 +11174,7 @@
 		)
 		(uuid "a4515147-a57d-4a06-8c13-270df152dc67")
 	)
-	(text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3/4 = sleeve/ring (GND), 5 = ring switch (unused)"
+	(text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3 = sleeve (GND), 4 = ring (RING1..RING4: 4.7k pull-up to 3V3, U14 ESD and a 1k series resistor to a GPIO for smart probes; a TS probe's sleeve grounds it, so a plain probe still reads as one), 5 = ring switch (unused)"
 		(at 20 217 0)
 		(effects
 			(font
@@ -11082,7 +11235,7 @@
 		)
 		(uuid "437233fc-2148-4d70-b99f-0cfb8eed2998")
 	)
-	(text "Probe ESD: TPD4E05U06DQAR on the jack side of the series resistors. Straight-through routing (datasheet fig. 7-11): each tip runs across the part over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; NC pins are not connected inside)"
+	(text "Probe ESD: TPD4E05U06DQAR on the jack side of the series resistors. Straight-through routing (datasheet fig. 7-11): each tip runs across the part over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; NC pins are not connected inside). U14 does the same for the rings (1/10 RING1, 2/9 RING2, 4/7 RING3, 5/6 RING4)"
 		(at 95 272 0)
 		(effects
 			(font
@@ -11121,6 +11274,26 @@
 			(justify left bottom)
 		)
 		(uuid "9231e429-1792-49b4-ac4c-4b8a54b5bdac")
+	)
+	(text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nSERVO_ISENSE | IO2 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH2; next to the servo corner)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nRING_IO1..4 | IO7, IO6, IO5, IO4 | the jacks' rings for smart probes (minimeat-098): one-wire serial, open-drain, 4.7k pull-up to 3V3, 1k series, U14 ESD. A TS plug grounds its ring: at boot that is harmless (IO4/IO5 only pick SDIO edges, IO6/IO7 are not straps). The ADC's DRDY pin is not wired (the driver polls the DRDY bit over I2C)\nSpare, no-connect | IO8, IO15 (strapping, left floating)"
+		(at 205.74 378.46 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "ee9641ed-ac26-4a18-91f1-cad3bfa9534c")
+	)
+	(text "U13 INA181A1: servo current\nR36 0.1R, VSERVO_SW -> VSERVO\n(C36 reservoir on servo side).\n2 V/A: 1.2 V at the 0.6 A limit.\nR37/C44 1.6 kHz -> IO2.\nKelvin lines to R36's pads."
+		(at 240.03 203.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "77931858-083b-4182-81c6-82f1e66ef0ff")
 	)
 	(label "TIP2"
 		(at 111.76 294.64 180)
@@ -11901,6 +12074,236 @@
 			(justify right bottom)
 		)
 		(uuid "209bebbe-ea1c-4877-a939-955c77f8d36d")
+	)
+	(label "RING1"
+		(at 53.34 251.46 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "832777b6-a3d6-44f7-8225-c6c58a00c800")
+	)
+	(label "RING2"
+		(at 53.34 289.56 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d813be3d-cc7c-4ab2-9b15-ab29901ffad2")
+	)
+	(label "RING3"
+		(at 53.34 327.66 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fe9d8db0-5cb7-4802-a488-7f22bcc92b93")
+	)
+	(label "RING4"
+		(at 53.34 365.76 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "91d64e2b-02df-4de3-8875-0eb862f9b9fa")
+	)
+	(label "RING1"
+		(at 175.26 328.93 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dc98cb67-0137-473f-b995-958bbd02b48a")
+	)
+	(label "RING2"
+		(at 175.26 346.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4af945e5-b606-4287-bade-db5a9e1a62f6")
+	)
+	(label "RING3"
+		(at 175.26 364.49 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4612ecf3-2e91-4543-9936-c44b98749a8f")
+	)
+	(label "RING4"
+		(at 175.26 382.27 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2db72ea5-58d7-4732-acba-86f10db87084")
+	)
+	(label "RING_IO1"
+		(at 196.85 328.93 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "39b63b69-45d7-4333-ad8f-071da231db09")
+	)
+	(label "RING_IO2"
+		(at 196.85 346.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "37b48996-4b0b-4683-bfb7-ecdbee130b49")
+	)
+	(label "RING_IO3"
+		(at 196.85 364.49 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "26b5cd50-a54d-412c-9791-ee0d137b413a")
+	)
+	(label "RING_IO4"
+		(at 196.85 382.27 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "44c40d12-705b-4e4b-8fce-b843a8cca2e0")
+	)
+	(label "RING1"
+		(at 111.76 335.28 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "84aef1c1-9197-461b-88b1-d9e96bca4e13")
+	)
+	(label "RING1"
+		(at 111.76 340.36 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "71260657-23c5-453f-a1c5-dd528db69a03")
+	)
+	(label "RING2"
+		(at 111.76 345.44 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a8b86ae4-8def-4c05-b7ef-6638d989645e")
+	)
+	(label "RING2"
+		(at 111.76 350.52 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "38c28d0e-49f7-4d1d-9c7d-6a0b396114c5")
+	)
+	(label "RING3"
+		(at 142.24 335.28 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "feec77ae-8aff-4d01-92be-9b298e362c6e")
+	)
+	(label "RING3"
+		(at 142.24 340.36 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9f0cf355-92a8-48d2-8baf-89731e815764")
+	)
+	(label "RING4"
+		(at 142.24 345.44 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d169dbe0-472b-4a8b-8b17-14cccfb42470")
+	)
+	(label "RING4"
+		(at 142.24 350.52 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b4ea04e7-3765-46c3-8075-548833783711")
+	)
+	(label "RING_IO4"
+		(at 269.24 322.58 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "cfe9a920-5fb0-413e-996f-dca6be4b43bb")
+	)
+	(label "RING_IO3"
+		(at 269.24 325.12 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8bec5a51-ec73-48c9-8fac-448e75466949")
+	)
+	(label "RING_IO1"
+		(at 269.24 330.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ca37cd78-6fc2-4742-b8a0-420da2e36247")
 	)
 	(global_label "3V3"
 		(shape input)
@@ -12694,28 +13097,6 @@
 			)
 		)
 	)
-	(global_label "ADC_DRDY"
-		(shape input)
-		(at 506.73 187.96 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "c72ad6ad-57d0-47e3-ad85-4d573d803e14")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 506.73 187.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
 	(global_label "3V3"
 		(shape input)
 		(at 375.92 341.63 90)
@@ -13266,27 +13647,50 @@
 		)
 		(uuid "a5e2bba9-06b5-41e7-a216-d2f8453366e3")
 	)
-	(global_label "ADC_DRDY"
-		(shape bidirectional)
-		(at 271.78 327.66 180)
+	(global_label "3V3"
+		(shape input)
+		(at 165.1 318.77 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
-		(uuid "7818c6b5-483d-4bfa-a3a4-aa71e3f6e50f")
+		(uuid "24de5bda-880f-4f2b-be27-dbfc70c785de")
 	)
-  (text "U1 ESP32-C6-WROOM-1-N8 pin plan (signal | GPIO | why)\nCC1, CC2 | IO0, IO1 | CC voltage sense (ADC1_CH0/1), 1 nF filters\nSERVO_ISENSE | IO2 | servo current: 0.1 ohm shunt R36, INA181A1 U13, 2 V/A, R37/C44 filter (ADC1_CH2; next to the servo corner)\nLOAD_FAULT | IO3 | load switch fault flags (pull-up R7 on power block)\nADC_DRDY | IO6 | probe ADC data-ready, 10k pull-up (MTCK, not a strapping pin; moved from IO2 for SERVO_ISENSE)\nUSB_DN, USB_DP | IO12, IO13 | native USB Serial/JTAG\nLED | IO10 | status LED D2 via 680R\nBTN | IO9 | button SW1 to GND (also boot-strap pin: held low at reset = download mode)\nFAN_EN | IO11 | fan load switch enable\nFAN_PWM, FAN_TACH | IO18, IO19 | fan drive, open-collector tach with 10k pull-up\nSERVO_PWM, SERVO_EN | IO20, IO21 | servo signal, servo load switch enable\nI2C_SDA, I2C_SCL | IO22, IO23 | I2C bus (ATECC608B, ADC), 4.7k pull-ups here\nUART_TX, UART_RX | TXD0 (IO16), RXD0 (IO17) | bring-up console on test pads\nEN | EN | 10k pull-up + 1uF reset RC, TP_EN\nSpare, no-connect | IO4 IO5 IO7 IO8 IO15 | IO4/5 strapping on module, IO8/IO15 strapping (no resistors)"
-    (at 205.74 378.46 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "ee9641ed-ac26-4a18-91f1-cad3bfa9534c")
-  )
-  (text "U13 INA181A1: servo current\nR36 0.1R, VSERVO_SW -> VSERVO\n(C36 reservoir on servo side).\n2 V/A: 1.2 V at the 0.6 A limit.\nR37/C44 1.6 kHz -> IO2.\nKelvin lines to R36's pads."
-    (at 240.03 203.2 0)
-    (effects (font (size 1.27 1.27)) (justify left top))
-    (uuid "77931858-083b-4182-81c6-82f1e66ef0ff")
-  )
+	(global_label "3V3"
+		(shape input)
+		(at 165.1 336.55 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e6433971-f7d6-45b9-9dd0-cfdc4e6c6efa")
+	)
+	(global_label "3V3"
+		(shape input)
+		(at 165.1 354.33 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f25e76c0-6958-4990-abd6-6e32e9236197")
+	)
+	(global_label "3V3"
+		(shape input)
+		(at 165.1 372.11 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "dd10239b-13fd-49d7-b747-3199ca6a0616")
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 243.84 326.39 0)
@@ -30560,7 +30964,808 @@
 			)
 		)
 	)
+	(symbol
+		(lib_id "Power_Protection:TPD4E05U06DQA")
+		(at 127 342.9 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "796c56fc-7fd5-4a27-a3fc-026e2209258f")
+		(property "Reference" "U14"
+			(at 126.365 334.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TPD4E05U06DQAR"
+			(at 128.905 353.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "minimeater:TPD4E05U06DQA"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tpd4e05u06.pdf"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "4-Channel ESD Protection for Super-Speed USB 3.0 Interface, USON-10"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Function" "ESD clamp on the four probe rings RING1-RING4 at the jacks, ahead of the 1k series resistors; straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6)"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C138714"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "TPD4E05U06DQAR"
+			(at 127 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "U14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 165.1 325.12 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "10c45a78-cb58-490c-b258-cf1cc35fd7f7")
+		(property "Reference" "R38"
+			(at 167.132 325.12 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k 1%"
+			(at 165.1 325.12 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 165.1 325.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 165.1 325.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 165.1 325.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25900"
+			(at 165.1 325.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 165.1 325.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R38")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 165.1 342.9 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "80faa37a-697b-4854-ba54-30bc055ef5c3")
+		(property "Reference" "R39"
+			(at 167.132 342.9 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k 1%"
+			(at 165.1 342.9 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 165.1 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 165.1 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 165.1 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25900"
+			(at 165.1 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 165.1 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R39")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 165.1 360.68 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d16895d8-be41-4cba-82dd-da18cac16acf")
+		(property "Reference" "R40"
+			(at 167.132 360.68 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k 1%"
+			(at 165.1 360.68 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 165.1 360.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 165.1 360.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 165.1 360.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25900"
+			(at 165.1 360.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 165.1 360.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R40")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 165.1 378.46 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2b7dab41-9494-42d0-874a-43744db2a1b6")
+		(property "Reference" "R41"
+			(at 167.132 378.46 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k 1%"
+			(at 165.1 378.46 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 165.1 378.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 165.1 378.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 165.1 378.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25900"
+			(at 165.1 378.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF4701TCE"
+			(at 165.1 378.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R41")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 190.5 328.93 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3164b583-9d5d-4c3f-aca9-7234594a624d")
+		(property "Reference" "R42"
+			(at 190.5 326.898 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 190.5 328.93 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 190.5 328.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 328.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 190.5 328.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 190.5 328.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 190.5 328.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R42")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 190.5 346.71 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6dd9673a-07bc-435f-9ec2-074e51f5a305")
+		(property "Reference" "R43"
+			(at 190.5 344.678 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 190.5 346.71 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 190.5 346.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 346.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 190.5 346.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 190.5 346.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 190.5 346.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R43")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 190.5 364.49 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8c47366c-2f8b-4dab-8d0b-6461d8907cee")
+		(property "Reference" "R44"
+			(at 190.5 362.458 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 190.5 364.49 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 190.5 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 190.5 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 190.5 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 190.5 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R44")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 190.5 382.27 90)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d437e4d0-4d46-4f89-93d8-7492552ed12f")
+		(property "Reference" "R45"
+			(at 190.5 380.238 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k 1%"
+			(at 190.5 382.27 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 190.5 382.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 382.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 190.5 382.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 190.5 382.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 190.5 382.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "R45")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 127 358.14 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "facbfea5-ffdd-413c-8c6a-1db39960f0c0")
+		(property "Reference" "#PWR080"
+			(at 127 364.49 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 127 361.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 358.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 358.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 127 358.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR080")
+					(unit 1)
+				)
+			)
+		)
+	)
 	(embedded_fonts no)
+	(wire
+		(pts
+			(xy 271.78 327.66) (xy 269.24 327.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "003c6c98-00cc-4f36-a505-6e230af59f2a")
+	)
+	(label "RING_IO2"
+		(at 269.24 327.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "299d496d-a9b8-475f-a4b5-d486b5d90dad")
+	)
+	(no_connect
+		(at 327.66 332.74)
+		(uuid "fcb8e4cf-322a-4e8c-a609-cf7388e82495")
+	)
+	(no_connect
+		(at 509.27 187.96)
+		(uuid "0b070450-c32e-4362-a9a2-94b688822b88")
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")

@@ -1,11 +1,10 @@
 //! TI ADS122C04 24-bit ADC as the [`ProbeAdc`] (ADR 0002, amended): ratiometric against REFP/REFN,
 //! PGA bypassed, 4 single-ended inputs, single-shot 20 SPS. At 20 SPS the filter rejects 50 and 60 Hz
-//! together, so there is no setting for it. I2C, with DRDY on a GPIO. Generic over `embedded-hal-async`,
+//! together, so there is no setting for it. I2C only: the conversion's end is read as register 2's DRDY bit (the
+//! chip's DRDY pin is not wired: its GPIO went to a probe jack's ring, minimeat-098). Generic over `embedded-hal-async`,
 //! so it is host-tested against a scripted bus.
 
-use embassy_futures::select::{Either, select};
 use embedded_hal_async::delay::DelayNs;
-use embedded_hal_async::digital::Wait;
 use embedded_hal_async::i2c::I2c;
 
 use crate::hal::{HalError, PROBE_JACKS, ProbeAdc};
@@ -16,6 +15,9 @@ pub const ADDRESS: u8 = 0x40;
 const RESET: u8 = 0x06;
 const START: u8 = 0x08;
 const RDATA: u8 = 0x10;
+/// RREG for register 2: the byte whose top bit is DRDY, set while a conversion's result waits.
+const RREG_CONFIG2: u8 = 0x20 | (2 << 2);
+const DRDY: u8 = 0x80;
 /// WREG for register `r`: one register per command byte, followed by its data byte.
 const fn wreg(r: u8) -> u8 {
     0x40 | (r << 2)
@@ -38,25 +40,24 @@ const REG2: u8 = 0x00;
 /// Register 3: IDACs not routed.
 const REG3: u8 = 0x00;
 
-/// A 20 SPS conversion takes about 51 ms; anything past this is a fault.
+/// A 20 SPS conversion takes about 51 ms; anything past this is a fault. DRDY is read every `POLL_MS`.
 const CONVERSION_TIMEOUT_MS: u32 = 200;
+const POLL_MS: u32 = 5;
 
 /// The ADC is reset and configured on first use and again after any failed conversion, so a chip
 /// that is missing at boot reports [`HalError::Timeout`] or [`HalError::Bus`] instead of stopping the firmware.
-pub struct Ads122c04<I, D, T> {
+pub struct Ads122c04<I, T> {
     i2c: I,
     address: u8,
-    drdy: D,
     delay: T,
     configured: bool,
 }
 
-impl<I: I2c, D: Wait, T: DelayNs> Ads122c04<I, D, T> {
-    pub fn new(i2c: I, address: u8, drdy: D, delay: T) -> Self {
+impl<I: I2c, T: DelayNs> Ads122c04<I, T> {
+    pub fn new(i2c: I, address: u8, delay: T) -> Self {
         Self {
             i2c,
             address,
-            drdy,
             delay,
             configured: false,
         }
@@ -103,10 +104,21 @@ impl<I: I2c, D: Wait, T: DelayNs> Ads122c04<I, D, T> {
             .write(self.address, &[START])
             .await
             .map_err(|_| HalError::Bus)?;
-        match select(self.drdy.wait_for_low(), self.delay.delay_ms(CONVERSION_TIMEOUT_MS)).await {
-            Either::First(Ok(())) => {}
-            Either::First(Err(_)) => return Err(HalError::Bus),
-            Either::Second(()) => return Err(HalError::Timeout),
+        let mut waited = 0;
+        loop {
+            self.delay.delay_ms(POLL_MS).await;
+            waited += POLL_MS;
+            let mut r = [0u8; 1];
+            self.i2c
+                .write_read(self.address, &[RREG_CONFIG2], &mut r)
+                .await
+                .map_err(|_| HalError::Bus)?;
+            if r[0] & DRDY != 0 {
+                break;
+            }
+            if waited >= CONVERSION_TIMEOUT_MS {
+                return Err(HalError::Timeout);
+            }
         }
         let mut b = [0u8; 3];
         self.i2c
@@ -121,7 +133,7 @@ impl<I: I2c, D: Wait, T: DelayNs> Ads122c04<I, D, T> {
 /// Full-scale code with gain 1: the input equals VREF at 2^23.
 const FULL_SCALE: f64 = 8_388_608.0;
 
-impl<I: I2c, D: Wait, T: DelayNs> ProbeAdc for Ads122c04<I, D, T> {
+impl<I: I2c, T: DelayNs> ProbeAdc for Ads122c04<I, T> {
     async fn ratio(&mut self, jack: usize) -> Result<f64, HalError> {
         assert!(jack < PROBE_JACKS);
         Ok(f64::from(self.convert(MUX_AIN0_AVSS + jack as u8, false).await?) / FULL_SCALE)
@@ -141,11 +153,12 @@ impl<I: I2c, D: Wait, T: DelayNs> ProbeAdc for Ads122c04<I, D, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::drivers::mock::{I2cLog, NoDelay, Pin, block_on};
+    use crate::drivers::mock::{I2cLog, NoDelay, block_on};
 
-    fn adc(reads: &[[u8; 3]]) -> Ads122c04<I2cLog, Pin, NoDelay> {
-        let bus = I2cLog::with_reads(ADDRESS, reads.iter().map(|r| r.to_vec()));
-        Ads122c04::new(bus, ADDRESS, Pin::low(), NoDelay)
+    /// Each conversion's script: DRDY already set when first read, then the three result bytes.
+    fn adc(reads: &[[u8; 3]]) -> Ads122c04<I2cLog, NoDelay> {
+        let bus = I2cLog::with_reads(ADDRESS, reads.iter().flat_map(|r| [vec![DRDY], r.to_vec()]));
+        Ads122c04::new(bus, ADDRESS, NoDelay)
     }
 
     #[test]
@@ -157,17 +170,17 @@ mod tests {
             [vec![RESET], vec![0x40, 0x81, 0x44, 0x02, 0x48, 0x00, 0x4C, 0x00]]
         );
         block_on(a.ratio(0)).unwrap();
-        assert_eq!(a.i2c.writes().len(), 2 + 3 + 3, "configured once");
+        assert_eq!(a.i2c.writes().len(), 2 + 4 + 4, "configured once");
     }
 
     #[test]
     fn ratio_selects_jack_and_scales() {
         let mut a = adc(&[[0x40, 0x00, 0x00]]);
         assert_eq!(block_on(a.ratio(2)), Ok(0.5));
-        // after init: WREG reg0 and reg1 (AIN2/AVSS, external reference, TS off), START, RDATA
+        // after init: WREG reg0 and reg1 (AIN2/AVSS, external reference, TS off), START, RREG reg 2 (DRDY), RDATA
         assert_eq!(
             a.i2c.writes()[2..],
-            [vec![0x40, 0xA1, 0x44, 0x02], vec![START], vec![RDATA]]
+            [vec![0x40, 0xA1, 0x44, 0x02], vec![START], vec![RREG_CONFIG2], vec![RDATA]]
         );
     }
 
@@ -188,8 +201,19 @@ mod tests {
     }
 
     #[test]
-    fn missing_chip_times_out_and_reconfigures() {
-        let mut a = Ads122c04::new(I2cLog::with_reads(ADDRESS, []), ADDRESS, Pin::high(), NoDelay);
+    fn waits_for_drdy_polling_register_2() {
+        // not ready for two reads, then ready
+        let bus = I2cLog::with_reads(ADDRESS, [vec![0x00], vec![0x00], vec![DRDY | 0x01], vec![0x40, 0x00, 0x00]]);
+        let mut a = Ads122c04::new(bus, ADDRESS, NoDelay);
+        assert_eq!(block_on(a.ratio(0)), Ok(0.5));
+        let polls = a.i2c.writes().iter().filter(|w| **w == [RREG_CONFIG2]).count();
+        assert_eq!(polls, 3);
+    }
+
+    #[test]
+    fn a_conversion_that_never_finishes_times_out_and_reconfigures() {
+        let never = (0..2 * CONVERSION_TIMEOUT_MS / POLL_MS).map(|_| vec![0x00]);
+        let mut a = Ads122c04::new(I2cLog::with_reads(ADDRESS, never), ADDRESS, NoDelay);
         assert_eq!(block_on(a.ratio(0)), Err(HalError::Timeout));
         assert_eq!(block_on(a.ratio(0)), Err(HalError::Timeout));
         let resets = a.i2c.writes().iter().filter(|w| **w == [RESET]).count();
@@ -198,7 +222,7 @@ mod tests {
 
     #[test]
     fn wrong_address_is_a_bus_error() {
-        let mut a = Ads122c04::new(I2cLog::with_reads(0x41, []), ADDRESS, Pin::low(), NoDelay);
+        let mut a = Ads122c04::new(I2cLog::with_reads(0x41, []), ADDRESS, NoDelay);
         assert_eq!(block_on(a.ratio(0)), Err(HalError::Bus));
     }
 }
