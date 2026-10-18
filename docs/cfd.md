@@ -26,14 +26,21 @@ OpenFOAM v2606 (`opencfd/openfoam-run:2606`, arm64, in Apple's `container`; no b
   - `k_total` = the total-pressure loss: what is dissipated.
   - The tube's own friction is in neither; the fitted line's slope is checked against Blasius.
 
-### Results, 6 CFM (3.6 m/s in the tube)
+### Results, 6 CFM (3.8 m/s in the tube)
+
+Re-run 2026-10-18 on the current geometry (the neck, the Ø30.83 tube, the cone and its six vanes; 2000 iterations, 8 ranks,
+17-28 minutes a case). The table before it was the Ø31.6 tube with no neck and no vanes: the open duct was 1.26 / 0.16, so the
+neck, cone and vanes cost about 1 k_static and 1 k_total; the flap's own part is about what it was. The last two rows are at
+4.2 CFM with the fan's exit profile (not 6 CFM straight).
 
 | case | k_static | k_total | duct Δp static | tube f (Blasius 0.034) | note |
 |---|---|---|---|---|---|
-| open | 1.26 | 0.16 | 12.8 Pa | 0.031 | steady |
-| flap 30° | 3.63 | 2.56 | 33.0 Pa | 0.050 | sheds: ±0.8 Pa |
-| flap 45° | 12.2 | 11.2 | 99.8 Pa | 0.043 | the wake sheds: ±2.4 Pa over the last 500 iterations; the tube has not recovered by the outlet |
-| flap 60° | 57.4 | 56.4 | 454 Pa | — | sheds: ±5.6 Pa; far past the fan's 21 Pa, so 6 CFM never happens here (the k still holds) |
+| open | 2.23 | 1.15 | 23.1 Pa | 0.037 | steady |
+| flap 30° | 4.43 | 3.35 | 43.1 Pa | 0.047 | sheds |
+| flap 45° | 11.9 | 10.9 | 107.6 Pa | 0.041 | the wake sheds; the tube has not recovered by the outlet |
+| flap 60° | 52.3 | 51.2 | 457 Pa | 0.039 | far past the fan's 21 Pa shut-off, so 6 CFM never happens here (the k still holds) |
+| open, the fan's exit profile, 4.2 CFM | 1.51 | 1.87 | 8.6 Pa | 0.043 | the operating point's flow, with `fan-4.2cfm-3000rpm/profile.json` as the inlet |
+| flap 30°, the same | 3.84 | 4.20 | 18.6 Pa | 0.047 | |
 | open, swirl 2000 rpm | 8.3 | 8.7 | 70.9 Pa | — | solid-body rotation at the rotor's speed: an upper bound, not the fan |
 
 The swirl case is a warning, not a number: if the fan's exit swirl were anything like solid-body rotation the cone
@@ -45,7 +52,7 @@ cone are the remedy if it is large (`.2.13`).
 
 Coarse (807k cells, base 2 mm, 8 ranks on the Mac, about 25 minutes a case), 6 CFM, the measured tube and the neck. The
 swirl is a free vortex at the inlet, r·c_θ / Q = 18 per metre in the rotor's sense (Euler's floor on the model's
-operating line; `HubCone.swirl`). The table above predates the neck and the tail cone.
+operating line; `HubCone.swirl`). The swirl cases were not re-run on 2026-10-18: the straight-strut rows predate the neck and the tail cone (their no-swirl case was 1.30 against 2.23 now for the open duct at 6 CFM), so read them for the differences between rows.
 
 | tail cone held by | inlet swirl | duct Δp static | k_static | swirl in the bore | r·c_θ in the bore | swirl head, tube |
 |---|---|---|---|---|---|---|
@@ -74,7 +81,7 @@ background (1.84 M cells, 46 minutes on 8 ranks) loses 15.98 Pa against 16.21 on
 these coarse comparisons resolve about 1-2 % and differences inside that are ties. The swirl left is the same
 (2.7 Pa of swirl head in the bore, 0.2 in the tube).
 
-The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 1.26 without the grille. The duct
+The model has carried k_box 2.0 + k_entry 0.5 = 2.5 for this path; the open duct is 2.23 at 6 CFM straight and 1.51 at 4.2 CFM on the fan's profile, without the grille. The duct
 does not need a change for its loss. The 45° figure is inside the range published for butterfly valves (about 10-18). With the flap partly closed the
 tube's friction reads high (0.043-0.050): the wake has not died out by the fitted planes, so those k carry some of the
 tube's recovery; a longer tube (`tube_d`) is the fix when the numbers matter to better than ~10 %.
@@ -161,7 +168,7 @@ time, its absolute speed and the stage (room, rotor, duct) at each vertex.
   at its meshed pose at t = 0 of each line, and the film turns it by omega times that time, so the blades and the molecule are in step but
   the phase against the blade-passing is arbitrary. The other seeds, about two thirds, stop on the rear wall's plate between the gills
   (stagnation) or are trapped in the tip-gap recirculation near r = 28 mm (5 m/s, round and round until the step limit); they are dropped, so the
-  lines are for looking at, not for a mass balance. Every flap angle uses the same 4.2 CFM and the same fan-exit profile: the flap's higher loss (the 30 degree duct case is 16.9 Pa static against 6.9 open, and
+  lines are for looking at, not for a mass balance. Every flap angle uses the same 4.2 CFM and the same fan-exit profile: the flap's higher loss (the 30 degree duct case was 16.9 Pa static against 6.9 open on the earlier geometry, 18.6 against 8.6 on the current one, and
   its 2000 iterations had not fully converged) does not feed back to the fan.
 - **Results.** Seed to the end of the duct case 148-243 ms (median 190), of which the median 6.3 ms is in the rotor zone: the speed on a line goes
   from under 1 m/s in the plenum to 9 m/s in the rotor and settles near 3 m/s in the bore. The swirl, as the angle a line turns about the
