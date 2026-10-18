@@ -119,13 +119,14 @@ def main():
     ap.add_argument("--profile", help="inlet from a fan case's profile.json (overrides --rpm and --vortex)")
     ap.add_argument("--base", type=float, help="background cell, mm (coarser is faster)")
     ap.add_argument("--iterations", type=int)
+    ap.add_argument("--laminar", action="store_true", default=None, help="no turbulence model (the natural draft's low flows)")
     ap.add_argument("--np", type=int, default=8, help="MPI ranks (and container CPUs)")
     ap.add_argument("--mem", default="8G", help="container memory")
     ap.add_argument("--out", type=Path, default=Path("build/cfd"))
     a = ap.parse_args()
     c = replace(CASES[a.case], np=a.np)
     for field, val in (("flap_deg", a.flap), ("cfm", a.cfm), ("rpm", a.rpm), ("vortex", a.vortex), ("profile", a.profile), ("base", a.base),
-                       ("iterations", a.iterations)):
+                       ("iterations", a.iterations), ("laminar", a.laminar)):
         if val is not None:
             c = replace(c, **{field: val})
     res = run(a.case, c, a.out, a.np, a.mem)

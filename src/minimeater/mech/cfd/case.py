@@ -36,6 +36,7 @@ class Case:
     np: int = 8
     base: float = BASE  # mm, the background cells; the refinement levels halve it
     flap_level: int = 3  # the flap's surface cells: base / 2^level
+    laminar: bool = False  # no turbulence model: the natural draft with the fan stopped (Re ~1300 in the tube at 1 CFM)
     zone: tuple = ()  # (x0, x1, level) mm: a cylinder round the bore refined to this level (the LES's flap region); () = the one wake cylinder
 
     @property
@@ -208,7 +209,7 @@ SIMPLE
 relaxationFactors { equations { U 0.7; "(k|omega)" 0.6; } fields { p 0.9; } }
 """)
     out["constant/transportProperties"] = _f("dictionary", "transportProperties", f"transportModel Newtonian; nu {NU};\n")
-    out["constant/turbulenceProperties"] = _f("dictionary", "turbulenceProperties",
+    out["constant/turbulenceProperties"] = _f("dictionary", "turbulenceProperties", "simulationType laminar;\n" if c.laminar else
                                               "simulationType RAS; RAS { RASModel kOmegaSST; turbulence on; printCoeffs off; }\n")
     # the inlet: the fan's flow into the annulus, 10 % intensity, the blade passage as the length scale
     u_in = q / (3.14159265 * ((s.r_fan / 1000) ** 2 - (s.r_hub / 1000) ** 2))

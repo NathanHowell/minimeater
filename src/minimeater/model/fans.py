@@ -74,7 +74,8 @@ FANS = [
     Fan(
         "Noctua NF-A6x25 5V PWM", "axial", "60x60x25",
         qmax_cfm=17.19, pmax_mmh2o=2.18, rpm_max=3000, dba_max=19.3, watts_max=0.935, rpm_min=600, open_area_m2=21.6e-4,
-        notes="specs: noctua.at; rpm_min [est]",
+        stopped_k=3.2,
+        notes="specs: noctua.at; rpm_min [est]; stopped_k from the stopped-rotor CFD at 1 CFM (4.2 at 0.5: docs/cfd.md)",
     ),
     Fan(
         "Noctua NF-A8 5V PWM", "axial", "80x80x25",

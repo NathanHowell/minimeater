@@ -51,6 +51,7 @@ class GrilleCase:
     rotor_level: int = 3
     grille_level: int = 2
     concept: str = ""  # the S-louvre script (s_louvre)
+    laminar: bool = False  # no turbulence model (the stopped fan's natural draft, rpm 0)
     plenum: str = ""  # extra flow shaping in the plenum (at gap 0 the shells' own tip ribs are always in): "ribs" (the first anti-swirl ribs at the blade tips), "dome" (a stationary nose over the rotor hub), "ring" (a separator ring at the tips, the ribs outside it), "bell" (a bellmouth down to the fan's bore)
 
     @property
@@ -316,13 +317,13 @@ def intake(f: Path) -> dict:
 
 
 def run(c: GrilleCase, out: Path, mem: str) -> dict:
-    name = f"grille-{c.grille}-gap{c.gap:g}-{c.cfm:g}cfm" + (f"-{c.plenum}" if c.plenum else "")
+    name = f"grille-{c.grille}-gap{c.gap:g}-{c.cfm:g}cfm" + ("-stopped" if not c.rpm else "") + ("-laminar" if c.laminar else "") + (f"-{c.plenum}" if c.plenum else "")
     case_dir = (out / name).resolve()
     if case_dir.exists():
         shutil.rmtree(case_dir)
     t0 = time.time()
     counts = write_stl(c, case_dir / "constant" / "triSurface")
-    fc = fan.FanCase(cfm=c.cfm, rpm=c.rpm, iterations=c.iterations, np=c.np, base=c.base, rotor_level=c.rotor_level)
+    fc = fan.FanCase(cfm=c.cfm, rpm=c.rpm, iterations=c.iterations, np=c.np, base=c.base, rotor_level=c.rotor_level, laminar=c.laminar)
     x_intake = G.FAN_X0 - 0.5
     for rel, text in fan.files(fc, x_in=c.x_in, half=HALF, extra={"walls": c.grille_level}, slip=True,
                                planes={"intake": x_intake}).items():
@@ -371,6 +372,8 @@ def main():
     ap.add_argument("--gap", type=float, default=0.0, help="mm added between the rear wall and the fan")
     ap.add_argument("--cfm", type=float, default=4.2)
     ap.add_argument("--rpm", type=float, default=3000.0)
+    ap.add_argument("--stopped", action="store_true", help="the rotor stopped (rpm 0: no rotating frame, the rotor a still wall)")
+    ap.add_argument("--laminar", action="store_true", help="no turbulence model (the natural draft's low flows)")
     ap.add_argument("--iterations", type=int, default=1500)
     ap.add_argument("--np", type=int, default=8)
     ap.add_argument("--mem", default="32G")
@@ -378,7 +381,8 @@ def main():
     ap.add_argument("--plenum", default="", help="flow shaping in the plenum, '+'-joined: ribs, dome, ring, bell, lips, lips-in, lips-r25, lips-band, or a rib set that replaces the shells' (%s)" % ", ".join(RIB_SETS))
     ap.add_argument("--dry", action="store_true", help="write the case and stop")
     a = ap.parse_args()
-    c = GrilleCase(grille=a.grille, concept=a.concept, gap=a.gap, cfm=a.cfm, rpm=a.rpm, iterations=a.iterations, np=a.np, plenum=a.plenum)
+    c = GrilleCase(grille=a.grille, concept=a.concept, gap=a.gap, cfm=a.cfm, rpm=0.0 if a.stopped else a.rpm, iterations=a.iterations, np=a.np,
+                   plenum=a.plenum, laminar=a.laminar)
     if a.dry:
         d = a.out / f"grille-{c.grille}-gap{c.gap:g}-dry"
         print(write_stl(c, d / "constant" / "triSurface"))

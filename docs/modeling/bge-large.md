@@ -57,11 +57,11 @@ Convective draft pulled through the stopped Noctua NF-A6x25 5V PWM (CFM):
 
 | top vent | 150F | 225F | 275F | 325F |
 |---|---|---|---|---|
-| petals cracked | 0.36 | 0.45 | 0.49 | 0.51 |
-| petals open | 0.69 | 0.88 | 0.97 | 1.03 |
-| slider 1/4 | 0.86 | 1.12 | 1.24 | 1.33 |
-| slider 1/2 | 0.90 | 1.19 | 1.32 | 1.43 |
-| full open | 0.92 | 1.21 | 1.34 | 1.45 |
+| petals cracked | 0.36 | 0.45 | 0.48 | 0.51 |
+| petals open | 0.68 | 0.87 | 0.95 | 1.01 |
+| slider 1/4 | 0.84 | 1.10 | 1.21 | 1.30 |
+| slider 1/2 | 0.88 | 1.16 | 1.29 | 1.39 |
+| full open | 0.89 | 1.18 | 1.31 | 1.42 |
 | slider 1/4, stopped Delta BFB0505HHA-C (radial) | 0.35 | 0.45 | 0.50 | 0.54 |
 | **required (mild calm)** | **0.29** | **0.63** | **0.88** | **1.16** |
 
@@ -155,7 +155,7 @@ Light at t=0 with a starter in a cold egg, setpoint 225F, lid opened for 2 min a
 | fan | min to 220F | overshoot F | mean output @225 % | lid recovery min | min to 345F after step |
 |---|---|---|---|---|---|
 | Noctua NF-A4x20 5V PWM | 10 | 44 | 24.0 | 3 | 6 |
-| Noctua NF-A6x25 5V PWM | 11 | 54 | 23.2 | 2 | 5 |
+| Noctua NF-A6x25 5V PWM | 11 | 54 | 23.3 | 2 | 5 |
 | Noctua NF-A8 5V PWM | 11 | 56 | 23.0 | 2 | 4 |
 | Delta BFB0505HA-C (radial) | 10 | 44 | 54.3 | 3 | 6 |
 | Delta BFB0505HHA-C (radial) | 11 | 49 | 53.4 | 2 | 5 |
@@ -167,10 +167,10 @@ Fan choice barely changes control quality. Gain sweep with the NF-A6x25 (std dev
 
 | P %/F | I %/F/s | startup overshoot F | sd @225 | sd @350 |
 |---|---|---|---|---|
-| 4 | 0.02 | 45 | 8.6 | 23.0 |
-| 4 | 0.005 | 46 | 0.0 | 16.9 |
-| 2 | 0.01 | 53 | 0.0 | 23.6 |
-| 2 | 0.005 | 54 | 0.0 | 0.1 |
+| 4 | 0.02 | 45 | 8.7 | 23.1 |
+| 4 | 0.005 | 46 | 0.0 | 17.0 |
+| 2 | 0.01 | 53 | 0.0 | 23.7 |
+| 2 | 0.005 | 54 | 0.0 | 0.2 |
 | 1 | 0.005 | 65 | 0.0 | 0.2 |
 
 HeaterMeter's defaults (P=4, I=0.02) limit-cycle on this plant, and gains stable at 225F can oscillate at 350F (plant gain changes with temperature): autotune and possibly gain scheduling are needed. Startup overshoot (40-80F) is set by running 100% output while the fire spreads, regardless of gains; the shell time constant is ~1.5 h, so overshoot is slow to bleed off. The firmware needs a startup mode (output ramp/cap, or D on measurement) rather than plain PI from cold.
@@ -179,9 +179,9 @@ HeaterMeter's defaults (P=4, I=0.02) limit-cycle on this plant, and gains stable
 
 | pit F | flap closed (leak) CFM | flap open, fan off CFM | fan at min speed CFM | fan full CFM |
 |---|---|---|---|---|
-| 150 | 0.046 | 0.86 | 1.13 | 3.99 |
-| 225 | 0.060 | 1.12 | 1.33 | 4.02 |
-| 325 | 0.072 | 1.33 | 1.51 | 4.04 |
+| 150 | 0.046 | 0.84 | 1.13 | 3.99 |
+| 225 | 0.060 | 1.10 | 1.33 | 4.02 |
+| 325 | 0.072 | 1.30 | 1.51 | 4.04 |
 
 ![actuator map](bge-large/actuator_map.png)
 
@@ -243,7 +243,7 @@ The controllers command airflow; firmware (`minimeater-core::model::airflow::Air
 | Fan | kind | CFM | mmH2O | rpm | dB(A) | W | rpm min | notes |
 |---|---|---|---|---|---|---|---|---|
 | Noctua NF-A4x20 5V PWM | axial | 5.53 | 2.26 | 5000 | 14.9 | 0.5 | 1100 | specs: noctua.at; watts [est] |
-| Noctua NF-A6x25 5V PWM | axial | 17.19 | 2.18 | 3000 | 19.3 | 0.935 | 600 | specs: noctua.at; rpm_min [est] |
+| Noctua NF-A6x25 5V PWM | axial | 17.19 | 2.18 | 3000 | 19.3 | 0.935 | 600 | specs: noctua.at; rpm_min [est]; stopped_k from the stopped-rotor CFD at 1 CFM (4.2 at 0.5: docs/cfd.md) |
 | Noctua NF-A8 5V PWM | axial | 32.67 | 2.37 | 2200 | 17.7 | 0.9 | 450 | specs: noctua.at / retailers; watts [est] |
 | Delta BFB0505HA-C (radial) | radial | 3.5 | 14.3 | 4500 | 32.5 | 0.9 | 1500 | CFM/pressure/dBA: DigiKey listing; rpm, watts, rpm_min [est] |
 | Delta BFB0505HHA-C (radial) | radial | 4.0 | 20.1 | 5900 | 37.5 | 1.3 | 2000 | pressure/rpm/dBA/W: distributor listing; CFM [est, unconfirmed] |

@@ -175,6 +175,31 @@ falls whenever the inflow moves toward the tips or the ribs reach into the blade
 grille's jets does not help: the rotor sees well-mixed plenum air either way. Nothing inside the plenum beats the
 shells' ribs by more than the noise; the shell is left as it is.
 
+### The natural draft with the fan stopped (`.2.35`, 2026-10-18)
+
+Most of a cook runs on the egg's own draft with the fan off, so the stopped path sets the silent range. The grille
+case with the rotor a still wall (`--stopped`: no rotating frame) and the duct case (`open`), both laminar
+(`--laminar`: Re about 200 in the gills and 1300 in the tube at 1 CFM), at 1.0 and 0.5 CFM. The duct cases converge
+by about 400 iterations (their 500-iteration `pt_in_spread_pa` then includes the start and reads high); the grille
+cases run their 1500 for about 30 minutes, as with the fan turning.
+
+| stretch (total pressure lost) | 1.0 CFM | 0.5 CFM |
+|---|---|---|
+| room to the gills' exit | 0.105 Pa | 0.038 Pa |
+| across the plenum and ribs | 0.03 | 0.008 |
+| the stopped rotor and frame | 0.093 | 0.030 |
+| the duct: cone, stator vanes, open flap, 12 diameters of tube | 0.67 (1.04 static) | 0.23 (0.33 static) |
+
+The planes' area weights recover 0.8-1.0 of the flow, so the split is to about 10 %. Halving the flow cuts every
+stretch by about 3 (Δp ~ Q^1.65): mostly the sharp-edged, quadratic kind of loss, with a viscous part that grows as
+the flow falls. The duct, about half of it the tube's still-developing laminar flow, is most of the loss; the
+stopped rotor is about a tenth of it.
+
+The rotor's part referenced to the velocity through the fan's open area is k = 3.2 at 1 CFM and 4.2 at 0.5, against
+the 1.5 the airflow model estimated (`Fan.stopped_k`, now 3.2 for the NF-A6x25). That moves the model's natural-draft
+flows by 1-3 % (docs/modeling). A passive bypass round the stopped fan could win back at most that much, so it is not
+worth a moving part.
+
 ### Pathlines through the whole airway (`cfd/pathlines.py`, `just pathlines`, `.cp2.2`, 2026-10-17)
 
 The animation (`docs/mech.md`) follows one air molecule from the room to the tube, so it needs lines through the grille, the fan, the stator cone,

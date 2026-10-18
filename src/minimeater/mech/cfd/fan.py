@@ -48,6 +48,7 @@ class FanCase:
     np: int = 8
     base: float = 2.0
     rotor_level: int = 3
+    laminar: bool = False  # no turbulence model: the stopped fan's natural draft (Re ~200 in the gills, ~1300 in the tube)
 
     @property
     def q_m3s(self) -> float:
@@ -149,7 +150,7 @@ actions
 """)
     omega = -c.rpm * 2 * math.pi / 60  # clockwise looking downstream: -theta about +x
     out["constant/MRFProperties"] = _f("dictionary", "MRFProperties", f"""
-rotor {{ cellZone rotorZone; active yes; nonRotatingPatches (frame pipe inlet outlet background {" ".join(extra)}); origin (0 0 0); axis (1 0 0); omega {omega}; }}
+rotor {{ cellZone rotorZone; active {"yes" if c.rpm else "no"}; nonRotatingPatches (frame pipe inlet outlet background {" ".join(extra)}); origin (0 0 0); axis (1 0 0); omega {omega}; }}
 """)
     out["system/decomposeParDict"] = _f("dictionary", "decomposeParDict", f"numberOfSubdomains {c.np}; method scotch;\n")
     fos = []
@@ -203,7 +204,7 @@ SIMPLE { nNonOrthogonalCorrectors 1; consistent yes; residualControl { p 1e-5; U
 relaxationFactors { equations { U 0.5; "(k|omega)" 0.5; } fields { p 0.7; } }
 """)
     out["constant/transportProperties"] = _f("dictionary", "transportProperties", f"transportModel Newtonian; nu {NU};\n")
-    out["constant/turbulenceProperties"] = _f("dictionary", "turbulenceProperties",
+    out["constant/turbulenceProperties"] = _f("dictionary", "turbulenceProperties", "simulationType laminar;\n" if c.laminar else
                                               "simulationType RAS; RAS { RASModel kOmegaSST; turbulence on; printCoeffs off; }\n")
     q = c.q_m3s
     u_in = q / ((2 * half / 1000) ** 2)
