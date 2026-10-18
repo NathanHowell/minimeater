@@ -180,7 +180,12 @@ mod tests {
         // after init: WREG reg0 and reg1 (AIN2/AVSS, external reference, TS off), START, RREG reg 2 (DRDY), RDATA
         assert_eq!(
             a.i2c.writes()[2..],
-            [vec![0x40, 0xA1, 0x44, 0x02], vec![START], vec![RREG_CONFIG2], vec![RDATA]]
+            [
+                vec![0x40, 0xA1, 0x44, 0x02],
+                vec![START],
+                vec![RREG_CONFIG2],
+                vec![RDATA]
+            ]
         );
     }
 
@@ -203,7 +208,10 @@ mod tests {
     #[test]
     fn waits_for_drdy_polling_register_2() {
         // not ready for two reads, then ready
-        let bus = I2cLog::with_reads(ADDRESS, [vec![0x00], vec![0x00], vec![DRDY | 0x01], vec![0x40, 0x00, 0x00]]);
+        let bus = I2cLog::with_reads(
+            ADDRESS,
+            [vec![0x00], vec![0x00], vec![DRDY | 0x01], vec![0x40, 0x00, 0x00]],
+        );
         let mut a = Ads122c04::new(bus, ADDRESS, NoDelay);
         assert_eq!(block_on(a.ratio(0)), Ok(0.5));
         let polls = a.i2c.writes().iter().filter(|w| **w == [RREG_CONFIG2]).count();
