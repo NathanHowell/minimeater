@@ -247,8 +247,8 @@ must overcome. The flap's loss law (`open_area_fraction`, `flap_k`) is corrected
   cannot rule a whistle out: there is always a mode near the edge's band somewhere across all angles and flows. The most
   exposed is the first mode (Q ~25) at 15-40° and 4-8 CFM, and at 55-65° at 1-2 CFM: points the firmware does not
   visit (next section).
-- Whether the shedding actually feeds a mode is the LES (`.2.18`) and the forced-impedance check below (`.2.19`): it
-  does not, at any point the firmware visits with an axial inflow; the fan's swirl at the open flap is `.2.20`.
+- Whether the shedding actually feeds a mode is the LES (`.2.18`) and the forced-impedance check below (`.2.19`, `.2.20`):
+  it does not, at any point the firmware visits, with or without the fan's swirl.
 
 ## Where the firmware runs it: `uv run minimeater-operating`
 
@@ -309,7 +309,8 @@ box uses podman, rootless).
   base/16 (0.16 / 0.125 / 0.1 mm), a 38 mm cylinder round the flap at base/4, 6 diameters of tube. The 30 deg, 6 CFM case:
   0.84 M cells coarse (6 min to mesh), 1.35 M medium (11 min). `smoke` (0.17 M) is for checking the pipeline.
 - **Inlet**: the annulus at the fan's flow with 5 % random velocity fluctuations (`turbulentInlet`, `--intensity`; 0 is a
-  steady inlet); no swirl yet, no blades. The noise is white and new every step, and in an incompressible case it is felt
+  steady inlet); no blades. Swirl (`.2.20`): `--rpm` is solid-body rotation in the rotor's sense (its flow rate can be forced),
+  `--profile` the fan's measured exit from `cfd/fan.py` (steady). The noise is white and new every step, and in an incompressible case it is felt
   at once everywhere as a pressure fluctuation: it swamps the flap's axial force above about 1 kHz, so the broadband level
   (below) takes `--intensity 0`.
 - **Output** every step: force and moment on the flap and rod (about the shaft: Mz is the servo's torque ripple), p and U at
@@ -385,11 +386,27 @@ and the sound power into the firebox (build/les-broadband.jsonl, smoke mesh):
 - What it leaves out: the fan's swirl and blade wakes as real inflow turbulence (the duct cases take a fixed profile) and the
   fan's own tones driving the modes directly (`.2.11`).
 
-**Verdict (without swirl):** the round edge stays; no machined runner-up flap in the order, and the square, serrated and
-ribbed variants are not needed. Still open: the fan's exit swirl at the open flap (`.2.20`), which puts the edge-on disc at
-an angle of attack, the one way the light-up point could start shedding.
+**With the fan's swirl (`.2.20`).** The fan only runs with the flap open, and its swirl puts the edge-on disc at an angle
+of attack: the one way the light-up point could start shedding. The stator vanes take most of it out, but not all (about
+24° left in the bore on the fan's measured exit, above). Open flap, 4.1 CFM, smoke mesh (build/les-swirl.jsonl):
+
+| inlet | Re Z_flap, 850 Hz | Re Z_flap, 1456 Hz | room, dB(A) at 1 m | peak | firebox, dB re 1 pW |
+|---|---|---|---|---|---|
+| axial | +950 | +1,140 | -16.1 | 1444 Hz | -13.3 |
+| solid body, 750 rpm | +970 | +1,230 | | | |
+| solid body, 1500 rpm | +970 | +1,320 | | | |
+| solid body, 3000 rpm | +950 | +1,080 | -9.0 | 181 Hz | 16.4 |
+| the fan's measured exit (`--profile`) | | | -36.7 | 144 Hz | -12.5 |
+
+- Swirl leaves the flap's resistance where it was (within 15 %, all positive, all under 1 % of the loop's): still no
+  whistle. Solid body at the rotor's full speed is far more swirl than the vanes let through, so this brackets it.
+- The level goes up with heavy swirl (-9 dB(A), 28 dB under the fan) but the energy is in a 150-180 Hz wake under the
+  first mode, where the A-weighting and the duct both take it down. On the fan's measured exit it is -37 dB(A).
+
+**Verdict:** the round edge stays; no machined runner-up flap in the order, and the square, serrated and ribbed variants
+are not needed. Checked on the first build by ear (`b4z`).
 
 ## Not yet in it
 
-- The duct and the fan in one case (the duct cases take the fan's exit as a fixed inlet profile); the LES inlet has no swirl.
+- The duct and the fan in one case (the duct cases take the fan's exit as a fixed inlet profile); the LES has no blade wakes.
 - The flap's torque on the servo (the flap patch's force and moment are on the mesh).

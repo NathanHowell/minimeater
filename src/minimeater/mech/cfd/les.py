@@ -102,7 +102,29 @@ def g_flap_x() -> float:
 
 def name_of(c: LesCase) -> str:
     return f"{c.variant}-{c.flap_deg:g}deg-{c.cfm:g}cfm-{c.res}" + (f"-forced{c.force_hz:g}hz-{c.force_amp:g}" if c.force_hz else "") + (
-        f"-ti{c.intensity:g}" if c.intensity != LesCase.intensity else "")
+        f"-ti{c.intensity:g}" if c.intensity != LesCase.intensity else "") + (f"-rpm{c.rpm:g}" if c.rpm else "") + (
+        "-fanprofile" if c.profile else "")
+
+
+def _inlet(c: LesCase, s, u_in: float) -> str:
+    """The inlet's U: the fan's measured exit (`profile`, steady), solid-body swirl at `rpm` in the rotor's sense (its flow
+    rate forced or steady), an axial flow forced at `force_hz`, or the turbulent inlet."""
+    q = c.q_m3s
+    if c.profile:
+        if c.force_hz:
+            raise SystemExit("--profile is a steady inlet: force with --rpm instead")
+        return steady._profile_inlet(Path(c.profile), s, q, u_in)
+    if c.rpm:
+        # the NF-A6x25 turns clockwise looking downstream; a positive rpm here turns the other way (axis ^ r)
+        rate = (f"{{ type sine; frequency {c.force_hz}; amplitude constant {q * c.force_amp}; scale constant 1; level constant {q}; }}"
+                if c.force_hz else f"constant {q}")
+        return (f"type swirlFlowRateInletVelocity; flowRate {rate}; rpm constant {-c.rpm}; origin (0 0 0); axis (1 0 0); "
+                f"value uniform ({u_in} 0 0);")
+    if c.force_hz:
+        return (f"type uniformFixedValue; uniformValue {{ type sine; frequency {c.force_hz}; amplitude constant {u_in * c.force_amp}; "
+                f"scale constant (1 0 0); level constant ({u_in} 0 0); }} value uniform ({u_in} 0 0);")
+    return (f"type turbulentInlet; referenceField uniform ({u_in} 0 0); fluctuationScale ({u_in * c.intensity} {u_in * c.intensity} "
+            f"{u_in * c.intensity}); alpha 0.1; value uniform ({u_in} 0 0);")
 
 
 def probes(c: LesCase) -> list[tuple[str, tuple[float, float, float]]]:
@@ -194,9 +216,7 @@ LES { LESModel WALE; turbulence on; printCoeffs on; delta cubeRootVol; cubeRootV
 """)
     bf = {
         "U": ("volVectorField", "[0 1 -1 0 0 0 0]", {
-            "inlet": (f"type uniformFixedValue; uniformValue {{ type sine; frequency {c.force_hz}; amplitude constant {u_in * c.force_amp}; "
-                      f"scale constant (1 0 0); level constant ({u_in} 0 0); }} value uniform ({u_in} 0 0);") if c.force_hz else
-            f"type turbulentInlet; referenceField uniform ({u_in} 0 0); fluctuationScale ({u_in * c.intensity} {u_in * c.intensity} {u_in * c.intensity}); alpha 0.1; value uniform ({u_in} 0 0);",
+            "inlet": _inlet(c, s, u_in),
             "outlet": "type inletOutlet; inletValue uniform (0 0 0); value uniform (0 0 0);",
             steady.WALLS: "type noSlip;"}),
         "p": ("volScalarField", "[0 2 -2 0 0 0 0]", {
@@ -300,6 +320,8 @@ def main():
     ap.add_argument("--force-hz", type=float, help="a forced run: the inflow oscillates at this frequency (a duct mode's; .2.19)")
     ap.add_argument("--force-amp", type=float, default=0.05, help="the forcing's amplitude, a share of the mean inflow")
     ap.add_argument("--intensity", type=float, help="the turbulent inlet's fluctuations, a share of the inflow (0: a steady inlet)")
+    ap.add_argument("--rpm", type=float, help="solid-body swirl at the inlet at this speed, in the rotor's sense (.2.20)")
+    ap.add_argument("--profile", help="the fan's measured exit (cfd/fan.py's profile.json) as a steady inlet (.2.20)")
     ap.add_argument("--np", type=int, default=12, help="MPI ranks (and container CPUs)")
     ap.add_argument("--mem", default="48G", help="container memory")
     ap.add_argument("--out", type=Path, default=Path("build/les"))
@@ -312,6 +334,10 @@ def main():
         kw["howe"] = False
     if a.intensity is not None:
         kw["intensity"] = a.intensity
+    if a.rpm:
+        kw["rpm"] = a.rpm
+    if a.profile:
+        kw["profile"] = a.profile
     if a.force_hz:
         kw |= {"force_hz": a.force_hz, "force_amp": a.force_amp}
     todo = SWEEP if a.sweep else ((a.flap, a.cfm),)
