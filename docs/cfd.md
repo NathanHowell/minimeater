@@ -248,7 +248,7 @@ must overcome. The flap's loss law (`open_area_fraction`, `flap_k`) is corrected
   exposed is the first mode (Q ~25) at 15-40° and 4-8 CFM, and at 55-65° at 1-2 CFM: points the firmware does not
   visit (next section).
 - Whether the shedding actually feeds a mode is the LES (`.2.18`) and the forced-impedance check below (`.2.19`): it
-  does not, at any point the firmware visits, and the round edge goes into the combined JLCCNC + MJF order.
+  does not, at any point the firmware visits with an axial inflow; the fan's swirl at the open flap is `.2.20`.
 
 ## Where the firmware runs it: `uv run minimeater-operating`
 
@@ -385,8 +385,9 @@ and the sound power into the firebox (build/les-broadband.jsonl, smoke mesh):
 - What it leaves out: the fan's swirl and blade wakes as real inflow turbulence (the duct cases take a fixed profile) and the
   fan's own tones driving the modes directly (`.2.11`).
 
-**Verdict:** the round edge stays; no machined runner-up flap in the order. The square, serrated and ribbed variants are
-not needed.
+**Verdict (without swirl):** the round edge stays; no machined runner-up flap in the order, and the square, serrated and
+ribbed variants are not needed. Still open: the fan's exit swirl at the open flap (`.2.20`), which puts the edge-on disc at
+an angle of attack, the one way the light-up point could start shedding.
 
 ## Not yet in it
 
