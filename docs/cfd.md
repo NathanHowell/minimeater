@@ -247,8 +247,8 @@ must overcome. The flap's loss law (`open_area_fraction`, `flap_k`) is corrected
   cannot rule a whistle out: there is always a mode near the edge's band somewhere across all angles and flows. The most
   exposed is the first mode (Q ~25) at 15-40° and 4-8 CFM, and at 55-65° at 1-2 CFM: points the firmware does not
   visit (next section).
-- Whether the shedding actually feeds a mode is the LES (`.2.18`, on a Linux box) and Howe's energy balance with these
-  mode shapes (`.2.19`); the flap's geometry is frozen for the combined JLCCNC + MJF order only after that.
+- Whether the shedding actually feeds a mode is the LES (`.2.18`) and the forced-impedance check below (`.2.19`): it
+  does not, at any point the firmware visits, and the round edge goes into the combined JLCCNC + MJF order.
 
 ## Where the firmware runs it: `uv run minimeater-operating`
 
@@ -308,7 +308,10 @@ box uses podman, rootless).
 - **Resolution** (`--res`): the background cell is 2.5 / 2.0 / 1.6 mm for coarse / medium / fine, the flap's surface cells
   base/16 (0.16 / 0.125 / 0.1 mm), a 38 mm cylinder round the flap at base/4, 6 diameters of tube. The 30 deg, 6 CFM case:
   0.84 M cells coarse (6 min to mesh), 1.35 M medium (11 min). `smoke` (0.17 M) is for checking the pipeline.
-- **Inlet**: the annulus at the fan's flow with 5 % random velocity fluctuations (`turbulentInlet`); no swirl yet, no blades.
+- **Inlet**: the annulus at the fan's flow with 5 % random velocity fluctuations (`turbulentInlet`, `--intensity`; 0 is a
+  steady inlet); no swirl yet, no blades. The noise is white and new every step, and in an incompressible case it is felt
+  at once everywhere as a pressure fluctuation: it swamps the flap's axial force above about 1 kHz, so the broadband level
+  (below) takes `--intensity 0`.
 - **Output** every step: force and moment on the flap and rod (about the shaft: Mz is the servo's torque ripple), p and U at
   probes (the bore wall at +-y and +-z, five stations round the flap; the axis; two points off each edge's shear layer),
   and, every 50 us, the integral of the Lamb vector omega x u over 2 mm slabs from 10 mm upstream to 40 mm downstream of
@@ -332,6 +335,58 @@ and force levels there decide whether the 6 CFM points even matter.
 The pipeline ran end to end on the 168 k-cell smoke mesh: 0.26 s a step on 8 ranks, about 1.5 us per cell per step. That puts
 a medium case (1.35 M cells, 17-20 k steps) near 11 h on this box, coarse near 6 h, and a fine one a day. The coarse sweep is
 about 1.5 days, the medium one 3-4. Not measured at medium yet: time one case's first steps before committing to the sweep.
+
+## The whistle verdict: `whistle.py` (`.2.19`, 2026-10-19)
+
+    just les --flap 33 --cfm 0.7 --res smoke --no-howe --force-hz 846 --force-amp 0.05   # a forced run
+    just les --flap 0 --cfm 4.1 --res smoke --no-howe --intensity 0                      # an unforced, steady-inlet run
+    uv run python -m minimeater.mech.cfd.whistle build/les/<case>...                     # one JSON line per case
+
+**Can it whistle?** The flap is about 1/20 of the first mode's wavelength, so it is compact: a duct mode looks to it like an
+oscillating flow. A forced run oscillates the inlet by 5 % at a mode's frequency, and the part of the flap's axial force
+(as a pressure jump over the bore) in phase with the oscillating flow is the flap's acoustic resistance, Re Z_flap (Testud
+and Aurégan's whistling potentiality for orifices). If it is negative the flow feeds the mode, and the mode whistles if
+that beats the rest of the loop's resistance (walls and the two open ends: `acoustics.loop` less the flap's own model).
+Smoke mesh, the first two modes at every point the damper-first map visits (Pa s/m^3; build/les-screen.jsonl):
+
+| flap from open | CFM | Re Z_flap, mode 1 | Re Z_flap, mode 2 | rest of the loop, mode 1 / 2 |
+|---|---|---|---|---|
+| 33 deg | 0.70 | +3,180 (846 Hz) | +6,270 (1431 Hz) | 158,300 / 282,400 |
+| 25 deg | 0.95 | +2,020 (845 Hz) | +4,060 (1441 Hz) | 158,300 / 275,600 |
+| 8 deg | 1.36 | +1,040 (849 Hz) | +1,910 (1454 Hz) | 158,400 / 268,000 |
+| open | 2.0 | +950 (850 Hz) | +1,800 (1456 Hz) | 158,400 / 267,000 |
+| open | 4.1 | +950 (850 Hz) | +1,140 (1456 Hz) | 158,400 / 267,000 |
+
+- The flap's resistance is positive everywhere: it absorbs the modes. It does not just fail to beat the loop's losses; it
+  never feeds them at all. The flow-driven margin is set by the open flap at 4.1 CFM (light-up), the least resistive.
+- The coarse mesh (0.84 M cells) at that point: +1,090 at 850 Hz and +1,450 at 1456 Hz (build/les-coarse.jsonl), 15-27 %
+  above the smoke mesh. The smoke screen errs on the side of a whistle, and the sign does not move with resolution.
+- The reactive part comes out at 17-45 % of the lumped model's inertance (`flap_z`): the model overstates the flap's mass, which
+  shifts the modes slightly and decides nothing.
+- Not done: the compressible cross-check (rhoPimpleFoam). With the resistance this far from zero it would not change the
+  answer.
+
+**How loud is the shedding?** Unforced, the axial force's PSD is the pressure jump's, carried through the duct's chain to
+the two open ends: dB(A) at 1 m from the grille end (a point source into the whole sphere) against the fan's 19.3 dB(A),
+and the sound power into the firebox (build/les-broadband.jsonl, smoke mesh):
+
+| flap from open | CFM | inlet | room, dB(A) at 1 m | peak | firebox, dB re 1 pW |
+|---|---|---|---|---|---|
+| open | 4.1 | steady | -16.1 | 1444 Hz (mode 2) | -13.3 |
+| 33 deg | 0.7 | steady | -65.6 | 1421 Hz (mode 2) | -35.2 |
+| open | 4.1 | 5 % `turbulentInlet` | 24.9 | 2960 Hz | 35.1 |
+| 33 deg | 0.7 | 5 % `turbulentInlet` | 1.3 | 2800 Hz | 11.2 |
+
+- With a steady inlet the flap radiates 35 dB under the fan at light-up and nothing audible at the holds. The edge's
+  shedding is at 72-110 Hz (the edge probes' u_y, the cross force), far under the first mode, as `operating.py` predicted.
+- The `turbulentInlet` rows are the inlet's noise, not the flap: their force spectrum climbs to the 10 kHz Nyquist, and
+  every pressure probe, upstream and downstream alike, shows the same spectrum with the same peak (5.1 kHz). That is the
+  incompressible pressure answering the inlet's per-step random velocity across the whole domain at once.
+- What it leaves out: the fan's swirl and blade wakes as real inflow turbulence (the duct cases take a fixed profile) and the
+  fan's own tones driving the modes directly (`.2.11`).
+
+**Verdict:** the round edge stays; no machined runner-up flap in the order. The square, serrated and ribbed variants are
+not needed.
 
 ## Not yet in it
 

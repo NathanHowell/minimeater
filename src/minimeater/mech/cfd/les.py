@@ -101,7 +101,8 @@ def g_flap_x() -> float:
 
 
 def name_of(c: LesCase) -> str:
-    return f"{c.variant}-{c.flap_deg:g}deg-{c.cfm:g}cfm-{c.res}" + (f"-forced{c.force_hz:g}hz-{c.force_amp:g}" if c.force_hz else "")
+    return f"{c.variant}-{c.flap_deg:g}deg-{c.cfm:g}cfm-{c.res}" + (f"-forced{c.force_hz:g}hz-{c.force_amp:g}" if c.force_hz else "") + (
+        f"-ti{c.intensity:g}" if c.intensity != LesCase.intensity else "")
 
 
 def probes(c: LesCase) -> list[tuple[str, tuple[float, float, float]]]:
@@ -298,6 +299,7 @@ def main():
     ap.add_argument("--no-howe", action="store_true", help="skip the Lamb-vector slab integrals")
     ap.add_argument("--force-hz", type=float, help="a forced run: the inflow oscillates at this frequency (a duct mode's; .2.19)")
     ap.add_argument("--force-amp", type=float, default=0.05, help="the forcing's amplitude, a share of the mean inflow")
+    ap.add_argument("--intensity", type=float, help="the turbulent inlet's fluctuations, a share of the inflow (0: a steady inlet)")
     ap.add_argument("--np", type=int, default=12, help="MPI ranks (and container CPUs)")
     ap.add_argument("--mem", default="48G", help="container memory")
     ap.add_argument("--out", type=Path, default=Path("build/les"))
@@ -308,6 +310,8 @@ def main():
     kw = {k: v for k, v in (("t_end", a.t_end), ("t_stats", a.t_stats), ("co", a.co)) if v is not None}
     if a.no_howe:
         kw["howe"] = False
+    if a.intensity is not None:
+        kw["intensity"] = a.intensity
     if a.force_hz:
         kw |= {"force_hz": a.force_hz, "force_amp": a.force_amp}
     todo = SWEEP if a.sweep else ((a.flap, a.cfm),)
