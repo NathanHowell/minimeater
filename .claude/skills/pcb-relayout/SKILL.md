@@ -58,14 +58,14 @@ vias; J1-J7, D2, U10 locked). We are rebuilding it by hand, in this order:
 A temporary second board outline (Edge.Cuts rectangle x 0-130, y 64-124) and an In1 GND zone
 `STAGING_In1_GND` over it: KiCad only fills zones inside an outline, and block vias need a plane. Both are
 removed once every block is on the board. Blocks in staging (all done, 2026-10-13): row y 75: U4 buck (20),
-U5 LDO (40), U7 fan switch (60), U6 servo switch (75), U2/U3 ESD + C38 + R1/R2 (100, J1 side up), VBUS entry
+U5 LDO (40), U7 fan switch (60), U6 servo switch (75), U2/U3 ESD + C38 + R1/R2 (100, J1 side up; since replaced by one TPD4E05U06 laid out behind J1), VBUS entry
 D1/F1/C1-C3 (110-121); row y 95-102: U9 probe ESD (20, 95; jack side up), U11 (40, 95), U8 ADC (80, 102; jacks
 above, MCU below), U1 module (108, 100; antenna down, with C21/C22, R10/C18, C19/C20; unlocked). Small groups
 (hw/layout/README.md): J6 parts (40, 110), J7 parts (55, 110), boot button SW1/R13/C23 (20, 115; enclosure hole
 follows SW1), pull-ups R14/R15/R7/R11 (70, 115), test points TP1-TP8 on B.Cu (50-58, 92-96; placed and routed LAST, bead axk.5, not in the review), C33 (82, 115; goes at
 U10 pins 5/4), R12 (86, 115; goes by D2). Still off-sheet: H1-H3, FID1-FID3 (last phase). Placement review input:
-`hw/tools/montage.py` -> hw/layout/montage.png (every block and the board at one scale, by netclass). The J1 fan-out (D+/D- merge with the In2 hop, CC, VBUS) is drawn when
-U2/U3 go behind J1 (geometry in bead minimeat-bk4).
+`hw/tools/montage.py` -> hw/layout/montage.png (every block and the board at one scale, by netclass). The J1 fan-out (D+/D- merge with the In2 hop, CC, VBUS) is drawn
+(hw/layout/README.md, U2 section).
 
 ## Geometry lessons
 
@@ -103,11 +103,12 @@ if it was rewritten, and reopen. Check with Konnect get_netclasses.
   when the pad is big enough).
 - U1 (ESP32-C6 module) may be unlocked and moved: only its antenna keep-out constrains it. J1-J7, D2, U10 keep their
   places (layout constraints).
-- U2/U3 USBLC6: J1 side on pins 6/4, MCU side on 1/3 (same I/O inside), so the pair runs J1 -> U2 -> MCU with one
-  crossing; C38 100 nF C_BUS added on VBUS_RAW at their VBUS pins (ST fig. 17).
+- U2 USB ESD is one TPD4E05U06 (the jacks' part; minimeat-0qm replaced two USBLC6 and C38), centred under J1 with
+  its channels in J1's pad order (CC2, D+, GND, D-, CC1), so each line drops straight into its lane.
 - J1's pads interleave D+ D- D+ D- at 0.5 mm: the D+/D- crossing is two vias with a ~1 mm hop on In2, just
   below the pad row (not a trace under the connector).
-- U9 TPD4E05U06: NC pins tied to the tips (1/10, 2/9, 4/7, 5/6) for the datasheet's straight-through routing.
+- U9/U14 TPD4E05U06: NC pins tied to the I/O pins (1/10, 2/9, 4/7, 5/6) for the datasheet's straight-through routing;
+  each array takes two jacks' tip and ring side by side (U9 jacks 1-2, U14 jacks 3-4), centred on U8.
 - The router scripts are retired; layout is by hand from renders.
 - The board is mounted upside down in the enclosure: F.Cu faces the pan floor (SW1 on F.Cu faces its paper-clip
   hole), B.Cu faces up.

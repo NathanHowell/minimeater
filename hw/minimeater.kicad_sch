@@ -8635,6 +8635,14 @@
 		(at 198.12 55.88)
 		(uuid "a319408d-c99f-4507-b687-19682f0353e2")
 	)
+	(no_connect
+		(at 327.66 332.74)
+		(uuid "fcb8e4cf-322a-4e8c-a609-cf7388e82495")
+	)
+	(no_connect
+		(at 509.27 187.96)
+		(uuid "0b070450-c32e-4362-a9a2-94b688822b88")
+	)
 	(wire
 		(pts
 			(xy 373.38 238.76)
@@ -8912,17 +8920,6 @@
 	)
 	(wire
 		(pts
-			(xy 106.68 63.5)
-			(xy 109.22 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "26cbd2d6-461d-4c3c-b3df-467ac501ea43")
-	)
-	(wire
-		(pts
 			(xy 325.12 60.96)
 			(xy 332.74 60.96)
 		)
@@ -8953,17 +8950,6 @@
 			(type default)
 		)
 		(uuid "296e3614-4342-40b1-b7e0-cf8761f8f4b9")
-	)
-	(wire
-		(pts
-			(xy 96.52 60.96)
-			(xy 93.98 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2a346f1c-b2c7-4bda-9bdc-96bacdd729d7")
 	)
 	(wire
 		(pts
@@ -9616,17 +9602,6 @@
 	)
 	(wire
 		(pts
-			(xy 101.6 91.44)
-			(xy 101.6 88.9)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "79d5bccd-8059-46ff-ba9a-5b3276f1f77b")
-	)
-	(wire
-		(pts
 			(xy 259.08 236.22)
 			(xy 267.97 236.22)
 		)
@@ -9635,17 +9610,6 @@
 			(type default)
 		)
 		(uuid "7a6c4f6a-74cc-49e0-92c8-917be728dd5c")
-	)
-	(wire
-		(pts
-			(xy 96.52 63.5)
-			(xy 93.98 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7acb8110-a71c-4acc-8362-5d2ccd0cdb9d")
 	)
 	(wire
 		(pts
@@ -9811,17 +9775,6 @@
 			(type default)
 		)
 		(uuid "982a7aa5-8c57-48aa-be11-7d75ce1c226a")
-	)
-	(wire
-		(pts
-			(xy 106.68 96.52)
-			(xy 109.22 96.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9a9c8bd0-242f-4223-9783-a6ef98557c22")
 	)
 	(wire
 		(pts
@@ -10100,17 +10053,6 @@
 	)
 	(wire
 		(pts
-			(xy 106.68 60.96)
-			(xy 109.22 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c055a24f-d145-4140-b373-8efa3f17a8c7")
-	)
-	(wire
-		(pts
 			(xy 370.84 60.96)
 			(xy 378.46 60.96)
 		)
@@ -10185,17 +10127,6 @@
 			(type default)
 		)
 		(uuid "c758790d-77d6-4a13-8784-453b24d6d5c8")
-	)
-	(wire
-		(pts
-			(xy 101.6 55.88)
-			(xy 101.6 53.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c7d62019-1f1b-42e4-90e3-fd1af63c0cef")
 	)
 	(wire
 		(pts
@@ -10364,17 +10295,6 @@
 	)
 	(wire
 		(pts
-			(xy 106.68 99.06)
-			(xy 109.22 99.06)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e0e96f1a-381f-4852-8aef-b6e996123b6a")
-	)
-	(wire
-		(pts
 			(xy 76.2 300.99)
 			(xy 76.2 298.45)
 		)
@@ -10529,17 +10449,6 @@
 	)
 	(wire
 		(pts
-			(xy 96.52 96.52)
-			(xy 93.98 96.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f674a7a6-9a82-488e-8f55-1d387ffa589a")
-	)
-	(wire
-		(pts
 			(xy 532.13 195.58)
 			(xy 534.67 195.58)
 		)
@@ -10548,17 +10457,6 @@
 			(type default)
 		)
 		(uuid "f6e52a18-6c42-4e0f-bd28-bb0629827674")
-	)
-	(wire
-		(pts
-			(xy 96.52 99.06)
-			(xy 93.98 99.06)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f9758870-1896-4d91-b9b7-edc17d136346")
 	)
 	(wire
 		(pts
@@ -10614,13 +10512,6 @@
 			(type default)
 		)
 		(uuid "ff51c921-d2fa-485b-ac7f-5c49beed3bbc")
-	)
-	(wire
-		(pts
-			(xy 127 46.99)
-			(xy 127 44.45)
-		)
-		(uuid "61e7af68-8bac-4c50-9a4c-1fb091a4777d")
 	)
 	(wire
 		(pts
@@ -11070,6 +10961,80 @@
 		)
 		(uuid "5206d1ff-a229-4a80-b65f-e6d9d8d3c0b1")
 	)
+	(wire
+		(pts
+			(xy 271.78 327.66)
+			(xy 269.24 327.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "003c6c98-00cc-4f36-a505-6e230af59f2a")
+	)
+	(wire
+		(pts
+			(xy 88.9 76.2)
+			(xy 86.36 76.2)
+		)
+		(uuid "a5c80fe2-f19f-49f1-9523-45cfd6921b77")
+	)
+	(wire
+		(pts
+			(xy 88.9 71.12)
+			(xy 86.36 71.12)
+		)
+		(uuid "9fee7071-2b5a-4ecc-b72b-4d06ea602de0")
+	)
+	(wire
+		(pts
+			(xy 88.9 81.28)
+			(xy 86.36 81.28)
+		)
+		(uuid "2a059dc1-3ec0-4996-9514-512b834ff242")
+	)
+	(wire
+		(pts
+			(xy 88.9 86.36)
+			(xy 86.36 86.36)
+		)
+		(uuid "2b6fa033-90d2-4f8c-9d28-d12f51c716cb")
+	)
+	(wire
+		(pts
+			(xy 114.3 76.2)
+			(xy 116.84 76.2)
+		)
+		(uuid "6d4e851a-06e3-47a4-b9c3-425bb8e5e2ef")
+	)
+	(wire
+		(pts
+			(xy 114.3 71.12)
+			(xy 116.84 71.12)
+		)
+		(uuid "16287f5a-eb0b-4138-a77d-e495a3d89cf2")
+	)
+	(wire
+		(pts
+			(xy 114.3 81.28)
+			(xy 116.84 81.28)
+		)
+		(uuid "2628d3d3-3e40-4159-b281-dc353bac3011")
+	)
+	(wire
+		(pts
+			(xy 114.3 86.36)
+			(xy 116.84 86.36)
+		)
+		(uuid "15e0d186-50e5-457f-a041-ba923c08822e")
+	)
+	(wire
+		(pts
+			(xy 101.6 91.44)
+			(xy 101.6 93.98)
+		)
+		(uuid "aa5eadd7-a55a-49e2-b485-20283ea9974f")
+	)
 	(text "MCU BLOCK"
 		(at 205.74 270.51 0)
 		(effects
@@ -11174,16 +11139,6 @@
 		)
 		(uuid "a4515147-a57d-4a06-8c13-270df152dc67")
 	)
-	(text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3 = sleeve (GND), 4 = ring (RING1..RING4: 4.7k pull-up to 3V3, U14 ESD and a 1k series resistor to a GPIO for smart probes; a TS probe's sleeve grounds it, so a plain probe still reads as one), 5 = ring switch (unused)"
-		(at 20 217 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "b10c0e4d-0bfd-4deb-bed5-b108aa071bee")
-	)
 	(text "SECURE ELEMENT: ATECC608B, I2C 0x60; bus at 100 kHz for the wake pulse"
 		(at 500 236 0)
 		(effects
@@ -11224,26 +11179,6 @@
 			(justify left top)
 		)
 		(uuid "deb8bc43-9b4e-4077-94c9-ff54d4e89e4e")
-	)
-	(text "U2, U3 USBLC6-2SC6: ESD clamps at the USB-C (pins 1/6 and 3/4 are\nthe same I/O inside the part). J1 side on 6/4, MCU side on 1/3, so the\npair runs J1 -> U2 -> ESP32-C6 straight through (flow-through, 90 ohm).\nU2: USB 2.0 pair. U3: CC1/CC2 (Rd 5.1k R1, R2 on the J1 side;\nC19/C20 1 nF at the MCU ADC pins). Pin 5 to VBUS_RAW with\nC38 100 nF at the pins (ST fig. 17)."
-		(at 120 72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left top)
-		)
-		(uuid "437233fc-2148-4d70-b99f-0cfb8eed2998")
-	)
-	(text "Probe ESD: TPD4E05U06DQAR on the jack side of the series resistors. Straight-through routing (datasheet fig. 7-11): each tip runs across the part over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; NC pins are not connected inside). U14 does the same for the rings (1/10 RING1, 2/9 RING2, 4/7 RING3, 5/6 RING4)"
-		(at 95 272 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "493b05aa-7f52-4c69-a76e-7e42d5076a1d")
 	)
 	(text "J7 SERVO (Molex KK 254 22-23-2031, Hitec plug)\n1 GND (black)   2 +V = VSERVO (red), after the current-sense shunt R36\n3 SIGNAL (yellow) = SERVO_SIG_J <- 330R <- SERVO_PWM\n10k pull-down on SERVO_SIG_J; 100uF reservoir rides servo start current (servo side of R36).\nHand-soldered; not in the JLC BOM/assembly."
 		(at 330.2 255.27 0)
@@ -11295,25 +11230,35 @@
 		)
 		(uuid "77931858-083b-4182-81c6-82f1e66ef0ff")
 	)
-	(label "TIP2"
-		(at 111.76 294.64 180)
+	(text "U2 TPD4E05U06DQAR: ESD clamp at the USB-C, four channels. D+/D- on the\nleft (pins 1/2), CC1/CC2 on the right (pins 4/5). Each line runs straight\nthrough over its I/O pad and the NC pad opposite (1/10 D+, 2/9 D-, 4/7 CC1,\n5/6 CC2; NC pins are not connected inside), so J1, U2 and the ESP32-C6 share\none net per line (90 ohm pair). Rd 5.1k R1, R2 on the J1 side; C19/C20 1 nF\nat the MCU ADC pins. No VBUS pin: D1 clamps VBUS_RAW."
+		(at 128 72 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify left top)
 		)
-		(uuid "00676da2-e0c2-4a9e-8f3d-65296fa305c3")
+		(uuid "a35910bb-9610-4e32-9cba-dad8a7e023b3")
 	)
-	(label "VBUS_RAW"
-		(at 101.6 53.34 90)
+	(text "Probe ESD: two TPD4E05U06DQAR on the jack side of the series resistors, one per pair of jacks, each jack's tip and ring on adjacent pads. U9: 1/10 TIP1, 2/9 RING1, 4/7 TIP2, 5/6 RING2. U14: 1/10 TIP3, 2/9 RING3, 4/7 TIP4, 5/6 RING4. Straight-through routing (datasheet fig. 7-11): each line runs across the part over its I/O pad and the NC pad opposite (NC pins are not connected inside)"
+		(at 95 272 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "0104a0f6-4648-435c-88ea-24b2671aedc9")
+		(uuid "8ebce9d8-af5e-4f51-97ec-9d2a93388128")
+	)
+	(text "PJ-242 pad map from datasheet: 6 = tip, 7 = tip NC switch (to GND: empty jack reads as a hard short = unplugged), 2/3 = sleeve (GND), 4 = ring (RING1..RING4: 4.7k pull-up to 3V3, U9/U14 ESD (shared with the tips) and a 1k series resistor to a GPIO for smart probes; a TS probe's sleeve grounds it, so a plain probe still reads as one), 5 = ring switch (unused)"
+		(at 20 217 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d35fb288-9a39-4701-b62a-62a67932e248")
 	)
 	(label "BTN"
 		(at 396.24 309.88 90)
@@ -11385,16 +11330,6 @@
 		)
 		(uuid "1357be4e-ef7d-4fcb-80a4-45ed18817ebb")
 	)
-	(label "USB_DN_J"
-		(at 60.96 76.2 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "23aa2c4f-bb09-45f5-afe3-bc1175095ba5")
-	)
 	(label "VREF_PROBE"
 		(at 76.2 222.25 0)
 		(effects
@@ -11425,26 +11360,6 @@
 		)
 		(uuid "2f2c32b6-1215-404d-a2e4-168318ba528f")
 	)
-	(label "CC1_J"
-		(at 60.96 66.04 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "31a7cd99-2f3b-47cc-977e-d03e9baeadc0")
-	)
-	(label "CC1_J"
-		(at 73.66 110.49 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "323fbd63-63a1-4d2e-91ec-edc71c5a3c6d")
-	)
 	(label "VBUS_F"
 		(at 279.4 60.96 180)
 		(effects
@@ -11464,16 +11379,6 @@
 			(justify right bottom)
 		)
 		(uuid "3fd2c8a1-6628-4390-80c7-df4ac70ca855")
-	)
-	(label "VBUS_RAW"
-		(at 101.6 88.9 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "409c4821-9884-4bbd-a71f-e68f46f79a14")
 	)
 	(label "UART_TX"
 		(at 327.66 302.26 0)
@@ -11575,16 +11480,6 @@
 		)
 		(uuid "72ce2585-04ad-45f2-a538-f91eda52b9e0")
 	)
-	(label "CC2_J"
-		(at 60.96 68.58 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "75d93e7d-f469-44e2-9b0d-3af4162f5f79")
-	)
 	(label "BTN"
 		(at 406.4 308.61 90)
 		(effects
@@ -11655,16 +11550,6 @@
 		)
 		(uuid "8baeef59-8780-4ff0-b037-ed732afe831a")
 	)
-	(label "TIP3"
-		(at 142.24 289.56 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "916100cd-8a54-4763-adc1-71919aee0486")
-	)
 	(label "VREF_PROBE"
 		(at 76.2 336.55 0)
 		(effects
@@ -11685,16 +11570,6 @@
 		)
 		(uuid "993ffea2-8bd1-490c-8f2e-7dc27d6a2538")
 	)
-	(label "CC2_J"
-		(at 83.82 110.49 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "99aeb670-8354-4df3-ac0c-359124106d2c")
-	)
 	(label "VBUS_RAW"
 		(at 60.96 60.96 0)
 		(effects
@@ -11714,16 +11589,6 @@
 			(justify right bottom)
 		)
 		(uuid "9e68aeaa-0e3d-4d67-9821-310db6a04468")
-	)
-	(label "TIP4"
-		(at 142.24 294.64 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "9fdbe4f0-4f9e-496c-93a2-fa1b3eff126f")
 	)
 	(label "VBUS_F"
 		(at 165.1 104.14 270)
@@ -11845,16 +11710,6 @@
 		)
 		(uuid "f1d0dbf9-104e-41b5-ba45-14ab16b3d1ce")
 	)
-	(label "USB_DP_J"
-		(at 60.96 81.28 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "fc57ea75-46d9-49a1-8a00-aba6a6ed1318")
-	)
 	(label "BTN"
 		(at 386.08 317.5 270)
 		(effects
@@ -11945,56 +11800,6 @@
 		)
 		(uuid "526f43e9-43bf-4336-bf72-4fad6738ac37")
 	)
-	(label "USB_DP_J"
-		(at 109.22 60.96 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "5b378519-ac5b-4f16-97e5-cd479b9f65da")
-	)
-	(label "USB_DN_J"
-		(at 109.22 63.5 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a70b9174-52ec-474e-a684-4d09bac614ad")
-	)
-	(label "CC1_J"
-		(at 109.22 96.52 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a7daa903-2aeb-4b46-96d1-b2d0c40c9898")
-	)
-	(label "CC2_J"
-		(at 109.22 99.06 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "65743dcc-7ec5-4131-8240-a0243ea7afe4")
-	)
-	(label "VBUS_RAW"
-		(at 127 44.45 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "3e30ba39-b4a1-40ad-8cdf-28d7533e22b2")
-	)
 	(label "TIP1"
 		(at 111.76 284.48 180)
 		(effects
@@ -12004,36 +11809,6 @@
 			(justify right bottom)
 		)
 		(uuid "c73381f6-1c61-4261-a9c5-d56ec897af13")
-	)
-	(label "TIP2"
-		(at 111.76 299.72 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "5efc9b92-066d-45e9-a8b2-60a0ac8861af")
-	)
-	(label "TIP3"
-		(at 142.24 284.48 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "bc996fed-181a-4893-a6cc-fdc6f94be2a6")
-	)
-	(label "TIP4"
-		(at 142.24 299.72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "008ae76b-3ff0-46ea-aeec-d51115dfc27f")
 	)
 	(label "EFUSE_EN"
 		(at 172.72 58.42 0)
@@ -12195,66 +11970,6 @@
 		)
 		(uuid "44c40d12-705b-4e4b-8fce-b843a8cca2e0")
 	)
-	(label "RING1"
-		(at 111.76 335.28 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "84aef1c1-9197-461b-88b1-d9e96bca4e13")
-	)
-	(label "RING1"
-		(at 111.76 340.36 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "71260657-23c5-453f-a1c5-dd528db69a03")
-	)
-	(label "RING2"
-		(at 111.76 345.44 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "a8b86ae4-8def-4c05-b7ef-6638d989645e")
-	)
-	(label "RING2"
-		(at 111.76 350.52 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "38c28d0e-49f7-4d1d-9c7d-6a0b396114c5")
-	)
-	(label "RING3"
-		(at 142.24 335.28 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "feec77ae-8aff-4d01-92be-9b298e362c6e")
-	)
-	(label "RING3"
-		(at 142.24 340.36 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "9f0cf355-92a8-48d2-8baf-89731e815764")
-	)
 	(label "RING4"
 		(at 142.24 345.44 0)
 		(effects
@@ -12304,6 +12019,136 @@
 			(justify right bottom)
 		)
 		(uuid "ca37cd78-6fc2-4742-b8a0-420da2e36247")
+	)
+	(label "RING_IO2"
+		(at 269.24 327.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "299d496d-a9b8-475f-a4b5-d486b5d90dad")
+	)
+	(label "RING1"
+		(at 111.76 294.64 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b2c07a81-b44a-4c7c-8bed-4ac641e7c32f")
+	)
+	(label "RING1"
+		(at 111.76 299.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6fdaefca-1421-46b3-a922-66c50193adcc")
+	)
+	(label "TIP2"
+		(at 142.24 289.56 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "823efa96-aef7-4dc0-9e99-6f219834f190")
+	)
+	(label "TIP2"
+		(at 142.24 284.48 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "26706d7b-2ac0-40d7-b000-08d18f232307")
+	)
+	(label "RING2"
+		(at 142.24 294.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a6832eaf-199d-4fd7-acc5-6258452c8eb7")
+	)
+	(label "RING2"
+		(at 142.24 299.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "444be974-66f9-4358-a852-d275e9b9d58b")
+	)
+	(label "TIP3"
+		(at 111.76 340.36 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "01722496-c11c-45ab-91da-dc79dd0da08c")
+	)
+	(label "TIP3"
+		(at 111.76 335.28 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "aeba5aa6-0074-42eb-a09f-04252f782d35")
+	)
+	(label "RING3"
+		(at 111.76 345.44 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "dd61c545-e097-4ad9-890e-f15834b8945f")
+	)
+	(label "RING3"
+		(at 111.76 350.52 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3df06184-9134-4630-9ca7-2709a8faf9ac")
+	)
+	(label "TIP4"
+		(at 142.24 340.36 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "783d3a65-7f08-4c20-93a4-fe439b1aa3c9")
+	)
+	(label "TIP4"
+		(at 142.24 335.28 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e9a8010e-b067-4e24-b8fc-17ef358ab5cb")
 	)
 	(global_label "3V3"
 		(shape input)
@@ -13493,50 +13338,6 @@
 			)
 		)
 	)
-	(global_label "USB_DP"
-		(shape bidirectional)
-		(at 93.98 60.96 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "4d0919a4-2f44-44b4-8351-8f51d6e54a1f")
-	)
-	(global_label "USB_DN"
-		(shape bidirectional)
-		(at 93.98 63.5 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "db4df5c0-ba09-407e-8bf8-ea44b9e7a89b")
-	)
-	(global_label "CC1"
-		(shape bidirectional)
-		(at 93.98 96.52 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "ba78d38d-5b62-4c43-bef3-b4780e720a29")
-	)
-	(global_label "CC2"
-		(shape bidirectional)
-		(at 93.98 99.06 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "3676dfa4-d43e-4e8c-b1c0-83afde8b5a1d")
-	)
 	(global_label "I2C_SCL"
 		(shape bidirectional)
 		(at 327.66 345.44 0)
@@ -13691,6 +13492,160 @@
 		)
 		(uuid "dd10239b-13fd-49d7-b747-3199ca6a0616")
 	)
+	(global_label "USB_DP"
+		(shape bidirectional)
+		(at 60.96 81.28 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ffcff01d-5cbb-4e62-87ff-1ea6c0581569")
+	)
+	(global_label "USB_DN"
+		(shape bidirectional)
+		(at 60.96 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "67a82107-4d88-49a6-94e8-34b8abc250ac")
+	)
+	(global_label "CC1"
+		(shape bidirectional)
+		(at 60.96 66.04 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cce266d8-f351-4485-8071-b9575cbd6624")
+	)
+	(global_label "CC2"
+		(shape bidirectional)
+		(at 60.96 68.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "30abf9a5-a9f6-4149-a06d-54ba9acca792")
+	)
+	(global_label "CC1"
+		(shape bidirectional)
+		(at 73.66 110.49 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8438e0b4-373f-4515-a4e5-3681f6648482")
+	)
+	(global_label "CC2"
+		(shape bidirectional)
+		(at 83.82 110.49 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "fcf50bc8-c301-4e43-bab9-92618a3193e1")
+	)
+	(global_label "CC2"
+		(shape bidirectional)
+		(at 86.36 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "bc19674b-5342-49b0-a8cc-7488379e1a7e")
+	)
+	(global_label "CC2"
+		(shape bidirectional)
+		(at 86.36 71.12 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4a2f82f0-066d-4ee5-9771-84368f94ac47")
+	)
+	(global_label "USB_DP"
+		(shape bidirectional)
+		(at 86.36 81.28 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "9a2e2606-aea1-494d-8866-1b07fe4fdf4a")
+	)
+	(global_label "USB_DP"
+		(shape bidirectional)
+		(at 86.36 86.36 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d12dd15e-38d5-4b5c-b1d9-202040efadae")
+	)
+	(global_label "USB_DN"
+		(shape bidirectional)
+		(at 116.84 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6dfa0332-c4b3-4039-9277-0869c82df87b")
+	)
+	(global_label "USB_DN"
+		(shape bidirectional)
+		(at 116.84 71.12 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e748f399-0c3b-4977-a469-c60ea2d72c4c")
+	)
+	(global_label "CC1"
+		(shape bidirectional)
+		(at 116.84 81.28 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "43bd00d9-49b3-4366-bdaf-214ed125800a")
+	)
+	(global_label "CC1"
+		(shape bidirectional)
+		(at 116.84 86.36 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6227caf0-1380-445d-bcd2-f28c3f297586")
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 243.84 326.39 0)
@@ -13763,83 +13718,6 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "#PWR032")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 101.6 68.58 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "010be9be-5790-4c08-a8cf-e750e9738cf7")
-		(property "Reference" "#PWR02"
-			(at 101.6 74.93 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 101.6 72.39 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 101.6 68.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 101.6 68.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 101.6 68.58 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(body_style 1)
-		(in_pos_files yes)
-		(pin "1"
-			(uuid "14921bbd-2f78-4a82-998d-ad3bce50ffc2")
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -14040,83 +13918,6 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "R9")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 101.6 104.14 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "02d35be3-b02b-4eff-902e-caaba56f5615")
-		(property "Reference" "#PWR03"
-			(at 101.6 110.49 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 101.6 107.95 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 101.6 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 101.6 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 101.6 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(body_style 1)
-		(in_pos_files yes)
-		(pin "1"
-			(uuid "f6bf86ef-b50b-4b08-83e5-088031e90867")
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "#PWR03")
 					(unit 1)
 				)
 			)
@@ -16337,7 +16138,7 @@
 				)
 			)
 		)
-		(property "Function" "ESD clamp on the four probe tips TIP1-TIP4 at the jacks, ahead of the 1k series resistors; straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6)"
+		(property "Function" "ESD clamp on jacks 1-2: TIP1/RING1 (pins 1/2) and TIP2/RING2 (pins 4/5) at the jacks, ahead of the 1k series resistors; straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6); each jack's tip and ring on adjacent pads (minimeat-plr)"
 			(at 127 292.1 0)
 			(hide yes)
 			(effects
@@ -18528,128 +18329,6 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "R20")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Power_Protection:USBLC6-2SC6")
-		(at 101.6 96.52 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "5646f594-195c-49e5-bd69-cdb6e2c16d1a")
-		(property "Reference" "U3"
-			(at 102.235 90.805 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "USBLC6-2SC6"
-			(at 102.235 92.71 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C7519"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Function" "ESD clamp on the USB-C CC lines, flow-through: J1 side (CC1_J/CC2_J, Rd 5.1k R1/R2) on pins 6/4, the ESP32-C6 ADC pins (CC1/CC2) on pins 1/3"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "USBLC6-2SC6"
-			(at 101.6 96.52 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(body_style 1)
-		(in_pos_files yes)
-		(pin "1"
-			(uuid "92d1c33f-e492-4286-8790-87f034974419")
-		)
-		(pin "2"
-			(uuid "0bbc82e2-8ee9-473d-9332-3b5fc04d5124")
-		)
-		(pin "3"
-			(uuid "afe2457a-8efb-4686-bd4b-8e8d8051b17f")
-		)
-		(pin "4"
-			(uuid "a39c905d-3d47-477a-ba2d-678c949e39b0")
-		)
-		(pin "5"
-			(uuid "b59e59b5-5f34-4616-91e9-5802e63c097e")
-		)
-		(pin "6"
-			(uuid "6c9f27c8-0d13-48f5-af75-ec7d2ab5e93b")
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -28879,128 +28558,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Power_Protection:USBLC6-2SC6")
-		(at 101.6 60.96 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "fe6a955e-dc98-4857-8f34-72da9b03601b")
-		(property "Reference" "U2"
-			(at 102.235 55.245 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "USBLC6-2SC6"
-			(at 102.235 57.15 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C7519"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Function" "ESD clamp on the USB 2.0 data pair, flow-through: J1 side (USB_DP_J/DN_J) on pins 6/4, ESP32-C6 native USB (USB_DP/DN) on pins 1/3"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "USBLC6-2SC6"
-			(at 101.6 60.96 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(body_style 1)
-		(in_pos_files yes)
-		(pin "1"
-			(uuid "77e7d1fd-3fee-473a-a872-9f9032c33c9e")
-		)
-		(pin "2"
-			(uuid "1e022282-4f19-4448-b136-6d55fc4e27db")
-		)
-		(pin "3"
-			(uuid "cfe0d264-4758-486b-9bce-be202099bc93")
-		)
-		(pin "4"
-			(uuid "510107b7-f03c-4885-a24f-9c66ae28d083")
-		)
-		(pin "5"
-			(uuid "34f5f882-178f-47a5-9a78-e7aa6cd09224")
-		)
-		(pin "6"
-			(uuid "a5c61486-5a55-41d7-bc21-4990fd143621")
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 485.14 259.08 0)
 		(unit 1)
@@ -29173,156 +28730,6 @@
 			(project "minimeater"
 				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
 					(reference "C37")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 127 50.8 0)
-		(unit 1)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "80be507d-1893-4c70-938a-290e7081dbfc")
-		(property "Reference" "C38"
-			(at 127.635 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100nF"
-			(at 127.635 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C1525"
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Function" "C_BUS: 100 nF on VBUS_RAW at the U2/U3 VBUS pins (USBLC6-2 datasheet fig. 17)"
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "CL05B104KO5NNNC"
-			(at 127 50.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "C38")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 127 54.61 0)
-		(unit 1)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "44ae6dfb-a443-4f3f-a5b2-53f48037e1a3")
-		(property "Reference" "#PWR069"
-			(at 127 60.96 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 127 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 127 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 127 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 127 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(instances
-			(project "minimeater"
-				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
-					(reference "#PWR069")
 					(unit 1)
 				)
 			)
@@ -31016,7 +30423,7 @@
 				)
 			)
 		)
-		(property "Function" "ESD clamp on the four probe rings RING1-RING4 at the jacks, ahead of the 1k series resistors; straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6)"
+		(property "Function" "ESD clamp on jacks 3-4: TIP3/RING3 (pins 1/2) and TIP4/RING4 (pins 4/5) at the jacks, ahead of the 1k series resistors; straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6); each jack's tip and ring on adjacent pads (minimeat-plr)"
 			(at 127 342.9 0)
 			(hide yes)
 			(effects
@@ -31737,35 +31144,156 @@
 			)
 		)
 	)
-	(embedded_fonts no)
-	(wire
-		(pts
-			(xy 271.78 327.66) (xy 269.24 327.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "003c6c98-00cc-4f36-a505-6e230af59f2a")
-	)
-	(label "RING_IO2"
-		(at 269.24 327.66 180)
-		(effects
-			(font
-				(size 1.27 1.27)
+	(symbol
+		(lib_id "Power_Protection:TPD4E05U06DQA")
+		(at 101.6 78.74 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c0e4968c-2d0f-4069-af17-05afa6fadb46")
+		(property "Reference" "U2"
+			(at 100.965 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 			)
-			(justify right bottom)
 		)
-		(uuid "299d496d-a9b8-475f-a4b5-d486b5d90dad")
+		(property "Value" "TPD4E05U06DQAR"
+			(at 103.505 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "minimeater:TPD4E05U06DQA"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tpd4e05u06.pdf"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "4-Channel ESD Protection for Super-Speed USB 3.0 Interface, USON-10"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Function" "ESD clamp on the USB-C port: D+/D- (pins 1/2) and CC1/CC2 (pins 4/5) at J1, straight-through routing over the NC pads (1/10, 2/9, 4/7, 5/6); replaces the two USBLC6-2SC6 (minimeat-0qm)"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C138714"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "TPD4E05U06DQAR"
+			(at 101.6 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
 	)
-	(no_connect
-		(at 327.66 332.74)
-		(uuid "fcb8e4cf-322a-4e8c-a609-cf7388e82495")
+	(symbol
+		(lib_id "power:GND")
+		(at 101.6 93.98 0)
+		(unit 1)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d7b42efa-bd53-4655-826e-3a46d6940b29")
+		(property "Reference" "#PWR02"
+			(at 101.6 100.33 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 101.6 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 101.6 93.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 93.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 101.6 93.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "minimeater"
+				(path "/e4048000-9dfd-4c04-9f2c-45bb5c70f6d9"
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
 	)
-	(no_connect
-		(at 509.27 187.96)
-		(uuid "0b070450-c32e-4362-a9a2-94b688822b88")
-	)
+	(embedded_fonts no)
 	(sheet_instances
 		(path "/"
 			(page "1")

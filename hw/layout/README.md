@@ -65,22 +65,23 @@ C12; U6 servo: C16, R8, R5, C11, C10).
 - FAULT leaves under the body and out the top between the IN and OUT fills, as in figure 30. R7 (the shared
   LOAD_FAULT pull-up) is placed when the two blocks go on the board.
 
-## U2, U3 USBLC6-2SC6 ESD with C38, R1/R2, origin (100, 75)
+## U2 TPD4E05U06 USB ESD behind J1, with R1/R2 (minimeat-0qm)
 
-![U2, U3](u2_u3.png)
+![U2](u2.png)
 
-Datasheet DS4260 section 2.3 and figure 17. Pins 1/6 and 3/4 are the same I/O inside the part; the schematic puts
-the J1 side on 6/4 and the MCU side on 1/3 so the lines flow straight through. Turned 90 degrees: J1 side up
-(6 left, 5 VBUS middle, 4 right), MCU side down (1, 2 GND, 3).
+One TPD4E05U06DQAR (the probe jacks' part, U9/U14) replaces the two USBLC6-2SC6 and their C38: D+, D- and both CC
+lines on one 0.5 pF, 5.5 V working array with no VBUS pin to decouple. Laid out on the board directly, centred under
+J1 (x 4.2, J1's peg holes are at 1.31 and 7.09), rotation 0. Datasheet SLVSBO7O section 10 and figure 7-11: each
+channel's NC pad is tied to its I/O pad across the package (1/10, 2/9, 4/7, 5/6) so the line runs straight through
+the part, and the GND pads 3/8 are joined down the middle.
 
-- "The track from VCC to VBUS and from the GND plane to GND must be as short as possible." VBUS (pin 5) sits between
-  the two lines it protects, so it leaves under the package body (as the EN ties on U4/U5) to C38, the 100 nF C_BUS
-  of figure 17, which sits between U3 and U2 and serves both. Both data lanes and both CC lanes stay free: nothing
-  crosses the pair.
-- GND (pin 2) has a via straight below it, between the MCU-side lines; C38's ground has its own via.
-- R1/R2 (Rd 5.1k) sit on U3's CC_J pins, each with a ground via.
-- The J1 fan-out (merging D+ B6/A6 and D- A7/B7 with the In2 hop for the crossing, the CC lines, VBUS) is drawn when
-  the block goes behind J1; see bead minimeat-bk4 for the planned geometry.
+- Channels follow J1's pad order, left to right CC2, D+, GND, D-, CC1 (pins 1/10, 2/9, 3/8, 4/7, 5/6), so every
+  line drops from J1 into its own lane: CC2 (B5) straight down past R2, D+ (B6 and A6 merged on F.Cu at y 9.8) at
+  x 3.7, D- (A7 hopped 1 mm on In2 to B7, the one crossing J1's interleaved pads force) jogging 0.25 mm onto x 4.7,
+  CC1 (A5) jogging 0.25 mm onto x 5.2. The D+/D- jogs are mirror images about J1's centre.
+- GND: one via straight below the 3/8 tie, between the D+ and D- lanes; the D+ merge leaves no room for one above.
+- CC2 leaves the tie between pins 1/10 west to R2's line. CC1 drops through a via below pin 4 and runs west on B.Cu
+  under the pair to R1's line. R1/R2 (Rd 5.1k) sit between J1 and U2, each with its ground on J1's GND pad or a via.
 
 ## VBUS entry: D1, F1, C1-C3, origin (110-121, 75) (F1 since replaced by U12, below)
 
@@ -133,19 +134,28 @@ and REF 1, GND 2, VS 3 along the bottom, as drawn.
   fan PWM and the servo signal.
 - Block 6 x 5.5 mm. DRC in the box: only the connections that lead out of the block.
 
-## U9 TPD4E05U06 probe ESD, origin (20, 95)
+## U9, U14 TPD4E05U06 probe ESD, on the board behind the jacks (minimeat-plr)
 
-![U9](u9.png)
+![U9, U14](u9_u14.png)
 
-Datasheet SLVSBO7O section 7.4, figure 7-11: straight-through routing. Each tip line runs straight across the part
-over its I/O pad and the NC pad opposite (1/10 TIP1, 2/9 TIP2, 4/7 TIP3, 5/6 TIP4; the schematic ties the NC pins
-to the tips, which the datasheet allows: "used for optional straight-through routing"). The two GND pads (3, 8)
-join down the middle and leave to a via on each side.
+Datasheet SLVSBO7O section 7.4, figure 7-11: straight-through routing. Each line runs straight across the part over
+its I/O pad and the NC pad opposite (the schematic ties the NC pins to the I/O pins, which the datasheet allows:
+"used for optional straight-through routing"). Tip and ring of a jack sit side by side: U9 is TIP1, RING1, GND,
+TIP2, RING2 (pins 1/10, 2/9, 3/8, 4/7, 5/6) and U14 the same for jacks 3 and 4. Both rotation 0 at y 15.9, U9 at
+x 20.5 and U14 at x 30.2, centred on U8 (x 25.35).
 
-- "As close to the connector as possible": goes right behind the jacks in placement; jack side is up.
-- "Route the protected traces as straight as possible", no sharp corners: past the package the lines fan out by
-  0.25 mm at 1:3 (about 18 degrees) to make room for the GND vias. A 45 degree fan does not fit: two parallel 45
-  degree jogs at 0.5 mm pitch come within 0.354 mm centre to centre (0.15 mm of copper gap).
+- Jack escape, one shape on all four jacks: tip (pad 6) and ring (pad 4) run in along the pad row, between the
+  jack's two peg holes, and turn down together with level 45 degree bends (y 6.85 to 7.35) into a 0.5 mm-pitch pair
+  in the channel between the lower peg hole and the GND/NC pad beside it: J2 on the right of its hole (x 16.4/16.9),
+  J3, J4 and J5 on the left of theirs (jack x -1.7/-1.2).
+- Each pair turns 45 degrees straight into its TVS columns; every pair's bends are level and every entry is at y 14.5.
+  J5's pair turns west under J4's GND/NC pads at y 12.3/12.8 (the ring on the level of the top of J4's diagonal),
+  both of its 45 degree bends on x 32.9, and drops into U14 beside J4's pair.
+- Below each part, the inner tip (TIP2, TIP4) runs straight on to its 1k (R20, R22) and the outer one (TIP1, TIP3)
+  jogs 0.5 mm onto its own (R19, R21), so the four tips meet the U8 block on its x 20 / 21 / 29.7 / 30.7 columns.
+  The rings drop through a via straight under their pads (y 17.0) to B.Cu and join the bundle to the pull-ups. The
+  GND pads join down the middle to one via at y 17.6, between the ring vias. No GND via above the parts: the In2
+  VBUS_F run crosses at y 14.75.
 - The 0.2 mm lines match the 0.2 mm pads; 0.3 mm gaps between lines meet the Analog class 0.25 mm.
 
 ## U11 ATECC608B secure element, origin (40, 95)
@@ -199,7 +209,7 @@ Block: U1, C21/C22, R10/C18, C19/C20.
 - EN (pin 3): the recommended RC delay, R10 10k to 3V3 and C18 1 uF to ground, both on the EN trace at the pin;
   C18's ground via sits in the space beside the unused pins 4-7.
 - CC1/CC2 (pins 8/9): the 1 nF filter caps C19/C20 on the lines at the pin, ground pads turned toward the unused
-  pins 7 and 10 with a via each, so both lines run straight on out toward U3.
+  pins 7 and 10 with a via each, so both lines run straight on out toward J1 (U2, R1/R2).
 - Ground: the 3x3 centre ground pads (EPAD, optional per the datasheet but better thermally) joined by a solid F.Cu
   fill with four vias between the pads; pins 1 and 28 to a via each.
 - Not in the block (placed with what they serve): the left-column pull-ups (R7 LOAD_FAULT, R11 DRDY, R14/R15 I2C;
@@ -238,10 +248,9 @@ What changed from the staged blocks, and how the board is routed. The sections a
   the In2 ground pour; the TMP117 corner is left out to keep the sensor isolated) carrying the power and the few signal
   tracks below; B.Cu GND pour with the slow crossings and the test points.
 - **USB pair:** F.Cu only, 0.27/0.23 mm, from U2 east under U2, down the x 17.6/18.1 column, under U8, into U1 pins
-  14/13. It splits the board, so every slow signal that has to cross it does so on B.Cu or In2. J1's fan-out: the
-  D+ pads join on F.Cu, the sandwiched D- pad hops 1.4 mm on B.Cu, CC1 hops on In2 under the pad row; the VBUS pads
-  drop into an In2 VBUS_RAW pour feeding the ESD/C38 tie and D1. If those crossings ever get worse, moving J1 to the
-  right side (enclosure change) would remove them.
+  14/13. It splits the board, so every slow signal that has to cross it does so on B.Cu or In2. J1's fan-out and U2
+  are in the U2 section above; the VBUS pads drop into an In2 VBUS_RAW pour feeding D1. If those crossings ever get
+  worse, moving J1 to the right side (enclosure change) would remove them.
 - **Fan and servo switches:** U7's block sits in U6's old spot (beside VIN_F, bridged on F.Cu). U6's block is turned
   90 degrees beside J7 (output column into C37/C36/J7, EN toward U1 pin 19); VBUS_F reaches it along the board edge
   under the J6/J7 housings. U1's west pins 16-19 run straight out to R28, R27/R16, R29 and U6. VFAN hops on B.Cu into
@@ -251,7 +260,7 @@ What changed from the staged blocks, and how the board is routed. The sections a
   U8's three lines reach U1 on B.Cu without crossing.
 - **In2:** VBUS_F trunk VIN_F -> FB1/U4 (1 mm), 3V3A spur U5 -> U8/FB2, BTN (SW1 -> U1 pin 15) under the module,
   U10's I2C branch (kept above U1's antenna keepout).
-- **B.Cu:** U8 SCL/SDA/DRDY to U1's west pins, FAN_EN (U7 -> pin 12), CC1/CC2 (U3 -> pins 8/9), LOAD_FAULT
+- **B.Cu:** U8 SCL/SDA/DRDY to U1's west pins, FAN_EN (U7 -> pin 12), CC1/CC2 (R1/R2 -> pins 8/9), LOAD_FAULT
   (U7, R7, U6, U1 pin 26), LED (pin 11 -> R12), U10's 3V3 hop. Under-module vias sit 0.8 mm inside U1's pad rows.
 - **Mechanical:** H1-H3 (2.7 mm NPTH) at the enclosure's standoffs; every route keeps out of their 2.75 mm standoff
   rings on F/B. Fiducials FID1-3 on the board; JLC's tooling holes are on the panel rails (`hw/tools/fab.py`).
@@ -274,6 +283,6 @@ What changed from the staged blocks, and how the board is routed. The sections a
 
 ## The probe rings: U14, R38-R45 (minimeat-098)
 
-The jacks' rings (pad 4, `RING1`-`RING4`) go to the module's pins 7, 6, 5, 4 (GPIO7-4, `RING_IO1`-`RING_IO4`, ring 1 on pin 7). Placement: the four rows of a 1k series resistor and a 4.7k pull-up at the module's pins (y = 42.14, 43.41, 44.68, 45.95 mm, the pins' own pitch), a 3V3 bar on the pull-ups' east pads that ends on R13's 3V3 pad, and U14 (the ESD array) at the top of the ring bundle just under the jacks (x 38.15, y 13.4). The bundle is on B.Cu: each ring drops through a via under its jack's ring pad (identical at every jack), runs east on its own level (rings 3, 4 at y 11.0, ring 2 at 11.9, ring 1 at 12.8: nested, no crossings) to U14's taps, then south in a 0.5 mm-pitch corridor at x 37.7-39.2 between the stitching vias and the 3V3 via at (37.0, 31.95), and in to a via in each pull-up's west pad (the ring node). From each pin the 1k is reached on F.Cu; the outer rows kink toward the middle to clear the capacitors' ground pads, the inner two run straight. The rows are symmetric about y = 44.04; the whole block is mirror-symmetric in its pairs (rows 1/4 and 2/3). Rings run 13-29 mm from the jacks to U14 (the tips' U9 is 10-20 mm from theirs).
+The jacks' rings (pad 4, `RING1`-`RING4`) go to the module's pins 7, 6, 5, 4 (GPIO7-4, `RING_IO1`-`RING_IO4`, ring 1 on pin 7). Placement: the four rows of a 1k series resistor and a 4.7k pull-up at the module's pins (y = 42.14, 43.41, 44.68, 45.95 mm, the pins' own pitch), a 3V3 bar on the pull-ups' east pads that ends on R13's 3V3 pad. The rings share the tips' ESD arrays (U9, U14, above; U14 first sat alone at the top of the ring bundle). From each array's ring via (y 17.0) the bundle is on B.Cu: rings 1 and 2 run east at y 19.0 and 17.0 and rings 3 and 4 drop at x 29.7 and 31.2, each onto its own 45 degree line (nested, no crossings), then south in a 0.5 mm-pitch corridor at x 37.7-39.2 between the stitching vias and the 3V3 via at (37.0, 31.95), and in to a via in each pull-up's west pad (the ring node). From each pin the 1k is reached on F.Cu; the outer rows kink toward the middle to clear the capacitors' ground pads, the inner two run straight. The rows are symmetric about y = 44.04; the whole block is mirror-symmetric in its pairs (rows 1/4 and 2/3). Tip and ring of each jack run together to its array, 10-24 mm.
 
 Moved for it: FID2 to (42.2, 12.7), FID3 to (44.3, 41.0), TP5 (EN) to (36.2, 47.25) with its label, the BTN trace on In2 off y = 42.35 to y = 42.775. References of U14, R38-R45, C23, C4 and SW1 are hidden (silk). Done with KiCad closed through its python API; DRC: no errors, nothing unconnected, the same lint-only warnings as before.

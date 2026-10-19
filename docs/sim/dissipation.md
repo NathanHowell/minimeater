@@ -63,7 +63,7 @@ In current limit a TPS2553 is a constant-current source (no foldback), so a stal
 ## Switch-on and surge
 
 - **U12 soft start:** it carries C dV/dt = 505 mA into 120 uF of VBUS_F at 4.2 V/ms for 1.2 ms while its drop falls from 5 V to nothing: 1.5 mJ, 1.3 W average for that millisecond, then 0.05 W. The datasheet's thermal-shutdown time at 85 C is over a second at 1.3 W (Figure 26 `[fig]`), against a pulse of 1.2 ms.
-- **D1 in a hot plug** (the 18 corners of `power.md`, 0.25-2 uH and 0.05-0.2 ohm of cable, nominal and derated caps): at most 1.5 A and 7 uJ against the SMF5.0A's 200 W / 21.7 A pulse rating `[est]`, so D1 sees nothing like its rating at plug-in.
+- **D1 in a hot plug** (the 18 corners of `power.md`, 0.25-2 uH and 0.05-0.2 ohm of cable, nominal and derated caps): at most 0.8 A and 3 uJ against the SMF5.0A's 200 W / 21.7 A pulse rating `[est]`, so D1 sees nothing like its rating at plug-in.
 
 ## Other limits met
 

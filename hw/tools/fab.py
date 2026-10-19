@@ -74,7 +74,6 @@ JLC_ROTATION = [("SOT-23", 180), ("TSSOP", 270), ("SOIC", 270)]
 # offset, and where JLC's origin sits in KiCad's footprint frame (mm, y down, before rotation). Read from JLC's own
 # footprints (EasyEDA) and checked in the preview.
 JLC_PART = {
-    "C7519": (270, (0.0, 0.0)),  # USBLC6-2SC6: JLC's SOT-23-6 has pin 1 bottom left, pins in rows
     "C5184243": (0, (0.0, -1.3025)),  # USB4105: JLC's origin is midway between the SMD row and the front shell legs
 }
 

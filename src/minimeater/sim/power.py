@@ -1,7 +1,7 @@
 """5 V input in ngspice: USB hot-plug (cable L/R ringing into the board's input, its TVS and the U12 eFuse) and the
 load-switch inrush of the servo and fan outputs.
 
-Board, as on the schematic (sheet power): J1 -> VBUS_RAW (D1 SMF5V0A TVS, C38 and C41 100 nF) -> U12 TPS259531 eFuse
+Board, as on the schematic (sheet power): J1 -> VBUS_RAW (D1 SMF5V0A TVS, C41 100 nF) -> U12 TPS259531 eFuse
 -> VBUS_F with C1 100 uF 1210, C2 and C4 10 uF 0805, three 100 nF; U4 (buck), U5 (LDO), U6/U7 (load switches) hang on
 VBUS_F. Absolute maxima: 20 V at the eFuse's input; 6 V at VBUS_F on the TLV62569 and TLV75533P, 7 V on the TPS2553
 (datasheets). The first board had a PTC (F1) where U12 is; `front_end="ptc"` keeps that for comparison.
@@ -43,8 +43,8 @@ def hotplug(h: HotPlug) -> dict[str, float]:
     c1, c2, c4, cs = CAPS[h.caps]
     if h.front_end == "ptc":
         fe = f"Rptc b c {h.r_ptc}\n"
-    else:  # C38 + C41 at the input, then the switch
-        fe = (f"Cin b nin {2 * cs}\nRin nin 0 {ESR}\n"
+    else:  # C41 at the input, then the switch
+        fe = (f"Cin b nin {cs}\nRin nin 0 {ESR}\n"
               f"Bfuse b c I = min(max((min(min(v(b), {EFUSE_CLAMP}), {EFUSE_SR} * max(time - {EFUSE_DELAY}, 0)) - v(c)) / {EFUSE_RON}, 0), {EFUSE_ILIM})\n"
               "Rbleed c 0 1meg\n")
     t_end = "400u" if h.front_end == "ptc" else "3m"

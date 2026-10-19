@@ -1,7 +1,7 @@
 """5 V and 3.3 V rail transients in ngspice (`.3.14`): plug-in and power-on, the radio's TX bursts, the servo's turn-on and
 stall, and weak or sagging USB sources, through the whole path of the schematic's power sheet.
 
-Path: USB source (V, cable R and L, or a current-limited source) -> D1 TVS, C38/C41 -> U12 TPS259531 eFuse (behavioural,
+Path: USB source (V, cable R and L, or a current-limited source) -> D1 TVS, C41 -> U12 TPS259531 eFuse (behavioural,
 as `power.py`) -> VBUS_F (C1 100 uF, C2/C4 10 uF, 100 nF) -> U4 (3V3 buck), FB1 -> U5 (3V3A LDO), U6 (servo switch), U7 (fan
 switch).
 

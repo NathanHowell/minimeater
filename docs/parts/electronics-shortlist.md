@@ -9,7 +9,7 @@ Checked against JLCPCB stock on 2026-10-11 with `scripts/jlc_stock.py`. About 5 
 | CC pull-downs | 5.1 k 1 % 0402, Yageo RC0402FR-075K1L | C105872 | 2.4M | $0.0025 | two, one per CC pin |
 | VBUS TVS | Littelfuse SMF5.0A | C151296 | 29.6k | $0.12 | check the clamp voltage against the 5 V loads and the buck's input rating |
 | Input eFuse | TI TPS259531DSGR | C2155674 | 2.4k | $0.87 | between VBUS_RAW and VBUS_F, replaces the PTC: dVdt soft start (C42 10 nF), 2.04 A limit (R35 1k), 5.7 V clamp, UVLO 3.98 V (R33/R34) |
-| D+/D- and CC ESD | ST USBLC6-2SC6, two | C7519 | 47k | $0.18 | one on the data pair, one on CC1/CC2; clones are cheaper but this is the original |
+| D+/D- and CC ESD | TI TPD4E05U06DQAR (U2) | C138714 | 105k | $0.084 | the jacks' part: all four lines on one 0.5 pF array, 5.5 V working; replaced two USBLC6-2SC6 (C7519) and their 100 nF |
 | 3.3 V buck | TI TLV62569DBVR | C141836 | 470k | $0.076 | 2 A, 1.5 MHz, SOT-23-5; check input range for the 5.5 V VBUS spike |
 | Buck inductor | Murata LQH3NPN2R2MMEL (2.2 uH, 3 x 3 mm) | C668451 | 7k | $0.17 | over the Sunlord C43389 ($0.047); check saturation current against the 0.4 A peak |
 | Analog LDO | TI TLV75533PDBVR | C404027 | 133k | $0.14 | the ADS122C04's supply, after a ferrite: low noise |
