@@ -39,3 +39,9 @@
 (rule qr_quiet_zone_in_silk
 	(constraint physical_clearance (min 0.3mm))
 	(condition "A.Type == 'Barcode' || B.Type == 'Barcode'"))
+
+# Small GND pads that the board-wide pour can only reach with one thermal spoke (neighbouring tracks take the room
+# for the second); each also has its own track or via to ground. Named, so a new starved pad elsewhere still fails.
+(rule gnd_pad_one_spoke
+	(constraint min_resolved_spokes 1)
+	(condition "A.Type == 'Pad' && A.NetName == 'GND' && (A.Parent == 'U2' || A.Parent == 'U9' || A.Parent == 'U14' || A.Parent == 'C26' || A.Parent == 'U4' || A.Parent == 'U7' || A.Parent == 'R4' || A.Parent == 'J7')"))

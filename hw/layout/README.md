@@ -247,6 +247,12 @@ What changed from the staged blocks, and how the board is routed. The sections a
 - **Stack:** F.Cu signals; In1 solid GND (the reference for F.Cu, never cut); In2 a 3V3 plane (`3V3_In2_plane`, over
   the In2 ground pour; the TMP117 corner is left out to keep the sensor isolated) carrying the power and the few signal
   tracks below; B.Cu GND pour with the slow crossings and the test points.
+- **GND stitching:** the F.Cu and B.Cu pours are within 5 mm of a GND via everywhere except under the back-silk QR
+  code (6.9 mm at its centre; `qr_quiet_zone_in_silk` keeps vias 0.3 mm off its quiet zone, and In1 is solid under
+  it). Probe strip: a via beside each jack's GND pad 7 at (jack x - 2.9, 8.7), the same on every jack, and four
+  between the pairs. Under U1's body: a column each side of the QR code and a row below it, clear of the antenna end
+  (y >= 50). Pads the pour reaches with one thermal spoke (U2, U9, U14, C26, U4, U7, R4, J7; each has its own track
+  or via) are allowed by name in `gnd_pad_one_spoke`.
 - **USB pair:** F.Cu only, 0.27/0.23 mm, from U2 east under U2, down the x 17.6/18.1 column, under U8, into U1 pins
   14/13. It splits the board, so every slow signal that has to cross it does so on B.Cu or In2. J1's fan-out and U2
   are in the U2 section above; the VBUS pads drop into an In2 VBUS_RAW pour feeding D1. If those crossings ever get
