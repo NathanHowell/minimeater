@@ -7881,7 +7881,7 @@
 		(uuid "4d5e2ca7-a5d5-4bde-aa6d-0a8af79e0d7f")
 		(at 32.6 6.85)
 		(property "Reference" "J4"
-			(at -3.139286 10.66975 0)
+			(at -3.139286 11.9 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "41d30863-1e3c-4c8c-9b74-b4689d02b7f4")
@@ -12604,16 +12604,6 @@
 			(layer "F.SilkS")
 			(uuid "a4bf8fdc-f046-4f78-affd-631d87d12869")
 		)
-		(fp_line
-			(start 0.735 1.11)
-			(end -0.735 1.11)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "7482833d-e09f-494a-9a0e-7a92cd78afe5")
-		)
 		(fp_poly
 			(pts
 				(xy -1.18 -1.09) (xy -1.32 -1.28) (xy -1.04 -1.28)
@@ -14291,16 +14281,6 @@
 		(sheetname "/")
 		(sheetfile "minimeater.kicad_sch")
 		(duplicate_pad_numbers_are_jumpers no)
-		(fp_line
-			(start -1.5 1.7)
-			(end 1.5 1.7)
-			(stroke
-				(width 0.2)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "32125985-0e70-4fb4-8666-c783397515a7")
-		)
 		(fp_line
 			(start -1.5 -1.7)
 			(end 1.5 -1.7)
@@ -23737,7 +23717,7 @@
 		(descr "Resistor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf)")
 		(tags "resistor")
 		(property "Reference" "R28"
-			(at 0.3 -1.24 0)
+			(at -0.9 -1.24 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "32e186c1-c73d-440c-b2c0-fd382ef822d0")
