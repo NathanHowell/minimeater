@@ -21,7 +21,9 @@ from .parts import MACHINED
 MATERIAL = "304 stainless steel (6061-T6 aluminium if much cheaper)"
 GENERAL = "General tolerance ISO 2768-m (+-0.1 on the sizes shown). Break sharp edges 0.1-0.3, no burrs. Threads ISO metric 6H. Quantity 5 of each."
 QUANTITY = {"rod": 6}  # five boards and a spare
-EXTRA = {"rod": ("The Ø3 and the flat carry the tolerances shown, not the general one: the flap and crank bores are cut to them. "
+# JLCCNC holds +-0.05 at best: each fit is a 0.1 band, the rod's below its nominal and the bores' above, so they never interfere
+# (the flap's 0-0.2 diametral gap is within what retaining compound fills; the crank is clamped by its set screw)
+EXTRA = {"rod": ("The Ø3 and the flat carry the tolerances shown, not the general one: the flap and crank bores are cut above them. "
                  "Turn from 3 mm bar or use ground 3 mm rod if possible (the flat is milled); no taper along the length.",)}
 
 
@@ -42,16 +44,16 @@ def features():
     xc = g.flap_x - L.arm_r
     return {
         "rod": [
-            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"Ø{dm.shaft_d:.1f} h7 (0/-0.010) over the full length; Ra 0.8, no taper"),
-            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"D flat, full length: {dm.shaft_flat:.1f} +-0.05 measured from the opposite side of the round, parallel to the axis within 0.02"),
+            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"Ø{dm.shaft_d:.1f} 0/-0.10 over the full length; Ra 0.8, no taper"),
+            Feature((P.damper.rod_len / 2, 0.0, 0.0), "x", f"D flat, full length: {dm.shaft_flat:.1f} 0/-0.10 measured from the opposite side of the round, parallel to the axis within 0.05"),
             Feature((P.damper.rod_len, 0.0, 0.0), "x", f"Length {P.damper.rod_len:.1f} +-0.1; both ends square, break the edges 0.2 x 45 deg"),
         ],
         "flap": [
             Feature((xf, 0.0, g.bore_r - dm.flap_gap - 0.05), "z", f"Disc edge: Ø{2 * ((g.bore_r - dm.flap_gap) ** 2 - dm.disc_off ** 2) ** 0.5:.1f} +-0.05 (sets the closed-flap leak), 2.0 thick, flat to 0.05; the edge a full round R1.0 both sides"),
-            Feature((xf, 0.0, 0.0), "z", f"D-bore through the rib: Ø{dm.shaft_d:.1f} +{dm.bore_clear:.2f}/0 with a flat {dm.shaft_flat:.1f} across (the rod's D); retaining compound, no thread"),
+            Feature((xf, 0.0, 0.0), "z", f"D-bore through the rib: Ø{dm.shaft_d:.1f} +0.10/0 with a flat {dm.shaft_flat:.1f} +0.10/0 across (the rod's D); retaining compound, no thread"),
         ],
         "crank": [
-            Feature((xf, 0.0, zc), "z", f"D-bore through hub and arm: Ø{dm.shaft_d:.1f} +{L.slip:.2f}/0, flat {dm.shaft_flat:.1f} across (slip fit on the rod)"),
+            Feature((xf, 0.0, zc), "z", f"D-bore through hub and arm: Ø{dm.shaft_d + L.slip / 2:.2f} +0.10/0, flat {dm.shaft_flat + L.slip / 2:.2f} +0.10/0 across (slip fit on the rod)"),
             Feature((xf - L.arm_r, 0.0, (G.ARM_Z0 + G.ARM_Z1) / 2), "z", f"M2 x 0.4-6H tapped through the arm (tap drill Ø{L.set_screw_d:.1f}); an M2 shoulder screw's thread"),
             Feature((xf, L.hub_d / 2, zs), "y", f"M2 x 0.4-6H tapped radial, from the flat's side through the hub wall into the bore (tap drill Ø{L.set_screw_d:.1f}); set screw"),
         ],
