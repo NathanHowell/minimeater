@@ -66,9 +66,9 @@ def gerbers(board: Path, name: str) -> None:
 
 # JLC's parts library orients some packages differently from KiCad's footprints, so the CPL rotation needs an offset
 # (checked against JLC's assembly preview, 2026-10-14: its pin-1 dots sat 180 deg from ours on the SOT-23-5/6 parts
-# and 90 deg on the TSSOP and SOIC; these are the offsets JLC's community rotation tables list for those packages).
+# and 90 deg on the TSSOP and SOIC, and the SOT-363 (U11, 2026-10-20: JLC drew its pins in rows against our columns, like the SOIC); these are the offsets JLC's community rotation tables list for those packages).
 # Matched on the footprint name; first match wins. Re-check every polarised part in the preview after a change.
-JLC_ROTATION = [("SOT-23", 180), ("TSSOP", 270), ("SOIC", 270)]
+JLC_ROTATION = [("SOT-363", 270), ("SOT-23", 180), ("TSSOP", 270), ("SOIC", 270)]
 
 # Parts whose JLC footprint differs from the package rule or has its origin elsewhere, by LCSC number: the rotation
 # offset, and where JLC's origin sits in KiCad's footprint frame (mm, y down, before rotation). Read from JLC's own
