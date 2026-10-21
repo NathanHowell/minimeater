@@ -14,6 +14,9 @@ from .printing import ALL, print_pose
 
 
 BUILDS = 5  # the first run: five units
+# STL chord and angular tolerances (mm, rad): at 0.02/0.1 the shells' lofts strayed 0.16 mm with 7 deg between facets,
+# which MJF prints as lines; the duct's vanes are fine already and at the shells' setting it would be 142 MB
+STL_TOL = {"*": (0.005, 0.03), "duct": (0.01, 0.05)}
 
 PRINT_NOTES = {
     "duct": "airway, fan flange, a hollow tail cone on three airfoil struts in the airway (open toward the fan: let the powder out), servo shelf, O-ring socket with a 10 mm extension whose 8-lobe bore grips the tube (a smooth sleeve outside, a slot open at the mouth between them: clear the powder): the hot part (the socket sits on the egg's intake tube); print flange down, as exported",
@@ -82,7 +85,7 @@ def export(out: Path, flap_deg=0.0):
     for name in ALL:
         s = print_pose(name)
         export_step(s, str(prints / f"{name}.step"))
-        export_stl(s, str(prints / f"{name}.stl"), tolerance=0.02, angular_tolerance=0.1)
+        export_stl(s, str(prints / f"{name}.stl"), *STL_TOL.get(name, STL_TOL["*"]))
         written.append(name)
     for name, build in MACHINED.items():  # the made parts that are not printed, for the CNC quote
         export_step(build(), str(cnc / f"{name}.step"))
