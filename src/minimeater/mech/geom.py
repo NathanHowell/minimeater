@@ -58,6 +58,9 @@ TAB_Z0 = TAB_Z1 - P.servo.tab_t
 PAD_T = 2.5  # the duct's pads under the tabs
 TAB_HOLES = tuple((SERVO_X + dx, SERVO_Y + dy) for dx, dy in P.servo.tab_holes)  # all six, in the assembly frame
 TAB_HOLE_XS = (min(x for x, _ in TAB_HOLES), max(x for x, _ in TAB_HOLES))  # the group extremes
+# the shelf's pilots: the middle hole of each group. The outer pairs stand 0.45 and 0.85 mm from the body's cutout,
+# too thin a wall to tap a screw into (JLC3DP's 1.0 mm minimum); drill them by hand if the field wants more screws
+PILOT_HOLES = tuple((x, y) for (x, y), (_, dy) in zip(TAB_HOLES, P.servo.tab_holes) if dy == 0.0)
 
 # the shell: section height and the roof
 ROOF_IN_Z = P.shell.roof_in

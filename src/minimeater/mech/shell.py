@@ -367,9 +367,11 @@ def bay_walls():
 
 
 def drip_lip():
-    """A ridge under the eave's outer edge, so water running down the flank drips clear of the ports. It stops at
+    """A ridge under the eave's outer edge, so water running down the flank drips clear of the ports. It stops 1.5 mm short of
     the bay's front end: running on to where the flank curves in, its end left the pan's mesh open (minimeat-4lg)."""
-    return box(BAY_X0 - 1.0, BAY_X1, -G.FULL_W / 2 - 0.3, -G.FULL_W / 2 + 1.0, BAY_Z1 - 1.5, BAY_Z1 + 0.5)
+    return box(BAY_X0 - 1.0, BAY_X1 - 1.5, -G.FULL_W / 2 - 0.3, -G.FULL_W / 2 + 1.4, BAY_Z1 - 1.5, BAY_Z1 + 0.5)  # 1.2 once
+    # the flank's round has clipped it (1.0 wide left it 0.95: JLC3DP's 1.0 mm minimum); it ends 1.5 mm short of the bay's
+    # front end, where the plan closes in toward the nose and thinned it to a 0.35 mm sliver
 
 
 # --- fixings and locators ---------------------------------------------------------------------------------------
@@ -379,6 +381,12 @@ REAR_BOSS = (G.REAR_IN_X + P.layout.rear_gap / 2, S.rear_screw_y)
 REAR_BOSS_D = 7.0  # M2; the column stands in the fan shim block and bulges 0.45 mm into the plenum past its inner face
 # (y 30.4), so the pan's head channel keeps a 1.35 mm sleeve there (the block alone left 0.75: JLC3DP's flag, minimeat-e97)
 REAR_SLEEVE = 1.35
+
+
+def boss_column(x, y, d, z0, z1):
+    """A screw column: a teardrop pointed down so it prints, and up too, so the pan's head channel, a teardrop
+    pointed up, keeps its sleeve round its tip (a round top left 0.5 mm there)."""
+    return teardrop_z(x, y, d / 2, z0, z1, toward=-1) + teardrop_z(x, y, d / 2, z0, z1, toward=1)
 
 
 def boss_points():
@@ -504,8 +512,9 @@ def hood():
     h += _half(rear_bumps(), True)
     h += _half(tip_ribs(), True)
     for x, y, d in boss_points():
-        h += teardrop_z(x, y, d / 2, S.z_part + 0.2, 40.0, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
-        h -= teardrop_z(x, y, P.m2_pilot / 2, S.z_part + 0.1, S.z_part + S.screw_engage + 0.5, toward=1)
+        h += boss_column(x, y, d, S.z_part + 0.2, 40.0) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
+        h -= teardrop_z(x, y, P.m2_pilot / 2, S.z_part - 0.1, S.z_part + S.screw_engage + 0.5, toward=1)  # open at the
+        # seam: from z_part + 0.1 it left a 0.1 mm skin over the front pilots' mouths, where the front zone reaches the seam
     h -= rebate()
     h -= seam_wedge()  # the V seam on the rear wall, climbing with the gills: the pan rises into it (last, so the rear
     # bosses, which start 0.1 inside the wall, give way to it too)
@@ -531,7 +540,7 @@ def pan():
     p += _half(tip_ribs(), False)
     p += (flange_pads() + standoffs()) & o
     for x, y, d in boss_points():
-        p += teardrop_z(x, y, d / 2, -60.0, S.z_part, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
+        p += boss_column(x, y, d, -60.0, S.z_part) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
         seat = S.z_part + S.screw_engage - S.screw_len
         p -= teardrop_z(x, y, d / 2 - (1.05 if d == S.boss_d else REAR_SLEEVE), -60.0, seat, toward=1)  # the head and the driver, from the belly; the front column keeps a 1.05 mm sleeve
         p -= teardrop_z(x, y, 1.15, seat - 0.1, S.z_part + 0.1, toward=1)

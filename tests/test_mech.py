@@ -101,6 +101,16 @@ def test_shelf_pilots_are_under_the_servos_screw_holes():
         assert any(abs(hx - x) < 0.05 and abs(hy - y) < 0.05 for hx, hy in holes), (x, y, holes)
 
 
+def test_shelf_pilots_keep_a_wall_to_the_body_cutout():
+    """Each pilot keeps at least JLC3DP's 1.0 mm minimum wall to the servo body's cutout; the outer holes, at 0.45 and
+    0.85 mm, have none."""
+    sv = P.servo
+    cut = (G.SERVO_X_CENTRE - sv.body_l / 2 - 0.2, G.SERVO_X_CENTRE + sv.body_l / 2 + 0.2)
+    assert len(G.PILOT_HOLES) == 2
+    for x, _ in G.PILOT_HOLES:
+        assert min(abs(x - c) for c in cut) - P.m2_pilot / 2 >= 1.0
+
+
 def test_board_lies_under_the_straight_duct():
     """The board (turned over: its back and the tails' keep-out up, the parts under it) sits beside the r = 18.2
     straight section, its rear edge a little into the cone, the keep-out one mm under the duct everywhere

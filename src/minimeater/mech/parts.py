@@ -171,12 +171,13 @@ SHELF_Y0 = 14.0  # the servo shelf starts inside the duct wall
 SHELF_Y1 = G.SERVO_Y0 + P.servo.body_w + 0.2
 SHELF_X0 = G.TAB_HOLE_XS[0] - 6.5  # the rear end leans 44 deg: room for the pilots to reach full depth
 SHELF_X1 = G.TAB_HOLE_XS[1] + 2.3  # short of the shells' front cone
-BLOCK_D = 7.0  # the blocks under the tabs, from the tab's underside: a 6 mm pilot and a 1 mm floor
+BLOCK_D = 7.0  # the blocks under the tabs, from the tab's underside: a 5.8 mm pilot and a 1.2 mm floor (1.0 read as
+# exactly JLC3DP's minimum)
 
 
 def servo_shelf():
     """A shelf under the servo's tabs, beside the duct on +y, with a cutout the body drops through and a solid block
-    under each end's tab, with a M2 pilot under each of the six screw holes (2, 4 or 6 screws, chosen in the field).
+    under each end's tab, with a M2 pilot under the middle one of each end's three screw holes.
     The corners of the shelf and both blocks away from the duct are rounded (R3; the duct side stays square) straight down to the blocks' base. The rear end of the shelf and its block lean 44 deg; the block's face toward the body at the front is a vertical
     12 mm wide bridge, as short as the block is deep. Its front end merges with the socket's step."""
     sv = P.servo
@@ -198,8 +199,8 @@ def servo_shelf():
     lean = (z1 - land - zb) * P.layout.slope + 0.02
     s -= prism_xz([(SHELF_X0 - 0.1, zb - 0.1), (SHELF_X0 - 0.1 + lean, zb - 0.1), (SHELF_X0 - 0.1, z1 - land)], SHELF_Y0 - 1, SHELF_Y1 + 1)
     s -= box(cut_x0, cut_x1, G.SERVO_Y0 - 0.2, SHELF_Y1 + 1, zb - 1, z1 + 1)  # the body's cutout
-    for x, y in G.TAB_HOLES:
-        s -= zcyl(P.m2_pilot / 2, zb + 1.0, z1 + 0.1, x, y)  # M2 pilot, 6 mm
+    for x, y in G.PILOT_HOLES:
+        s -= zcyl(P.m2_pilot / 2, zb + 1.2, z1 + 0.1, x, y)  # M2 pilot, 5.8 mm
     return s
 
 

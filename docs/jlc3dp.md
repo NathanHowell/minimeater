@@ -88,11 +88,20 @@ Left, and why:
 - **The eave and its drip lip** at about 1.0 mm.
 - **Around the ambient vents** (x -87 to -60) the seam skirt is 1.1 mm.
 
-Third review (2026-10-22, JLC marked A 0.46, B 0.75, C 0.10; ray check of the exported STLs, 120-150k samples a part):
+Third review (2026-10-22, JLC marked A 0.46, B 0.75, C 0.10). The first two rounds were checked by hand from a coarse ray sample; this one has a tool, `uv run mech-thinwall` (`mech/thinwall.py`), run on the exported STLs after `mech-export`. It samples each part's surface every 0.25 mm (about 700,000 points a part, a few seconds), casts a ray inward along the normal (the wall there, as JLC's heatmap measures it), and groups the samples under 1.0 mm. A sample within t / tan a of a sharp convex CAD edge of interior angle a under 90° is a knife edge (a wedge reads d tan a at d from its edge); the rest are listed as unexplained, by area. Run it before every upload: everything it lists should be fixed or below.
 
-- **B 0.75 (pan)** was a real wall, fixed above.
-- **A 0.46 (duct)**: the six stator vanes' leading edges, 3-7 mm off the flange. A NACA nose on a 1.5-2.2 mm vane has a radius of about 0.2 mm, so the first millimetre of chord is under 1 mm thick. It will print a little blunt, which costs the vanes nothing.
-- **C 0.10 (hood)**: a point at a corner of the seam rim, about 1 mm².
-- Also under 1 mm, not marked by JLC: the rim where each screw counterbore breaks out through the belly's round (0.5-0.8 mm over about 5 × 5 mm, four places; the head seats deeper in solid column), the skin over the servo pilots' teardrop tips in the shelf block (0.5-1.0 mm over 7 × 2 mm: if it opens, the pilot is open at its apex, and the screw grips the round), and the 44° wedges of the rear V seam and the bay floor described above.
+Fixed (`minimeat-e97`, `minimeat-xk8`):
 
-All of it passes MJF PA12's 1.0 mm minimum; the ASA minimum is 1.2, and these leftovers would still be flagged for ASA. That is one more reason to order the shells in PA12-HP/PA12S-HP as well.
+- **B 0.75 (pan)**: the rear screw columns, above.
+- **C 0.10 (hood)**: the front pilots started 0.1 mm above the seam, and the front zone reaches the seam there, so a 0.1 mm skin closed each pilot's mouth. The pilots now start under the seam.
+- **The screw columns' teardrop tips** (pan, 0.5-0.6 mm over a few mm², four places): the head channel is a teardrop pointed up, the column was round on that side. The columns are now teardrops both ways (`shell.boss_column`), so the sleeve follows the tip.
+- **The drip lip**, 0.95 mm once the flank's round clipped it, and a 0.35 mm sliver at its front end where the plan closes in: 1.4 mm wide before the clip (1.2 after) and it ends 1.5 mm short of the bay's front end.
+- **The servo pilots**: the outer pairs stood 0.45 mm (rear) and 0.85 mm (front) from the body's cutout. Only the middle pilot of each end is left (two M2 screws; `geom.PILOT_HOLES`), and the floors went from 1.0 to 1.2 mm.
+
+Left, all accepted:
+
+- **A 0.46 (duct)**: the six stator vanes' leading edges, 3-8 mm off the flange, about 80 mm² a vane under 1 mm (0.13 at the nose, 0.7 median). A NACA nose on a 1.5-2.2 mm vane has a radius of about 0.2 mm, so the first 2 mm of chord is under 1 mm thick. It is the edge of an airfoil, not a wall. It will print a little blunt, which costs a stator vane nothing; blunting it in the CAD would mean redoing the vane CFD. The trailing edges' roots at the wall read 0.89-0.98 over 1-3 mm² each (the 1.2 mm round, crossed obliquely).
+- Specks under 1 mm² on the socket's mouth face, and the sub-1 mm samples on the hood's seam rib (it is 1.3 mm along its whole length in section; the samples are on its edges).
+- Knife edges, as before: the 44° wedges of the rear V seam and the louvre blades' ends, the bay floor's run-out, the front cone's edges. About 600 mm² on the hood, 1400 on the pan, 40 on the duct.
+
+None of the rest are walls.
