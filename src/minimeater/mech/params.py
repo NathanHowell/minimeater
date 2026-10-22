@@ -266,7 +266,7 @@ class Shell:
     # axis), gap to the fan's frame. 15 deg + 30i off vertical, so none lies on the parting plane; they stop 1 mm short of
     # the fan's screw heads in x, so the shells close past the heads (the CFD's first ribs stopped 2 mm off the frame)
     tip_ribs: tuple[int, float, float, float, float] = (12, 1.2, 25.0, 34.0, 4.0)
-    rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves 1.2 mm to the cavity wall at y 29.9, and the hull 1.3 mm outside (at 32.1 the channel left 0.08 mm)
+    rear_screw_y: float = 33.3  # |y| of the rear screw pair, in the fan's rear gap, outside its screw heads and the fan shim block: the pan's head channel (radius 2.15) leaves the hull 1.3 mm outside; inside, the shim block's face is at y 30.4 (0.75 mm), so the column bulges past it (shell.REAR_BOSS_D) (at 32.1 the channel left 0.08 mm)
     label: tuple[float, float, float, float] = (-46.0, 10.5, 40.0, 10.0)  # on the hood's -y flank (the port side): x, z, w, h
     label_depth: float = 0.8  # the flank is flat here (under the roof's round), so the recess has a floor
     grille_pitch: float = 6.12  # vertical pitch of the chevron gills, one even field (6.12 cos 44 - 3.2 = 1.20, the printer's minimum web); the slots are cut 44 deg, so the blades between are pitch x cos 44 - slot thick

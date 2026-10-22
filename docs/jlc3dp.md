@@ -76,7 +76,7 @@ Fixed:
 - **The seam, 0.8-1.0 mm**: the hood's outer skirt is the wall less the pan's tongue and 0.2 clearance. The shell wall is now 2.8 mm (seven perimeters) with a 1.3 mm tongue and rib, so the skirt is 1.3 mm. The envelope grows to 75.2 × 73.9.
 - **The rod's blind pocket** left a 0.6 mm skin under the duct; now 1.2 mm (the rod is 0.6 mm shorter, 42.4 mm).
 - **The shelf's rear edge**, a knife edge: a 1.2 mm vertical land now stops the lean.
-- **The rear screw columns' sleeve, 0.08 mm** (second upload): the pan's M2 head channel (radius 2.15) was nearly tangent to the cavity wall at y 29.9, so a sheet of that thickness stood between them over 20 mm of height. The pair moved out to |y| 33.3 (`rear_screw_y`): 1.2 mm to the cavity, 1.3 mm to the hull, and the fan's screw heads still clear.
+- **The rear screw columns' sleeve, 0.08 mm** (second upload): the pan's M2 head channel (radius 2.15) was nearly tangent to the cavity wall at y 29.9, so a sheet of that thickness stood between them over 20 mm of height. The pair moved out to |y| 33.3 (`rear_screw_y`): 1.2 mm to the cavity, 1.3 mm to the hull, and the fan's screw heads still clear. That 1.2 was measured to y 29.9; the fan shim block's face is at 30.4 (the fan's 0.4 mm play), so the sleeve was really 0.75 mm over about 20 × 5 mm in the plenum, JLC's "B 0.75" in the third review (2026-10-22). The rear column is now Ø7 (`shell.REAR_BOSS_D`) and bulges 0.45 mm into the plenum past the block, a 1.35 mm sleeve; the fan's M3 heads are 2 mm away (`minimeat-e97`).
 - **The front shell screw columns**: the head channel (Ø5.8) nearly equalled the column (Ø6), a 0.1 mm sleeve. The column is 6.7 mm with a Ø4.6 channel, a 1.05 mm sleeve. 6.7 is the most that works: bigger columns make the pan fail to tessellate in OpenCascade.
 
 Left, and why:
@@ -87,5 +87,12 @@ Left, and why:
 - **A 3 mm² patch where the rear screw channel meets the fan shim block's bottom face** (z -26 to -30, 0.1-0.3 mm): small, and the block is a locating aid, not a structural part.
 - **The eave and its drip lip** at about 1.0 mm.
 - **Around the ambient vents** (x -87 to -60) the seam skirt is 1.1 mm.
+
+Third review (2026-10-22, JLC marked A 0.46, B 0.75, C 0.10; ray check of the exported STLs, 120-150k samples a part):
+
+- **B 0.75 (pan)** was a real wall, fixed above.
+- **A 0.46 (duct)**: the six stator vanes' leading edges, 3-7 mm off the flange. A NACA nose on a 1.5-2.2 mm vane has a radius of about 0.2 mm, so the first millimetre of chord is under 1 mm thick. It will print a little blunt, which costs the vanes nothing.
+- **C 0.10 (hood)**: a point at a corner of the seam rim, about 1 mm².
+- Also under 1 mm, not marked by JLC: the rim where each screw counterbore breaks out through the belly's round (0.5-0.8 mm over about 5 × 5 mm, four places; the head seats deeper in solid column), the skin over the servo pilots' teardrop tips in the shelf block (0.5-1.0 mm over 7 × 2 mm: if it opens, the pilot is open at its apex, and the screw grips the round), and the 44° wedges of the rear V seam and the bay floor described above.
 
 All of it passes MJF PA12's 1.0 mm minimum; the ASA minimum is 1.2, and these leftovers would still be flagged for ASA. That is one more reason to order the shells in PA12-HP/PA12S-HP as well.

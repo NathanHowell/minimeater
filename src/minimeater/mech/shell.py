@@ -376,7 +376,9 @@ def drip_lip():
 
 FRONT_BOSS = (P.layout.front_screw_x, 28.0)
 REAR_BOSS = (G.REAR_IN_X + P.layout.rear_gap / 2, S.rear_screw_y)
-REAR_BOSS_D = 4.5  # M2; the column stands in the fan shim block, so the channel's sleeve is the block
+REAR_BOSS_D = 7.0  # M2; the column stands in the fan shim block and bulges 0.45 mm into the plenum past its inner face
+# (y 30.4), so the pan's head channel keeps a 1.35 mm sleeve there (the block alone left 0.75: JLC3DP's flag, minimeat-e97)
+REAR_SLEEVE = 1.35
 
 
 def boss_points():
@@ -531,7 +533,7 @@ def pan():
     for x, y, d in boss_points():
         p += teardrop_z(x, y, d / 2, -60.0, S.z_part, toward=-1) & o & box(G.REAR_IN_X - 0.1, 0, -50, 50, -50, 50)
         seat = S.z_part + S.screw_engage - S.screw_len
-        p -= teardrop_z(x, y, d / 2 - (1.05 if d == S.boss_d else 0.1), -60.0, seat, toward=1)  # the head and the driver, from the belly; the front column keeps a 1.05 mm sleeve
+        p -= teardrop_z(x, y, d / 2 - (1.05 if d == S.boss_d else REAR_SLEEVE), -60.0, seat, toward=1)  # the head and the driver, from the belly; the front column keeps a 1.05 mm sleeve
         p -= teardrop_z(x, y, 1.15, seat - 0.1, S.z_part + 0.1, toward=1)
     p += tongue()
     return p
