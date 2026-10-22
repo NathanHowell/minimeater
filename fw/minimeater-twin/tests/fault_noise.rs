@@ -31,7 +31,12 @@ fn noise_and_spikes_are_filtered_and_a_silent_ambient_sensor_is_a_warning() {
     let alarms: Vec<_> = r
         .events
         .iter()
-        .filter(|(_, e)| !matches!(e, Event::SelfCheck { .. } | Event::SetpointReached { .. }))
+        .filter(|(_, e)| {
+            !matches!(
+                e,
+                Event::SelfCheck { .. } | Event::SetpointReached { .. } | Event::PitFound { .. }
+            )
+        })
         .collect();
     let amb: Vec<_> = alarms
         .iter()

@@ -3,13 +3,13 @@
 //! the parser must hold its limits.
 
 use minimeater_app::alarms::Limit;
-use minimeater_app::config::{ControllerKind, Cook, Mode, ProbeKind, ServoPulses, Settings, StallPolicy};
+use minimeater_app::config::{ControllerKind, Cook, Mode, PitSel, ProbeKind, ServoPulses, Settings, StallPolicy};
 use minimeater_app::drive::HomeFail;
 use minimeater_app::pit::{Command, Event, FaultCode, Output, Phase};
 use minimeater_app::probes::{Check, ProbeSt};
 use minimeater_app::proto::{self, ErrorCode, Json, ProbeChange, Request};
 use minimeater_app::tasks::{AutotuneInfo, Faults, Status};
-use minimeater_core::control::{Fire, Fopdt, Schedule};
+use minimeater_core::control::{Fire, Fopdt, MismatchPolicy, Schedule};
 use minimeater_core::food::{Cut, Food, Stall};
 use minimeater_core::model::airflow::Actuation;
 use minimeater_core::thermistor::{Preset, Thermistor};
@@ -66,6 +66,7 @@ fn status() -> Status {
     let cook = Cook {
         mode: Mode::Run,
         sp_f: 225.0,
+        pit_probe: PitSel::Jack(0),
         ..Cook::default()
     };
     Status {
@@ -81,6 +82,7 @@ fn status() -> Status {
             fire: Fire::Ok,
         },
         temps: [Some(224.6), Some(158.3), None, None],
+        pit_f: Some(224.6),
         probe_st: [ProbeSt::Ok, ProbeSt::Ok, ProbeSt::Open, ProbeSt::Open],
         alarms: [None; 4],
         alarm_led: false,
@@ -119,6 +121,7 @@ fn state_reports_faults_alarms_and_missing_values() {
     let mut s = status();
     s.cook.mode = Mode::Off;
     s.temps = [None; 4];
+    s.pit_f = None;
     s.probe_st = [ProbeSt::Fault; 4];
     s.alarms = [Some(Limit::Hi), None, Some(Limit::Lo), None];
     s.faults = Faults::default();
@@ -336,6 +339,7 @@ fn every_setting_and_command_in_the_docs_tables_is_handled() {
         ("mode", "run"),
         ("sp", "225"),
         ("pit_probe", "2"),
+        ("pit_mismatch", "stop"),
         ("controller", "ffpi"),
         ("lid_detect", "ON"),
         ("lid_boost", "1.5"),
@@ -403,7 +407,12 @@ fn settings_parse_to_the_right_requests() {
     assert_eq!(ok("set/mode", "off"), Request::Pit(Mode(self::Mode::Off)));
     assert_eq!(ok("set/sp", "225.5"), Request::Pit(Sp(225.5)));
     assert_eq!(ok("set/sp", " 150\n"), Request::Pit(Sp(150.0)), "whitespace is ignored");
-    assert_eq!(ok("set/pit_probe", "3"), Request::Pit(PitProbe(3)));
+    assert_eq!(ok("set/pit_probe", "3"), Request::Pit(PitProbe(PitSel::Jack(3))));
+    assert_eq!(ok("set/pit_probe", "auto"), Request::Pit(PitProbe(PitSel::Auto)));
+    assert_eq!(
+        ok("set/pit_mismatch", "stop"),
+        Request::Pit(PitMismatch(MismatchPolicy::Stop))
+    );
     assert_eq!(
         ok("set/controller", "mpc"),
         Request::Pit(Controller(ControllerKind::Mpc))
@@ -488,6 +497,7 @@ fn limits_and_errors_use_the_documented_codes() {
     assert_eq!(err("set/manual_fan", "101"), ErrorCode::OutOfRange);
     assert_eq!(err("set/pit_probe", "4"), ErrorCode::OutOfRange);
     assert_eq!(err("set/pit_probe", "1.5"), ErrorCode::BadPayload);
+    assert_eq!(err("set/pit_mismatch", "sometimes"), ErrorCode::BadPayload);
     assert_eq!(
         err("set/pit_probe", "tc"),
         ErrorCode::NotAllowed,

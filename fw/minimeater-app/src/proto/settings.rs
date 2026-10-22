@@ -6,7 +6,7 @@ use minimeater_core::control::Schedule;
 
 use super::json::Json;
 use super::names;
-use crate::config::{Probe, ProbeKind, Settings};
+use crate::config::{PitSel, Probe, ProbeKind, Settings};
 
 /// Writes the `~/config` object.
 pub fn config<W: Write>(j: &mut Json<W>, s: &Settings) {
@@ -15,7 +15,12 @@ pub fn config<W: Write>(j: &mut Json<W>, s: &Settings) {
     j.key("v").int(1);
     j.key("mode").str(names::mode(c.mode));
     j.key("sp").num(c.sp_f, 1);
-    j.key("pit_probe").int(i64::from(c.pit_probe));
+    j.key("pit_probe");
+    match c.pit_probe {
+        PitSel::Auto => j.str("auto"),
+        PitSel::Jack(n) => j.int(i64::from(n)),
+    };
+    j.key("pit_mismatch").str(c.pit_mismatch.name());
     j.key("controller").str(names::controller(c.controller));
     j.key("lid_detect").bool(s.lid.detect);
     j.key("lid_boost").num(s.lid.boost, 1);

@@ -6,10 +6,11 @@
 use core::fmt::Write;
 
 use heapless::String;
+use minimeater_core::control::MismatchPolicy;
 use minimeater_core::food::Cut;
 use minimeater_core::thermistor::{Preset, Thermistor};
 
-use crate::config::{BUMP_MAX_F, BUMP_MIN_F, ControllerKind, Mode, Mqtt, Otlp, ProbeKind, StallPolicy, Wifi};
+use crate::config::{BUMP_MAX_F, BUMP_MIN_F, ControllerKind, Mode, Mqtt, Otlp, PitSel, ProbeKind, StallPolicy, Wifi};
 use crate::hal::PROBE_JACKS;
 use crate::pit::{Command, SP_MAX_F, SP_MIN_F};
 
@@ -192,12 +193,18 @@ fn set(setting: &str, text: &str) -> Parsed {
             if text == "tc" {
                 return Err(Error::new(ErrorCode::NotAllowed, "no thermocouple fitted"));
             }
+            if text == "auto" {
+                return pit(Command::PitProbe(PitSel::Auto));
+            }
             let v = in_range("pit_probe", text, 0.0, (PROBE_JACKS - 1) as f64)?;
             if v != libm::trunc(v) {
-                return Err(bad("expected a whole number"));
+                return Err(bad("expected auto or a whole number"));
             }
-            pit(Command::PitProbe(v as u8))
+            pit(Command::PitProbe(PitSel::Jack(v as u8)))
         }
+        "pit_mismatch" => pit(Command::PitMismatch(
+            MismatchPolicy::from_name(text).ok_or_else(|| bad("expected off, warn or stop"))?,
+        )),
         "controller" => match text {
             "mpc" => pit(Command::Controller(ControllerKind::Mpc)),
             "ffpi" => pit(Command::Controller(ControllerKind::FfPi)),

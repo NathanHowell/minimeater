@@ -69,6 +69,9 @@ pub fn event<W: Write>(j: &mut Json<W>, e: &Event) {
             }
             j.end_arr();
         }
+        Event::PitFound { probe } => {
+            j.key("probe").int(i64::from(*probe));
+        }
         Event::Fault(code) | Event::FaultClear(code) => {
             j.key("code").str(code.name());
         }

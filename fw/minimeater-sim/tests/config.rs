@@ -6,8 +6,8 @@ use core::cell::{Cell, RefCell};
 
 use embassy_futures::block_on;
 use embedded_storage_async::nor_flash::{ErrorType, NorFlash, NorFlashError, NorFlashErrorKind, ReadNorFlash};
-use minimeater_app::config::{ConfigStore, ControllerKind, Mode, Mqtt, ProbeKind, ServoPulses, Settings, Wifi};
-use minimeater_core::control::{Fopdt, Schedule};
+use minimeater_app::config::{ConfigStore, ControllerKind, Mode, Mqtt, PitSel, ProbeKind, ServoPulses, Settings, Wifi};
+use minimeater_core::control::{Fopdt, MismatchPolicy, Schedule};
 use minimeater_core::model::airflow::AirPath;
 use minimeater_core::model::{Ambient, top_vent};
 use minimeater_core::thermistor::{Preset, Thermistor};
@@ -36,7 +36,9 @@ fn cooking() -> Settings {
     s.cook.mode = Mode::Run;
     s.cook.sp_f = 250.0;
     s.cook.controller = ControllerKind::FfPi;
-    s.cook.pit_probe = 2;
+    s.cook.pit_probe = PitSel::Auto;
+    s.cook.pit_locked = Some(2);
+    s.cook.pit_mismatch = MismatchPolicy::Stop;
     s.cook.autotune = true;
     s.cook.hold = Some((250.0, 0.72));
     s.cook.base_sp = Some(225.0);

@@ -37,7 +37,7 @@ fn line(s: &Sample) -> String {
     let mut l = format!(
         "{} pit {:5.1}F sp {:3.0} {:8} q {:4.2} flap {:3.0}% fan {:3.0}%",
         hm(s.t_s),
-        st.temps[st.cook.pit_probe as usize].unwrap_or(f64::NAN),
+        st.pit_f.unwrap_or(f64::NAN),
         st.cook.sp_f,
         format!("{:?}", o.phase).to_lowercase(),
         o.q,
@@ -147,7 +147,7 @@ fn main() {
                 "{},{:.2},{},{},{:.2},{:?},{:.3},{:.1},{:.1},{},{},{},{},{:?}",
                 s.t_s,
                 s.pit_f,
-                opt(st.temps[st.cook.pit_probe as usize]),
+                opt(st.pit_f),
                 st.cook.sp_f,
                 st.out.ref_f,
                 st.out.phase,

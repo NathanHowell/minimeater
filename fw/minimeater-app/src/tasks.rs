@@ -127,6 +127,8 @@ pub struct Status {
     pub out: Output,
     /// Each jack, F with offset: `None` unless the probe is `ok` or `disagree`.
     pub temps: [Option<f64>; PROBE_JACKS],
+    /// The pit reading the loop controls on: the pit probe, or while `pit_probe: auto` is still looking, the hottest probe.
+    pub pit_f: Option<f64>,
     pub probe_st: [ProbeSt; PROBE_JACKS],
     /// Each probe's alarm (`probes[n].alarm`), latched.
     pub alarms: [Option<Limit>; PROBE_JACKS],
@@ -628,19 +630,24 @@ pub async fn control<B: Board>(
         // running on the nominal pulses with no homing to come
         let servo = bus.servo();
         bus.fault(FaultCode::ServoCal, servo.cal.is_none() && servo.home == Home::Idle);
-        let jack = settings.cook.pit_probe as usize;
-        let (out, events) = pit.step(temps[jack], amb, PERIOD_S);
+        let (out, events) = pit.step_jacks(&temps, amb, PERIOD_S);
         bus.act.signal(out.act);
         for e in events {
             // a learned model is part of `~/config`
             republish |= matches!(e, Event::AutotuneDone { .. });
             bus.emit(*e);
         }
-        for e in foods.step(&temps, jack, temps[jack], out.phase, &settings.probes, PERIOD_S) {
-            bus.emit(*e);
-        }
-        if let Some(e) = responder.step(foods, &temps, jack, &settings.probes, pit, PERIOD_S) {
-            bus.emit(e);
+        // the jack auto found, or the one chosen; none while auto is still looking, when no jack can be told from the pit
+        let jack = pit.cook().pit_jack();
+        let looking = pit.searching();
+        if !looking {
+            let pit_f = jack.and_then(|j| temps[j]);
+            for e in foods.step(&temps, jack, pit_f, out.phase, &settings.probes, PERIOD_S) {
+                bus.emit(*e);
+            }
+            if let Some(e) = responder.step(foods, &temps, jack, &settings.probes, pit, PERIOD_S) {
+                bus.emit(e);
+            }
         }
 
         // slow work, one job at a time
@@ -677,6 +684,7 @@ pub async fn control<B: Board>(
             cook: *pit.cook(),
             out,
             temps,
+            pit_f: pit.control_jack().and_then(|j| temps[j]),
             probe_st: readings.map(|r| r.st),
             alarms: alarms.active(),
             alarm_led: alarms.unacked(),
@@ -690,10 +698,11 @@ pub async fn control<B: Board>(
             },
             faults: {
                 let mut f = bus.faults.lock(Cell::get);
-                f.set(FaultCode::PitProbe, out.phase == Phase::Fault);
+                f.set(FaultCode::PitProbe, pit.probe_lost() && out.phase == Phase::Fault);
+                f.set(FaultCode::PitMismatch, pit.mismatch().is_some());
                 f
             },
-            foods: core::array::from_fn(|j| foods.food(j, &temps, jack)),
+            foods: core::array::from_fn(|j| foods.food(j, &temps, jack).filter(|_| !looking)),
             ambient_c,
         });
         // until the next period, requests are answered as they arrive

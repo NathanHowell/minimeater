@@ -23,7 +23,7 @@ pub struct Device<'a> {
 }
 
 /// Every `event_type` the device publishes, for the `event` entity.
-pub const EVENT_TYPES: [&str; 19] = [
+pub const EVENT_TYPES: [&str; 20] = [
     "boot",
     "alarm",
     "alarm_clear",
@@ -43,6 +43,7 @@ pub const EVENT_TYPES: [&str; 19] = [
     "fault",
     "fault_clear",
     "servo_home",
+    "pit_found",
 ];
 
 const URL: &str = "https://github.com/NathanHowell/minimeater";
@@ -355,7 +356,14 @@ pub fn discovery<W: Write>(j: &mut Json<W>, d: &Device, probe_names: [&str; PROB
         format_args!("Pit probe"),
         format_args!("pit_probe"),
         format_args!("{{{{ value_json.pit_probe }}}}"),
-        &["0", "1", "2", "3"],
+        &["auto", "0", "1", "2", "3"],
+    );
+    e.select(
+        "pit_mismatch",
+        format_args!("Pit probe mismatch"),
+        format_args!("pit_mismatch"),
+        format_args!("{{{{ value_json.pit_mismatch }}}}"),
+        &["off", "warn", "stop"],
     );
 
     // per probe: the food estimator, then the probe's own setup

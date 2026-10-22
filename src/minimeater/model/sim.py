@@ -106,14 +106,34 @@ class Event:
 
 
 @dataclass(frozen=True)
+class Jack:
+    """One probe jack: a thermistor that lags the gas by `tau_s` (about 20 s in the pit's air, hours in meat).
+
+    The probe is in contact from `plug_s` (starting at `init_f`, else the ambient) until `pull_s`;
+    the jack reads `None` outside that window.
+    """
+
+    tau_s: float
+    init_f: float | None = None
+    plug_s: float = 0.0
+    pull_s: float | None = None
+    noise_f: float = 0.3
+
+
+@dataclass(frozen=True)
 class Obs:
-    """What the firmware can see: noisy pit probe, setpoint, lid detector, on-board ambient sensor."""
+    """What the firmware can see: noisy pit probe, setpoint, lid detector, on-board ambient sensor.
+
+    `jacks` is the reading of every jack (`None` for an empty one) when the run has any; `pit_f` is
+    then the dedicated pit probe the single-probe controllers use.
+    """
 
     t_s: float
     pit_f: float
     setpoint_f: float
     lid: bool
     ambient: Ambient
+    jacks: tuple[float | None, ...] = ()
 
 
 class Controller(Protocol):
@@ -133,6 +153,8 @@ class SimResult:
     air_cfm: np.ndarray
     fire_w: np.ndarray
     lid: np.ndarray
+    gas_f: np.ndarray | None = None
+    jacks_f: np.ndarray | None = None  # (jacks, steps), NaN while a jack is empty
     meta: dict = field(default_factory=dict)
 
 
@@ -152,6 +174,7 @@ def simulate(
     seed: int = 0,
     init_f: float | None = None,
     food_load_w: float = 0.0,
+    jacks: tuple[Jack, ...] = (),
 ) -> SimResult:
     """Run the plant against a controller. init_f=None is a cold light-off; otherwise start at steady state."""
     rng = np.random.default_rng(seed)
@@ -175,8 +198,10 @@ def simulate(
     damper, s = 0.0, 0.0
     next_control = 0.0
     ev = sorted(events, key=lambda e: e.t_s)
-    keys = ("t", "pit", "sp", "u", "damper", "fan", "q", "fire", "lid")
+    keys = ("t", "pit", "sp", "u", "damper", "fan", "q", "fire", "lid", "gas")
     out = {k: np.zeros(n) for k in keys}
+    jack_t = [k_to_f(amb.t_k) if j.init_f is None else j.init_f for j in jacks]
+    jack_f = np.full((len(jacks), n), np.nan)
 
     for i in range(n):
         t = i * dt
@@ -195,8 +220,15 @@ def simulate(
         lid = t < lid_until
         probe += (t_g - probe) * dt / egg.probe_tau_s
         pit_f = k_to_f(probe) + (rng.normal(0.0, noise_f) if noise_f > 0 else 0.0)
+        reads = []
+        for k, j in enumerate(jacks):
+            if t >= j.plug_s:
+                jack_t[k] += (k_to_f(t_g) - jack_t[k]) * dt / j.tau_s
+            live = t >= j.plug_s and (j.pull_s is None or t < j.pull_s)
+            reads.append(jack_t[k] + rng.normal(0.0, j.noise_f) if live else None)
+            jack_f[k, i] = reads[-1] if live else np.nan
         if t >= next_control:
-            damper, s = controller.step(Obs(t, pit_f, sp_f, lid, amb), control_period_s)
+            damper, s = controller.step(Obs(t, pit_f, sp_f, lid, amb, tuple(reads)), control_period_s)
             next_control += control_period_s
 
         top = LID_OPEN_TOP_AREA_M2 if lid else top_set
@@ -214,11 +246,11 @@ def simulate(
         t_wo += dt * (q_wall - thermal.q_out(egg, amb, t_wo)) / c_wo
 
         u = 0.5 + s / 2 if s > 0 else damper / 2
-        row = (t, pit_f, sp_f, u, damper, s, q / CFM, fire, lid)
+        row = (t, pit_f, sp_f, u, damper, s, q / CFM, fire, lid, k_to_f(t_g))
         for k, v in zip(keys, row):
             out[k][i] = v
 
     return SimResult(
         out["t"], out["pit"], out["sp"], out["u"], out["damper"], out["fan"], out["q"], out["fire"],
-        out["lid"].astype(bool),
+        out["lid"].astype(bool), gas_f=out["gas"], jacks_f=jack_f,
     )

@@ -69,6 +69,7 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
   "sp": 225.0,
   "ref": 225.0,
   "pit": 224.6,
+  "pit_jack": 0,
   "amb": 64.2,
   "probes": [
     {"t": 224.6, "st": "ok", "alarm": null, "food": null},
@@ -90,7 +91,8 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
 - `up`: uptime in seconds.
 - `sp`: user setpoint.
 - `ref`: shaped reference the controller is currently tracking. It equals `sp` except during `startup` and after a setpoint increase.
-- `pit`: the probe selected by `pit_probe`, with offset applied.
+- `pit`: the pit probe, with offset applied: the jack `pit_probe` selects, or the one `auto` has found (`null` until it has).
+- `pit_jack`: the jack the pit loop controls on, `0`-`3`, or `null` while `pit_probe` is `auto` and has not found the pit probe yet.
 - `amb`: on-board outside-air sensor (TMP117).
 - `tc`: the thermocouple reading in °F (no thermocouple input in this revision, ADR 0002 amendment), always `null`.
 
@@ -160,6 +162,7 @@ The same object is served by `GET /status` on the device's read-only HTTP endpoi
 | `load` | a load switch is limiting its current (stalled servo, jammed fan, short): the fan and servo are cut and stay off until reboot; the fault line is shared, so it does not say which, but `servo` is raised with it when the servo's current was high as it tripped |
 | `servo` | the damper servo's current is wrong on two moves running: still high once it should be holding still (a jammed flap, a binding linkage, a crank slipped on its spline so the flap meets a stop early), or next to nothing on a move of 3 degrees or more (unplugged, broken, or the current sense dead). The device keeps driving it and warns; it clears after two good moves. A crank that spins free on its shaft draws normal current and is not seen |
 | `supply` | the USB-C source advertises less than 1.5 A (or nothing): the fan and servo are off, probes and alarms keep running |
+| `pit_mismatch` | the selected pit probe does not behave like one (`pit_mismatch` setting, below): the fan has run for an hour (the fire not `out`) with it 40F or more under the setpoint, or it has stood 50F or more over the setpoint for 2 min. It latches until the cook is stopped or the pit probe changed. With `pit_mismatch` `stop` the flap closes and the fan stops as for `pit_probe`; with `warn` it only warns |
 | `servo_cal` | the damper servo has no calibration and no homing run is to come (the last one failed: `servo_home` says why, or the console's `servo clear`). It runs on the nominal 1 to 2 ms pulses, which may push the flap against a post and trip the load switch; it warns, and clears once a calibration is saved |
 
 - `diag`: diagnostics for HA. `rssi` is in dBm; `board` is the board temperature in °C (ADS122C04 internal sensor). Detailed diagnostics go to OTLP, not here.
@@ -173,7 +176,8 @@ The current value of every setting. It is the same set the device stores in flas
   "v": 1,
   "mode": "run",
   "sp": 225.0,
-  "pit_probe": 0,
+  "pit_probe": "auto",
+  "pit_mismatch": "warn",
   "controller": "mpc",
   "lid_detect": true,
   "lid_boost": 1.5,
@@ -199,7 +203,8 @@ The current value of every setting. It is the same set the device stores in flas
 |---|---|---|---|
 | `mode` | `off` \| `run` \| `manual` | | `heat` is accepted as an alias of `run` for the HA climate entity |
 | `sp` | number | 150-325 | outside this is `out_of_range`, never clamped silently |
-| `pit_probe` | `0`-`3` \| `tc` | `tc` only if the thermocouple is fitted | |
+| `pit_probe` | `auto` \| `0`-`3` \| `tc` | `tc` only if the thermocouple is fitted | `auto` (the default) finds the pit probe when a cook starts and locks it for the cook (see [Pit probe](#pit-probe)); a jack always wins. `~/config` carries `"auto"` or the jack number |
+| `pit_mismatch` | `off` \| `warn` \| `stop` | | what a selected pit probe that does not behave like one brings about (the `pit_mismatch` fault); default `warn` |
 | `controller` | `mpc` \| `ffpi` | | FF+PI is the fallback controller (control ADR) |
 | `lid_detect` | `ON` \| `OFF` | | |
 | `lid_boost` | number | 1.0-3.0 | recovery speed against overshoot |
@@ -217,6 +222,14 @@ The current value of every setting. It is the same set the device stores in flas
 ### Stall policy
 
 `stall_start` and `stall_end` are raised whatever the policy. `notify` (the default) does nothing more. `wrap` adds a `wrap_reminder` event at the stall's start. `bump` raises the setpoint by the probe's `bump` (capped at 325F) while the stall lasts: it is an ordinary setpoint change, so the approach is shaped from where the pit is and does not overshoot, and `sp` in the state shows the raised value. `stall_bump` is raised when the setpoint moves, and `stall_restore` when it goes back to what it was, as the stall breaks. Setting `sp` yourself while bumped keeps your value and drops the restore. The pit probe is never a stall probe. If the device restarts mid-stall it starts the estimate over, so a bump with no stall in progress is put back after 15 min (and made again if the stall is found again). The setpoint is also put back if the mode leaves `run` or the probe loses its reading for 15 min.
+
+### Pit probe
+
+`pit_probe` is `auto` by default (ADR 0008). While a cook runs and `auto` has not found the pit probe, the controller does not shut the flap (that would starve the fire): it controls on the hottest probe, which is the pit probe once the fire is lit, and with no probe reading at all it gives the airflow the egg model says the setpoint needs, plus the learned `hold` trim, with no feedback. `pit_jack` and `pit` are `null` meanwhile, and no jack is treated as a food probe.
+
+It names a jack when, for 2 min, that probe is at least 40F above the ambient and at least 40F above every other probe that reads, and is either rising 1F/min or more over 3 min or within 25F of the setpoint. It raises `pit_found` and locks the jack for the cook and across a power cut. A locked probe that stops reading is the `pit_probe` fault, never a reason to look again. Starting a cook (leaving `off`) or setting `pit_probe` starts the search over.
+
+With no pit probe plugged in, a food probe can be named: it is hot and rising like a slow light-off. `pit_mismatch` (applies to `auto` and to a chosen jack) is the watch for that and for any selected probe that is not in the fire.
 
 ## `~/cmd/<command>`
 
@@ -265,6 +278,7 @@ The payload's `event_type` names the event, which is the field HA's MQTT `event`
 | `autotune_done` | `sp`, `k`, `tau`, `dead` (the model at that setpoint now), `accepted` (fits taken during the dither; 0 means the model is unchanged) |
 | `selfcheck` | `results`: one per jack, each `{"probe": n, "delta": F}` or `{"probe": n, "st": "open"}` |
 | `rejected` | `topic`, `error`, `detail` |
+| `pit_found` | `probe` (the jack `pit_probe: auto` locked on) |
 | `fault`, `fault_clear` | `code` |
 | `servo_home` | `ok`; `closed` and `open` (the pulses found and saved, us) when it is true, else `why`: `no_stop_low` or `no_stop_high` (no post toward that end: the posts are missing or the linkage is off), `fault_at_rest` (the load switches' fault line was low with the servo at rest), `span` (the stops are not a flap's travel apart), `cancelled` (the USB supply went away; it runs again when the supply is back) |
 
@@ -291,7 +305,7 @@ There is one retained device-discovery message, `homeassistant/device/<id>/confi
 | `phase`, `fire` | `sensor` | `device_class` enum | |
 | `lid` | `binary_sensor` | `device_class` opening | |
 | `problem` | `binary_sensor` | `device_class` problem, on when `faults` is non-empty | |
-| `mode`, `controller`, `pit_probe` | `select` | `set/...` | `config` entity category |
+| `mode`, `controller`, `pit_probe`, `pit_mismatch` | `select` | `set/...` | `config` entity category |
 | `probe0_eta`..`probe3_eta` | `sensor` | `probes[n].food.eta` | `device_class` duration, s |
 | `probe0_stall`..`probe3_stall` | `sensor` | `probes[n].food.stall` | `device_class` enum |
 | `probe0_type`..`probe3_type`, `probe0_cut`..`probe3_cut`, `probe0_on_stall`..`probe3_on_stall` | `select` | `set/probe/<n>/type`, `.../cut`, `.../stall` | `config` |
@@ -340,7 +354,7 @@ Excerpt, using HA's abbreviated keys:
       "stat_t": "minimeater/mm-a1b2c3/event",
       "evt_typ": ["boot", "alarm", "alarm_clear", "lid_open", "lid_closed", "fire_low", "fire_out",
                   "setpoint_reached", "stall_start", "stall_end", "wrap_reminder", "stall_bump",
-                  "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear", "servo_home"]
+                  "stall_restore", "autotune_done", "selfcheck", "rejected", "fault", "fault_clear", "servo_home", "pit_found"]
     }
   }
 }

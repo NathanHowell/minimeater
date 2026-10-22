@@ -10,12 +10,14 @@ mod ffpi;
 mod fire;
 mod lid;
 mod mpc;
+mod pitfind;
 mod shaper;
 
 pub use ffpi::FfPi;
 pub use fire::{Fire, FireObs, FireWatch};
 pub use lid::{LidDetector, LidRecovery, Override, Snapshot};
 pub use mpc::Mpc;
+pub use pitfind::{MismatchPolicy, MismatchWatch, PitFinder, Trip};
 pub use shaper::RefShaper;
 
 /// What the controller sees each control period.

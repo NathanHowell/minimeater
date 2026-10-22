@@ -24,7 +24,7 @@ Rules: the fan and the servo each have a power switch controlled by the MCU; the
 
 ## Probes (ADR 0002)
 
-- Four interchangeable 2.5 mm stereo jacks for thermistor probes. Any jack can be the pit probe; the default is jack 0 for the pit and 1-3 for food.
+- Four interchangeable 2.5 mm stereo jacks for thermistor probes. Any jack can be the pit probe; by default the firmware finds it (`pit_probe: auto`, ADR 0008) and a setting pins it to a jack.
 - Probes in use: ThermoWorks Pro-Series and generic imports (about 100 k at 25 C) and legacy Maverick ET-732 (about 1 M at 25 C).
 - TI ADS122C04 on I2C (same bus as the ambient sensor) with per-jack dividers. There is no K-type input in this revision (ADR 0002, amended).
 - Ambient (outside air) sensor TMP117 on I2C, on the board's underside in a vented well, isolated from the duct air.

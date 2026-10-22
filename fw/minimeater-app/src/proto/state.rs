@@ -20,8 +20,13 @@ pub fn state<W: Write>(j: &mut Json<W>, s: &Status, rssi: Option<i32>) {
     j.key("phase").str(names::phase(s.out.phase));
     j.key("sp").num(c.sp_f, 1);
     j.key("ref").num(s.out.ref_f, 1);
-    j.key("pit")
-        .opt_num(s.temps.get(c.pit_probe as usize).copied().flatten(), 1);
+    j.key("pit").opt_num(s.pit_f, 1);
+    // the pit probe's jack: the one chosen, or what `pit_probe: auto` found, or null while it has not
+    j.key("pit_jack");
+    match c.pit_jack() {
+        Some(n) => j.int(n as i64),
+        None => j.null(),
+    };
     // the ambient sensor reads in C; the wire is F
     j.key("amb").opt_num(s.ambient_c.map(|c| k_to_f(c + 273.15)), 1);
     j.key("probes").begin_arr();

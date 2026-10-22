@@ -92,7 +92,7 @@ pub fn export_request(buf: &mut [u8], who: &Identity, s: &Sample) -> Option<usiz
             let one = |p: &mut Pb, name: &str, unit: &str, d: &str, v: f64| {
                 gauge(p, name, unit, d, |p| point(p, t, v, &[]));
             };
-            let pit = st.temps.get(st.cook.pit_probe as usize).copied().flatten();
+            let pit = st.pit_f;
             gauge(p, "minimeater.probe.temperature", "degF", "Probe temperature", |p| {
                 for (n, temp) in st.temps.iter().enumerate() {
                     if let Some(temp) = temp {

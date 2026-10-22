@@ -21,15 +21,17 @@
 use heapless::Vec;
 use minimeater_core::control::autotune::{Autotune, Due, Fit, Identifier, scheduling_point};
 use minimeater_core::control::{
-    Feedforward, FfPi, Fire, FireObs, FireWatch, Fopdt, LidDetector, Mpc, Obs, PitController, Schedule,
+    Feedforward, FfPi, Fire, FireObs, FireWatch, Fopdt, LidDetector, MismatchPolicy, MismatchWatch, Mpc, Obs,
+    PitController, PitFinder, Schedule, Trip,
 };
 use minimeater_core::model::Ambient;
 use minimeater_core::model::actuator::{flap_angle_deg, open_frac};
 use minimeater_core::model::airflow::{Actuation, AirPath, AirflowMap, ModelFeedforward};
+use minimeater_core::units::k_to_f;
 
 use crate::alarms::Limit;
 use crate::config::ServoPulses;
-use crate::config::{ControllerKind, Cook, Lid, Mode, Settings};
+use crate::config::{ControllerKind, Cook, Lid, Mode, PitSel, Settings};
 use crate::drive::HomeFail;
 use crate::hal::PROBE_JACKS;
 use crate::probes::Check;
@@ -84,6 +86,9 @@ pub enum FaultCode {
     /// The damper servo has no calibration and none is being found: homing failed (`servo_home` says why), so it
     /// runs on the nominal pulses, which may push the flap against a post. It only warns.
     ServoCal,
+    /// The selected pit probe does not behave like one (`pit_mismatch`, ADR 0008): the fault says which way, and with
+    /// the `stop` policy the flap closes and the fan stops until the cook ends.
+    PitMismatch,
 }
 
 impl FaultCode {
@@ -99,10 +104,11 @@ impl FaultCode {
             FaultCode::Load => "load",
             FaultCode::Servo => "servo",
             FaultCode::ServoCal => "servo_cal",
+            FaultCode::PitMismatch => "pit_mismatch",
         }
     }
 
-    pub const ALL: [FaultCode; 9] = [
+    pub const ALL: [FaultCode; 10] = [
         FaultCode::PitProbe,
         FaultCode::BoardHot,
         FaultCode::FanStall,
@@ -112,6 +118,7 @@ impl FaultCode {
         FaultCode::Load,
         FaultCode::Servo,
         FaultCode::ServoCal,
+        FaultCode::PitMismatch,
     ];
 }
 
@@ -179,6 +186,10 @@ pub enum Event {
     },
     Fault(FaultCode),
     FaultClear(FaultCode),
+    /// `pit_probe: auto` named the pit probe (ADR 0008).
+    PitFound {
+        probe: u8,
+    },
     /// A homing run ended (`minimeat-xdn`): the pulses it found and saved, or why it found none.
     ServoHome(Result<ServoPulses, HomeFail>),
     /// The device started, and why: raised once per boot, when the MQTT session first comes up.
@@ -205,6 +216,7 @@ impl Event {
             Event::SelfCheck { .. } => "selfcheck",
             Event::Fault(_) => "fault",
             Event::FaultClear(_) => "fault_clear",
+            Event::PitFound { .. } => "pit_found",
             Event::ServoHome(_) => "servo_home",
             Event::Boot(_) => "boot",
         }
@@ -229,8 +241,10 @@ pub enum Command {
     SelfCheck,
     /// Silence the LED for the alarms active now (the control task owns the alarms).
     AlarmAck,
-    /// The jack that holds the pit probe.
-    PitProbe(u8),
+    /// The jack that holds the pit probe, or auto.
+    PitProbe(PitSel),
+    /// What a pit probe that does not behave like one brings about.
+    PitMismatch(MismatchPolicy),
 }
 
 /// Why a command was rejected (`rejected` event `error`).
@@ -274,6 +288,17 @@ pub struct Pit {
     out: Output,
     lost_s: f64,
     faulted: bool,
+    /// Finds the pit probe among the jacks (`pit_probe: auto`) and watches the one in use.
+    finder: PitFinder<PROBE_JACKS>,
+    mismatch: MismatchWatch,
+    /// The `pit_mismatch` fault has been raised.
+    mismatch_raised: bool,
+    /// The jack auto just named, for the event.
+    found: Option<u8>,
+    /// The hottest jack the loop last controlled on while auto was still looking.
+    provisional: Option<u8>,
+    /// Seconds since boot, for the finder and the watch.
+    clock_s: f64,
     was_open: bool,
     was_starting: bool,
     was_exciting: bool,
@@ -319,6 +344,12 @@ impl Pit {
         },
         lost_s: 0.0,
         faulted: false,
+        finder: PitFinder::DEFAULT,
+        mismatch: MismatchWatch::DEFAULT,
+        mismatch_raised: false,
+        found: None,
+        provisional: None,
+        clock_s: 0.0,
         was_open: false,
         was_starting: false,
         was_exciting: false,
@@ -338,6 +369,8 @@ impl Pit {
         self.path = path;
         self.ambient = ambient;
         self.out.ref_f = s.cook.sp_f;
+        self.finder.reset();
+        self.mismatch.reset();
     }
 
     /// Back to the defaults in `s` mid-run (the factory reset): the cook is off, the learned schedule gone, and the
@@ -395,6 +428,11 @@ impl Pit {
                     // a cook starts from scratch; manual -> run is bumpless (the controller tracked)
                     self.fresh = true;
                     self.cook.hold = None;
+                    // auto looks again: the pit probe may have moved since the last cook
+                    self.restart_selection();
+                }
+                if m == Mode::Off {
+                    self.clear_mismatch();
                 }
                 self.cook.mode = m;
             }
@@ -442,11 +480,19 @@ impl Pit {
             }
             // the control task owns the probes and alarms and answers these
             Command::SelfCheck | Command::AlarmAck => {}
-            Command::PitProbe(n) => {
-                if usize::from(n) >= PROBE_JACKS {
+            Command::PitProbe(sel) => {
+                if matches!(sel, PitSel::Jack(j) if usize::from(j) >= PROBE_JACKS) {
                     return Err(Reject::OutOfRange);
                 }
-                self.cook.pit_probe = n;
+                self.cook.pit_probe = sel;
+                self.restart_selection();
+                self.fresh = true;
+            }
+            Command::PitMismatch(p) => {
+                self.cook.pit_mismatch = p;
+                if p == MismatchPolicy::Off {
+                    self.clear_mismatch();
+                }
             }
         }
         Ok(())
@@ -502,14 +548,92 @@ impl Pit {
         self.learn.apply(due, fit, self.ctrl.schedule_mut())
     }
 
+    /// Forgets a locked pit probe and starts looking again (a new cook, or the selection changed).
+    fn restart_selection(&mut self) {
+        self.cook.pit_locked = None;
+        self.provisional = None;
+        self.finder.reset();
+        self.mismatch.reset();
+    }
+
+    fn clear_mismatch(&mut self) {
+        self.mismatch.reset();
+    }
+
+    /// What the mismatch watch has tripped on, until the cook ends or the selection changes.
+    pub fn mismatch(&self) -> Option<Trip> {
+        self.mismatch.tripped()
+    }
+
+    /// The jack whose reading the loop controls on: the pit probe, or while `auto` is still looking, the hottest probe.
+    pub fn control_jack(&self) -> Option<usize> {
+        self.cook
+            .pit_jack()
+            .or_else(|| self.searching().then_some(self.provisional).flatten().map(usize::from))
+    }
+
+    /// `pit_probe: auto` is running a cook and has not found the pit probe yet.
+    pub fn searching(&self) -> bool {
+        self.cook.mode == Mode::Run && self.cook.pit_probe == PitSel::Auto && self.cook.pit_locked.is_none()
+    }
+
+    /// The pit reading has been missing long enough to fail safe (`pit_probe` fault).
+    pub fn probe_lost(&self) -> bool {
+        self.faulted
+    }
+
+    /// The jack the loop controls on: the selected one, or the one auto has locked.
+    fn select(&mut self, temps: &[Option<f64>; PROBE_JACKS], ambient: &Ambient) -> Option<usize> {
+        if self.cook.mode == Mode::Run && self.cook.pit_probe == PitSel::Auto && self.cook.pit_locked.is_none() {
+            let amb_f = k_to_f(ambient.t_k);
+            if let Some(j) = self.finder.step(self.clock_s, amb_f, self.cook.sp_f, temps) {
+                self.cook.pit_locked = Some(j as u8);
+                self.found = Some(j as u8);
+                if self.provisional != Some(j as u8) {
+                    // the loop has been controlling on another jack: a fresh start on this one
+                    self.mismatch.reset();
+                    self.fresh = true;
+                }
+            }
+        }
+        self.cook.pit_jack()
+    }
+
+    /// One control period from every jack's reading (`None` unless `ok`): [`Self::step`] on the cook's pit probe, which
+    /// `pit_probe: auto` finds first. Until it has, a running cook is controlled on the hottest probe, which is the pit
+    /// probe once the fire is lit; with no probe reading at all it gets the model's airflow for the setpoint with no
+    /// feedback (ADR 0008). Shutting the flap would starve the fire, and open loop alone lights it too slowly to be seen.
+    pub fn step_jacks(&mut self, temps: &[Option<f64>; PROBE_JACKS], ambient: Ambient, dt: f64) -> (Output, &Events) {
+        match self.select(temps, &ambient) {
+            Some(j) => self.step_with(temps[j], false, ambient, dt),
+            None if self.cook.mode == Mode::Run && self.cook.pit_probe == PitSel::Auto => {
+                let hottest = (0..PROBE_JACKS)
+                    .filter_map(|j| temps[j].map(|t| (t, j)))
+                    .reduce(|a, b| if b.0 > a.0 { b } else { a });
+                self.provisional = hottest.map(|(_, j)| j as u8);
+                self.step_with(hottest.map(|(t, _)| t), hottest.is_none(), ambient, dt)
+            }
+            None => self.step_with(None, false, ambient, dt),
+        }
+    }
+
     /// One control period. `pit_f`: the selected pit probe, `None` unless its status is `ok`;
     /// `ambient`: the outside-air reading (or the 20C fallback). Returns this period's output and
     /// the events it raised.
     pub fn step(&mut self, pit_f: Option<f64>, ambient: Ambient, dt: f64) -> (Output, &Events) {
+        self.step_with(pit_f, false, ambient, dt)
+    }
+
+    /// `open`: no pit probe is known yet, and `pit_f` is the hottest probe, if any.
+    fn step_with(&mut self, pit_f: Option<f64>, open: bool, ambient: Ambient, dt: f64) -> (Output, &Events) {
         self.events.clear();
+        if let Some(probe) = self.found.take() {
+            self.emit(Event::PitFound { probe });
+        }
+        self.clock_s += dt;
         self.ambient = ambient;
         let pit = pit_f.filter(|y| y.is_finite());
-        self.lost_s = if pit.is_some() { 0.0 } else { self.lost_s + dt };
+        self.lost_s = if pit.is_some() || open { 0.0 } else { self.lost_s + dt };
         let faulted = self.lost_s >= PROBE_GRACE_S;
         if faulted != self.faulted {
             self.faulted = faulted;
@@ -557,6 +681,10 @@ impl Pit {
                 }
                 self.set(Phase::Manual, q, act, sp);
             }
+            (Mode::Run, _) if open => {
+                self.fresh = true;
+                self.open_loop();
+            }
             (Mode::Run, None) if faulted => {
                 // fail safe: no air, no runaway
                 self.fresh = true;
@@ -565,11 +693,20 @@ impl Pit {
             // a reading or two missing: ride through on the last command
             (Mode::Run, None) => held = true,
             (Mode::Run, Some(y)) => {
-                if self.fresh {
-                    self.start_controller(y, None);
+                // a fire the fire watch has called out is dead, not a probe in the wrong place
+                let fan = self.out.act.fan > 0.0 && self.out.fire != Fire::Out;
+                self.mismatch.step(self.cook.pit_mismatch, self.clock_s, y, sp, fan);
+                if self.cook.pit_mismatch == MismatchPolicy::Stop && self.mismatch.tripped().is_some() {
+                    // as a lost pit probe: no air, no runaway, until the cook ends
+                    self.fresh = true;
+                    self.set(Phase::Fault, 0.0, CLOSED, sp);
+                } else {
+                    if self.fresh {
+                        self.start_controller(y, None);
+                    }
+                    self.run(y, dt);
+                    ran = true;
                 }
-                self.run(y, dt);
-                ran = true;
             }
         }
 
@@ -619,7 +756,28 @@ impl Pit {
         }
         self.was_exciting = exciting;
         self.cook.autotune = exciting;
+        let tripped = self.mismatch.tripped().is_some();
+        if tripped != self.mismatch_raised {
+            self.mismatch_raised = tripped;
+            self.emit(if tripped {
+                Event::Fault(FaultCode::PitMismatch)
+            } else {
+                Event::FaultClear(FaultCode::PitMismatch)
+            });
+        }
         (self.out, &self.events)
+    }
+
+    /// The airflow the model says the setpoint needs, plus what [`Cook::hold`] says this egg needs over the model, with
+    /// no feedback: no probe reads, so there is nothing to control on.
+    fn open_loop(&mut self) {
+        let sp = self.cook.sp_f;
+        let y = k_to_f(self.ambient.t_k);
+        let ff = self.ff();
+        let trim = self.cook.hold.map_or(0.0, |(hsp, hq)| hq - ff.q_cfm(hsp));
+        let q = (ff.q_cfm(sp) + trim).max(0.0);
+        let act = self.map.actuate(y, q);
+        self.set(Phase::Startup, q, act, sp);
     }
 
     fn ff(&self) -> ModelFeedforward<'_> {

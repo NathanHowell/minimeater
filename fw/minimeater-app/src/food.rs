@@ -33,8 +33,13 @@ impl Foods {
     }
 
     /// `probes[n].food` in the status; `None` for the pit jack and a jack without a reading.
-    pub fn food(&self, jack: usize, temps: &[Option<f64>; PROBE_JACKS], pit_jack: usize) -> Option<Food> {
-        (jack != pit_jack && temps[jack].is_some()).then(|| self.est[jack].food())
+    pub fn food(
+        &self,
+        jack: usize,
+        temps: &[Option<f64>; PROBE_JACKS],
+        pit_jack: impl Into<Option<usize>>,
+    ) -> Option<Food> {
+        (Some(jack) != pit_jack.into() && temps[jack].is_some()).then(|| self.est[jack].food())
     }
 
     /// One control period: each jack's reading (`None` unless `ok`), the pit jack, the pit, and the
@@ -42,19 +47,20 @@ impl Foods {
     pub fn step(
         &mut self,
         temps: &[Option<f64>; PROBE_JACKS],
-        pit_jack: usize,
+        pit_jack: impl Into<Option<usize>>,
         pit_f: Option<f64>,
         phase: Phase,
         probes: &[Probe; PROBE_JACKS],
         dt: f64,
     ) -> &[Event] {
         self.events.clear();
+        let pit_jack = pit_jack.into();
         let disturbed = matches!(phase, Phase::Lid | Phase::Recover);
         for (i, e) in self.est.iter_mut().enumerate() {
             if e.cut != probes[i].cut {
                 *e = FoodEstimator::new(probes[i].cut);
             }
-            if i == pit_jack {
+            if Some(i) == pit_jack {
                 continue;
             }
             let target = probes[i].hi_f.or(probes[i].cut.target_f());
@@ -92,12 +98,13 @@ impl StallResponder {
         &mut self,
         foods: &Foods,
         temps: &[Option<f64>; PROBE_JACKS],
-        pit_jack: usize,
+        pit_jack: impl Into<Option<usize>>,
         probes: &[Probe; PROBE_JACKS],
         pit: &mut Pit,
         dt: f64,
     ) -> Option<Event> {
-        let bumping = |i: usize| i != pit_jack && probes[i].stall == StallPolicy::Bump;
+        let pit_jack = pit_jack.into();
+        let bumping = |i: usize| Some(i) != pit_jack && probes[i].stall == StallPolicy::Bump;
         let want = (0..PROBE_JACKS)
             .filter(|&i| bumping(i) && temps[i].is_some() && matches!(foods.stall(i), Stall::In { .. }))
             .max_by(|&a, &b| probes[a].bump_f.total_cmp(&probes[b].bump_f));

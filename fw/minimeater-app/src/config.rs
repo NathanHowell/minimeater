@@ -19,7 +19,7 @@
 use embedded_storage_async::nor_flash::NorFlash;
 use heapless::{String, Vec};
 use log::warn;
-use minimeater_core::control::{Fopdt, Schedule};
+use minimeater_core::control::{Fopdt, MismatchPolicy, Schedule};
 use minimeater_core::food::Cut;
 use minimeater_core::thermistor::{Preset, Thermistor};
 use sequential_storage::cache::{Cache, Uncached};
@@ -96,14 +96,47 @@ pub enum ControllerKind {
     FfPi,
 }
 
+/// Which jack holds the pit probe (`pit_probe`, ADR 0008).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PitSel {
+    /// Found from the readings when a cook starts, then locked for the cook ([`Cook::pit_locked`]).
+    Auto,
+    Jack(u8),
+}
+
+impl PitSel {
+    /// The byte in the cook record: a jack's index, or [`Self::AUTO_BYTE`].
+    const AUTO_BYTE: u8 = PROBE_JACKS as u8;
+
+    fn byte(self) -> u8 {
+        match self {
+            PitSel::Auto => Self::AUTO_BYTE,
+            PitSel::Jack(j) => j,
+        }
+    }
+
+    fn from_byte(b: u8) -> Option<Self> {
+        match b {
+            Self::AUTO_BYTE => Some(PitSel::Auto),
+            j if (j as usize) < PROBE_JACKS => Some(PitSel::Jack(j)),
+            _ => None,
+        }
+    }
+}
+
 /// The cook in progress: what to resume after a power cut.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Cook {
     pub mode: Mode,
     pub sp_f: f64,
     pub controller: ControllerKind,
-    /// Jack holding the pit probe.
-    pub pit_probe: u8,
+    /// Which jack holds the pit probe.
+    pub pit_probe: PitSel,
+    /// The jack `pit_probe: auto` named for this cook; kept so a power cut resumes on it. Cleared when a cook starts or
+    /// the selection changes.
+    pub pit_locked: Option<u8>,
+    /// What a pit probe that does not behave like one brings about (`pit_mismatch`).
+    pub pit_mismatch: MismatchPolicy,
     /// Autotune excitation was running.
     pub autotune: bool,
     /// Manual-mode outputs, % of travel / duty.
@@ -123,12 +156,26 @@ impl Default for Cook {
     }
 }
 
+/// `pit_locked` in the cook record when no jack is.
+const NO_JACK: u8 = 0xFF;
+
 impl Cook {
+    /// The jack the pit loop controls on: the selected one, or the one auto has locked; `None` while auto has not
+    /// found it.
+    pub fn pit_jack(&self) -> Option<usize> {
+        match self.pit_probe {
+            PitSel::Jack(j) => Some(usize::from(j)),
+            PitSel::Auto => self.pit_locked.map(usize::from),
+        }
+    }
+
     pub const DEFAULT: Self = Self {
         mode: Mode::Off,
         sp_f: 225.0,
         controller: ControllerKind::Mpc,
-        pit_probe: 0,
+        pit_probe: PitSel::Auto,
+        pit_locked: None,
+        pit_mismatch: MismatchPolicy::Warn,
         autotune: false,
         manual_flap: 0.0,
         manual_fan: 0.0,
@@ -397,14 +444,19 @@ impl Record for Cook {
         w.u8(self.mode as u8)?;
         w.f64(self.sp_f)?;
         w.u8(self.controller as u8)?;
-        w.u8(self.pit_probe)?;
+        w.u8(self.pit_probe.byte())?;
         w.u8(self.autotune.into())?;
         w.f64(self.manual_flap)?;
         w.f64(self.manual_fan)?;
         let (sp, q) = self.hold.unzip();
         w.opt(sp)?;
         w.opt(q)?;
-        w.opt(self.base_sp)
+        w.opt(self.base_sp)?;
+        w.u8(self.pit_locked.unwrap_or(NO_JACK))?;
+        w.u8(MismatchPolicy::ALL
+            .iter()
+            .position(|p| *p == self.pit_mismatch)
+            .unwrap_or(1) as u8)
     }
 
     fn decode(r: &mut R) -> Option<Self> {
@@ -413,7 +465,7 @@ impl Record for Cook {
         let controller = [ControllerKind::Mpc, ControllerKind::FfPi]
             .get(r.u8()? as usize)
             .copied()?;
-        let pit_probe = r.u8().filter(|&j| (j as usize) < PROBE_JACKS)?;
+        let pit_probe = PitSel::from_byte(r.u8()?)?;
         let autotune = r.u8()? != 0;
         Some(Self {
             mode,
@@ -437,6 +489,19 @@ impl Record for Cook {
                 r.opt_in(150.0, 325.0).flatten()
             } else {
                 None
+            },
+            // an older record has neither: auto finds the pit again, and the policy is the default
+            pit_locked: if r.more() {
+                r.u8().filter(|&j| (j as usize) < PROBE_JACKS)
+            } else {
+                None
+            },
+            pit_mismatch: if r.more() {
+                r.u8()
+                    .and_then(|i| MismatchPolicy::ALL.get(i as usize).copied())
+                    .unwrap_or_default()
+            } else {
+                MismatchPolicy::default()
             },
         })
     }
