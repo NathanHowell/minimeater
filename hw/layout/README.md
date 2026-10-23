@@ -271,7 +271,10 @@ What changed from the staged blocks, and how the board is routed. The sections a
 - **Mechanical:** H1-H3 (2.7 mm NPTH) at the enclosure's standoffs; every route keeps out of their 2.75 mm standoff
   rings on F/B. Fiducials FID1-3 on the board; JLC's tooling holes are on the panel rails (`hw/tools/fab.py`).
 - **Test points (B.Cu):** TP1 VBUS_F, TP2 3V3, TP4 GND at U4; TP3 3V3A at U5; TP6 TX, TP7 RX, TP8 GND just west of
-  U1's pins (UART through under-module vias); TP5 EN beside R10.
+  U1's pins (UART through under-module vias); TP5 EN beside R10. I2C bench access (minimeat-72p, after the board was
+  re-annotated: module U10): TP10 SCL (12.75, 37.6) and TP9 SDA (12.75, 40.87) west of the module's pins 20/21, each
+  on a B.Cu stub from the pin's via, outside the back-silk QR square; labelled SCL/SDA in back silk like the others.
+  There is no room for a Qwiic connector (minimeat-ehs).
 - **Servo current sense (minimeat-55j, 2026-10-15):** room was made beside U6 by raising J6 and J7 4.0 mm along the
   rear edge (R30, R29, C37 and C36 with J7; the enclosure's `Pcb.kk` followed). R28 and R27 stay where they were and J6
   reaches them by 45 degree stubs, because moving them put FAN_PWM through H1's standoff ring. C35 moved into the

@@ -66,8 +66,8 @@ def rank(fp):
     for i, pre in enumerate(("J", "U", "SW", "D", "L", "F", "FB", "TP", "C", "R")):
         if r.startswith(pre): return (i, r)
     return (99, r)
-LABEL = {"TP1": "5V", "TP2": "3V3", "TP3": "3V3A", "TP4": "GND", "TP5": "EN", "TP6": "TX", "TP7": "RX", "TP8": "GND",
-         "J6": "FAN", "J7": "SERVO"}  # on the back: what you probe or plug in, with the case open
+LABEL = {"TP1": "5V", "TP2": "3V3", "TP3": "GND", "TP4": "3V3A", "TP5": "RX", "TP6": "GND", "TP7": "TX", "TP8": "EN",
+         "TP9": "SDA", "TP10": "SCL", "J6": "FAN", "J7": "SERVO"}  # on the back: what you probe or plug in, with the case open
 shown, hidden = [], []
 for fp in sorted(fps, key=rank):
     ref = fp.Reference(); r = fp.GetReference()
