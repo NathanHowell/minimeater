@@ -432,3 +432,13 @@ def test_fan_screws_are_m3_into_pilots_in_the_flange(printed):
             ring = xcyl(P.m3_pilot / 2 + 0.3, x0, x1, y, z) - xcyl(P.m3_pilot / 2 + 0.05, x0, x1, y, z)
             assert A.overlap(inner, printed["duct"]) < 1e-3
             assert A.overlap(ring, printed["duct"]) > 0.95 * ring.volume
+
+
+def test_explode_loop_is_seamless():
+    """The README loop: assembled (enclosure faint) at both ends, fully exploded (solid) in the middle, out and back alike."""
+    from minimeater.mech.explode import OFFSET, explode_at, opacity
+
+    assert explode_at(0.0) == 0.0 and explode_at(0.5) == 1.0
+    assert all(abs(explode_at(t) - explode_at(1 - t)) < 1e-12 for t in (0.1, 0.2, 0.3, 0.4))
+    assert opacity(1, 72, 0.2) == 0.2 and opacity(37, 72, 0.2) == 1.0
+    assert set(OFFSET) <= set(A.printed(0.0)) | set(A.bought(0.0)) | {"hood", "pan", "fan_rotor", "pcb_substrate", "pcb_module", "pcb_usb", "pcb_jacks", "pcb_parts"}

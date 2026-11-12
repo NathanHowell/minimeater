@@ -8,6 +8,8 @@ A HeaterMeter-inspired temperature controller for a Big Green Egg Large, run at 
 
 The controller commands airflow with an offset-free MPC. It reports to Home Assistant over MQTT and exports metrics over OTLP.
 
+<p align="center"><img src="docs/mech/explode.webp" width="480" alt="The enclosure, faint, turning while the fan, servo, linkage, board and the two shells come apart and go back together"></p>
+
 ## Layout
 
 | Path | What | Tooling |
@@ -31,6 +33,7 @@ uv run pytest                    # Python models and doc checks
 uv run --group models scripts/fetch_models.py  # the vendor 3D models (not in the repository; optional, see LICENSE)
 uv run minimeater-model            # regenerate docs/modeling/*.md (also -control, -probes)
 uv run mech-export               # STEP + STL per printed part in print pose (build/mech); mech-render draws docs/mech
+uv run --group scene mech-explode  # docs/mech/explode.webp, the exploded loop (Cycles; needs img2webp)
 cd fw && cargo test                    # firmware core, app and sim on the host
 cd fw && cargo run -p minimeater-fw --release   # build and flash over USB-C (ESP32-C6)
 just twin --scenario kamado-brisket --speed 60x   # the app on the host twin (default: flat out)
