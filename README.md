@@ -34,6 +34,12 @@ yourself. It comes with no warranty (see [License](#license)).
 
 ## How it is built
 
+<p align="center">
+  <img src="docs/hw/board-parts.png" width="400" alt="The board's parts side in perspective: the USB-C port and four probe jacks along one edge, the ESP32-C6 module with its antenna, and the fan and servo headers">
+  <img src="docs/hw/board-silk.png" width="400" alt="The board's silk side: probe numbers P0 to P3, the minimeater logo, test points, the fan and servo header pin names and a QR code to this repository">
+</p>
+<p align="center"><sub>The board, 47.5 × 54 mm, four layers. It hangs parts-down in the box, so the silk side is the face you see with the case open.</sub></p>
+
 | | Where | Docs |
 |---|---|---|
 | **Board** | `hw/`: KiCad 10, four layers, assembled by JLCPCB. An ESP32-C6, the probe front end, USB-C power, the fan and servo drivers, an ATECC608B for the device key | [ADRs](docs/adr/), [ICD](docs/icd.md), [ordering](docs/ordering.md) |
@@ -70,6 +76,7 @@ just model::all               # docs/modeling and docs/sim
 just mech::export             # STEP and STL of every part, ready to order (build/mech)
 just mech::render             # the enclosure renders (docs/mech)
 just hw::fab                  # gerbers, BOM and placement for JLCPCB (hw/fab)
+just hw::renders              # the board renders above (KiCad's raytracer; needs pngquant and oxipng)
 just mech::explode            # the animation above (Blender Cycles; needs img2webp)
 ```
 

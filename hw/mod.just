@@ -33,6 +33,26 @@ check:
     # Zones refilled first (not saved), so DRC checks the copper fab.py exports rather than the fills last saved.
     kc pcb drc --severity-error --refill-zones --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
 
+# The README's board renders, docs/hw/board-parts.png and board-silk.png: raytraced with the 3D models on a transparent
+# background, at twice the size, then downscaled and squeezed (pngquant, oxipng). `just vendor::fetch` for every model.
+# The README's board renders (docs/hw): the parts side in perspective and the silk side.
+renders:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PATH="{{ kicad_bin }}:$PATH"
+    {{ kicad_py }} hw/tools/models.py {{ board }} hw/minimeater_models.kicad_pcb 2>/dev/null
+    mkdir -p docs/hw build/hw
+    kicad-cli pcb render --side top --rotate '-40,0,-30' --perspective --quality high --background transparent \
+        -w 1600 -h 1200 --zoom 0.75 -o build/hw/board-parts.png hw/minimeater_models.kicad_pcb
+    kicad-cli pcb render --side bottom --quality high --background transparent \
+        -w 1600 -h 1200 --zoom 0.85 -o build/hw/board-silk.png hw/minimeater_models.kicad_pcb
+    for n in board-parts board-silk; do
+        uv run python -c "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGBA').resize((800, 600), Image.LANCZOS).save(sys.argv[2])" build/hw/$n.png build/hw/$n.small.png
+        pngquant --quality 80-98 --speed 1 --force --output docs/hw/$n.png build/hw/$n.small.png
+        oxipng -q -o max --strip safe docs/hw/$n.png
+    done
+    ls -l docs/hw/*.png
+
 # JLCPCB stock and price for parts by name or C-number, e.g. `just hw::stock ADS1220IPWR C2089026`.
 stock +parts:
     uv run scripts/jlc_stock.py {{ parts }}
