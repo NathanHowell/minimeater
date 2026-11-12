@@ -47,45 +47,43 @@ normative.
 
 ## Building and testing
 
-You need [uv](https://docs.astral.sh/uv/) for the Python side and a Rust toolchain for the firmware;
-[just](https://just.systems/) runs the longer recipes.
+You need [just](https://just.systems/), [uv](https://docs.astral.sh/uv/) for the Python side and a Rust toolchain for
+the firmware. Every task is a recipe, grouped by area; `just` lists them all.
 
 ```bash
-uv run pytest                                  # models, enclosure and doc checks
-cd fw && cargo test                            # firmware core, app and simulator on the host
-cd fw && cargo run -p minimeater-fw --release  # build and flash an ESP32-C6 over USB-C
+just test                     # the Python suite and the firmware's host tests
+just ci                       # everything CI runs, KiCad checks included
+just fw::flash                # build the firmware and flash an ESP32-C6 over USB-C
 ```
 
 Run a cook on the twin, or the whole scenario suite:
 
 ```bash
-just twin --scenario kamado-brisket --speed 60x
-just scenarios                                 # bounds and baselines for every scenario, a plot of each
+just fw::twin::run --scenario kamado-brisket --speed 60x
+just fw::twin::scenarios      # bounds and baselines for every scenario, a plot of each
 ```
 
 Regenerate the derived outputs:
 
 ```bash
-uv run minimeater-model                        # docs/modeling (also minimeater-control, minimeater-probes)
-uv run mech-export                             # STEP and STL of every part, ready to order (build/mech)
-uv run mech-render docs/mech                   # the enclosure renders
-uv run python hw/tools/fab.py                  # gerbers, BOM and placement for JLCPCB (hw/fab)
-uv run --group scene mech-explode              # the animation above (Blender Cycles; needs img2webp)
+just model::all               # docs/modeling and docs/sim
+just mech::export             # STEP and STL of every part, ready to order (build/mech)
+just mech::render             # the enclosure renders (docs/mech)
+just hw::fab                  # gerbers, BOM and placement for JLCPCB (hw/fab)
+just mech::explode            # the animation above (Blender Cycles; needs img2webp)
 ```
 
-The vendor 3D models of the fan, the servo and a few board parts are not redistributed here.
-`uv run --group models scripts/fetch_models.py` fetches or installs them. Everything builds and tests without them;
-a few fit checks are skipped.
+The vendor 3D models of the fan, the servo and a few board parts are not redistributed here. `just vendor::fetch`
+fetches or installs them. Everything builds and tests without them; a few fit checks are skipped.
 
-Integration checks against real services run in containers: `just mqtt-interop`, `just tls-interop`,
-`just otlp-interop`, `just ha-discovery-check` and `just ha-live-check` (a real Home Assistant). `just stack-up` starts
-Mosquitto and an OpenTelemetry collector for the twin to cook against.
+Integration checks against real services run in containers, under `just fw::interop::` (`mqtt`, `tls`, `otlp`,
+`ha-discovery`, and `ha-live` against a real Home Assistant). `just stack::up` starts Mosquitto and an OpenTelemetry
+collector for the twin to cook against (`just fw::twin::stack`).
 
 ## Contributing
 
-Issues and pull requests are welcome. Work is tracked with [beads](https://github.com/gastownhall/beads) (`bd ready`
-lists what is open). Please run `uv run pytest` and `cargo test` before sending a change, and regenerate any derived
-docs you touch rather than editing them by hand.
+Issues and pull requests are welcome. Please run `just test` (or `just ci`) before sending a change, and regenerate
+any derived docs you touch rather than editing them by hand.
 
 ## License
 

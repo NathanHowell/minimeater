@@ -28,7 +28,7 @@ hw/minimeater-backups/
 hw/_autosave-*
 hw/datasheets/
 
-# Vendor 3D models, not redistributed: uv run --group models scripts/fetch_models.py
+# Vendor 3D models, not redistributed: just vendor::fetch
 hw/lib/3d/PJ-242.step
 hw/lib/3d/LQH3NPN2R2MMEL.step
 hw/lib/3d/SKRPACE010.step
@@ -40,3 +40,11 @@ src/minimeater/mech/data/NOCTUA-CAD-README.txt
 
 # local MCP config (machine paths)
 .mcp.json
+
+# Local agent tooling and the beads tracker (kept in the private repo, not published)
+.beads/
+.agents/
+.claude/
+.codex/
+.cursor/
+CLAUDE.local.md
