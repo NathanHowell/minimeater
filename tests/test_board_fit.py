@@ -3,6 +3,7 @@ of it intersects any of them, with the flap open and closed. Skips without KiCad
 under podman; see `mech/board3d.py`). Slow: about four minutes, nearly all of it the boolean intersections with the shells
 and the duct, which the bounding boxes cannot rule out."""
 
+import importlib.util
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,17 @@ from build123d import Pos
 
 from minimeater.mech import assembly as A, board3d, shell as K
 
-pytestmark = pytest.mark.skipif(not board3d.available(), reason="needs KiCad (Mac app, or the kicad container under podman)")
+ROOT = Path(__file__).resolve().parent.parent
+_spec = importlib.util.spec_from_file_location("fetch_models", ROOT / "scripts" / "fetch_models.py")
+fetch_models = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(fetch_models)
+# without them KiCad's STEP lacks the jacks, the switch and the inductor, and the check would pass on a partial board
+BOARD_MODELS = all((ROOT / m.path).exists() for m in fetch_models.MODELS if m.lcsc)
+
+pytestmark = [
+    pytest.mark.skipif(not board3d.available(), reason="needs KiCad (Mac app, or the kicad container under podman)"),
+    pytest.mark.skipif(not BOARD_MODELS, reason="needs the board's EasyEDA models: uv run --group models scripts/fetch_models.py"),
+]
 
 MOCKS = {"pcb", "pcb_keepout", "connectors", "plugs"}  # stand-ins for the board that the real one replaces
 

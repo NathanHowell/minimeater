@@ -13,7 +13,7 @@ embedded-tls = { path = "vendor/embedded-tls" }
 authors      = ["Nathan Howell"]
 edition      = "2024"
 license      = "GPL-3.0-or-later"  # with the section 7 permission for vendor radio blobs (../LICENSE)
-repository   = "https://github.com/NathanHowell/minimeat"
+repository   = "https://github.com/NathanHowell/minimeater"
 rust-version = "1.95"
 version      = "0.1.0"
 

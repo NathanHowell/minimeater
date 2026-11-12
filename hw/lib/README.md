@@ -7,7 +7,7 @@ antenna keepout are as published and match the module datasheet's land pattern (
 
 `minimeater.pretty/` and `3d/` hold footprints and STEP models for the parts KiCad's own libraries lack. The land patterns
 and models come from the LCSC/EasyEDA entries for the C-numbers (JLC's own, fetched with `easyeda2kicad`) and were
-checked against each part's datasheet drawing; the 3D models are the EasyEDA ones (for internal use; the LED's is a
+checked against each part's datasheet drawing; the 3D models are the EasyEDA ones, which are not in the repository: `uv run --group models scripts/fetch_models.py` fetches them by C-number with `easyeda2kicad` and installs each only if its hash matches the one the footprint offsets were set against (without them KiCad draws those parts without bodies; the LED's is a
 simple block drawn from the Lite-On dimensions). Changes from the source: the TMP117 has no exposed-pad land (TI says
 leave the thermal pad unsoldered); the PJ-242's two positioning holes are non-plated and its six pads are 1.8 x 1.5 as in the
 drawing's PCB layout (they were 1.8 x 1.8); the SKRPACE010's four pads are numbered as its two terminals (1 and 2 joined inside, 3 and 4 joined).

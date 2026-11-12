@@ -40,7 +40,8 @@ def assembly(flap_deg=0.0, board=None):
     asm = {**A.printed(flap_deg), **A.bought(flap_deg), "hood": K.hood(), "pan": K.pan()}
     asm.pop("pcb_keepout")
     asm.pop("plugs")
-    asm["fan_rotor"], asm["fan"] = mock.fan_parts()
+    if mock.FAN_STEP.exists():  # else the box stand-in from `A.bought`, with no rotor to spin
+        asm["fan_rotor"], asm["fan"] = mock.fan_parts()
     if board is not None:
         asm["pcb"] = board3d.placed(board)
     return asm

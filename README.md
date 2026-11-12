@@ -28,6 +28,7 @@ The controller commands airflow with an offset-free MPC. It reports to Home Assi
 
 ```bash
 uv run pytest                    # Python models and doc checks
+uv run --group models scripts/fetch_models.py  # the vendor 3D models (not in the repository; optional, see LICENSE)
 uv run minimeater-model            # regenerate docs/modeling/*.md (also -control, -probes)
 uv run mech-export               # STEP + STL per printed part in print pose (build/mech); mech-render draws docs/mech
 cd fw && cargo test                    # firmware core, app and sim on the host

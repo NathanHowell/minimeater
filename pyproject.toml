@@ -46,6 +46,9 @@ dev = [
     "pytest>=9.1.1",
     "trimesh>=5.1.1",
 ]
+models = [
+    "easyeda2kicad>=1.0.1",
+]
 scene = [
     "bpy>=5.2.2",
 ]

@@ -87,6 +87,7 @@ def _hood():
     return _HOOD[0]
 
 
+@pytest.mark.skipif(not mock.SERVO_STEP.exists(), reason=f"needs Hitec's model: {mock.FETCH}")
 def test_shelf_pilots_are_under_the_servos_screw_holes():
     """The duct's six M2 pilots sit under the tab holes of Hitec's own model (the first version had two, between holes)."""
     halves = {}
@@ -296,6 +297,7 @@ def _node_box(doc, name):
     return acc["min"], acc["max"]
 
 
+@pytest.mark.skipif(not mock.FAN_STEP.exists(), reason=f"needs Noctua's model: {mock.FETCH}")
 def test_scene_glb_has_materials_normals_the_air_path_and_a_spinning_rotor(tmp_path):
     """The Blender file: every part has a PBR material and smooth normals, the fan's frame is in (some of its faces will not
     mesh) and its rotor is a node of its own centred on the x axis, the air path's stations are empties along the flow axis,

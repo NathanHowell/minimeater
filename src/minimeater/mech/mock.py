@@ -27,6 +27,15 @@ def fan():
 
 
 FAN_STEP = Path(__file__).parent / "data" / "NF-A6x25.stp"
+SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"
+# the vendor models are not in the repository (their makers' terms): `uv run --group models scripts/fetch_models.py`
+FETCH = "uv run --group models scripts/fetch_models.py"
+
+
+def _vendor_step(path):
+    if not path.exists():
+        raise FileNotFoundError(f"{path.name} is the maker's model and not in the repository: {FETCH}")
+    return import_step(path)
 
 
 def fan_step():
@@ -34,7 +43,7 @@ def fan_step():
     rotor toward y = 25 (the intake) and the motor mount plate, with the label, at y = 0 (the exhaust); X, Z across, centred.
     Turned so the air leaves along +x through the outlet face, like `fan()`. The frame does not tessellate in the
     renderer and the interference checks use the box version."""
-    s = Rot(Z=90) * import_step(FAN_STEP)  # (X, Y, Z) -> (-Y, X, Z)
+    s = Rot(Z=90) * _vendor_step(FAN_STEP)  # (X, Y, Z) -> (-Y, X, Z)
     return Pos(g.fan_face_x, 0, 0) * s
 
 
@@ -46,7 +55,6 @@ def fan_parts():
     return solids[1], Compound(obj=[solids[0], *solids[2:]])
 
 
-SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"
 # the vendor model's frame: X along the long axis (output axis at x = 5.7, short end toward +x), Y up with the back face at
 # y = -14.0, Z across the case; the output axis at z = 0
 _STEP_AXIS_X, _STEP_BACK_Y = 5.7, -14.0
@@ -54,12 +62,14 @@ _STEP_AXIS_X, _STEP_BACK_Y = 5.7, -14.0
 
 @cache
 def _servo_step():
-    return import_step(SERVO_STEP)
+    return _vendor_step(SERVO_STEP)
 
 
 def servo():
     """Hitec's own model of the HS-5065MG (SERVO_STEP), turned to stand beside the duct with the output up and
-    its axis at the output axis; `servo_box` is the simple stand-in."""
+    its axis at the output axis; `servo_box`, the simple stand-in, when the model has not been fetched."""
+    if not SERVO_STEP.exists():
+        return servo_box()
     s = _servo_step()
     s = Pos(-_STEP_AXIS_X, -_STEP_BACK_Y, 0) * s  # axis to the origin, back face to y = 0
     s = Rot(X=90) * s  # Y up -> Z up (Z -> -Y)

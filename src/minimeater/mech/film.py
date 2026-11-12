@@ -198,11 +198,12 @@ def build(glb: Path, lines_path: Path, out: Path, seconds=None, fps=24, alpha=0.
                 o.modifiers.clear()
             smooth_shaded(o)
 
-    rotor = bpy.data.objects["fan_rotor"]
-    rotor.rotation_mode = "XYZ"
-    for f in range(n):
-        rotor.rotation_euler = (rotor_angle[f], 0.0, 0.0)
-        rotor.keyframe_insert("rotation_euler", frame=f + 1)
+    rotor = bpy.data.objects.get("fan_rotor")  # absent with the box stand-in (Noctua's model not fetched)
+    if rotor is not None:
+        rotor.rotation_mode = "XYZ"
+        for f in range(n):
+            rotor.rotation_euler = (rotor_angle[f], 0.0, 0.0)
+            rotor.keyframe_insert("rotation_euler", frame=f + 1)
 
     def material(name, colour, rough=0.4, metal=0.0, emit=0.0):
         m = bpy.data.materials.new(name)

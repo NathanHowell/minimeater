@@ -9,7 +9,7 @@ Hardware: CERN-OHL-S-2.0 (CERN Open Hardware Licence Version 2 - Strongly Recipr
   src/minimeater/mech/     the build123d enclosure, its parameters and exports
   build/mech/              the enclosure files it generates (STEP, STL, drawings; not committed)
 
-  Source Location: https://github.com/NathanHowell/minimeat
+  Source Location: https://github.com/NathanHowell/minimeater
   (the board's back silk carries a QR code to it)
 
 Software and documentation: GPL-3.0-or-later (GNU General Public License, version 3 or any later version)
@@ -26,10 +26,12 @@ Software and documentation: GPL-3.0-or-later (GNU General Public License, versio
 Third-party material, under its own terms and not covered by the licences above:
   hw/lib/espressif.kicad_sym, hw/lib/espressif.pretty/, hw/lib/3d/ESP32-C6-WROOM-1.step
       Espressif, CC-BY-SA-4.0 with the KiCad library exception (hw/lib/README.md)
-  hw/lib/3d/ (other than the KK254 models, made by hw/tools/kk_ra_step.py)
-      the parts' EasyEDA/LCSC models, for reference
-  src/minimeater/mech/data/HS-5065MG.stp, src/minimeater/mech/data/NF-A6x25.stp
-      the servo's and the fan's makers' models, for fit checks
+  hw/lib/3d/WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm.step
+      a copy of KiCad's stock model, CC-BY-SA-4.0 with the KiCad library exception
+
+Not in the repository: the EasyEDA/LCSC models of five board parts and the fan's and the servo's makers' models
+(Noctua, Hitec) are their owners' and are not redistributed here. `uv run --group models scripts/fetch_models.py`
+fetches or installs them (scripts/fetch_models.py lists them); everything builds and tests without them.
   KiCad's own footprint, symbol and 3D libraries used by the board
       CC-BY-SA-4.0 with the KiCad library exception
   Crates and Python packages are fetched at build time under their own licences (see Cargo.lock and uv.lock).

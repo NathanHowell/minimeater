@@ -185,7 +185,7 @@ q = pcbnew.PCB_BARCODE(b)
 q.SetLayer(pcbnew.F_SilkS)  # drawn on the front, then flipped: on the back it reads unmirrored from the back
 q.SetKind(pcbnew.BARCODE_T_QR_CODE)
 q.SetErrorCorrection(pcbnew.BARCODE_ECC_T_L)
-q.SetText("HTTPS://GITHUB.COM/NATHANHOWELL/MINIMEAT")  # upper case: alphanumeric mode keeps it at version 2
+q.SetText("HTTPS://GITHUB.COM/NATHANHOWELL/MINIMEATER")  # upper case: alphanumeric mode keeps it at version 2
 q.SetShowText(False)
 q.SetWidth(mm(10.0))
 q.SetHeight(mm(10.0))
