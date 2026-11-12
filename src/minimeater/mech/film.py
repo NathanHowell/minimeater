@@ -1,5 +1,5 @@
 """The raytraced animation's scene: `assembly.glb`, cut in half through the flow axis, with one O2 molecule riding a CFD pathline
-(`uv run --group scene mech-scene`; bpy is in the `scene` group, ADR 0007). Saves a .blend to hand-tune and can render stills.
+(`just mech::scene`; bpy is in the `scene` group, ADR 0007). Saves a .blend to hand-tune and can render stills.
 
 Blender's frame is the mech frame (x along the flow, z up) in metres: the glTF importer undoes the export's y-up turn. The
 pathlines (`cfd.pathlines`) are mm in the same frame.
@@ -598,7 +598,7 @@ def captions(raw: Path, out: Path, items, fps: int, step=1, first=1):
 def main():
     ap = argparse.ArgumentParser(description="the molecule scene as a .blend, stills of it and the film")
     ap.add_argument("--glb", default="build/mech/assembly.glb", type=Path)
-    ap.add_argument("--lines", default="build/pathlines/pathlines-flap0.npz", type=Path, help="pathlines from `just pathlines`")
+    ap.add_argument("--lines", default="build/pathlines/pathlines-flap0.npz", type=Path, help="pathlines from `just mech::cfd::pathlines`")
     ap.add_argument("--out", default="build/scene/scene.blend", type=Path)
     ap.add_argument("--seconds", type=float, help="screen time of the CFD part of the path (the room to the tube)")
     ap.add_argument("--no-fire", action="store_true", help="the machine only: no egg, coal or meat")

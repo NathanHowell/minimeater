@@ -4,7 +4,7 @@
 //! the certificate's name, TLS 1.3, and the device's first publish; and that a broker the pinned CA did not sign is refused.
 //!
 //! Needs `openssl` and `uv` on the PATH (the test passes without doing anything where they are missing).
-//! `just tls-interop` runs it. The chip's own signing is covered in `minimeater-app` (`tls::tests`).
+//! `just fw::interop::tls` runs it. The chip's own signing is covered in `minimeater-app` (`tls::tests`).
 
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -426,11 +426,11 @@ async fn a_broker_the_pinned_ca_did_not_sign_is_not_spoken_to() {
     );
 }
 
-/// Mosquitto in a container (`just mosquitto-tls`): a listener that requires a client certificate from the private CA, takes the
+/// Mosquitto in a container (`just fw::interop::mosquitto-tls`): a listener that requires a client certificate from the private CA, takes the
 /// certificate's name as the user name, and lets a user write only under `minimeater/<its name>/`. The device's session
 /// connects with its certificate and its status reaches a subscriber on the broker's local plaintext listener.
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "needs a container runtime: run `just mosquitto-tls`"]
+#[ignore = "needs a container runtime: run `just fw::interop::mosquitto-tls`"]
 async fn the_session_works_against_mosquitto_with_the_certificate_name_as_the_user() {
     let runtime = std::env::var("MINIMEATER_CONTAINER").unwrap_or_else(|_| "podman".into());
     let pki = pki("mosq").expect("openssl");

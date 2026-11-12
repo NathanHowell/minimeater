@@ -19,5 +19,5 @@ cargo fw                      # build, flash over USB-C, then monitor (needs `ca
 - **Toolchain:** stable Rust only. `rust-toolchain.toml` pulls the RISC-V target and `rust-src`. There is no Xtensa fork.
 - **Floating point:** `minimeater-core` uses f64 with `libm`, so host and target compute the same values. The C6 has no FPU, so everything is soft-float either way.
 - **Ported from Python:** tests pin values produced by the reference in `src/minimeater/model/`.
-  - Controller: `tests/control_replay.rs` replays closed-loop trajectories from `uv run minimeater-fixtures` (`tests/fixtures/control.json`). The Rust MPC and FF+PI reproduce the Python commands to within a few 1e-6 CFM. Regenerate the fixture whenever `control.py` changes.
-  - Thermistor constants: regenerate with `uv run python`.
+  - Controller: `tests/control_replay.rs` replays closed-loop trajectories from `just model::fixtures` (`tests/fixtures/control.json`). The Rust MPC and FF+PI reproduce the Python commands to within a few 1e-6 CFM. Regenerate the fixture whenever `control.py` changes.
+  - Thermistor constants: `src/thermistor.rs`'s `REFERENCE` table is printed by `just model::thermistor-table`.

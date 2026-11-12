@@ -1,5 +1,5 @@
 """The CFD case builds without the solver: the air volume is one solid at every flap angle with each patch present,
-and the case files carry the flow and the patches (the solve itself is `just cfd <case>`)."""
+and the case files carry the flow and the patches (the solve itself is `just mech::cfd::run <case>`)."""
 
 import pytest
 

@@ -1,6 +1,6 @@
-"""Prints what the device publishes (`just stack-watch`).
+"""Prints what the device publishes (`just stack::watch`).
 
-Usage: uv run --no-project --with paho-mqtt python -I scripts/mqtt_watch.py BROKER_HOST [seconds]
+Usage: `just stack::watch [seconds]` (the broker from `just stack::up`).
 """
 
 import sys

@@ -1,4 +1,4 @@
-"""Check JLCPCB assembly stock for part keywords or C-numbers.  Run: uv run scripts/jlc_stock.py ADS1220IPWR C2089026
+"""Check JLCPCB assembly stock for part keywords or C-numbers.  Run: just hw::stock ADS1220IPWR C2089026
 
 `--bom [boards]` checks every assembled line of hw/minimeater.kicad_sch instead (its LCSC field, through kicad-cli's
 BOM export) against the quantity for that many boards (default 5): OK at 3x or more in stock, LOW at 1-3x, SHORT

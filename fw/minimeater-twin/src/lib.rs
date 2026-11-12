@@ -10,7 +10,7 @@
 //! The application's network clients run too: with an `mqtt` setting the MQTT client talks to an
 //! in-process broker ([`net`]: deterministic, any speed, with outages on demand), or with
 //! [`NetMode::Real`] (`--mqtt`/`--otlp`, a paced run) to a real Mosquitto and OpenTelemetry
-//! collector in containers (`just twin-stack`). Not yet: a live plot.
+//! collector in containers (`just fw::twin::stack`). Not yet: a live plot.
 #![allow(clippy::too_many_arguments)] // the executor tasks take their peripherals as arguments
 
 pub mod clock;

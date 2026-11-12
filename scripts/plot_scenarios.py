@@ -1,6 +1,6 @@
-"""Plots the twin scenario suite's CSVs (`just scenarios`): one PNG per scenario next to its CSV.
+"""Plots the twin scenario suite's CSVs (`just fw::twin::scenarios`): one PNG per scenario next to its CSV.
 
-Usage: uv run python -I scripts/plot_scenarios.py [DIR]   (default fw/target/tmp/scenarios)
+Usage: `just fw::twin::plot [DIR]` (default fw/target/tmp/scenarios); `just fw::twin::scenarios` runs it after the suite.
 """
 
 import csv
@@ -48,7 +48,7 @@ def main() -> None:
     root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("fw/target/tmp/scenarios")
     files = sorted(root.glob("*.csv"))
     if not files:
-        sys.exit(f"no CSVs in {root}: run `just scenarios` first")
+        sys.exit(f"no CSVs in {root}: run `just fw::twin::scenarios` first")
     for p in files:
         print(plot(p))
 

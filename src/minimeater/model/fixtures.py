@@ -1,6 +1,6 @@
 """Parity fixtures for the Rust port -> fw/minimeater-{core,sim}/tests/fixtures/*.json.
 
-Run: uv run minimeater-fixtures
+Run: just model::fixtures
 
 Each trajectory runs the Python reference controller (FfPi or Mpc) closed-loop against the nonlinear
 plant and records, per control step, exactly what `minimeater-core` sees (pit, setpoint, lid, airflow

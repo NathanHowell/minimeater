@@ -146,7 +146,7 @@ mod tests {
         );
     }
 
-    // (preset, F, R ohm, ratio at 47k) from `probes.py` (uv run python; see fw/README.md).
+    // (preset, F, R ohm, ratio at 47k) from `probes.py`: `just model::thermistor-table` prints it.
     const REFERENCE: [(Preset, f64, f64, f64); 9] = [
         (Preset::ThermoworksPro, 32.0, 317654.9516280019, 0.8711110330734068),
         (Preset::ThermoworksPro, 225.0, 4965.547363214056, 0.09555460521770857),

@@ -1,4 +1,4 @@
-"""Writes the two order folders (printed parts, machined parts), the assembly and the envelope (`uv run mech-export [dir]`)."""
+"""Writes the two order folders (printed parts, machined parts), the assembly and the envelope (`just mech::export [dir]`)."""
 
 import argparse
 import json

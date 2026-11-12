@@ -1,8 +1,8 @@
 """Checks the device-discovery message the firmware publishes against Home Assistant's own code
-(`just ha-discovery-check`): the abbreviations HA expands, the device schema, and each component's
+(`just fw::interop::ha-discovery`): the abbreviations HA expands, the device schema, and each component's
 platform schema, exactly as HA's MQTT discovery applies them, plus a syntax check of every template.
 
-Usage: uv run --no-project --python 3.14 --with homeassistant --with paho-mqtt python -I scripts/check_ha_discovery.py FILE.json
+Run by `just fw::interop::ha-discovery`, which writes FILE.json from the firmware's own test and passes it here.
 """
 
 import asyncio

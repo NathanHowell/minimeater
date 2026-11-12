@@ -88,7 +88,7 @@ Left, and why:
 - **The eave and its drip lip** at about 1.0 mm.
 - **Around the ambient vents** (x -87 to -60) the seam skirt is 1.1 mm.
 
-Third review (2026-10-22, JLC marked A 0.46, B 0.75, C 0.10). The first two rounds were checked by hand from a coarse ray sample; this one has a tool, `uv run mech-thinwall` (`mech/thinwall.py`), run on the exported STLs after `mech-export`. It samples each part's surface every 0.25 mm (about 700,000 points a part, a few seconds), casts a ray inward along the normal (the wall there, as JLC's heatmap measures it), and groups the samples under 1.0 mm. A sample within t / tan a of a sharp convex CAD edge of interior angle a under 90° is a knife edge (a wedge reads d tan a at d from its edge); the rest are listed as unexplained, by area. Run it before every upload: everything it lists should be fixed or below.
+Third review (2026-10-22, JLC marked A 0.46, B 0.75, C 0.10). The first two rounds were checked by hand from a coarse ray sample; this one has a tool, `just mech::thinwall` (`mech/thinwall.py`), run on the exported STLs after `mech-export`. It samples each part's surface every 0.25 mm (about 700,000 points a part, a few seconds), casts a ray inward along the normal (the wall there, as JLC's heatmap measures it), and groups the samples under 1.0 mm. A sample within t / tan a of a sharp convex CAD edge of interior angle a under 90° is a knife edge (a wedge reads d tan a at d from its edge); the rest are listed as unexplained, by area. Run it before every upload: everything it lists should be fixed or below.
 
 Fixed (`minimeat-e97`, `minimeat-xk8`):
 

@@ -1,5 +1,5 @@
 //! The firmware-side egg model against the Python reference at sample points
-//! (`uv run minimeater-fixtures` -> tests/fixtures/model.json).
+//! (`just model::fixtures` -> tests/fixtures/model.json).
 
 use minimeater_core::model::airflow::{AirPath, AirflowMap};
 use minimeater_core::model::thermal::steady_state;

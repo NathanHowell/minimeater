@@ -23,4 +23,4 @@ Resource attributes: `service.name` = `minimeater`, `service.instance.id` = the 
 | `minimeater.board.temperature` | Cel | | the ADC's die |
 | `minimeater.heap.free` | By | | |
 
-Try it: `just otlp-interop` starts a collector from `tools/otel-collector.yaml` (OTLP/HTTP in on 4318, Prometheus text out on 8889) in a container, runs the exporter against it and checks the scrape. Point a Prometheus at port 8889, and Grafana at that, for dashboards.
+Try it: `just fw::interop::otlp` starts a collector from `tools/otel-collector.yaml` (OTLP/HTTP in on 4318, Prometheus text out on 8889) in a container, runs the exporter against it and checks the scrape. Point a Prometheus at port 8889, and Grafana at that, for dashboards.

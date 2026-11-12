@@ -15,7 +15,7 @@ motion, and video out, all from one `uv run` command.
 
 ```bash
 uv add --group scene bpy          # pyproject.toml: [dependency-groups] scene
-uv run --group scene mech-scene   # run anything that imports bpy
+just mech::scene   # run anything that imports bpy
 ```
 
 - `bpy` 5.2 ships `cp313` wheels (`==3.13.*`) for macOS arm64 and Linux x86_64, the project's own Python pin, so no separate

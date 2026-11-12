@@ -28,8 +28,8 @@ def fan():
 
 FAN_STEP = Path(__file__).parent / "data" / "NF-A6x25.stp"
 SERVO_STEP = Path(__file__).parent / "data" / "HS-5065MG.stp"
-# the vendor models are not in the repository (their makers' terms): `uv run --group models scripts/fetch_models.py`
-FETCH = "uv run --group models scripts/fetch_models.py"
+# the vendor models are not in the repository (their makers' terms): `just vendor::fetch`
+FETCH = "just vendor::fetch"
 
 
 def _vendor_step(path):

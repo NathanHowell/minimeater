@@ -1,4 +1,4 @@
-"""Renders of the assembly for docs/mech.md (`uv run mech-render`)."""
+"""Renders of the assembly for docs/mech.md (`just mech::render`)."""
 
 import sys
 from pathlib import Path

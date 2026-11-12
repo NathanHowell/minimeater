@@ -4,9 +4,9 @@ What the air does between the fan and the tube: the pressure the duct costs the 
 flap can whistle (`.2.17`-`.2.19`). The code is `src/minimeater/mech/cfd/`; the geometry comes from the same build123d
 parts as the print (`mech/parts.py`), so a change to the duct or the flap is a change to the case.
 
-## Steady RANS: `just cfd <case>`
+## Steady RANS: `just mech::cfd::run <case>`
 
-`uv run minimeater-cfd <case> [--flap DEG] [--cfm Q] [--rpm N]` builds the air volume, meshes it and solves it in
+`just mech::cfd::run <case> [--flap DEG] [--cfm Q] [--rpm N]` builds the air volume, meshes it and solves it in
 OpenFOAM v2606 (`opencfd/openfoam-run:2606`, arm64, in Apple's `container`; no build), and writes
 `build/cfd/<case>/results.json`. Named cases: `open`, `open-swirl`, `open-vortex`, `flap-30`, `flap-45`, `flap-60`.
 
@@ -151,7 +151,7 @@ adds to them); the plain plenum's 6.8 is kept in `grille-current-gap0-4.2cfm-nor
 
 Steady MRF this near stall does not settle: the fan's static rise wanders about ±0.5 Pa over the last few hundred
 iterations, so the case now reports its mean over the last sixth (`dp_static_mean_pa`) and differences under about
-1 Pa are noise. `uv run python -m minimeater.mech.cfd.fields CASE [CASE ...]` cuts slices through finished cases (two
+1 Pa are noise. `just mech::cfd::fields CASE [CASE ...]` cuts slices through finished cases (two
 sections across the gills, three planes facing the fan) and draws speed, axial velocity, cross flow and total
 pressure side by side; it reads the last time step every case keeps.
 
@@ -200,11 +200,11 @@ the 1.5 the airflow model estimated (`Fan.stopped_k`, now 3.2 for the NF-A6x25).
 flows by 1-3 % (docs/modeling). A passive bypass round the stopped fan could win back at most that much, so it is not
 worth a moving part.
 
-### Pathlines through the whole airway (`cfd/pathlines.py`, `just pathlines`, `.cp2.2`, 2026-10-17)
+### Pathlines through the whole airway (`cfd/pathlines.py`, `just mech::cfd::pathlines`, `.cp2.2`, 2026-10-17)
 
 The animation (`docs/mech.md`) follows one air molecule from the room to the tube, so it needs lines through the grille, the fan, the stator cone,
 the flap and the tube, with the speed at each vertex. The grille case and the duct case are two meshes, joined at the fan's exit:
-`just pathlines run --flap 0 30` runs the grille case once (4.2 CFM, the fan's operating point, at its rated 3000 rpm), writes its fan-exit
+`just mech::cfd::pathlines run --flap 0 30` runs the grille case once (4.2 CFM, the fan's operating point, at its rated 3000 rpm), writes its fan-exit
 profile (`fan.profile`, the same one the duct cases take), runs a duct case from that profile at each flap angle and traces through each pair.
 The result is `build/pathlines/pathlines-flapN.npz` (and a `.vtp` for ParaView): per line the points in mm in the mech frame, the particle's own
 time, its absolute speed and the stage (room, rotor, duct) at each vertex.
@@ -230,7 +230,7 @@ time, its absolute speed and the stage (room, rotor, duct) at each vertex.
   quarters of the swirl, and the rest is what the `.2.25` study found (the struts straighten the flow they can reach). With the flap at 30 degrees the lines squeeze past the blade faster (6-7 m/s) and a wake of loops follows it for about 30 mm
   (`pathlines-flap30.npz`).
 
-## Acoustics: `uv run minimeater-acoustics`
+## Acoustics: `just mech::cfd::acoustics`
 
 `acoustics.py`: below the bore's first cross mode (6.3 kHz) only plane waves travel, so the path is a chain of transfer
 matrices: the open end behind the fan, the fan's annulus, the cone, the bore, the flap as a lumped flow resistance and
@@ -250,7 +250,7 @@ must overcome. The flap's loss law (`open_area_fraction`, `flap_k`) is corrected
 - Whether the shedding actually feeds a mode is the LES (`.2.18`) and the forced-impedance check below (`.2.19`, `.2.20`):
   it does not, at any point the firmware visits, with or without the fan's swirl.
 
-## Where the firmware runs it: `uv run minimeater-operating`
+## Where the firmware runs it: `just mech::cfd::operating`
 
 ![operating path](cfd/operating.png)
 
@@ -286,20 +286,20 @@ pit with no draft) is the fan alone with the flap open, up to about 4.1 CFM.
   duct's modes directly, flap or no flap; the 846 Hz mode is the one to watch. That is the fan's noise, not the flap's,
   and belongs with the bake-off (`.2.11`).
 
-## LES of the flap: `just les` (`.2.18`)
+## LES of the flap: `just mech::cfd::les` (`.2.18`)
 
 `les.py` runs the same air volume and mesher as the steady case under incompressible LES (pimpleFoam, WALE, Spalding wall
 functions, backward in time, LUST for the convection) and `les_post.py` turns the time series into spectra. It runs in the
 same OpenFOAM container, under whichever runtime the machine has (`runtime.py`: Apple's `container`, podman, docker; the Linux
 box uses podman, rootless).
 
-    just les --flap 33 --cfm 0.7 --res coarse      # one case: build/les/round-33deg-0.7cfm-coarse
-    just les --sweep --res coarse                  # the operating points below, one after another
-    just les --flap 33 --cfm 0.7 --dry             # write the case, print the time step and step count
-    just les --flap 33 --cfm 0.7 --mesh-only       # mesh it, report the cell count
-    just les --flap 33 --cfm 0.7 --resume          # carry on from the last checkpoint after a stop (same arguments)
-    just les-post build/les/*                      # spectra, peaks, les.png, les.json, spectra.npz
-    just les-post --compare build/les/A-coarse build/les/A-medium    # the shedding peak must not move (5 % or 2 bins)
+    just mech::cfd::les --flap 33 --cfm 0.7 --res coarse      # one case: build/les/round-33deg-0.7cfm-coarse
+    just mech::cfd::les --sweep --res coarse                  # the operating points below, one after another
+    just mech::cfd::les --flap 33 --cfm 0.7 --dry             # write the case, print the time step and step count
+    just mech::cfd::les --flap 33 --cfm 0.7 --mesh-only       # mesh it, report the cell count
+    just mech::cfd::les --flap 33 --cfm 0.7 --resume          # carry on from the last checkpoint after a stop (same arguments)
+    just mech::cfd::les-post build/les/*                      # spectra, peaks, les.png, les.json, spectra.npz
+    just mech::cfd::les-post --compare build/les/A-coarse build/les/A-medium    # the shedding peak must not move (5 % or 2 bins)
 
 - **Sizing from the flow** (`make`): the step is adjustable to Courant 0.8 (at most 50 us, the forces and probes are resampled
   to 20 kHz); the spin-up is three flow-throughs of 150 mm at half the fastest speed, then at least 0.08 s or 40 shedding
@@ -339,9 +339,9 @@ about 1.5 days, the medium one 3-4. Not measured at medium yet: time one case's 
 
 ## The whistle verdict: `whistle.py` (`.2.19`, 2026-10-19)
 
-    just les --flap 33 --cfm 0.7 --res smoke --no-howe --force-hz 846 --force-amp 0.05   # a forced run
-    just les --flap 0 --cfm 4.1 --res smoke --no-howe --intensity 0                      # an unforced, steady-inlet run
-    uv run python -m minimeater.mech.cfd.whistle build/les/<case>...                     # one JSON line per case
+    just mech::cfd::les --flap 33 --cfm 0.7 --res smoke --no-howe --force-hz 846 --force-amp 0.05   # a forced run
+    just mech::cfd::les --flap 0 --cfm 4.1 --res smoke --no-howe --intensity 0                      # an unforced, steady-inlet run
+    just mech::cfd::whistle build/les/<case>...                     # one JSON line per case
 
 **Can it whistle?** The flap is about 1/20 of the first mode's wavelength, so it is compact: a duct mode looks to it like an
 oscillating flow. A forced run oscillates the inlet by 5 % at a mode's frequency, and the part of the flap's axial force

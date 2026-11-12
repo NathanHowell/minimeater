@@ -1,4 +1,4 @@
-"""Silkscreen artwork: `uv run --with segno --with matplotlib python hw/tools/art.py <font.ttf>` writes hw/art/.
+"""Silkscreen artwork: `just hw::art <font.ttf>` writes hw/art/.
 
 logo.svg: a flame (hollow inner tongue) and the wordmark "minimeater" (Lilita One, OFL, from google/fonts), as filled
 paths; qr.svg: the repository URL as a QR code, the light modules and a two-module quiet zone as squares (dark

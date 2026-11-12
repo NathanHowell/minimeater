@@ -30,7 +30,7 @@ Third-party material, under its own terms and not covered by the licences above:
       a copy of KiCad's stock model, CC-BY-SA-4.0 with the KiCad library exception
 
 Not in the repository: the EasyEDA/LCSC models of five board parts and the fan's and the servo's makers' models
-(Noctua, Hitec) are their owners' and are not redistributed here. `uv run --group models scripts/fetch_models.py`
+(Noctua, Hitec) are their owners' and are not redistributed here. `just vendor::fetch`
 fetches or installs them (scripts/fetch_models.py lists them); everything builds and tests without them.
   KiCad's own footprint, symbol and 3D libraries used by the board
       CC-BY-SA-4.0 with the KiCad library exception

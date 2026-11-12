@@ -1,4 +1,4 @@
-"""Thin-wall check of the exported print STLs, measured the way JLC3DP's upload check does (`uv run mech-thinwall`).
+"""Thin-wall check of the exported print STLs, measured the way JLC3DP's upload check does (`just mech::thinwall`).
 
 Every part's surface is sampled densely (`spacing` mm apart on average). At each sample a ray goes inward along the
 normal; the distance to the first face it hits is the wall there. Samples under `limit` are grouped into clusters,

@@ -1,5 +1,5 @@
 //! Core/surface temperature of the default brisket in a constant-temperature pit, hourly.
-//! `cargo run -p minimeater-sim --example meat_curve -- 250`
+//! `just fw::meat-curve 250`
 
 use minimeater_core::model::Ambient;
 use minimeater_core::units::f_to_k;

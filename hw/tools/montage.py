@@ -1,6 +1,6 @@
 """Every layout block and the board at one scale, coloured by netclass, for placement reviews.
 
-  uv run --with matplotlib --with pillow python hw/tools/montage.py <dump.json> <out.png> [--ppmm 20]
+  just hw::montage <dump.json> <out.png> [--ppmm 20]
 
 Each block is rendered with render.py (--refs, F.Cu and B.Cu, --by-class) and the board (outline, fixed parts, pours
 hidden) beside them; the tiles are pasted at the same pixels per mm, so sizes compare directly.

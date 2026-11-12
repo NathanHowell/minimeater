@@ -1,5 +1,5 @@
 //! The MQTT client against a real broker and an independent client (`.5.2`). Run it with
-//! `just mqtt-interop`, which starts Mosquitto in a container. The device side is the app's own
+//! `just fw::interop::mqtt`, which starts Mosquitto in a container. The device side is the app's own
 //! session over a tokio TCP socket with a stub in place of the control task; the other side is
 //! rumqttc, standing in for Home Assistant and a user's phone.
 
@@ -177,7 +177,7 @@ fn start_device(bus: &'static Bus) -> tokio::task::JoinHandle<()> {
 }
 
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "needs a broker: run `just mqtt-interop`"]
+#[ignore = "needs a broker: run `just fw::interop::mqtt`"]
 async fn the_client_works_against_mosquitto() {
     LocalSet::new()
         .run_until(async {

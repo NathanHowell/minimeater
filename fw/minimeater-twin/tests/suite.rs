@@ -2,7 +2,7 @@
 //! own process (the twin is one run per process), and its control metrics must meet the scenario's
 //! bounds (`suite::Expect`) and not be worse than `baselines.json`.
 //!
-//! `UPDATE_BASELINES=1 cargo test -p minimeater-twin --release --test suite` rewrites the baselines
+//! `just fw::twin::scenarios-update` rewrites the baselines
 //! from this run, after a change that is meant to move them. The CSV of each run is left in
 //! `target/tmp/scenarios/` for `scripts/plot_scenarios.py`.
 

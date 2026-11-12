@@ -1,8 +1,8 @@
-//! `cargo run --release -p minimeater-twin -- [--scenario kamado-brisket] [--speed 60|max]
-//! [--every MIN] [--csv FILE] [--metrics] [--mqtt HOST:PORT] [--otlp HOST:PORT]` (or `just twin ...`):
+//! `just fw::twin::run [--scenario kamado-brisket] [--speed 60|max]
+//! [--every MIN] [--csv FILE] [--metrics] [--mqtt HOST:PORT] [--otlp HOST:PORT]` (or `just fw::twin::run ...`):
 //! runs a scenario on the twin and prints the cook, or with `--metrics` only its control metrics as
 //! one line of JSON. `--mqtt` and `--otlp` connect the app's clients to a real broker and collector
-//! (`just stack-up`); they need a paced run (`--speed 60`), since the app's timeouts are virtual.
+//! (`just stack::up`); they need a paced run (`--speed 60`), since the app's timeouts are virtual.
 
 use std::fs::File;
 use std::io::{BufWriter, Write};

@@ -1,4 +1,4 @@
-"""The exploded-view loop for the README (`uv run --group scene mech-explode`): the assembly turning once about the vertical
+"""The exploded-view loop for the README (`just mech::explode`): the assembly turning once about the vertical
 axis while it comes apart and goes back together, the enclosure faint when assembled (the chassis and the board show
 through) and solid when exploded. Raytraced (Cycles, as `film.py`) on a transparent film from the same glb as the film
 (`scene.write`, the real board when KiCad is here).

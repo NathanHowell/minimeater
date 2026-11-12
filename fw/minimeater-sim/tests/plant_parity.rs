@@ -1,4 +1,4 @@
-//! Open-loop scripted run against the Python plant (`uv run minimeater-fixtures` -> fixtures/plant.json):
+//! Open-loop scripted run against the Python plant (`just model::fixtures` -> fixtures/plant.json):
 //! same actuation script and events, compared every 60 s.
 
 use minimeater_core::model::airflow::AirPath;

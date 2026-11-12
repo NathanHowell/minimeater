@@ -1,4 +1,4 @@
-"""`uv run minimeater-cfd <case>` (`just cfd <case>`): meshes and solves one duct case in the OpenFOAM container
+"""`just mech::cfd::run <case>`: meshes and solves one duct case in the OpenFOAM container
 (Apple's `container` on the Mac, podman or docker elsewhere: runtime.py) and reports the flow and the duct's loss.
 
 The loss is read off the developed pressure line: a straight line fitted through the static pressure on the last

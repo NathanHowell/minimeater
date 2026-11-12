@@ -1,6 +1,6 @@
 """2D drawings of the machined parts for the CNC quote: three views, overall sizes, and a table of threads, bores and
 tolerances, one A4 PDF per part named like its STEP file (`flap.pdf` beside `flap.step`: JLCCNC pairs a drawing with a 3D file
-by filename). `uv run mech-export` writes them to `cnc/`.
+by filename). `just mech::export` writes them to `cnc/`.
 The STEP files carry a thread only as a plain hole at the tap-drill diameter, so the callouts live here."""
 
 from dataclasses import dataclass

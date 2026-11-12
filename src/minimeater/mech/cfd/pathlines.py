@@ -1,4 +1,4 @@
-"""`uv run minimeater-pathlines` (`just pathlines`): the air's paths through the whole airway, from the RANS fields, for the
+"""`just mech::cfd::pathlines`: the air's paths through the whole airway, from the RANS fields, for the
 raytraced animation (docs/cfd.md, `minimeat-cp2.2`).
 
 Two steady cases carry the air: the grille case (grille.py: the room, the rear wall's gills, the plenum, the fan with its rotor

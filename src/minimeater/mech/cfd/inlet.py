@@ -1,4 +1,4 @@
-"""`uv run python -m minimeater.mech.cfd.inlet [out.json]`: the duct's inlet as two curves, the contraction's wall
+"""`just mech::cfd::inlet [out.json]`: the duct's inlet as two curves, the contraction's wall
 r_w(x) and the tail cone r_h(x), each a degree-7 Bernstein polynomial in x / L. Ends fixed: wall 29 -> 16, flat at both ends; hub 13.25 flat at the plate -> 0 at its tip angle.
 Objective: the mean axial speed Q / A rises as evenly as possible (least squares of dU/dx about its mean), plus
 curvature penalties on both curves; the annulus may never widen. Prints the metrics for today's straight cone and four

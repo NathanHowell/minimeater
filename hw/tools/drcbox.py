@@ -1,4 +1,4 @@
-"""DRC items inside a box: `uv run python hw/tools/drcbox.py <drc.json> x0,y0,x1,y1`.
+"""DRC items inside a box: `just hw::drcbox <drc.json> x0,y0,x1,y1`.
 
 Reads a kicad-cli (or Konnect run_drc) JSON report and prints every violation with an item inside the box, so a
 block can be checked while the rest of the board is unrouted. Library-drift and missing-field warnings are noise

@@ -1,5 +1,5 @@
 //! Replays closed-loop trajectories recorded from the Python reference controllers
-//! (`uv run minimeater-fixtures` -> tests/fixtures/control.json) and checks the Rust port commands the
+//! (`just model::fixtures` -> tests/fixtures/control.json) and checks the Rust port commands the
 //! same airflow from the same inputs.
 
 use minimeater_core::control::{FfPi, Fopdt, Mpc, Obs, PitController, Schedule};

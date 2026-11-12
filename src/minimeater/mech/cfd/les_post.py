@@ -1,4 +1,4 @@
-"""`uv run minimeater-les-post <case dir>...` (`just les-post`): what a finished (or running) LES case says about the flap.
+"""`just mech::cfd::les-post <case dir>...` (`just mech::cfd::les-post`): what a finished (or running) LES case says about the flap.
 
 Reads the function objects' time series (forces, moments, wall and shear-layer probes, the Lamb-vector slabs) from
 `postProcessing/`, resamples them to a uniform 20 kHz (the run's time step adjusts to the Courant limit), drops the spin-up

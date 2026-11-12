@@ -1,4 +1,4 @@
-"""`uv run python -m minimeater.mech.cfd.whistle <les case dir>...`: what the flap's unsteady force radiates (`.2.19`).
+"""`just mech::cfd::whistle <les case dir>...`: what the flap's unsteady force radiates (`.2.19`).
 
 The LES (`les.py`, incompressible) gives the force on the flap and rod. Its axial part is a pressure jump F_x / A_bore across
 the flap, the only part that drives the duct's plane waves (the cross forces couple to the bore's first cross mode, above 6

@@ -1,7 +1,7 @@
 """Drives a real Home Assistant (container) through onboarding, adds its MQTT integration, then
-checks the minimeater device that the twin publishes appears with working entities (`just ha-live-check`).
+checks the minimeater device that the twin publishes appears with working entities (`just fw::interop::ha-live`).
 
-Usage: uv run --no-project python -I scripts/ha_live_check.py HA_HOST BROKER_HOST
+Run by `just fw::interop::ha-live`, which starts Home Assistant, the stack and the twin and passes HA_HOST BROKER_HOST.
 """
 
 import json

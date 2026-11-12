@@ -1,4 +1,4 @@
-"""`uv run python -m minimeater.mech.cfd.fan [--cfm Q] [--rpm N]`: the NF-A6x25 itself, steady RANS with its rotor in a
+"""`just mech::cfd::fan [--cfm Q] [--rpm N]`: the NF-A6x25 itself, steady RANS with its rotor in a
 rotating frame (MRF), from Noctua's public model (`mock.fan_step`): its curve against the spec and its exit swirl.
 
 The domain: a square plenum ahead of the fan (the background box's walls, a square inlet face 45 mm upstream), the

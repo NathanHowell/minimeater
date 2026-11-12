@@ -1,4 +1,4 @@
-"""`uv run python -m minimeater.mech.cfd.grille [--grille current|s-louvre] [--gap MM]`: the fan's intake, steady RANS
+"""`just mech::cfd::grille [--grille current|s-louvre] [--gap MM]`: the fan's intake, steady RANS
 with the rotor in a rotating frame (fan.py's case with the rear wall in front of it): outside air, the rear wall's
 louvres, the gap to the fan, the fan and its exhaust pipe.
 

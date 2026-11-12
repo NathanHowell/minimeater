@@ -2,7 +2,7 @@
 
 The ambient reading goes into the airflow map (`AirflowMap::rebuild`, when it has moved 2 C) and so into the airflow the controller asks for. It is not an extra bias term. The question was whether it earns its place, so the suite has a `-blind` twin of the three scenarios where the weather matters: the same cook with the TMP117 dead from the start, which makes the control task plan with the 20 C fallback (the sensor's `fault` is the only difference in events).
 
-Twin runs (`cargo run --release -p minimeater-twin -- --scenario NAME --metrics`), hold = within the scenario's hold windows:
+Twin runs (`just fw::twin::run --scenario NAME --metrics`), hold = within the scenario's hold windows:
 
 | Scenario | Weather | hold RMS (F), sighted / blind | hold max (F) | overshoot (F) | reach (min) |
 |---|---|---|---|---|---|

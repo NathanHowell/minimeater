@@ -8,7 +8,7 @@
 //! surface water reservoir is mostly gone and then tapers (bark), which ends the stall.
 //!
 //! All parameters [est], tuned for plausibility against the usual cook-log shape for a 13 lb packer
-//! brisket (`cargo run -p minimeater-sim --example meat_curve -- <pit F>`):
+//! brisket (`just fw::meat-curve <pit F>`):
 //!
 //! | pit | stall plateau | 203F reached |
 //! |---|---|---|

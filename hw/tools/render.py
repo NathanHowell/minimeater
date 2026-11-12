@@ -1,4 +1,4 @@
-"""Copper coloured by net, for layout reviews: `uv run python hw/tools/render.py <dump.json> <out.png> [options]`.
+"""Copper coloured by net, for layout reviews: `just hw::render <dump.json> <out.png> [options]`.
 
 The dump comes from `pcbdump.py` (KiCad's python). Every net has its own colour (GND dark grey, power warm); pads
 carry their net name when they are big enough on the page; footprints show their courtyard and reference. Tracks

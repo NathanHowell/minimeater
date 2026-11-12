@@ -1,4 +1,4 @@
-"""Where the firmware runs the flap and the fan (`uv run minimeater-operating [dir]`): the actuation path the airflow map
+"""Where the firmware runs the flap and the fan (`just mech::cfd::operating [dir]`): the actuation path the airflow map
 (`model.control.AirflowMap`, ported to `minimeater-core::model::airflow`) takes as the commanded airflow rises, and
 the steady hold point (`FeedForward`) for each pit temperature and ambient, with the flap's shedding estimate there
 against the duct's modes (`acoustics.py`).

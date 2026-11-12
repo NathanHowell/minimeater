@@ -1,4 +1,4 @@
-"""`uv run minimeater-les` (`just les`): the flap under incompressible LES (pimpleFoam, WALE) in the OpenFOAM container (`.2.18`).
+"""`just mech::cfd::les`: the flap under incompressible LES (pimpleFoam, WALE) in the OpenFOAM container (`.2.18`).
 
 The same air volume and mesher as the steady case (geometry.py, case.py), the flap region refined, then an adjustable time step run
 long enough to settle and to average over. What it writes for the post-processing (les_post.py) and for `.2.19`:

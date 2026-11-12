@@ -1,4 +1,4 @@
-"""`uv run python -m minimeater.mech.cfd.fields CASE [CASE ...]`: the flow field of finished grille cases, not just
+"""`just mech::cfd::fields CASE [CASE ...]`: the flow field of finished grille cases, not just
 their numbers. Each case keeps its last time step; this cuts slices through it in the OpenFOAM container
 (`postProcess`, a few cores, a minute) and draws them side by side, one column per case:
 

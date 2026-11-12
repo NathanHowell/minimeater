@@ -1,6 +1,6 @@
 """Fab outputs for JLCPCB into hw/fab/: gerbers+drill (zip), BOM (JLC columns) and component placement (CPL), for the
 single board and for a one-up assembly panel with JLC's tooling holes.
-Run from the repo root: uv run python hw/tools/fab.py   (needs kicad-cli on PATH)
+Run from the repo root: just hw::fab   (needs kicad-cli on PATH)
 
 Exports come from a copy of the board with its zones refilled (kicad-cli's gerber export uses the fills as last saved).
 The panel adds 5 mm rails on the left and right (the connector edge at the top has parts past it), mouse-bite tabs,

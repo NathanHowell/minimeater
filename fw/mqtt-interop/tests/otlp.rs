@@ -1,6 +1,6 @@
 //! The OTLP exporter (`.4.11`): decoded with an independent protobuf implementation
 //! (opentelemetry-proto, prost), and end to end through a real OpenTelemetry collector that turns
-//! it into Prometheus text (`just otlp-interop`).
+//! it into Prometheus text (`just fw::interop::otlp`).
 
 use std::time::Duration;
 
@@ -152,7 +152,7 @@ async fn scrape(host: &str, port: u16) -> String {
 }
 
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "needs a collector: run `just otlp-interop`"]
+#[ignore = "needs a collector: run `just fw::interop::otlp`"]
 async fn a_real_collector_accepts_the_export_and_exposes_it() {
     LocalSet::new()
         .run_until(async {

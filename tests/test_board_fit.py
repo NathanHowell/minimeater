@@ -20,7 +20,7 @@ BOARD_MODELS = all((ROOT / m.path).exists() for m in fetch_models.MODELS if m.lc
 
 pytestmark = [
     pytest.mark.skipif(not board3d.available(), reason="needs KiCad (Mac app, or the kicad container under podman)"),
-    pytest.mark.skipif(not BOARD_MODELS, reason="needs the board's EasyEDA models: uv run --group models scripts/fetch_models.py"),
+    pytest.mark.skipif(not BOARD_MODELS, reason="needs the board's EasyEDA models: just vendor::fetch"),
 ]
 
 MOCKS = {"pcb", "pcb_keepout", "connectors", "plugs"}  # stand-ins for the board that the real one replaces

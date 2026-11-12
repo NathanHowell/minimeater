@@ -1,4 +1,4 @@
-"""Fetch the vendor 3D models the repository does not redistribute (`uv run --group models scripts/fetch_models.py`).
+"""Fetch the vendor 3D models the repository does not redistribute (`just vendor::fetch`).
 
 The board's EasyEDA models come from LCSC by part number through `easyeda2kicad`; Noctua's fan and Hitec's servo
 have no stable download link and are fetched by hand (the script says where), then checked and put in place with
@@ -117,7 +117,7 @@ def main() -> int:
                     data = cand
                     break
             if data is None:
-                print(f"  download by hand from {m.manual}\n  then: uv run --group models scripts/fetch_models.py --from <file>")
+                print(f"  download by hand from {m.manual}\n  then: just vendor::fetch --from <file>")
                 missing += 1
                 continue
         if data is None:

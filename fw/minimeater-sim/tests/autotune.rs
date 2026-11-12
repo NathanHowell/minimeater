@@ -19,7 +19,7 @@ use minimeater_core::model::{Ambient, Egg, top_vent};
 use minimeater_core::units::{CFM, air_density, f_to_k};
 use minimeater_sim::{Actuators, Dynamics, Environment, Fuel, Plant, Rng, uncertainty_band};
 
-/// Python reference (`uv run minimeater-control`): (plant, sp F, K F/CFM, tau min, theta s).
+/// Python reference (`just model::control`): (plant, sp F, K F/CFM, tau min, theta s).
 const REFERENCE: [(&str, f64, f64, f64, f64); 12] = [
     ("low loss", 150.0, 157.0, 9.1, 96.0),
     ("low loss", 225.0, 146.0, 8.8, 103.0),

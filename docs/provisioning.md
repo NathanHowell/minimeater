@@ -120,7 +120,7 @@ acl_file acl
 ```
 
 With `use_identity_as_username` the certificate's common name (`mm-` and the MAC) is the user name, so an ACL can confine a device to its
-own topics: `pattern readwrite minimeater/%u/#`. `just mosquitto-tls` runs exactly this against the firmware's session.
+own topics: `pattern readwrite minimeater/%u/#`. `just fw::interop::mosquitto-tls` runs exactly this against the firmware's session.
 
 ## Replacing a device's key
 
