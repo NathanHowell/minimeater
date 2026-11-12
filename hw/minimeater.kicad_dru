@@ -27,11 +27,11 @@
 	(constraint hole_clearance (min 0.19mm))
 	(condition "A.Parent == 'J1' || B.Parent == 'J1'"))
 
-# U1's exposed pad (nine pad-29 squares) sits in its own solid GND pour, U1_EPAD, stitched by vias. The board-wide
+# U10's exposed pad (the ESP32-C6 module's nine pad-29 squares) sits in its own solid GND pour, U1_EPAD, stitched by vias. The board-wide
 # GND pour can only reach each square with one thermal spoke past it, so the squares connect solid instead.
-(rule u1_epad_solid
+(rule u10_epad_solid
 	(constraint zone_connection solid)
-	(condition "A.Parent == 'U1' && A.Pad_Number == '29'"))
+	(condition "A.Parent == 'U10' && A.Pad_Number == '29'"))
 
 # The back-silk QR code is knocked out of a silk square whose 0.8 mm border is its quiet zone (white silk, like
 # paper), so copper near the square does not touch the code's own margin: KiCad's 1 mm barcode separation is
@@ -41,7 +41,8 @@
 	(condition "A.Type == 'Barcode' || B.Type == 'Barcode'"))
 
 # Small GND pads that the board-wide pour can only reach with one thermal spoke (neighbouring tracks take the room
-# for the second); each also has its own track or via to ground. Named, so a new starved pad elsewhere still fails.
+# for the second); each also has its own track or via to ground. Named, so a new starved pad elsewhere still fails
+# (and renamed when the board is renumbered: these are the references since a52ef73).
 (rule gnd_pad_one_spoke
 	(constraint min_resolved_spokes 1)
-	(condition "A.Type == 'Pad' && A.NetName == 'GND' && (A.Parent == 'U2' || A.Parent == 'U9' || A.Parent == 'U14' || A.Parent == 'C26' || A.Parent == 'U4' || A.Parent == 'U7' || A.Parent == 'R4' || A.Parent == 'J7')"))
+	(condition "A.Type == 'Pad' && A.NetName == 'GND' && (A.Parent == 'U1' || A.Parent == 'U2' || A.Parent == 'U3' || A.Parent == 'C23' || A.Parent == 'U5' || A.Parent == 'U7' || A.Parent == 'R3' || A.Parent == 'J7')"))

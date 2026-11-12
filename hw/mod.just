@@ -11,7 +11,7 @@ board := "hw/minimeater.kicad_pcb"
 fab:
     PATH="{{ kicad_bin }}:$PATH" uv run python hw/tools/fab.py
 
-# ERC and DRC (errors only), as CI runs them. kicad-cli from the PATH, else the kicad container under podman (MINIMEATER_KICAD_IMAGE).
+# ERC and DRC (errors only, zones refilled), as CI runs them. kicad-cli from the PATH, else the kicad container under podman (MINIMEATER_KICAD_IMAGE).
 check:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -29,8 +29,9 @@ check:
         }
     fi
     kc sch erc --exit-code-violations --output build/hw/erc.rpt "$base.kicad_sch"
-    # errors only: the stock footprints differ between KiCad versions (lib_footprint_mismatch warnings), and the silk warnings are known
-    kc pcb drc --severity-error --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
+    # errors only: the stock footprints differ between KiCad versions (lib_footprint_mismatch warnings), and the silk warnings are known.
+    # Zones refilled first (not saved), so DRC checks the copper fab.py exports rather than the fills last saved.
+    kc pcb drc --severity-error --refill-zones --exit-code-violations --output build/hw/drc.rpt "$base.kicad_pcb"
 
 # JLCPCB stock and price for parts by name or C-number, e.g. `just hw::stock ADS1220IPWR C2089026`.
 stock +parts:
