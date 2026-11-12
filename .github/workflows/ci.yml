@@ -4,21 +4,19 @@ on:
     branches: [master]
   pull_request:
 
+# Each job runs the same recipe a developer runs locally (`just py::ci`, `just fw::ci`, `just hw::check`).
 jobs:
   python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - uses: extractions/setup-just@v2
       - run: uv sync --locked
-      - run: uv run pytest -q
-      - run: uv run mech-export build/mech
+      - run: just py::ci
 
   firmware:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: fw
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -28,10 +26,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: fw
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --exclude minimeater-fw --all-targets -- -D warnings
-      - run: cargo test --workspace --exclude minimeater-fw --release
-      - run: cargo fw-build
+      - uses: extractions/setup-just@v2
+      - run: just fw::ci
 
   hardware:
     runs-on: ubuntu-latest
@@ -40,13 +36,12 @@ jobs:
       options: --user root
     steps:
       - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
       # the image has KiCad's stock libraries but no global library tables: seed them from its templates
       - run: |
-          mkdir -p ~/.config/kicad/10.0 build/hw
+          mkdir -p ~/.config/kicad/10.0
           cp /usr/share/kicad/template/sym-lib-table /usr/share/kicad/template/fp-lib-table ~/.config/kicad/10.0/
-          kicad-cli sch erc --exit-code-violations --output build/hw/erc.rpt hw/minimeater.kicad_sch
-          # errors only: the stock footprints differ between KiCad versions (lib_footprint_mismatch warnings)
-          kicad-cli pcb drc --severity-error --exit-code-violations --output build/hw/drc.rpt hw/minimeater.kicad_pcb
+      - run: just hw::check
       - if: always()
         uses: actions/upload-artifact@v4
         with:
