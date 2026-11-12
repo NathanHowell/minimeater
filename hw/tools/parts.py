@@ -1,7 +1,8 @@
 """Reference -> footprint -> courtyard bbox (mm, footprint frame) from the schematic and the libraries."""
 import re, json, glob, os, sys
-STOCK = "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"
-HW = "/Users/nhowell/source/NathanHowell/minimeater/hw"
+# KiCad's stock footprints: its own variable when set, else the Mac app's bundle
+STOCK = os.environ.get("KICAD10_FOOTPRINT_DIR", "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints")
+HW = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LIBS = {"minimeater": f"{HW}/lib/minimeater.pretty", "espressif": f"{HW}/lib/espressif.pretty"}
 
 def fp_path(fid):

@@ -48,6 +48,10 @@ render dump out *args:
 montage dump out *args:
     uv run --with matplotlib --with pillow python hw/tools/montage.py {{ dump }} {{ out }} {{ args }}
 
+# Each reference's footprint and courtyard box from the schematic and the libraries: `just hw::parts build/hw/parts.json`.
+parts out:
+    uv run python hw/tools/parts.py {{ out }}
+
 # DRC violations inside a box (mm) from a JSON report: `just hw::drcbox build/hw/drc.json x0,y0,x1,y1`.
 drcbox report box:
     uv run python hw/tools/drcbox.py {{ report }} {{ box }}

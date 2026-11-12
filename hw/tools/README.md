@@ -11,7 +11,7 @@ its one-off rework scripts were retired (in git history before the re-layout).
   at its exit (open track end, else the pad nearest the edge) labelled `net > destinations` and coloured by
   destination; the fixed parts' pins get the same, pointing into the board (render.py `--ports`, `--only`).
 - `blockcheck.sh <x0,y0,x1,y1> <out.png> "<title>"`: DRC items inside a block's box (`drcbox.py`) plus its F.Cu render.
-- `parts.py <out.json>`: each reference's footprint and courtyard box from the schematic and libraries.
+- `parts.py` (`just hw::parts <out.json>`): each reference's footprint and courtyard box from the schematic and libraries.
 - `kdrc.py`: kicad-cli DRC from KiCad's python, returns the violations.
 - `fab.py` (`just hw::fab`): gerber zip, JLC BOM and CPL into `hw/fab/`, from a zone-refilled copy;
   plus a one-up assembly panel (`minimeater-panel-*`: 5 mm rails left and right, mouse bites, three 1.152 mm NPTH
