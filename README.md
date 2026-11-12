@@ -82,8 +82,8 @@ collector for the twin to cook against (`just fw::twin::stack`).
 
 ## Contributing
 
-Issues and pull requests are welcome. Please run `just test` (or `just ci`) before sending a change, and regenerate
-any derived docs you touch rather than editing them by hand.
+There is no public issue tracker. Pull requests are welcome: please run `just test` (or `just ci`) before sending
+one, and regenerate any derived docs you touch rather than editing them by hand.
 
 ## License
 
