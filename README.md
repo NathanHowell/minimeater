@@ -4,7 +4,10 @@ A fan controller for a Big Green Egg Large. It is a single 3D-printed box that c
 meters air into the fire with a fan and a servo-driven flap to hold the pit at a setpoint between 150 and 325 °F.
 It runs from one USB-C cable and talks to Home Assistant over MQTT.
 
-<p align="center"><img src="docs/mech/explode.webp" width="480" alt="The enclosure, faint, turning while the fan, servo, linkage, board and the two shells come apart and go back together"></p>
+<p align="center">
+  <img src="docs/mech/explode.webp" width="440" alt="The enclosure, faint, turning while the fan, servo, linkage, board and the two shells come apart and go back together">
+  <img src="docs/mech/flow-open.webp" width="440" alt="A cutaway of the enclosure with the flap open: air from the CFD's pathlines enters through the gills, swirls through the turning fan, straightens through the stator vanes and runs down the tube">
+</p>
 
 > [!WARNING]
 > **Status: design, not yet built.** The board, the enclosure and the firmware are complete enough to order and run in

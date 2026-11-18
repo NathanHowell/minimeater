@@ -23,6 +23,12 @@ thinwall *args:
 explode *args:
     uv run --group scene mech-explode {{ args }}
 
+# The README's airflow loop, a WebP beside explode.webp: the CFD's pathlines as moving parcels through the faint enclosure
+# (`just mech::flowloop docs/mech/flow-open.webp`, or `--lines build/pathlines/pathlines-flap30.npz --flap 30 --name flap30`).
+# Needs `just mech::cfd::pathlines` and img2webp.
+flowloop *args:
+    uv run --group scene mech-flowloop {{ args }}
+
 # build/scene/scene.blend; `--still N` PNGs, `--video` the mp4, `--preview` quick (640 x 360, 8 samples).
 # Needs `just mech::cfd::pathlines` and `just mech::export` first.
 # The air-molecule film (docs/mech.md, ADR 0007): the scene, stills and the video.
